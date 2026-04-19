@@ -1,14 +1,6 @@
-import { createClient } from '@base44/sdk';
-import { appParams } from '@/lib/app-params';
+// MIGRATED: Base44 removed. This stub prevents build errors while
+// remaining pages are migrated to Supabase in Sprint 3+.
+const noop = () => { throw new Error("base44 removed — use Supabase services instead"); };
+const makeProxy = () => new Proxy({}, { get: () => makeProxy(), apply: noop });
 
-const { appId, token, functionsVersion, appBaseUrl } = appParams;
-
-//Create a client with authentication required
-export const base44 = createClient({
-  appId,
-  token,
-  functionsVersion,
-  serverUrl: '',
-  requiresAuth: false,
-  appBaseUrl
-});
+export const base44 = makeProxy();
