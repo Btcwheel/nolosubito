@@ -154,4 +154,21 @@ export const praticheService = {
       .eq('id', notaId);
     if (error) throw error;
   },
+
+  // Links a pre-uploaded temp file to a pratica (called after pratica creation)
+  async addDocumentoUrl(praticaId, { nome_file, tipo_documento, storage_path }) {
+    const { data, error } = await supabase
+      .from('pratica_documenti')
+      .insert({
+        pratica_id: praticaId,
+        nome_file,
+        tipo_documento,
+        storage_path,
+        stato_verifica: 'In attesa',
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
 };

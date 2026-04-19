@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { base44 } from "@/api/base44Client";
+import { praticheService } from "@/services/pratiche";
 import { useToast } from "@/components/ui/use-toast";
 import { Send, Loader2, CheckCircle, User, Building, Briefcase, FileUp } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import DocumentUploader from "./DocumentUploader";
 
 const CLIENT_TYPES = [
@@ -40,82 +40,52 @@ export default function LeadForm({ prefilledConfig }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
+    try {
+      const pratica = await praticheService.create({
+        cliente_nome: clientType === "Privato"
+          ? `${form.firstName} ${form.lastName}`.trim()
+          : form.companyName,
+        cliente_email: form.email,
+        cliente_telefono: form.phone,
+        cliente_tipo: clientType,
+        cliente_piva: clientType === "Privato" ? form.fiscalCode : form.vatNumber,
+        veicolo_marca: prefilledConfig?.make || "",
+        veicolo_modello: prefilledConfig?.model || "",
+        segmento: prefilledConfig?.segment || null,
+        durata_mesi: prefilledConfig?.duration || null,
+        km_annui: prefilledConfig?.annualKm || null,
+        anticipo: prefilledConfig?.advance || null,
+        canone_mensile: prefilledConfig?.monthlyRent || null,
+        note_cliente: form.notes,
+      });
 
-    const docSummary = uploadedDocs.length > 0
-      ? `\n\nDocumenti allegati (${uploadedDocs.length}):\n${uploadedDocs.map(d => `- ${d.name}: ${d.url}`).join("\n")}`
-      : "\n\nNessun documento allegato.";
+      if (uploadedDocs.length > 0) {
+        await Promise.all(
+          uploadedDocs.map(doc =>
+            praticheService.addDocumentoUrl(pratica.id, {
+              nome_file: doc.name,
+              tipo_documento: doc.docId,
+              storage_path: doc.path,
+            })
+          )
+        );
+      }
 
-    const configSummary = prefilledConfig
-      ? `Vehicle: ${prefilledConfig.make} ${prefilledConfig.model}\nSegment: ${prefilledConfig.segment}\nDuration: ${prefilledConfig.duration} months\nAnnual KM: ${prefilledConfig.annualKm?.toLocaleString()}\nAdvance: €${prefilledConfig.advance?.toLocaleString()}\nMonthly Rent: €${prefilledConfig.monthlyRent || 'Custom quote'}`
-      : "General inquiry";
-
-    const contactName = isPrivate
-      ? `${form.firstName} ${form.lastName}`
-      : form.companyName;
-
-    const emailBody = `
-<h2>Nuova Richiesta Offerta NLT — ${clientType}</h2>
-<hr/>
-<h3>Dati Cliente</h3>
-<p><strong>Tipo cliente:</strong> ${clientType}</p>
-${clientType === "Privato" ? `
-<p><strong>Nome:</strong> ${form.firstName}</p>
-<p><strong>Cognome:</strong> ${form.lastName}</p>
-<p><strong>Codice Fiscale:</strong> ${form.fiscalCode}</p>
-` : clientType === "P.IVA" ? `
-<p><strong>Nome/Ragione Sociale:</strong> ${form.companyName || form.firstName + " " + form.lastName}</p>
-<p><strong>Partita IVA:</strong> ${form.vatNumber}</p>
-` : `
-<p><strong>Ragione Sociale:</strong> ${form.companyName}</p>
-<p><strong>Partita IVA:</strong> ${form.vatNumber}</p>
-`}
-<p><strong>Email:</strong> ${form.email}</p>
-<p><strong>Telefono:</strong> ${form.phone}</p>
-${form.notes ? `<p><strong>Note:</strong> ${form.notes}</p>` : ""}
-<hr/>
-<h3>Configurazione Veicolo</h3>
-<pre>${configSummary}</pre>
-<hr/>
-<h3>Documenti Allegati</h3>
-<pre>${docSummary}</pre>
-    `.trim();
-
-    // Crea pratica automaticamente
-    const codice = `NS-${new Date().getFullYear()}-${Date.now().toString().slice(-5)}`;
-    await base44.entities.Pratica.create({
-      codice,
-      status: "Nuova",
-      cliente_nome: clientType === "Privato" || isPrivate
-        ? `${form.firstName} ${form.lastName}`.trim()
-        : form.companyName,
-      cliente_email: form.email,
-      cliente_telefono: form.phone,
-      cliente_tipo: clientType,
-      cliente_piva: clientType === "Privato" || isPrivate ? form.fiscalCode : form.vatNumber,
-      veicolo_marca: prefilledConfig?.make || "",
-      veicolo_modello: prefilledConfig?.model || "",
-      segmento: prefilledConfig?.segment || null,
-      durata_mesi: prefilledConfig?.duration || null,
-      km_annui: prefilledConfig?.annualKm || null,
-      anticipo: prefilledConfig?.advance || null,
-      canone_mensile: prefilledConfig?.monthlyRent || null,
-      note_cliente: form.notes,
-      documenti_urls: uploadedDocs.map(d => d.url),
-      ultimo_aggiornamento_stato: new Date().toISOString(),
-    });
-
-    await base44.integrations.Core.SendEmail({
-      to: "offerte@nolosubito.it",
-      subject: `NLT Quote Request: ${prefilledConfig?.make || "General"} ${prefilledConfig?.model || ""} — ${contactName}`,
-      body: emailBody,
-    });
-
-    setSending(false);
-    setSubmitted(true);
-    toast({
-      title: "Richiesta inviata!",
-      description: "Il nostro team ti contatterà entro 24 ore.",
-    });
+      setSubmitted(true);
+      toast({
+        title: "Richiesta inviata!",
+        description: "Il nostro team ti contatterà entro 24 ore.",
+      });
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "Errore nell'invio",
+        description: "Si è verificato un problema. Riprova tra qualche minuto.",
+        variant: "destructive",
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   if (submitted) {
@@ -132,7 +102,7 @@ ${form.notes ? `<p><strong>Note:</strong> ${form.notes}</p>` : ""}
           Richiesta Inviata con Successo
         </h3>
         <p className="text-muted-foreground">
-          Il nostro team B2B ti contatterà entro 24 ore con un'offerta personalizzata.
+          Il nostro team ti contatterà entro 24 ore con un'offerta personalizzata.
         </p>
       </motion.div>
     );
@@ -227,9 +197,10 @@ ${form.notes ? `<p><strong>Note:</strong> ${form.notes}</p>` : ""}
           </div>
         </div>
       )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="email" className="text-xs font-medium">Email Aziendale *</Label>
+          <Label htmlFor="email" className="text-xs font-medium">Email *</Label>
           <Input
             id="email"
             type="email"
@@ -253,6 +224,7 @@ ${form.notes ? `<p><strong>Note:</strong> ${form.notes}</p>` : ""}
           />
         </div>
       </div>
+
       <div>
         <Label htmlFor="notes" className="text-xs font-medium">Note Aggiuntive</Label>
         <Textarea
@@ -263,6 +235,7 @@ ${form.notes ? `<p><strong>Note:</strong> ${form.notes}</p>` : ""}
           className="mt-1.5 h-24"
         />
       </div>
+
       {/* Document upload section */}
       <div className="border border-border/60 rounded-2xl p-4 bg-muted/20 space-y-3">
         <div className="flex items-center gap-2">
@@ -273,7 +246,7 @@ ${form.notes ? `<p><strong>Note:</strong> ${form.notes}</p>` : ""}
           <span className="text-xs text-muted-foreground ml-auto">PDF, JPG, PNG</span>
         </div>
         <p className="text-xs text-muted-foreground">
-          Carica i documenti richiesti per accelerare la pratica. Un agente AI verificherà che siano completi e validi.
+          Carica i documenti richiesti per accelerare la pratica.
         </p>
         <DocumentUploader
           clientType={clientType}
@@ -294,7 +267,7 @@ ${form.notes ? `<p><strong>Note:</strong> ${form.notes}</p>` : ""}
         ) : (
           <>
             <Send className="w-4 h-4 mr-2" />
-            Richiedi Offerta Business
+            Richiedi Offerta
           </>
         )}
       </Button>

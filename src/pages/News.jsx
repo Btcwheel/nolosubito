@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { postsService } from "@/services/posts";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import NewsCard from "@/components/news/NewsCard";
@@ -12,7 +12,7 @@ export default function News() {
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["posts"],
-    queryFn: () => base44.entities.Post.filter({ is_published: true }, "-published_date", 50),
+    queryFn: () => postsService.list({ onlyPublished: true }),
   });
 
   const filtered = activeCategory === "Tutti"

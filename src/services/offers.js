@@ -88,4 +88,35 @@ export const offersService = {
       .eq('id', id);
     if (error) throw error;
   },
+
+  // Veicoli con prezzo minimo per le pagine listing
+  async listWithMinPrice(segment) {
+    let configQuery = supabase
+      .from('offer_configs')
+      .select('make,model,monthly_rent,segment')
+      .eq('is_active', true);
+
+    if (segment) configQuery = configQuery.eq('segment', segment);
+
+    const [offersRes, configsRes] = await Promise.all([
+      supabase.from('offers').select('*').eq('is_active', true).order('make'),
+      configQuery,
+    ]);
+
+    if (offersRes.error) throw offersRes.error;
+    if (configsRes.error) throw configsRes.error;
+
+    const minPriceMap = {};
+    configsRes.data?.forEach(c => {
+      const key = `${c.make}|${c.model}`;
+      if (!minPriceMap[key] || c.monthly_rent < minPriceMap[key]) {
+        minPriceMap[key] = c.monthly_rent;
+      }
+    });
+
+    return offersRes.data?.map(o => ({
+      ...o,
+      monthly_rent: minPriceMap[`${o.make}|${o.model}`] ?? null,
+    })) ?? [];
+  },
 };

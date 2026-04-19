@@ -37,8 +37,14 @@ const SCENES = [
   },
 ];
 
+// Su mobile: 3 scene (300vh), su desktop: 5 scene (500vh)
+const isMobile = () => window.innerWidth < 640;
+
 export default function HeroSection() {
   const containerRef = useRef(null);
+  const mobile = isMobile();
+  const activeScenes = mobile ? SCENES.slice(0, 3) : SCENES;
+  const totalHeight = activeScenes.length * 100;
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -48,15 +54,16 @@ export default function HeroSection() {
   const scrollHintOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
 
   return (
-    <div ref={containerRef} style={{ height: `${SCENES.length * 100}vh` }} className="relative">
+    <div ref={containerRef} style={{ height: `${totalHeight}vh` }} className="relative">
       <div className="sticky top-0 h-screen overflow-hidden">
-        {SCENES.map((scene, i) => (
+        {activeScenes.map((scene, i) => (
           <HeroScene
             key={i}
             scene={scene}
             index={i}
             scrollYProgress={scrollYProgress}
             isFirst={i === 0}
+            totalScenes={activeScenes.length}
           />
         ))}
 
@@ -64,15 +71,17 @@ export default function HeroSection() {
 
         {/* Scroll hint */}
         <motion.div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+          className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
           style={{ opacity: scrollHintOpacity }}
         >
-          <span className="text-white/40 text-xs tracking-widest uppercase">Scorri per esplorare</span>
+          <span className="text-white/40 text-[10px] sm:text-xs tracking-widest uppercase">
+            Scorri per esplorare
+          </span>
           <motion.div
             animate={{ y: [0, 8, 0] }}
             transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
           >
-            <ChevronDown className="w-5 h-5 text-white/40" />
+            <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-white/40" />
           </motion.div>
         </motion.div>
       </div>

@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { postsService } from "@/services/posts";
 import ReactMarkdown from "react-markdown";
 import { ArrowLeft, Calendar, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,12 +12,10 @@ import { it } from "date-fns/locale";
 export default function NewsDetail() {
   const { slug } = useParams();
 
-  const { data: posts = [], isLoading } = useQuery({
+  const { data: post, isLoading } = useQuery({
     queryKey: ["post", slug],
-    queryFn: () => base44.entities.Post.filter({ slug }),
+    queryFn: () => postsService.getBySlug(slug),
   });
-
-  const post = posts[0] || null;
 
   if (isLoading) {
     return (

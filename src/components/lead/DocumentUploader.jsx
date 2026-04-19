@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { base44 } from "@/api/base44Client";
+import React, { useState } from "react";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const REQUIRED_DOCS = {
+export const REQUIRED_DOCS = {
   "Privato": [
     { id: "buste_paga", label: "Ultime 2 buste paga", required: true },
     { id: "cud", label: "CUD (Certificazione Unica)", required: true },
@@ -31,13 +31,13 @@ const REQUIRED_DOCS = {
   ],
 };
 
+const SESSION_ID = crypto.randomUUID();
+
 export default function DocumentUploader({ clientType, onDocumentsChange }) {
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploading, setUploading] = useState(null);
   const [verifying, setVerifying] = useState(false);
   const [verificationResult, setVerificationResult] = useState(null);
-  const fileInputRef = useRef(null);
-  const [activeDocId, setActiveDocId] = useState(null);
 
   const requiredDocs = REQUIRED_DOCS[clientType] || REQUIRED_DOCS["Privato"];
 
@@ -48,17 +48,23 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
     setUploading(docId);
     const newFiles = [];
 
-    for (const file of files) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      newFiles.push({ docId, name: file.name, url: file_url, type: file.type, size: file.size });
+    try {
+      for (const file of files) {
+        const ext = file.name.split('.').pop();
+        const path = `temp/${SESSION_ID}/${docId}-${Date.now()}.${ext}`;
+        const { error } = await supabase.storage.from('documenti').upload(path, file);
+        if (error) throw error;
+        newFiles.push({ docId, name: file.name, path, type: file.type, size: file.size });
+      }
+    } finally {
+      setUploading(null);
+      e.target.value = "";
     }
 
     const updated = [...uploadedFiles.filter(f => f.docId !== docId), ...newFiles];
     setUploadedFiles(updated);
     onDocumentsChange?.(updated);
     setVerificationResult(null);
-    setUploading(null);
-    e.target.value = "";
   };
 
   const removeFile = (docId) => {
@@ -68,22 +74,28 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
     setVerificationResult(null);
   };
 
+  // Sprint 5: real verification via Edge Function + Claude API
   const verifyDocuments = async () => {
     setVerifying(true);
-    setVerificationResult(null);
-    const response = await base44.functions.invoke("verifyDocuments", {
-      clientType,
-      documents: uploadedFiles.map(f => ({ name: f.name, type: f.type, docId: f.docId }))
-    });
-    setVerificationResult(response.data.result);
+    await new Promise(r => setTimeout(r, 800));
+    const missing = requiredDocs.filter(d => !uploadedFiles.find(f => f.docId === d.id));
+    setVerificationResult(
+      missing.length === 0
+        ? {
+            status: "COMPLETO",
+            summary: "Tutti i documenti sono stati caricati correttamente.",
+            ok: uploadedFiles.map(f => f.name),
+          }
+        : {
+            status: "PARZIALE",
+            summary: "Alcuni documenti obbligatori mancano.",
+            missing: missing.map(d => d.label),
+          }
+    );
     setVerifying(false);
   };
 
-  const getDocStatus = (docId) => {
-    return uploadedFiles.find(f => f.docId === docId) ? "uploaded" : "missing";
-  };
-
-  const uploadedCount = requiredDocs.filter(d => getDocStatus(d.id) === "uploaded").length;
+  const uploadedCount = requiredDocs.filter(d => uploadedFiles.find(f => f.docId === d.id)).length;
   const allUploaded = uploadedCount === requiredDocs.length;
 
   return (
@@ -98,9 +110,7 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
             <div
               key={doc.id}
               className={`flex items-center justify-between gap-3 p-3.5 rounded-xl border transition-all duration-200 ${
-                file
-                  ? "border-green-200 bg-green-50"
-                  : "border-border bg-muted/30"
+                file ? "border-green-200 bg-green-50" : "border-border bg-muted/30"
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">
@@ -133,7 +143,6 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
                 ) : (
                   <>
                     <input
-                      ref={activeDocId === doc.id ? fileInputRef : null}
                       type="file"
                       id={`file-${doc.id}`}
                       className="hidden"
@@ -143,7 +152,6 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
                     />
                     <label
                       htmlFor={`file-${doc.id}`}
-                      onClick={() => setActiveDocId(doc.id)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
                         isUploading
                           ? "bg-muted text-muted-foreground"
@@ -184,9 +192,9 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
           className="w-full border-electric/30 text-electric hover:bg-electric/5 font-semibold cursor-pointer"
         >
           {verifying ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifica AI in corso…</>
+            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifica in corso…</>
           ) : (
-            <><ShieldCheck className="w-4 h-4 mr-2" /> Verifica Documenti con AI</>
+            <><ShieldCheck className="w-4 h-4 mr-2" /> Verifica Documenti</>
           )}
         </Button>
       )}
@@ -240,19 +248,6 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
                   {verificationResult.missing.map((m, i) => (
                     <li key={i} className="flex items-start gap-1.5 text-xs text-red-700">
                       <X className="w-3 h-3 shrink-0 mt-0.5" /> {m}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {verificationResult.warnings?.length > 0 && (
-              <div>
-                <p className="text-xs font-semibold text-yellow-700 mb-1">Attenzione:</p>
-                <ul className="space-y-1">
-                  {verificationResult.warnings.map((w, i) => (
-                    <li key={i} className="flex items-start gap-1.5 text-xs text-yellow-700">
-                      <AlertTriangle className="w-3 h-3 shrink-0 mt-0.5" /> {w}
                     </li>
                   ))}
                 </ul>
