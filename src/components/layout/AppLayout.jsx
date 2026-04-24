@@ -4,6 +4,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import ScrollToTop from "./ScrollToTop";
 import AIChatWidget from "@/components/AIChatWidget";
+import CookieBanner from "@/components/CookieBanner";
 
 export default function AppLayout() {
   return (
@@ -15,6 +16,7 @@ export default function AppLayout() {
       </main>
       <Footer />
       <AIChatWidget />
+      <CookieBanner />
     </div>
   );
 }

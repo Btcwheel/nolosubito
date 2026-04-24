@@ -20,6 +20,8 @@ const WorkWithUs       = lazy(() => import('./pages/WorkWithUs'));
 const CommercialOffers = lazy(() => import('./pages/CommercialOffers'));
 const News             = lazy(() => import('./pages/News'));
 const NewsDetail       = lazy(() => import('./pages/NewsDetail'));
+const PrivacyPolicy    = lazy(() => import('./pages/PrivacyPolicy'));
+const TerminiCondizioni = lazy(() => import('./pages/TerminiCondizioni'));
 const Login            = lazy(() => import('./pages/Login'));
 const AdminDashboard      = lazy(() => import('./pages/AdminDashboard'));
 const AdminLeads          = lazy(() => import('./pages/AdminLeads'));
@@ -64,6 +66,8 @@ const AppRoutes = () => {
           <Route path="/commercial"           element={<CommercialOffers />} />
           <Route path="/news"                 element={<News />} />
           <Route path="/news/:slug"           element={<NewsDetail />} />
+          <Route path="/privacy"              element={<PrivacyPolicy />} />
+          <Route path="/termini"              element={<TerminiCondizioni />} />
         </Route>
 
         {/* ── Area Admin ── */}
