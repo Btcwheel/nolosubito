@@ -76,6 +76,10 @@ export const praticheService = {
     return this.update(praticaId, { agente_id: agenteId, agente_nome: agenteNome });
   },
 
+  async setProvvigione(praticaId, importo, pagata) {
+    return this.update(praticaId, { provvigione: importo, provvigione_pagata: pagata });
+  },
+
   // ── Documenti ─────────────────────────────────────────────
 
   async uploadDocumento(praticaId, file, tipoDocumento) {
@@ -153,6 +157,16 @@ export const praticheService = {
       .delete()
       .eq('id', notaId);
     if (error) throw error;
+  },
+
+  async getDocumenti(praticaId) {
+    const { data, error } = await supabase
+      .from('pratica_documenti')
+      .select('*')
+      .eq('pratica_id', praticaId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
   },
 
   // Links a pre-uploaded temp file to a pratica (called after pratica creation)

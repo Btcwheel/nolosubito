@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, Zap, Shield, Wrench } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 
@@ -99,14 +99,42 @@ export default function BusinessOffers() {
 
   return (
     <div className="bg-navy">
-      <div className="pt-24 sm:pt-28 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <p className="text-electric text-xs font-bold uppercase tracking-widest mb-2">Noleggio a Lungo Termine</p>
-          <h1 className="font-heading font-bold text-3xl sm:text-4xl text-white">Offerte Business</h1>
-          <p className="mt-2 text-white/50 max-w-xl text-sm sm:text-base">
-            Gamma completa in NLT per P.IVA e aziende. Assicurazione, manutenzione e soccorso stradale inclusi.
-          </p>
-        </motion.div>
+      {/* ── Hero ── */}
+      <div className="relative overflow-hidden">
+        {/* Background glows */}
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-electric/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full bg-electric/5 blur-3xl pointer-events-none" />
+        {/* Dot grid */}
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
+
+        <div className="relative pt-24 sm:pt-28 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-electric tracking-widest uppercase bg-electric/10 border border-electric/20 rounded-full px-3 py-1 mb-4">
+              <Zap className="w-3 h-3" /> Noleggio a Lungo Termine
+            </span>
+            <h1 className="font-heading font-bold text-3xl sm:text-5xl text-white leading-tight">
+              Offerte Business
+            </h1>
+            <p className="mt-3 text-white/50 max-w-xl text-sm sm:text-base leading-relaxed">
+              Gamma completa NLT per P.IVA e aziende.<br className="hidden sm:block" />
+              Assicurazione, manutenzione e soccorso stradale inclusi nel canone.
+            </p>
+
+            {/* Trust pills */}
+            <div className="flex flex-wrap gap-2 mt-5">
+              {[
+                { icon: Shield, label: "Kasko inclusa" },
+                { icon: Wrench, label: "Manutenzione inclusa" },
+                { icon: Zap,    label: "Auto sostitutiva H24" },
+              ].map(({ icon: Icon, label }) => (
+                <span key={label} className="inline-flex items-center gap-1.5 text-xs text-white/60 bg-white/5 border border-white/10 rounded-full px-3 py-1.5">
+                  <Icon className="w-3 h-3 text-electric" /> {label}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+        </div>
       </div>
 
       <div className="bg-background rounded-t-3xl min-h-screen">
@@ -187,12 +215,18 @@ export default function BusinessOffers() {
           {/* Results count */}
           {!isLoading && (
             <div className="flex items-center justify-between mb-6">
-              <p className="text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">{filtered.length}</span> veicoli trovati
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="font-heading font-bold text-lg text-foreground">{filtered.length}</span>
+                <span className="text-sm text-muted-foreground">veicoli disponibili</span>
+                {activeFilters > 0 && (
+                  <span className="text-[11px] font-semibold bg-electric/10 text-electric px-2 py-0.5 rounded-full">
+                    {activeFilters} filtri attivi
+                  </span>
+                )}
+              </div>
               {activeFilters > 0 && (
-                <button onClick={clearFilters} className="text-xs text-electric hover:underline cursor-pointer">
-                  Cancella filtri
+                <button onClick={clearFilters} className="text-xs text-electric hover:underline cursor-pointer flex items-center gap-1">
+                  <X className="w-3 h-3" /> Cancella filtri
                 </button>
               )}
             </div>
@@ -213,10 +247,14 @@ export default function BusinessOffers() {
               ))}
             </div>
           ) : filtered.length === 0 ? (
-            <div className="text-center py-20">
-              <p className="text-muted-foreground text-lg">Nessun veicolo trovato.</p>
-              <button onClick={clearFilters} className="text-sm text-electric mt-2 hover:underline cursor-pointer">
-                Rimuovi i filtri
+            <div className="text-center py-24">
+              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                <Search className="w-7 h-7 text-muted-foreground" />
+              </div>
+              <p className="font-heading font-semibold text-lg text-foreground">Nessun veicolo trovato</p>
+              <p className="text-sm text-muted-foreground mt-1.5 mb-5">Prova a modificare i filtri di ricerca.</p>
+              <button onClick={clearFilters} className="text-sm font-semibold text-electric hover:underline cursor-pointer">
+                Rimuovi tutti i filtri
               </button>
             </div>
           ) : (

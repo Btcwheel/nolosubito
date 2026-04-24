@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { postsService } from "@/services/posts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,13 +38,13 @@ export default function CmsNews() {
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["cms-posts"],
-    queryFn: () => base44.entities.Post.list("-published_date", 100),
+    queryFn: () => postsService.list({ onlyPublished: false }),
   });
 
   const saveMutation = useMutation({
     mutationFn: (data) => editing === "new"
-      ? base44.entities.Post.create(data)
-      : base44.entities.Post.update(editing.id, data),
+      ? postsService.create(data)
+      : postsService.update(editing.id, data),
     onSuccess: () => {
       qc.invalidateQueries(["cms-posts"]);
       toast({ title: editing === "new" ? "Articolo creato" : "Articolo aggiornato" });
@@ -53,7 +53,7 @@ export default function CmsNews() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Post.delete(id),
+    mutationFn: (id) => postsService.delete(id),
     onSuccess: () => {
       qc.invalidateQueries(["cms-posts"]);
       toast({ title: "Articolo eliminato" });
@@ -61,7 +61,7 @@ export default function CmsNews() {
   });
 
   const togglePublished = useMutation({
-    mutationFn: ({ id, val }) => base44.entities.Post.update(id, { is_published: val }),
+    mutationFn: ({ id, val }) => postsService.update(id, { is_published: val }),
     onSuccess: () => qc.invalidateQueries(["cms-posts"]),
   });
 

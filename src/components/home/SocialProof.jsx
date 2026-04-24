@@ -81,7 +81,7 @@ export default function SocialProof() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: i * 0.1 }}
-              className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/8 transition-colors duration-300"
+              className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/[0.08] transition-colors duration-300"
             >
               <Quote className="w-8 h-8 text-electric/40 mb-4" />
               <p className="text-white/70 text-sm leading-relaxed mb-5">"{t.text}"</p>

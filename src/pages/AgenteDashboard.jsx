@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { praticheService } from "@/services/pratiche";
+import { useAuth } from "@/lib/AuthContext";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,24 +9,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Search, Eye, ClipboardList, TrendingUp, Clock, CheckCircle2,
-  Users, Car, ChevronRight, ArrowUpRight, AlertCircle, Zap, BarChart2
+  Users, Car, ChevronRight, ArrowUpRight, AlertCircle, Zap, BarChart2, Euro
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { motion } from "framer-motion";
 import AgentePipelineView from "@/components/agente/AgentePipelineView";
 import AgenteStatsChart from "@/components/agente/AgenteStatsChart";
+import { PRATICA_STATUS_COLORS, DEFAULT_STATUS_COLOR } from "@/lib/praticaStatus";
 
-const STATUS_CONFIG = {
-  "Nuova":               { color: "bg-blue-50 text-blue-700 border-blue-200",   dot: "bg-blue-500" },
-  "In Lavorazione":      { color: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-500" },
-  "Documenti Richiesti": { color: "bg-orange-50 text-orange-700 border-orange-200", dot: "bg-orange-500" },
-  "Approvata":           { color: "bg-green-50 text-green-700 border-green-200",  dot: "bg-green-500" },
-  "Consegnata":          { color: "bg-purple-50 text-purple-700 border-purple-200", dot: "bg-purple-500" },
-  "Chiusa":              { color: "bg-gray-100 text-gray-600 border-gray-200",   dot: "bg-gray-400" },
-};
-
-const ALL_STATUSES = ["Nuova", "In Lavorazione", "Documenti Richiesti", "Approvata", "Consegnata", "Chiusa"];
+const ALL_STATUSES = [
+  "Nuova", "In Lavorazione", "Documenti Richiesti", "Documenti Caricati",
+  "Attesa Affidamento Finanziaria", "Affidamento Ricevuto", "Stipula Contratto",
+  "Attesa Consegna", "Approvata", "Consegnata", "Chiusa",
+];
 const ACTIVE_STATUSES = ["Nuova", "In Lavorazione", "Documenti Richiesti", "Approvata"];
 
 export default function AgenteDashboard() {
@@ -33,15 +30,12 @@ export default function AgenteDashboard() {
   const [filterStatus, setFilterStatus] = useState("tutti");
   const [view, setView] = useState("lista"); // "lista" | "pipeline" | "stats"
 
-  const { data: user } = useQuery({
-    queryKey: ["me"],
-    queryFn: () => base44.auth.me(),
-  });
+  const { profile } = useAuth();
 
   const { data: pratiche = [], isLoading } = useQuery({
-    queryKey: ["pratiche-agente", user?.id],
-    queryFn: () => base44.entities.Pratica.filter({ agente_id: user?.id }, "-created_date", 200),
-    enabled: !!user?.id,
+    queryKey: ["pratiche-agente", profile?.id],
+    queryFn: () => praticheService.list({ agenteId: profile.id }),
+    enabled: !!profile?.id,
   });
 
   const stats = useMemo(() => {
@@ -51,7 +45,13 @@ export default function AgenteDashboard() {
     const totalCanone = pratiche
       .filter(p => p.status === "Consegnata" && p.canone_mensile)
       .reduce((sum, p) => sum + (p.canone_mensile || 0), 0);
-    return { attive, chiuse, nuove, totalCanone };
+    const provvigioneTotale = pratiche
+      .filter(p => p.provvigione != null)
+      .reduce((sum, p) => sum + Number(p.provvigione), 0);
+    const provvigionePagata = pratiche
+      .filter(p => p.provvigione != null && p.provvigione_pagata)
+      .reduce((sum, p) => sum + Number(p.provvigione), 0);
+    return { attive, chiuse, nuove, totalCanone, provvigioneTotale, provvigionePagata };
   }, [pratiche]);
 
   const filtered = useMemo(() => pratiche.filter(p => {
@@ -70,7 +70,7 @@ export default function AgenteDashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Top hero bar */}
-      <div className="bg-navy relative overflow-hidden pt-24 pb-10 px-4 sm:px-6 lg:px-8">
+      <div className="bg-navy relative overflow-hidden pt-10 pb-10 px-4 sm:px-6 lg:px-8">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(37,99,235,0.3)_0%,_transparent_65%)]" />
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
         <div className="max-w-7xl mx-auto relative z-10">
@@ -78,7 +78,7 @@ export default function AgenteDashboard() {
             <div>
               <p className="text-white/50 text-sm font-medium mb-1">{greeting},</p>
               <h1 className="font-heading font-bold text-3xl md:text-4xl text-white leading-tight">
-                {user?.full_name || "Agente"}
+                {profile?.full_name || "Agente"}
               </h1>
               <p className="text-white/40 text-sm mt-1.5">
                 {format(new Date(), "EEEE d MMMM yyyy", { locale: it })} · {pratiche.length} pratiche totali
@@ -137,12 +137,12 @@ export default function AgenteDashboard() {
               trend: "Completate"
             },
             {
-              label: "Canone tot. consegnato",
-              value: `€${stats.totalCanone.toLocaleString("it-IT")}`,
-              icon: TrendingUp,
+              label: "Provvigioni maturate",
+              value: `€${stats.provvigioneTotale.toLocaleString("it-IT")}`,
+              icon: Euro,
               color: "text-electric",
               bg: "bg-electric/5",
-              trend: "/mese"
+              trend: `€${stats.provvigionePagata.toLocaleString("it-IT")} pagati`
             },
           ].map((kpi, i) => (
             <motion.div
@@ -169,13 +169,13 @@ export default function AgenteDashboard() {
           {ALL_STATUSES.map(s => {
             const count = pratiche.filter(p => p.status === s).length;
             if (!count) return null;
-            const cfg = STATUS_CONFIG[s];
+            const cfg = PRATICA_STATUS_COLORS[s] ?? DEFAULT_STATUS_COLOR;
             return (
               <button
                 key={s}
                 onClick={() => setFilterStatus(filterStatus === s ? "tutti" : s)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-                  filterStatus === s ? cfg.color + " shadow-sm scale-105" : "bg-muted/50 text-muted-foreground border-border/40 hover:border-border"
+                  filterStatus === s ? cfg.badge + " shadow-sm scale-105" : "bg-muted/50 text-muted-foreground border-border/40 hover:border-border"
                 }`}
               >
                 <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
@@ -242,7 +242,7 @@ export default function AgenteDashboard() {
 
                 <div className="divide-y divide-border/30">
                   {filtered.map((p, i) => {
-                    const cfg = STATUS_CONFIG[p.status] || STATUS_CONFIG["Nuova"];
+                    const cfg = PRATICA_STATUS_COLORS[p.status] ?? DEFAULT_STATUS_COLOR;
                     return (
                       <motion.div
                         key={p.id}
@@ -257,7 +257,7 @@ export default function AgenteDashboard() {
                             {p.codice || `#${p.id.slice(0, 8).toUpperCase()}`}
                           </span>
                           <p className="text-xs text-muted-foreground mt-0.5">
-                            {p.created_date ? format(new Date(p.created_date), "d MMM", { locale: it }) : ""}
+                            {p.created_at ? format(new Date(p.created_at), "d MMM", { locale: it }) : ""}
                           </p>
                         </div>
 
@@ -284,7 +284,7 @@ export default function AgenteDashboard() {
 
                         {/* Stato */}
                         <div className="col-span-2">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.color}`}>
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.badge}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
                             {p.status}
                           </span>
@@ -292,7 +292,7 @@ export default function AgenteDashboard() {
 
                         {/* Azione */}
                         <div className="col-span-2 flex justify-end">
-                          <Link to={`/admin/pratica/${p.id}`}>
+                          <Link to={`/agente/pratica/${p.id}`}>
                             <Button
                               size="sm"
                               variant="ghost"

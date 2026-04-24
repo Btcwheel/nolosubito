@@ -5,12 +5,17 @@ import {
 } from "recharts";
 
 const STATUS_COLORS = {
-  "Nuova": "#3b82f6",
-  "In Lavorazione": "#f59e0b",
-  "Documenti Richiesti": "#f97316",
-  "Approvata": "#22c55e",
-  "Consegnata": "#a855f7",
-  "Chiusa": "#9ca3af",
+  "Nuova":                         "#2F3589",
+  "In Lavorazione":                "#2563EB",
+  "Documenti Richiesti":           "#d97706",
+  "Documenti Caricati":            "#3b82f6",
+  "Attesa Affidamento Finanziaria":"#64748b",
+  "Affidamento Ricevuto":          "#4f46e5",
+  "Stipula Contratto":             "#0d9488",
+  "Attesa Consegna":               "#6366f1",
+  "Approvata":                     "#16a34a",
+  "Consegnata":                    "#0d9488",
+  "Chiusa":                        "#9ca3af",
 };
 
 const CustomTooltip = ({ active, payload, label }) => {

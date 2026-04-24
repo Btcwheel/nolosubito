@@ -35,8 +35,9 @@ export const AuthProvider = ({ children }) => {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
-      if (!error) setProfile(data);
+        .maybeSingle();
+      console.log('[Auth] fetchProfile →', { data, error });
+      if (!error && data) setProfile(data);
     } finally {
       setIsLoadingAuth(false);
     }
@@ -44,6 +45,7 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    console.log('[Auth] signIn →', { data, error });
     if (error) throw error;
     return data;
   };

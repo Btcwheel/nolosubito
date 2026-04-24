@@ -1,0 +1,499 @@
+import React, { useState, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { offersService } from "@/services/offers";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/use-toast";
+import {
+  Plus, Pencil, Trash2, X, Check, ImageIcon,
+  Loader2, ToggleLeft, ToggleRight,
+} from "lucide-react";
+
+// ── Costanti ──────────────────────────────────────────────────────────────────
+
+const CATEGORIES = [
+  "Business Sedan", "Business SUV", "Electric Exec",
+  "Electric SUV", "Commercial Van", "Premium Sedan", "Compact Business",
+];
+const FUEL_TYPES = [
+  { value: "Diesel",   label: "Diesel" },
+  { value: "Petrol",   label: "Benzina" },
+  { value: "Electric", label: "Elettrico" },
+  { value: "Hybrid",   label: "Ibrido" },
+];
+const TRANSMISSIONS = ["Automatic", "Manual"];
+
+const EMPTY_VEHICLE = {
+  make: "", model: "", category: "", fuel_type: "",
+  transmission: "", power_hp: "", co2_emissions: "",
+  vehicle_image: "", description: "", features: [], is_active: true,
+};
+
+// ── Tag input per le dotazioni ────────────────────────────────────────────────
+
+function FeaturesInput({ features, onChange }) {
+  const [draft, setDraft] = useState("");
+
+  const add = () => {
+    const trimmed = draft.trim();
+    if (trimmed && !features.includes(trimmed)) {
+      onChange([...features, trimmed]);
+    }
+    setDraft("");
+  };
+
+  const remove = (item) => onChange(features.filter(f => f !== item));
+
+  const onKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === ",") { e.preventDefault(); add(); }
+    if (e.key === "Backspace" && !draft && features.length) remove(features[features.length - 1]);
+  };
+
+  return (
+    <div className="border border-input rounded-xl p-2 min-h-[44px] flex flex-wrap gap-1.5 focus-within:ring-2 focus-within:ring-electric/30 focus-within:border-electric/50 bg-background">
+      {features.map(f => (
+        <span key={f} className="inline-flex items-center gap-1 bg-navy text-white text-xs px-2 py-0.5 rounded-full">
+          {f}
+          <button type="button" onClick={() => remove(f)} className="hover:text-electric transition-colors">
+            <X className="w-3 h-3" />
+          </button>
+        </span>
+      ))}
+      <input
+        value={draft}
+        onChange={e => setDraft(e.target.value)}
+        onKeyDown={onKeyDown}
+        onBlur={() => draft.trim() && add()}
+        placeholder={features.length ? "" : "Scrivi e premi Invio…"}
+        className="flex-1 min-w-[140px] bg-transparent text-sm outline-none placeholder:text-muted-foreground px-1"
+      />
+    </div>
+  );
+}
+
+// ── Upload foto ───────────────────────────────────────────────────────────────
+
+function ImageUpload({ value, onChange, make, model }) {
+  const inputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [preview, setPreview]     = useState(value || "");
+  const { toast } = useToast();
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "File non valido", description: "Seleziona un'immagine (JPG, PNG, WebP).", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File troppo grande", description: "Massimo 5 MB.", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    try {
+      const url = await offersService.uploadVehicleImage(file, make || "vehicle", model || "image");
+      setPreview(url);
+      onChange(url);
+      toast({ title: "Foto caricata" });
+    } catch (err) {
+      toast({ title: "Errore upload", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    handleFile(e.dataTransfer.files[0]);
+  };
+
+  return (
+    <div className="space-y-2">
+      {/* Drop zone */}
+      <div
+        onDrop={handleDrop}
+        onDragOver={e => e.preventDefault()}
+        onClick={() => !uploading && inputRef.current?.click()}
+        className={`relative border-2 border-dashed rounded-xl overflow-hidden cursor-pointer transition-colors ${
+          uploading ? "border-electric/30 bg-electric/5" : "border-border hover:border-electric/40 hover:bg-electric/3"
+        }`}
+      >
+        {preview ? (
+          <div className="relative aspect-[16/9]">
+            <img src={preview} alt="preview" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+              <p className="text-white text-sm font-medium">Cambia foto</p>
+            </div>
+          </div>
+        ) : (
+          <div className="aspect-[16/9] flex flex-col items-center justify-center gap-2 text-muted-foreground">
+            {uploading
+              ? <Loader2 className="w-8 h-8 animate-spin text-electric" />
+              : <><ImageIcon className="w-8 h-8" /><p className="text-sm">Clicca o trascina qui la foto</p><p className="text-xs">JPG, PNG, WebP · max 5 MB</p></>
+            }
+          </div>
+        )}
+      </div>
+      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={e => handleFile(e.target.files[0])} />
+
+      {/* Oppure URL manuale */}
+      <div className="flex gap-2">
+        <Input
+          value={preview}
+          onChange={e => { setPreview(e.target.value); onChange(e.target.value); }}
+          placeholder="oppure incolla URL immagine…"
+          className="text-xs"
+        />
+        {preview && (
+          <button type="button" onClick={() => { setPreview(""); onChange(""); }}
+            className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Modal form veicolo ────────────────────────────────────────────────────────
+
+function VehicleModal({ initial, onSave, onClose, isSaving }) {
+  const [form, setForm] = useState({ ...EMPTY_VEHICLE, ...initial });
+
+  const set = (field, val) => setForm(prev => ({ ...prev, [field]: val }));
+
+  const isNew = !initial?.id;
+  const canSave = form.make.trim() && form.model.trim() && form.category;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-2xl my-4">
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+          <h3 className="font-heading font-semibold text-lg">
+            {isNew ? "Nuovo Veicolo" : `Modifica — ${initial.make} ${initial.model}`}
+          </h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+
+          {/* Marca + Modello */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs font-semibold mb-1.5 block">Marca *</Label>
+              <Input value={form.make} onChange={e => set("make", e.target.value)} placeholder="BMW" />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold mb-1.5 block">Modello *</Label>
+              <Input value={form.model} onChange={e => set("model", e.target.value)} placeholder="Serie 3 320d" />
+            </div>
+          </div>
+
+          {/* Categoria + Carburante + Cambio */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label className="text-xs font-semibold mb-1.5 block">Categoria *</Label>
+              <Select value={form.category} onValueChange={v => set("category", v)}>
+                <SelectTrigger><SelectValue placeholder="Seleziona…" /></SelectTrigger>
+                <SelectContent>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs font-semibold mb-1.5 block">Carburante</Label>
+              <Select value={form.fuel_type || ""} onValueChange={v => set("fuel_type", v)}>
+                <SelectTrigger><SelectValue placeholder="Seleziona…" /></SelectTrigger>
+                <SelectContent>{FUEL_TYPES.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs font-semibold mb-1.5 block">Cambio</Label>
+              <Select value={form.transmission || ""} onValueChange={v => set("transmission", v)}>
+                <SelectTrigger><SelectValue placeholder="Seleziona…" /></SelectTrigger>
+                <SelectContent>{TRANSMISSIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Potenza + CO2 */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-xs font-semibold mb-1.5 block">Potenza (CV)</Label>
+              <Input type="number" value={form.power_hp} onChange={e => set("power_hp", e.target.value)} placeholder="150" />
+            </div>
+            <div>
+              <Label className="text-xs font-semibold mb-1.5 block">Emissioni CO₂ (g/km)</Label>
+              <Input type="number" value={form.co2_emissions} onChange={e => set("co2_emissions", e.target.value)} placeholder="0 = zero emissioni" />
+            </div>
+          </div>
+
+          {/* Foto */}
+          <div>
+            <Label className="text-xs font-semibold mb-1.5 block">Foto veicolo</Label>
+            <ImageUpload
+              value={form.vehicle_image}
+              onChange={url => set("vehicle_image", url)}
+              make={form.make}
+              model={form.model}
+            />
+          </div>
+
+          {/* Descrizione */}
+          <div>
+            <Label className="text-xs font-semibold mb-1.5 block">Descrizione</Label>
+            <Textarea
+              value={form.description || ""}
+              onChange={e => set("description", e.target.value)}
+              placeholder="Descrizione del veicolo visualizzata nella pagina dettaglio…"
+              rows={3}
+            />
+          </div>
+
+          {/* Dotazioni */}
+          <div>
+            <Label className="text-xs font-semibold mb-1.5 block">
+              Dotazioni principali <span className="text-muted-foreground font-normal">(Invio o virgola per aggiungere)</span>
+            </Label>
+            <FeaturesInput
+              features={form.features || []}
+              onChange={val => set("features", val)}
+            />
+          </div>
+
+          {/* Attivo */}
+          <label className="flex items-center gap-3 cursor-pointer select-none">
+            <button
+              type="button"
+              onClick={() => set("is_active", !form.is_active)}
+              className={`transition-colors ${form.is_active ? "text-electric" : "text-muted-foreground"}`}
+            >
+              {form.is_active ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+            </button>
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                {form.is_active ? "Attivo" : "Disattivo"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {form.is_active ? "Il veicolo è visibile nel catalogo" : "Il veicolo è nascosto dal catalogo"}
+              </p>
+            </div>
+          </label>
+
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 px-6 py-4 border-t border-border">
+          <Button variant="outline" onClick={onClose} className="flex-1">Annulla</Button>
+          <Button
+            onClick={() => onSave(form)}
+            disabled={!canSave || isSaving}
+            className="flex-1 bg-electric hover:bg-electric/90 text-white gap-2"
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            {isNew ? "Crea Veicolo" : "Salva Modifiche"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Componente principale ─────────────────────────────────────────────────────
+
+export default function CmsVehicles() {
+  const { toast } = useToast();
+  const qc = useQueryClient();
+  const [modal, setModal]     = useState(null); // null | {} | { id, ... }
+  const [search, setSearch]   = useState("");
+  const [delConfirm, setDelConfirm] = useState(null);
+
+  const { data: vehicles = [], isLoading } = useQuery({
+    queryKey: ["cms-vehicles"],
+    queryFn: () => offersService.list(),
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (form) => {
+      const payload = {
+        ...form,
+        power_hp:      form.power_hp      ? Number(form.power_hp)      : null,
+        co2_emissions: form.co2_emissions  ? Number(form.co2_emissions) : null,
+        vehicle_image: form.vehicle_image || null,
+        features:      form.features || [],
+      };
+      return form.id ? offersService.update(form.id, payload) : offersService.create(payload);
+    },
+    onSuccess: (_, form) => {
+      qc.invalidateQueries({ queryKey: ["cms-vehicles"] });
+      toast({ title: form.id ? "Veicolo aggiornato" : "Veicolo creato" });
+      setModal(null);
+    },
+    onError: (err) => {
+      toast({ title: "Errore", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => offersService.delete(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["cms-vehicles"] });
+      toast({ title: "Veicolo eliminato" });
+      setDelConfirm(null);
+    },
+    onError: (err) => {
+      toast({ title: "Errore", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const toggleActive = useMutation({
+    mutationFn: ({ id, is_active }) => offersService.update(id, { is_active }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["cms-vehicles"] }),
+  });
+
+  const filtered = vehicles.filter(v =>
+    !search || `${v.make} ${v.model}`.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div>
+      {/* Toolbar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div>
+          <h2 className="font-heading font-bold text-xl text-foreground">Catalogo Veicoli</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">{vehicles.length} veicoli nel catalogo</p>
+        </div>
+        <div className="flex gap-2">
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Cerca marca o modello…"
+            className="w-48"
+          />
+          <Button onClick={() => setModal({})} className="bg-electric hover:bg-electric/90 text-white gap-2 shrink-0">
+            <Plus className="w-4 h-4" /> Nuovo Veicolo
+          </Button>
+        </div>
+      </div>
+
+      {/* Lista veicoli */}
+      <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
+        {isLoading ? (
+          <div className="p-6 space-y-3">
+            {Array(4).fill(0).map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="w-20 h-12 rounded-lg" />
+                <div className="flex-1 space-y-1.5">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="py-16 text-center">
+            <p className="text-muted-foreground text-sm">
+              {search ? "Nessun veicolo trovato." : "Nessun veicolo nel catalogo. Crea il primo!"}
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-border/30">
+            {filtered.map(v => (
+              <div key={v.id} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/30 transition-colors">
+
+                {/* Thumbnail */}
+                <div className="w-20 h-12 rounded-lg bg-muted overflow-hidden shrink-0 border border-border/30">
+                  {v.vehicle_image
+                    ? <img src={v.vehicle_image} alt={`${v.make} ${v.model}`} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center"><ImageIcon className="w-5 h-5 text-muted-foreground/40" /></div>
+                  }
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground text-sm leading-tight">
+                    {v.make} {v.model}
+                  </p>
+                  <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                    <span className="text-xs text-muted-foreground">{v.category}</span>
+                    {v.fuel_type && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">{v.fuel_type}</Badge>
+                    )}
+                    {v.power_hp && (
+                      <span className="text-[11px] text-muted-foreground">{v.power_hp} CV</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Toggle attivo */}
+                <button
+                  onClick={() => toggleActive.mutate({ id: v.id, is_active: !v.is_active })}
+                  className={`text-xs font-medium px-2.5 py-1 rounded-full transition-colors cursor-pointer ${
+                    v.is_active
+                      ? "bg-green-100 text-green-700 hover:bg-green-200"
+                      : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  }`}
+                >
+                  {v.is_active ? "Attivo" : "Disattivo"}
+                </button>
+
+                {/* Azioni */}
+                <div className="flex items-center gap-1">
+                  <Button size="sm" variant="ghost" onClick={() => setModal(v)}
+                    className="h-8 w-8 p-0 hover:bg-muted">
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setDelConfirm(v)}
+                    className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/8">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modal modifica/creazione */}
+      {modal !== null && (
+        <VehicleModal
+          initial={modal}
+          onSave={(form) => saveMutation.mutate(form)}
+          onClose={() => setModal(null)}
+          isSaving={saveMutation.isPending}
+        />
+      )}
+
+      {/* Confirm eliminazione */}
+      {delConfirm && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <h3 className="font-heading font-semibold text-lg mb-2">Elimina veicolo</h3>
+            <p className="text-sm text-muted-foreground mb-6">
+              Sei sicuro di voler eliminare <strong>{delConfirm.make} {delConfirm.model}</strong>?
+              Questa azione non può essere annullata.
+            </p>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setDelConfirm(null)} className="flex-1">Annulla</Button>
+              <Button
+                onClick={() => deleteMutation.mutate(delConfirm.id)}
+                disabled={deleteMutation.isPending}
+                className="flex-1 bg-destructive hover:bg-destructive/90 text-white gap-2"
+              >
+                {deleteMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                Elimina
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

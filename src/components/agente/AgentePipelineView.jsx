@@ -5,22 +5,28 @@ import { Car, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { motion } from "framer-motion";
+import { PRATICA_STATUS_COLORS, DEFAULT_STATUS_COLOR } from "@/lib/praticaStatus";
 
 const PIPELINE_STAGES = [
-  { status: "Nuova",               color: "bg-blue-500",   light: "bg-blue-50 border-blue-100",   text: "text-blue-700" },
-  { status: "In Lavorazione",      color: "bg-amber-500",  light: "bg-amber-50 border-amber-100", text: "text-amber-700" },
-  { status: "Documenti Richiesti", color: "bg-orange-500", light: "bg-orange-50 border-orange-100", text: "text-orange-700" },
-  { status: "Approvata",           color: "bg-green-500",  light: "bg-green-50 border-green-100", text: "text-green-700" },
-  { status: "Consegnata",          color: "bg-purple-500", light: "bg-purple-50 border-purple-100", text: "text-purple-700" },
-  { status: "Chiusa",              color: "bg-gray-400",   light: "bg-gray-50 border-gray-200",   text: "text-gray-600" },
+  "Nuova",
+  "In Lavorazione",
+  "Documenti Richiesti",
+  "Documenti Caricati",
+  "Attesa Affidamento Finanziaria",
+  "Affidamento Ricevuto",
+  "Stipula Contratto",
+  "Attesa Consegna",
+  "Approvata",
+  "Consegnata",
+  "Chiusa",
 ];
 
 export default function AgentePipelineView({ pratiche, isLoading }) {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="flex gap-4 overflow-x-auto pb-4">
         {PIPELINE_STAGES.map(s => (
-          <div key={s.status}>
+          <div key={s} className="shrink-0 w-44">
             <Skeleton className="h-8 w-full rounded-xl mb-3" />
             <div className="space-y-2">
               {Array(2).fill(0).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-xl" />)}
@@ -32,15 +38,16 @@ export default function AgentePipelineView({ pratiche, isLoading }) {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 overflow-x-auto pb-2">
-      {PIPELINE_STAGES.map(stage => {
-        const cards = pratiche.filter(p => p.status === stage.status);
+    <div className="flex gap-4 overflow-x-auto pb-4 -mx-1 px-1">
+      {PIPELINE_STAGES.map(statusLabel => {
+        const cfg = PRATICA_STATUS_COLORS[statusLabel] ?? DEFAULT_STATUS_COLOR;
+        const cards = pratiche.filter(p => p.status === statusLabel);
         return (
-          <div key={stage.status} className="min-w-[160px]">
+          <div key={statusLabel} className="shrink-0 w-44">
             {/* Column header */}
-            <div className={`flex items-center justify-between px-3 py-2 rounded-xl border mb-3 ${stage.light}`}>
-              <span className={`text-xs font-bold ${stage.text} truncate`}>{stage.status}</span>
-              <span className={`text-xs font-bold ${stage.text} shrink-0 ml-1`}>{cards.length}</span>
+            <div className={`flex items-center justify-between px-3 py-2 rounded-xl border mb-3 ${cfg.badge}`}>
+              <span className="text-xs font-bold truncate">{statusLabel}</span>
+              <span className="text-xs font-bold shrink-0 ml-1">{cards.length}</span>
             </div>
 
             {/* Cards */}
@@ -57,9 +64,9 @@ export default function AgentePipelineView({ pratiche, isLoading }) {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.05 }}
                   >
-                    <Link to={`/admin/pratica/${p.id}`}>
+                    <Link to={`/agente/pratica/${p.id}`}>
                       <div className="bg-card border border-border/50 rounded-xl p-3 hover:shadow-md hover:border-border transition-all cursor-pointer group">
-                        <div className={`w-1.5 h-1.5 rounded-full ${stage.color} mb-2`} />
+                        <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot} mb-2`} />
                         <p className="font-mono text-xs font-bold text-electric mb-1 truncate">
                           {p.codice || `#${p.id.slice(0, 8).toUpperCase()}`}
                         </p>

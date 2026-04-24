@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { praticheService } from "@/services/pratiche";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
@@ -35,18 +35,12 @@ export default function DocumentUploadSection({ praticaId }) {
 
   const { data: documenti = [], isLoading } = useQuery({
     queryKey: ["documenti", praticaId],
-    queryFn: () => base44.entities.PraticaDocumento.filter({ pratica_id: praticaId }, "-created_date", 50),
+    queryFn: () => praticheService.getDocumenti(praticaId),
     enabled: !!praticaId,
   });
 
   const uploadFile = useCallback(async (file) => {
-    const form = new FormData();
-    form.append("file", file);
-    form.append("pratica_id", praticaId);
-    form.append("tipo_documento", tipoSelezionato);
-
-    const response = await base44.functions.invoke("uploadDocumento", form);
-    return response.data;
+    return praticheService.uploadDocumento(praticaId, file, tipoSelezionato);
   }, [praticaId, tipoSelezionato]);
 
   const handleFiles = useCallback(async (files) => {
@@ -89,7 +83,7 @@ export default function DocumentUploadSection({ praticaId }) {
   const onDragLeave = () => setIsDragging(false);
 
   const deleteDoc = async (doc) => {
-    await base44.entities.PraticaDocumento.delete(doc.id);
+    await praticheService.deleteDocumento(doc.id, doc.storage_path);
     qc.invalidateQueries(["documenti", praticaId]);
     toast({ title: "Documento rimosso" });
   };
@@ -200,9 +194,9 @@ export default function DocumentUploadSection({ praticaId }) {
                       {doc.caricato_da && (
                         <span className="text-xs text-muted-foreground/60">· {doc.caricato_da}</span>
                       )}
-                      {doc.created_date && (
+                      {doc.created_at && (
                         <span className="text-xs text-muted-foreground/60">
-                          · {format(new Date(doc.created_date), "d MMM", { locale: it })}
+                          · {format(new Date(doc.created_at), "d MMM", { locale: it })}
                         </span>
                       )}
                     </div>

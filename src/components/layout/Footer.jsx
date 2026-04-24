@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <Link to="/" className="flex items-center mb-4">
               <img
-                src="https://www.nolosubito.it/wp-content/uploads/2025/10/logo-BIANCO350x100.png"
+                src="/src/asset/logo-bianco.png"
                 alt="NoloSubito"
                 className="h-10 w-auto object-contain"
               />
@@ -33,8 +33,11 @@ export default function Footer() {
             <h4 className="font-heading font-semibold text-white mb-4">Azienda</h4>
             <ul className="space-y-3 text-sm">
               <li><Link to="/contact" className="hover:text-electric transition-colors duration-200">Contattaci</Link></li>
-              <li><span className="text-white/40">Privacy Policy</span></li>
-              <li><span className="text-white/40">Termini e Condizioni</span></li>
+              <li><Link to="/careers" className="hover:text-electric transition-colors duration-200">Diventa Partner</Link></li>
+              <li><Link to="/accedi" className="hover:text-electric transition-colors duration-200">Area Clienti</Link></li>
+              <li><Link to="/partner/accedi" className="hover:text-electric transition-colors duration-200">Area Partners</Link></li>
+              <li><Link to="/privacy" className="hover:text-electric transition-colors duration-200">Privacy Policy</Link></li>
+              <li><Link to="/termini" className="hover:text-electric transition-colors duration-200">Termini e Condizioni</Link></li>
             </ul>
           </div>
 

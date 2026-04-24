@@ -1,27 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { praticheService } from "@/services/pratiche";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Send, Lock, Eye, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Send, Lock, Eye, ChevronRight, Euro, CheckCircle2, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { useToast } from "@/components/ui/use-toast";
 import StatusTimeline from "@/components/pratiche/StatusTimeline";
 import DocumentUploadSection from "@/components/pratiche/DocumentUploadSection";
-
-const STATUS_COLORS = {
-  "Nuova": "bg-blue-100 text-blue-700",
-  "In Lavorazione": "bg-yellow-100 text-yellow-700",
-  "Documenti Richiesti": "bg-orange-100 text-orange-700",
-  "Approvata": "bg-green-100 text-green-700",
-  "Consegnata": "bg-purple-100 text-purple-700",
-  "Chiusa": "bg-gray-100 text-gray-600",
-};
+import PreventiviSection from "@/components/pratiche/PreventiviSection";
+import { PRATICA_STATUS_COLORS, DEFAULT_STATUS_COLOR } from "@/lib/praticaStatus";
 
 const ALL_STATUSES = ["Nuova", "In Lavorazione", "Documenti Richiesti", "Approvata", "Consegnata", "Chiusa"];
 
@@ -33,31 +28,22 @@ export default function PraticaDetail() {
   const [notaTesto, setNotaTesto] = useState("");
   const [notaVisibile, setNotaVisibile] = useState(false);
   const [newStatus, setNewStatus] = useState("");
+  const [provvigione, setProvvigione] = useState("");
+  const { profile } = useAuth();
 
   const { data: pratica, isLoading } = useQuery({
     queryKey: ["pratica", id],
-    queryFn: async () => {
-      const res = await base44.entities.Pratica.filter({ id });
-      return res[0] || null;
-    },
+    queryFn: () => praticheService.getById(id),
   });
 
-  const { data: note = [] } = useQuery({
-    queryKey: ["note", id],
-    queryFn: () => base44.entities.PraticaNota.filter({ pratica_id: id }, "-created_date", 50),
-    enabled: !!id,
-  });
-
-  const { data: user } = useQuery({
-    queryKey: ["me"],
-    queryFn: () => base44.auth.me(),
-  });
+  // Notes are nested in pratica.pratica_note
+  const note = useMemo(
+    () => [...(pratica?.pratica_note ?? [])].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
+    [pratica]
+  );
 
   const updateStatus = useMutation({
-    mutationFn: (status) => base44.entities.Pratica.update(id, {
-      status,
-      ultimo_aggiornamento_stato: new Date().toISOString(),
-    }),
+    mutationFn: (status) => praticheService.updateStatus(id, status),
     onSuccess: () => {
       qc.invalidateQueries(["pratica", id]);
       qc.invalidateQueries(["pratiche-admin"]);
@@ -67,16 +53,25 @@ export default function PraticaDetail() {
     },
   });
 
-  const addNota = useMutation({
-    mutationFn: () => base44.entities.PraticaNota.create({
-      pratica_id: id,
-      autore_nome: user?.full_name || "Operatore",
-      autore_ruolo: user?.role || "admin",
-      testo: notaTesto,
-      visibile_cliente: notaVisibile,
-    }),
+  const saveProvvigione = useMutation({
+    mutationFn: ({ importo, pagata }) => praticheService.setProvvigione(id, importo, pagata),
     onSuccess: () => {
-      qc.invalidateQueries(["note", id]);
+      qc.invalidateQueries(["pratica", id]);
+      setProvvigione("");
+      toast({ title: "Provvigione salvata" });
+    },
+  });
+
+  const addNota = useMutation({
+    mutationFn: () => praticheService.addNota(
+      id,
+      notaTesto,
+      profile?.full_name || "Operatore",
+      profile?.role || "admin",
+      notaVisibile,
+    ),
+    onSuccess: () => {
+      qc.invalidateQueries(["pratica", id]);
       setNotaTesto("");
       setNotaVisibile(false);
       toast({ title: "Nota aggiunta" });
@@ -85,7 +80,7 @@ export default function PraticaDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pt-24 pb-16 px-4">
+      <div className="min-h-screen bg-background pt-8 pb-16 px-4">
         <div className="max-w-4xl mx-auto space-y-4">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-64 w-full" />
@@ -96,7 +91,7 @@ export default function PraticaDetail() {
 
   if (!pratica) {
     return (
-      <div className="min-h-screen bg-background pt-24 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-4">Pratica non trovata.</p>
           <Button onClick={() => navigate(-1)} variant="outline">Torna indietro</Button>
@@ -105,10 +100,12 @@ export default function PraticaDetail() {
     );
   }
 
-  const backPath = user?.role === "agente" ? "/agente" : "/admin";
+  const backPath =
+    profile?.role === "agente"     ? "/agente" :
+    profile?.role === "backoffice" ? "/backoffice" : "/admin";
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-16 px-4">
+    <div className="min-h-screen bg-background pt-8 pb-16 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Back */}
         <button onClick={() => navigate(backPath)} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-electric transition-colors mb-6">
@@ -122,17 +119,17 @@ export default function PraticaDetail() {
               <h1 className="font-heading font-bold text-2xl text-foreground">
                 Pratica {pratica.codice || pratica.id.slice(0, 8)}
               </h1>
-              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[pratica.status]}`}>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${(PRATICA_STATUS_COLORS[pratica.status] ?? DEFAULT_STATUS_COLOR).badge}`}>
                 {pratica.status}
               </span>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              Creata il {pratica.created_date ? format(new Date(pratica.created_date), "d MMMM yyyy", { locale: it }) : "—"}
+              Creata il {pratica.created_at ? format(new Date(pratica.created_at), "d MMMM yyyy", { locale: it }) : "—"}
             </p>
           </div>
 
           {/* Change status */}
-          {user?.role !== "cliente" && (
+          {profile?.role !== "cliente" && (
             <div className="flex items-center gap-2">
               <Select value={newStatus} onValueChange={setNewStatus}>
                 <SelectTrigger className="w-52">
@@ -233,10 +230,81 @@ export default function PraticaDetail() {
           </div>
         </div>
 
+        {/* Preventivi */}
+        <div className="mb-6">
+          <PreventiviSection praticaId={id} />
+        </div>
+
         {/* Documenti */}
         <div className="mb-6">
           <DocumentUploadSection praticaId={id} />
         </div>
+
+        {/* Provvigione agente — visibile solo a admin/backoffice */}
+        {pratica.agente_id && profile?.role !== "cliente" && (
+          <div className="bg-card border border-border/50 rounded-2xl p-5 mb-6">
+            <h2 className="font-heading font-semibold text-base mb-4 flex items-center gap-2">
+              <Euro className="w-4 h-4 text-electric" /> Provvigione Agente
+            </h2>
+
+            {/* Stato attuale */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">Agente</p>
+                <p className="font-semibold text-sm text-foreground">{pratica.agente_nome || "—"}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground mb-0.5">Importo</p>
+                <p className="font-bold text-lg text-electric">
+                  {pratica.provvigione != null ? `€${Number(pratica.provvigione).toLocaleString("it-IT")}` : "Non definita"}
+                </p>
+              </div>
+              <div>
+                {pratica.provvigione != null && (
+                  pratica.provvigione_pagata
+                    ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-50 border border-green-200 rounded-full px-2.5 py-1"><CheckCircle2 className="w-3 h-3" /> Pagata</span>
+                    : <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1"><Clock className="w-3 h-3" /> Da pagare</span>
+                )}
+              </div>
+            </div>
+
+            {/* Form solo per admin/backoffice */}
+            {profile?.role !== "agente" && (
+              <div className="border-t border-border/50 pt-4 flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 flex-1 min-w-[180px]">
+                  <span className="text-sm text-muted-foreground">€</span>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="50"
+                    placeholder={pratica.provvigione != null ? String(pratica.provvigione) : "Importo provvigione"}
+                    value={provvigione}
+                    onChange={e => setProvvigione(e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  disabled={!provvigione || saveProvvigione.isPending}
+                  onClick={() => saveProvvigione.mutate({ importo: parseFloat(provvigione), pagata: pratica.provvigione_pagata ?? false })}
+                  className="bg-electric hover:bg-electric/90 text-white"
+                >
+                  Salva importo
+                </Button>
+                {pratica.provvigione != null && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={saveProvvigione.isPending}
+                    onClick={() => saveProvvigione.mutate({ importo: pratica.provvigione, pagata: !pratica.provvigione_pagata })}
+                  >
+                    {pratica.provvigione_pagata ? "Segna come da pagare" : "Segna come pagata"}
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Note */}
         <div className="bg-card border border-border/50 rounded-2xl p-5">
@@ -267,14 +335,14 @@ export default function PraticaDetail() {
                 </div>
                 <p className="text-foreground/80">{n.testo}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {n.created_date ? format(new Date(n.created_date), "d MMM yyyy HH:mm", { locale: it }) : ""}
+                  {n.created_at ? format(new Date(n.created_at), "d MMM yyyy HH:mm", { locale: it }) : ""}
                 </p>
               </div>
             ))}
           </div>
 
           {/* Add nota */}
-          {user?.role !== "cliente" && (
+          {profile?.role !== "cliente" && (
             <div className="border-t border-border/50 pt-4 space-y-3">
               <Textarea
                 placeholder="Scrivi una nota..."

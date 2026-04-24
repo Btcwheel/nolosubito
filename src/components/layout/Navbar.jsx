@@ -64,7 +64,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link to="/" className="flex items-center group">
             <img
-              src="https://www.nolosubito.it/wp-content/uploads/2025/10/logo-BIANCO350x100.png"
+              src="/src/asset/logo-bianco.png"
               alt="NoloSubito"
               className="h-10 w-auto object-contain transition-all duration-300"
               
@@ -141,7 +141,13 @@ export default function Navbar() {
             ))}
           </div>
 
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-3">
+            <Link
+              to="/accedi"
+              className="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors duration-200"
+            >
+              Area Cliente
+            </Link>
             <Link to="/contact">
               <Button className="bg-electric hover:bg-electric/90 text-white font-semibold px-6 rounded-lg cursor-pointer">
                 Richiedi Preventivo
@@ -227,7 +233,10 @@ export default function Navbar() {
                 </Link>
               ))}
 
-              <div className="pt-2">
+              <div className="pt-2 space-y-2">
+                <Link to="/accedi" className="block px-4 py-3 rounded-lg text-sm font-medium text-white/70 hover:text-white transition-colors">
+                  Area Cliente
+                </Link>
                 <Link to="/contact">
                   <Button className="w-full bg-electric hover:bg-electric/90 text-white font-semibold rounded-lg cursor-pointer">
                     Richiedi Preventivo

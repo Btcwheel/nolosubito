@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { offersService } from "@/services/offers";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Leaf, Zap, TrendingDown, Globe } from "lucide-react";
@@ -14,23 +14,15 @@ const stats = [
 ];
 
 export default function GreenMobility() {
-  const { data: offers = [], isLoading } = useQuery({
-    queryKey: ["offers"],
-    queryFn: () => base44.entities.offers.list("-created_date", 500),
+  const { data: allVehicles = [], isLoading } = useQuery({
+    queryKey: ["offers-green"],
+    queryFn: () => offersService.listWithMinPrice(),
   });
 
-  const greenVehicles = useMemo(() => {
-    const vehicleMap = new Map();
-    offers
-      .filter(o => o.fuel_type === "Electric" || o.fuel_type === "Hybrid")
-      .forEach(o => {
-        const key = `${o.make}-${o.model}`;
-        if (!vehicleMap.has(key) || o.monthly_rent < vehicleMap.get(key).monthly_rent) {
-          vehicleMap.set(key, o);
-        }
-      });
-    return Array.from(vehicleMap.values());
-  }, [offers]);
+  const greenVehicles = useMemo(() =>
+    allVehicles.filter(v => v.fuel_type === "Electric" || v.fuel_type === "Hybrid"),
+    [allVehicles]
+  );
 
   return (
     <div className="bg-navy">

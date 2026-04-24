@@ -3,79 +3,194 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { praticheService } from "@/services/pratiche";
 import { useToast } from "@/components/ui/use-toast";
-import { Send, Loader2, CheckCircle, User, Building, Briefcase, FileUp } from "lucide-react";
+import {
+  ArrowRight, Loader2, CheckCircle2, ExternalLink,
+  User, Briefcase, Building,
+} from "lucide-react";
 import { motion } from "framer-motion";
-import DocumentUploader from "./DocumentUploader";
+import { Link } from "react-router-dom";
+
+// ─── Static data ────────────────────────────────────────────────────────────
+
+const PROVINCE = [
+  "AG","AL","AN","AO","AP","AQ","AR","AT","AV",
+  "BA","BG","BI","BL","BN","BO","BR","BS","BT","BZ",
+  "CA","CB","CE","CH","CL","CN","CO","CR","CS","CT","CZ",
+  "EN","FC","FE","FG","FI","FM","FR",
+  "GE","GO","GR",
+  "IM","IS",
+  "KR",
+  "LC","LE","LI","LO","LT","LU",
+  "MB","MC","ME","MI","MN","MO","MS","MT",
+  "NA","NO","NU",
+  "OR",
+  "PA","PC","PD","PE","PG","PI","PN","PO","PR","PT","PU","PV","PZ",
+  "RA","RC","RE","RG","RI","RM","RN","RO",
+  "SA","SI","SO","SP","SR","SS","SU","SV",
+  "TA","TE","TN","TO","TP","TR","TS","TV",
+  "UD",
+  "VA","VB","VC","VE","VI","VR","VT","VV",
+];
+
+const MARCHE = [
+  "Alfa Romeo","Audi","BMW","Citroen","Dacia","Fiat","Ford","Honda",
+  "Hyundai","Jeep","Kia","Mazda","Mercedes-Benz","Nissan","Opel",
+  "Peugeot","Renault","SEAT","Skoda","Tesla","Toyota","Volkswagen","Volvo","Altro",
+];
+
+const ALIMENTAZIONI = [
+  "Benzina",
+  "Diesel",
+  "Full Hybrid Benzina",
+  "Full Hybrid Diesel",
+  "Plug-in Hybrid",
+  "Elettrica",
+  "Metano",
+  "GPL",
+];
+
+const KM_OPTIONS = [
+  { value: "10000",  label: "10.000 km/anno" },
+  { value: "15000",  label: "15.000 km/anno" },
+  { value: "20000",  label: "20.000 km/anno" },
+  { value: "25000",  label: "25.000 km/anno" },
+  { value: "30000",  label: "30.000 km/anno" },
+  { value: "40000",  label: "40.000 km/anno" },
+  { value: "50000",  label: "50.000 km/anno" },
+];
+
+const ANNI = Array.from(
+  { length: 50 },
+  (_, i) => String(new Date().getFullYear() - i)
+);
 
 const CLIENT_TYPES = [
-  { id: "Privato", label: "Privato", icon: User },
-  { id: "P.IVA", label: "P.IVA / Titolare", icon: Briefcase },
-  { id: "Azienda", label: "Azienda", icon: Building },
+  { id: "Privato",  label: "Privato",           icon: User },
+  { id: "P.IVA",   label: "P.IVA / Titolare",  icon: Briefcase },
+  { id: "Azienda", label: "Azienda",             icon: Building },
 ];
+
+// ─── Small helpers ───────────────────────────────────────────────────────────
+
+function FieldGroup({ label, required, children }) {
+  return (
+    <div>
+      <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+        {label}{required && " *"}
+      </Label>
+      {children}
+    </div>
+  );
+}
+
+function SelField({ value, onValueChange, placeholder, options }) {
+  return (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger className="h-11">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((opt) =>
+          typeof opt === "string" ? (
+            <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+          ) : (
+            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+          )
+        )}
+      </SelectContent>
+    </Select>
+  );
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function LeadForm({ prefilledConfig }) {
   const { toast } = useToast();
-  const [submitted, setSubmitted] = useState(false);
-  const [sending, setSending] = useState(false);
+  const [submitted, setSubmitted]         = useState(false);
+  const [sending, setSending]             = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
+
   const isPrivate = prefilledConfig?.segment === "Privati";
-  const [clientType, setClientType] = useState(isPrivate ? "Privato" : "Azienda");
-  const [uploadedDocs, setUploadedDocs] = useState([]);
-  const [form, setForm] = useState({
-    companyName: "",
-    firstName: "",
-    lastName: "",
-    vatNumber: "",
-    fiscalCode: "",
-    email: "",
-    phone: "",
-    notes: "",
+  const [clientType, setClientType] = useState(isPrivate ? "Privato" : "P.IVA");
+
+  const [f, setF] = useState({
+    // personal
+    nome: "", cognome: "", cf: "", telefono: "", email: "",
+    indirizzo: "", citta: "", provincia: "", cap: "",
+    // business
+    piva: "", denominazione: "",
+    // employment (Privato only)
+    occupazione: "", tipoContratto: "", garante: "", annoInizioLavoro: "",
+    // vehicle
+    marca:        prefilledConfig?.make        || "",
+    modello:      prefilledConfig?.model       || "",
+    alimentazione: "",
+    kmAnnui:      prefilledConfig?.annualKm    ? String(prefilledConfig.annualKm) : "",
+    note: "",
   });
+  const set = (k, v) => setF((prev) => ({ ...prev, [k]: v }));
 
-  const handleChange = (field, value) => {
-    setForm(prev => ({ ...prev, [field]: value }));
-  };
+  const [privacy1, setPrivacy1] = useState(false);
+  const [privacy2, setPrivacy2] = useState(false);
 
+  // ── Submit ──────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!privacy1) {
+      toast({
+        title: "Consenso richiesto",
+        description: "Accetta il trattamento dei dati per procedere.",
+        variant: "destructive",
+      });
+      return;
+    }
     setSending(true);
     try {
-      const pratica = await praticheService.create({
-        cliente_nome: clientType === "Privato"
-          ? `${form.firstName} ${form.lastName}`.trim()
-          : form.companyName,
-        cliente_email: form.email,
-        cliente_telefono: form.phone,
-        cliente_tipo: clientType,
-        cliente_piva: clientType === "Privato" ? form.fiscalCode : form.vatNumber,
-        veicolo_marca: prefilledConfig?.make || "",
-        veicolo_modello: prefilledConfig?.model || "",
-        segmento: prefilledConfig?.segment || null,
-        durata_mesi: prefilledConfig?.duration || null,
-        km_annui: prefilledConfig?.annualKm || null,
-        anticipo: prefilledConfig?.advance || null,
-        canone_mensile: prefilledConfig?.monthlyRent || null,
-        note_cliente: form.notes,
+      const clienteNome =
+        clientType === "Azienda"
+          ? f.denominazione.trim()
+          : `${f.nome.trim()} ${f.cognome.trim()}`.trim();
+
+      await praticheService.create({
+        cliente_nome:             clienteNome,
+        cliente_cognome:          f.cognome.trim()  || null,
+        cliente_email:            f.email.trim().toLowerCase(),
+        cliente_telefono:         f.telefono.trim() || null,
+        cliente_tipo:             clientType,
+        cliente_cf:               f.cf.trim().toUpperCase() || null,
+        cliente_piva:             f.piva.trim()             || null,
+        cliente_denominazione:    f.denominazione.trim()    || null,
+        cliente_indirizzo:        f.indirizzo.trim()        || null,
+        cliente_citta:            f.citta.trim()            || null,
+        cliente_provincia:        f.provincia               || null,
+        cliente_cap:              f.cap.trim()              || null,
+        cliente_occupazione:      f.occupazione             || null,
+        cliente_tipo_contratto:   f.tipoContratto           || null,
+        cliente_garante:          f.garante === "si" ? true : f.garante === "no" ? false : null,
+        cliente_anno_inizio_lavoro: f.annoInizioLavoro ? parseInt(f.annoInizioLavoro) : null,
+        veicolo_marca:            f.marca            || null,
+        veicolo_modello:          f.modello.trim()   || null,
+        veicolo_alimentazione:    f.alimentazione    || null,
+        segmento:                 prefilledConfig?.segment  || null,
+        durata_mesi:              prefilledConfig?.duration || null,
+        km_annui:                 f.kmAnnui ? parseInt(f.kmAnnui) : (prefilledConfig?.annualKm || null),
+        anticipo:                 prefilledConfig?.advance     || null,
+        canone_mensile:           prefilledConfig?.monthlyRent || null,
+        note_cliente:             f.note.trim() || null,
       });
 
-      if (uploadedDocs.length > 0) {
-        await Promise.all(
-          uploadedDocs.map(doc =>
-            praticheService.addDocumentoUrl(pratica.id, {
-              nome_file: doc.name,
-              tipo_documento: doc.docId,
-              storage_path: doc.path,
-            })
-          )
-        );
-      }
-
+      setSubmittedEmail(f.email.trim().toLowerCase());
       setSubmitted(true);
-      toast({
-        title: "Richiesta inviata!",
-        description: "Il nostro team ti contatterà entro 24 ore.",
-      });
     } catch (err) {
       console.error(err);
       toast({
@@ -88,176 +203,399 @@ export default function LeadForm({ prefilledConfig }) {
     }
   };
 
+  // ── Success state ────────────────────────────────────────────────────────
   if (submitted) {
     return (
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="text-center py-12"
+        transition={{ duration: 0.3 }}
+        className="py-8 px-2"
       >
-        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-          <CheckCircle className="w-8 h-8 text-green-600" />
+        <div className="w-16 h-16 rounded-2xl bg-fuel-ev/10 flex items-center justify-center mx-auto mb-5">
+          <CheckCircle2 className="w-8 h-8 text-fuel-ev" />
         </div>
-        <h3 className="font-heading font-bold text-xl text-foreground mb-2">
-          Richiesta Inviata con Successo
+        <h3 className="font-heading font-bold text-xl text-foreground text-center mb-2">
+          Richiesta ricevuta!
         </h3>
-        <p className="text-muted-foreground">
-          Il nostro team ti contatterà entro 24 ore con un'offerta personalizzata.
+        <p className="text-sm text-muted-foreground text-center mb-6 max-w-xs mx-auto leading-relaxed">
+          Il nostro team elaborerà il preventivo e ti contatterà entro 24 ore.
+          Puoi intanto seguire la tua pratica dalla tua area personale.
+        </p>
+        <Link to={`/mia-pratica?email=${encodeURIComponent(submittedEmail)}`}>
+          <Button className="w-full h-12 bg-electric hover:bg-electric/90 text-white font-semibold rounded-xl text-sm cursor-pointer">
+            Accedi alla Tua Area Pratica
+            <ExternalLink className="w-4 h-4 ml-2" />
+          </Button>
+        </Link>
+        <p className="text-center text-xs text-muted-foreground mt-4">
+          Usa la tua email{" "}
+          <span className="font-medium text-foreground">{submittedEmail}</span>{" "}
+          per accedere
         </p>
       </motion.div>
     );
   }
 
+  // ── Form ─────────────────────────────────────────────────────────────────
+  const showOccupazione  = clientType === "Privato";
+  const isDipendente     = f.occupazione === "Dipendente";
+  const isDeterminato    = f.tipoContratto === "Determinato";
+  const isAutonomo       = f.occupazione === "Autonomo / Libero professionista";
+  const isPensionato     = f.occupazione === "Pensionato";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form onSubmit={handleSubmit} className="space-y-6">
 
-      {/* Tipo cliente selector */}
-      {!prefilledConfig && (
-        <div>
-          <Label className="text-xs font-medium mb-2 block">Tipo di cliente *</Label>
-          <div className="grid grid-cols-3 gap-2">
-            {CLIENT_TYPES.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setClientType(id)}
-                className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                  clientType === id
-                    ? "bg-navy border-navy text-white shadow-sm"
-                    : "border-border text-foreground hover:border-electric hover:text-electric"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {(clientType === "Privato" || isPrivate) ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="firstName" className="text-xs font-medium">Nome *</Label>
-            <Input
-              id="firstName"
-              required
-              value={form.firstName}
-              onChange={(e) => handleChange("firstName", e.target.value)}
-              placeholder="Mario"
-              className="mt-1.5 h-11"
-            />
-          </div>
-          <div>
-            <Label htmlFor="lastName" className="text-xs font-medium">Cognome *</Label>
-            <Input
-              id="lastName"
-              required
-              value={form.lastName}
-              onChange={(e) => handleChange("lastName", e.target.value)}
-              placeholder="Rossi"
-              className="mt-1.5 h-11"
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <Label htmlFor="fiscalCode" className="text-xs font-medium">Codice Fiscale *</Label>
-            <Input
-              id="fiscalCode"
-              required
-              value={form.fiscalCode}
-              onChange={(e) => handleChange("fiscalCode", e.target.value)}
-              placeholder="RSSMRA80A01H501U"
-              className="mt-1.5 h-11"
-            />
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="companyName" className="text-xs font-medium">Ragione Sociale *</Label>
-            <Input
-              id="companyName"
-              required
-              value={form.companyName}
-              onChange={(e) => handleChange("companyName", e.target.value)}
-              placeholder="Acme S.r.l."
-              className="mt-1.5 h-11"
-            />
-          </div>
-          <div>
-            <Label htmlFor="vatNumber" className="text-xs font-medium">Partita IVA *</Label>
-            <Input
-              id="vatNumber"
-              required
-              value={form.vatNumber}
-              onChange={(e) => handleChange("vatNumber", e.target.value)}
-              placeholder="IT12345678901"
-              className="mt-1.5 h-11"
-            />
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="email" className="text-xs font-medium">Email *</Label>
-          <Input
-            id="email"
-            type="email"
-            required
-            value={form.email}
-            onChange={(e) => handleChange("email", e.target.value)}
-            placeholder="info@acme.it"
-            className="mt-1.5 h-11"
-          />
-        </div>
-        <div>
-          <Label htmlFor="phone" className="text-xs font-medium">Telefono *</Label>
-          <Input
-            id="phone"
-            type="tel"
-            required
-            value={form.phone}
-            onChange={(e) => handleChange("phone", e.target.value)}
-            placeholder="+39 02 1234567"
-            className="mt-1.5 h-11"
-          />
-        </div>
-      </div>
-
+      {/* Tipo cliente */}
       <div>
-        <Label htmlFor="notes" className="text-xs font-medium">Note Aggiuntive</Label>
-        <Textarea
-          id="notes"
-          value={form.notes}
-          onChange={(e) => handleChange("notes", e.target.value)}
-          placeholder="Dimensione flotta, esigenze particolari…"
-          className="mt-1.5 h-24"
-        />
+        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5 block">
+          Tipo di cliente
+        </Label>
+        <div className="grid grid-cols-3 gap-2">
+          {CLIENT_TYPES.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setClientType(id)}
+              className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-xs font-semibold transition-all duration-150 cursor-pointer ${
+                clientType === id
+                  ? "bg-navy border-navy text-white shadow-sm"
+                  : "border-border text-foreground hover:border-electric/40 hover:bg-electric/5"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Document upload section */}
-      <div className="border border-border/60 rounded-2xl p-4 bg-muted/20 space-y-3">
-        <div className="flex items-center gap-2">
-          <FileUp className="w-4 h-4 text-electric" />
-          <h3 className="font-heading font-semibold text-sm text-foreground">
-            Documenti per il Preventivo
-          </h3>
-          <span className="text-xs text-muted-foreground ml-auto">PDF, JPG, PNG</span>
+      {/* Two-column grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+
+        {/* ────────────────── LEFT: Dati personali ────────────────── */}
+        <div className="space-y-4">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/50 pb-2">
+            Dati personali
+          </p>
+
+          {/* Ragione sociale (Azienda) */}
+          {clientType === "Azienda" && (
+            <FieldGroup label="Ragione Sociale" required>
+              <Input
+                required
+                value={f.denominazione}
+                onChange={(e) => set("denominazione", e.target.value)}
+                placeholder="Acme S.r.l."
+                className="h-11"
+              />
+            </FieldGroup>
+          )}
+
+          {/* Nome + Cognome */}
+          {clientType !== "Azienda" ? (
+            <div className="grid grid-cols-2 gap-3">
+              <FieldGroup label="Nome" required>
+                <Input
+                  required
+                  value={f.nome}
+                  onChange={(e) => set("nome", e.target.value)}
+                  placeholder="Mario"
+                  className="h-11"
+                />
+              </FieldGroup>
+              <FieldGroup label="Cognome" required>
+                <Input
+                  required
+                  value={f.cognome}
+                  onChange={(e) => set("cognome", e.target.value)}
+                  placeholder="Rossi"
+                  className="h-11"
+                />
+              </FieldGroup>
+            </div>
+          ) : (
+            <FieldGroup label="Referente" required>
+              <Input
+                required
+                value={f.nome}
+                onChange={(e) => set("nome", e.target.value)}
+                placeholder="Mario Rossi"
+                className="h-11"
+              />
+            </FieldGroup>
+          )}
+
+          {/* Codice Fiscale (Privato) */}
+          {clientType === "Privato" && (
+            <FieldGroup label="Codice Fiscale" required>
+              <Input
+                required
+                value={f.cf}
+                onChange={(e) => set("cf", e.target.value.toUpperCase())}
+                placeholder="RSSMRA80A01H501Z"
+                maxLength={16}
+                className="h-11 font-mono tracking-widest"
+              />
+            </FieldGroup>
+          )}
+
+          {/* Partita IVA (P.IVA / Azienda) */}
+          {(clientType === "P.IVA" || clientType === "Azienda") && (
+            <FieldGroup label="Partita IVA" required>
+              <Input
+                required
+                value={f.piva}
+                onChange={(e) => set("piva", e.target.value)}
+                placeholder="12345678901"
+                maxLength={11}
+                className="h-11"
+              />
+            </FieldGroup>
+          )}
+
+          {/* Telefono + Email */}
+          <div className="grid grid-cols-2 gap-3">
+            <FieldGroup label="Telefono" required>
+              <Input
+                required
+                type="tel"
+                value={f.telefono}
+                onChange={(e) => set("telefono", e.target.value)}
+                placeholder="+39 333 123456"
+                className="h-11"
+              />
+            </FieldGroup>
+            <FieldGroup label="Email" required>
+              <Input
+                required
+                type="email"
+                value={f.email}
+                onChange={(e) => set("email", e.target.value)}
+                placeholder="mario@email.it"
+                className="h-11"
+              />
+            </FieldGroup>
+          </div>
+
+          {/* Indirizzo */}
+          <FieldGroup label="Indirizzo">
+            <Input
+              value={f.indirizzo}
+              onChange={(e) => set("indirizzo", e.target.value)}
+              placeholder="Via Roma, 1"
+              className="h-11"
+            />
+          </FieldGroup>
+
+          {/* Città + Provincia + CAP */}
+          <div className="grid grid-cols-5 gap-2">
+            <div className="col-span-2">
+              <FieldGroup label="Città" required>
+                <Input
+                  required
+                  value={f.citta}
+                  onChange={(e) => set("citta", e.target.value)}
+                  placeholder="Milano"
+                  className="h-11"
+                />
+              </FieldGroup>
+            </div>
+            <div className="col-span-2">
+              <FieldGroup label="Provincia" required>
+                <SelField
+                  value={f.provincia}
+                  onValueChange={(v) => set("provincia", v)}
+                  placeholder="Prov."
+                  options={PROVINCE}
+                />
+              </FieldGroup>
+            </div>
+            <div>
+              <FieldGroup label="CAP">
+                <Input
+                  value={f.cap}
+                  onChange={(e) => set("cap", e.target.value)}
+                  placeholder="20121"
+                  maxLength={5}
+                  className="h-11"
+                />
+              </FieldGroup>
+            </div>
+          </div>
+
+          {/* Occupazione (Privato only) */}
+          {showOccupazione && (
+            <>
+              <FieldGroup label="Occupazione" required>
+                <SelField
+                  value={f.occupazione}
+                  onValueChange={(v) => {
+                    set("occupazione", v);
+                    set("tipoContratto", "");
+                    set("garante", "");
+                    set("annoInizioLavoro", "");
+                  }}
+                  placeholder="Seleziona…"
+                  options={[
+                    "Dipendente",
+                    "Autonomo / Libero professionista",
+                    "Pensionato",
+                    "Studente / Non occupato",
+                  ]}
+                />
+              </FieldGroup>
+
+              {isDipendente && (
+                <>
+                  <FieldGroup label="Tipo di contratto" required>
+                    <SelField
+                      value={f.tipoContratto}
+                      onValueChange={(v) => { set("tipoContratto", v); set("garante", ""); }}
+                      placeholder="Seleziona…"
+                      options={["Indeterminato", "Determinato"]}
+                    />
+                  </FieldGroup>
+
+                  {isDeterminato && (
+                    <FieldGroup label="Garante disponibile?" required>
+                      <SelField
+                        value={f.garante}
+                        onValueChange={(v) => set("garante", v)}
+                        placeholder="Seleziona…"
+                        options={[
+                          { value: "si", label: "Sì, ho un garante" },
+                          { value: "no", label: "No, non ho un garante" },
+                        ]}
+                      />
+                    </FieldGroup>
+                  )}
+
+                  <FieldGroup label="Anno inizio lavoro" required>
+                    <SelField
+                      value={f.annoInizioLavoro}
+                      onValueChange={(v) => set("annoInizioLavoro", v)}
+                      placeholder="Anno…"
+                      options={ANNI}
+                    />
+                  </FieldGroup>
+                </>
+              )}
+
+              {isAutonomo && (
+                <FieldGroup label="Anno inizio attività" required>
+                  <SelField
+                    value={f.annoInizioLavoro}
+                    onValueChange={(v) => set("annoInizioLavoro", v)}
+                    placeholder="Anno…"
+                    options={ANNI}
+                  />
+                </FieldGroup>
+              )}
+
+              {isPensionato && (
+                <FieldGroup label="Anno di pensionamento" required>
+                  <SelField
+                    value={f.annoInizioLavoro}
+                    onValueChange={(v) => set("annoInizioLavoro", v)}
+                    placeholder="Anno…"
+                    options={ANNI}
+                  />
+                </FieldGroup>
+              )}
+            </>
+          )}
         </div>
-        <p className="text-xs text-muted-foreground">
-          Carica i documenti richiesti per accelerare la pratica.
-        </p>
-        <DocumentUploader
-          clientType={clientType}
-          onDocumentsChange={setUploadedDocs}
-        />
+
+        {/* ────────────────── RIGHT: Preferenze veicolo ────────────── */}
+        <div className="space-y-4">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/50 pb-2">
+            Preferenze veicolo
+          </p>
+
+          <FieldGroup label="Marca">
+            <SelField
+              value={f.marca}
+              onValueChange={(v) => set("marca", v)}
+              placeholder="Seleziona marca…"
+              options={MARCHE}
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Modello">
+            <Input
+              value={f.modello}
+              onChange={(e) => set("modello", e.target.value)}
+              placeholder="es. Golf, Classe A, Panda…"
+              className="h-11"
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Alimentazione">
+            <SelField
+              value={f.alimentazione}
+              onValueChange={(v) => set("alimentazione", v)}
+              placeholder="Seleziona…"
+              options={ALIMENTAZIONI}
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Km annui previsti">
+            <SelField
+              value={f.kmAnnui}
+              onValueChange={(v) => set("kmAnnui", v)}
+              placeholder="Seleziona…"
+              options={KM_OPTIONS}
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Note e preferenze aggiuntive">
+            <Textarea
+              value={f.note}
+              onChange={(e) => set("note", e.target.value)}
+              placeholder="Colore preferito, allestimento, accessori, budget indicativo…"
+              className="min-h-[120px] resize-none"
+            />
+          </FieldGroup>
+        </div>
+      </div>
+
+      {/* Privacy */}
+      <div className="space-y-3 pt-2 border-t border-border/40">
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="privacy1"
+            checked={privacy1}
+            onCheckedChange={setPrivacy1}
+            className="mt-0.5 shrink-0"
+          />
+          <label htmlFor="privacy1" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+            * Acconsento al trattamento dei miei dati personali ai sensi del Regolamento UE 2016/679
+            (GDPR) per la gestione della richiesta di preventivo.{" "}
+            <Link to="/privacy" className="text-electric underline hover:text-electric/80">
+              Leggi la Privacy Policy
+            </Link>
+          </label>
+        </div>
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="privacy2"
+            checked={privacy2}
+            onCheckedChange={setPrivacy2}
+            className="mt-0.5 shrink-0"
+          />
+          <label htmlFor="privacy2" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+            Acconsento a ricevere comunicazioni commerciali e offerte personalizzate via email/SMS.
+            (Facoltativo)
+          </label>
+        </div>
       </div>
 
       <Button
         type="submit"
-        disabled={sending}
-        className="w-full h-12 bg-electric hover:bg-electric/90 text-white font-semibold rounded-xl text-base cursor-pointer"
+        disabled={sending || !privacy1}
+        className="w-full h-12 bg-electric hover:bg-electric/90 text-white font-bold rounded-xl text-base cursor-pointer shadow-md shadow-electric/20 transition-all duration-200 disabled:opacity-50"
       >
         {sending ? (
           <>
@@ -266,8 +604,8 @@ export default function LeadForm({ prefilledConfig }) {
           </>
         ) : (
           <>
-            <Send className="w-4 h-4 mr-2" />
-            Richiedi Offerta
+            Richiedi Preventivo Veloce
+            <ArrowRight className="w-4 h-4 ml-2" />
           </>
         )}
       </Button>

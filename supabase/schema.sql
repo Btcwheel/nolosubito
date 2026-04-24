@@ -13,7 +13,7 @@ create table if not exists profiles (
   full_name     text,
   avatar_url    text,
   role          text not null default 'cliente'
-                  check (role in ('admin','backoffice','agente','cliente')),
+                  check (role in ('admin','backoffice','agente','cliente','cms')),
   agente_info   jsonb default '{}',  -- partita IVA, agenzia, ecc.
   created_at    timestamptz default now(),
   updated_at    timestamptz default now()
@@ -97,20 +97,32 @@ create table if not exists pratiche (
   codice                      text unique not null,
   status                      text not null default 'Nuova'
                                 check (status in (
-                                  'Nuova','Documenti Richiesti','Documenti Caricati',
+                                  'Nuova','In Lavorazione','Documenti Richiesti','Documenti Caricati',
                                   'Attesa Affidamento Finanziaria','Affidamento Ricevuto',
-                                  'Stipula Contratto','Attesa Consegna','Consegnata','Chiusa'
+                                  'Stipula Contratto','Attesa Consegna','Approvata','Consegnata','Chiusa'
                                 )),
   -- Cliente
   cliente_nome                text not null,
+  cliente_cognome             text,
   cliente_email               text not null,
   cliente_telefono            text,
   cliente_tipo                text check (cliente_tipo in ('Privato','P.IVA','Azienda')),
+  cliente_cf                  text,
   cliente_piva                text,
+  cliente_denominazione       text,
+  cliente_indirizzo           text,
+  cliente_citta               text,
+  cliente_provincia           text,
+  cliente_cap                 text,
+  cliente_occupazione         text,
+  cliente_tipo_contratto      text,
+  cliente_garante             boolean,
+  cliente_anno_inizio_lavoro  integer,
   cliente_residente_italia    boolean default true,
   -- Veicolo
   veicolo_marca               text,
   veicolo_modello             text,
+  veicolo_alimentazione       text,
   segmento                    text check (segmento in ('P.IVA','Fleet','Privati')),
   durata_mesi                 integer,
   km_annui                    integer,
@@ -120,6 +132,8 @@ create table if not exists pratiche (
   -- Agente
   agente_id                   uuid references profiles(id),
   agente_nome                 text,
+  provvigione                 numeric(10,2),          -- importo fisso definito da admin
+  provvigione_pagata          boolean default false,  -- segnata come pagata dall'admin
   -- AI check
   ai_check_status             text default 'pending'
                                 check (ai_check_status in ('pending','passed','failed','skipped')),
@@ -137,13 +151,8 @@ create table if not exists pratica_documenti (
   id              uuid default uuid_generate_v4() primary key,
   pratica_id      uuid references pratiche(id) on delete cascade not null,
   nome_file       text not null,
-  tipo_documento  text not null
-                    check (tipo_documento in (
-                      'Carta d''identità','Codice fiscale','Patente di guida',
-                      'Busta paga','CUD / 730','Visura camerale',
-                      'Statuto aziendale','Bilancio','Partita IVA','IBAN','Altro'
-                    )),
-  file_url        text not null,
+  tipo_documento  text not null,
+  file_url        text,
   storage_path    text,
   stato_verifica  text default 'In attesa'
                     check (stato_verifica in ('In attesa','Verificato','Rifiutato','Da rifare')),
@@ -373,3 +382,167 @@ create policy "Admin gestisce immagini veicoli"
 create policy "Chiunque legge immagini veicoli"
   on storage.objects for select
   using (bucket_id = 'vehicle-images');
+
+-- ── Preventivi ───────────────────────────────────────────────
+create table if not exists preventivi (
+  id               uuid default uuid_generate_v4() primary key,
+  pratica_id       uuid references pratiche(id) on delete cascade not null,
+  -- Veicolo
+  veicolo_marca    text not null,
+  veicolo_modello  text not null,
+  alimentazione    text,
+  -- Configurazione
+  durata_mesi      integer not null,
+  km_annui         integer not null,
+  anticipo         numeric(10,2) default 0,
+  canone_mensile   numeric(10,2) not null,
+  canone_finale    numeric(10,2),
+  -- Comunicazione
+  note_operative   text,   -- interna, non visibile al cliente
+  note_cliente     text,   -- allegata all'email e visibile al cliente
+  -- Stato
+  status           text not null default 'Bozza'
+                     check (status in ('Bozza','Inviato','Accettato','Rifiutato')),
+  inviato_at       timestamptz,
+  accettato_at     timestamptz,
+  created_by       uuid references profiles(id),
+  created_at       timestamptz default now(),
+  updated_at       timestamptz default now()
+);
+
+alter table preventivi enable row level security;
+
+create policy "Staff gestisce preventivi"
+  on preventivi for all using (get_user_role() in ('admin','backoffice'));
+
+create policy "Agente gestisce preventivi proprie pratiche"
+  on preventivi for all using (
+    exists (select 1 from pratiche where id = pratica_id and agente_id = auth.uid())
+  );
+
+-- Clients/anon can read sent preventivi (non-bozza)
+create policy "Chiunque legge preventivi inviati"
+  on preventivi for select using (status != 'Bozza');
+
+-- Clients/anon can accept or reject a preventivo
+create policy "Chiunque aggiorna stato preventivo"
+  on preventivi for update
+  using (status = 'Inviato')
+  with check (status in ('Accettato','Rifiutato'));
+
+-- ── Trigger: quando preventivo → Inviato, pratica → In Lavorazione ──
+create or replace function handle_preventivo_inviato()
+returns trigger language plpgsql security definer as $$
+begin
+  if new.status = 'Inviato' and (old.status = 'Bozza' or old.status is null) then
+    update pratiche
+    set status = 'In Lavorazione',
+        ultimo_aggiornamento_stato = now()
+    where id = new.pratica_id and status = 'Nuova';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_preventivo_inviato on preventivi;
+create trigger on_preventivo_inviato
+  after update on preventivi
+  for each row execute procedure handle_preventivo_inviato();
+
+-- ── Trigger: quando preventivo → Accettato, pratica → Documenti Richiesti ──
+create or replace function handle_preventivo_accettato()
+returns trigger language plpgsql security definer as $$
+begin
+  if new.status = 'Accettato' and old.status = 'Inviato' then
+    update pratiche
+    set status = 'Documenti Richiesti',
+        ultimo_aggiornamento_stato = now()
+    where id = new.pratica_id;
+    new.accettato_at := now();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_preventivo_accettato on preventivi;
+create trigger on_preventivo_accettato
+  before update on preventivi
+  for each row execute procedure handle_preventivo_accettato();
+
+-- ── Missing policies for anon (LeadForm + MiaPratica) ────────
+-- Allow unauthenticated lead submissions
+create policy "Chiunque invia una richiesta di preventivo"
+  on pratiche for insert with check (true);
+
+-- Allow unauthenticated client tracking (TODO: switch to token-based auth in prod)
+create policy "Chiunque legge pratiche pubblicamente"
+  on pratiche for select using (true);
+
+-- Allow clients to add notes (richiesta nuovo preventivo)
+create policy "Anon aggiunge nota da cliente"
+  on pratica_note for insert
+  with check (autore_ruolo = 'cliente');
+
+-- ============================================================
+-- Migrations (run on existing databases)
+-- ============================================================
+
+-- preventivi table (see CREATE TABLE above for fresh installs)
+create table if not exists preventivi (id uuid default uuid_generate_v4() primary key, pratica_id uuid references pratiche(id) on delete cascade not null, veicolo_marca text not null, veicolo_modello text not null, alimentazione text, durata_mesi integer not null, km_annui integer not null, anticipo numeric(10,2) default 0, canone_mensile numeric(10,2) not null, canone_finale numeric(10,2), note_operative text, note_cliente text, status text not null default 'Bozza' check (status in ('Bozza','Inviato','Accettato','Rifiutato')), inviato_at timestamptz, accettato_at timestamptz, created_by uuid references profiles(id), created_at timestamptz default now(), updated_at timestamptz default now());
+
+alter table pratiche
+  add column if not exists cliente_cognome            text,
+  add column if not exists cliente_cf                 text,
+  add column if not exists cliente_denominazione      text,
+  add column if not exists cliente_indirizzo          text,
+  add column if not exists cliente_citta              text,
+  add column if not exists cliente_provincia          text,
+  add column if not exists cliente_cap                text,
+  add column if not exists cliente_occupazione        text,
+  add column if not exists cliente_tipo_contratto     text,
+  add column if not exists cliente_garante            boolean,
+  add column if not exists cliente_anno_inizio_lavoro integer,
+  add column if not exists veicolo_alimentazione      text;
+
+-- Update status constraint to include In Lavorazione and Approvata
+alter table pratiche drop constraint if exists pratiche_status_check;
+alter table pratiche add constraint pratiche_status_check
+  check (status in (
+    'Nuova','In Lavorazione','Documenti Richiesti','Documenti Caricati',
+    'Attesa Affidamento Finanziaria','Affidamento Ricevuto',
+    'Stipula Contratto','Attesa Consegna','Approvata','Consegnata','Chiusa'
+  ));
+
+-- ── Storage: bucket vehicle-images ──────────────────────────────────────────
+-- Eseguire nel SQL Editor di Supabase oppure creare il bucket dalla dashboard
+
+insert into storage.buckets (id, name, public)
+  values ('vehicle-images', 'vehicle-images', true)
+  on conflict (id) do nothing;
+
+-- Policy: chiunque può leggere (immagini pubbliche)
+create policy "vehicle-images public read"
+  on storage.objects for select
+  using ( bucket_id = 'vehicle-images' );
+
+-- Policy: solo admin può caricare/modificare/eliminare
+create policy "vehicle-images admin write"
+  on storage.objects for insert
+  with check (
+    bucket_id = 'vehicle-images'
+    and (select role from public.profiles where id = auth.uid()) = 'admin'
+  );
+
+create policy "vehicle-images admin update"
+  on storage.objects for update
+  using (
+    bucket_id = 'vehicle-images'
+    and (select role from public.profiles where id = auth.uid()) = 'admin'
+  );
+
+create policy "vehicle-images admin delete"
+  on storage.objects for delete
+  using (
+    bucket_id = 'vehicle-images'
+    and (select role from public.profiles where id = auth.uid()) = 'admin'
+  );

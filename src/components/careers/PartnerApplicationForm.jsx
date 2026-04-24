@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { base44 } from "@/api/base44Client";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ui/use-toast";
 import { Send, Loader2, CheckCircle, X, Upload, FileText } from "lucide-react";
 
@@ -46,40 +46,25 @@ export default function PartnerApplicationForm({ onCancel }) {
     let coverUrl = null;
 
     if (cvFile) {
-      const res = await base44.integrations.Core.UploadFile({ file: cvFile });
-      cvUrl = res.file_url;
+      const path = `partner-applications/${Date.now()}-cv-${cvFile.name}`;
+      await supabase.storage.from('documenti').upload(path, cvFile);
+      const { data: { publicUrl } } = supabase.storage.from('documenti').getPublicUrl(path);
+      cvUrl = publicUrl;
     }
     if (coverFile) {
-      const res = await base44.integrations.Core.UploadFile({ file: coverFile });
-      coverUrl = res.file_url;
+      const path = `partner-applications/${Date.now()}-cover-${coverFile.name}`;
+      await supabase.storage.from('documenti').upload(path, coverFile);
+      const { data: { publicUrl } } = supabase.storage.from('documenti').getPublicUrl(path);
+      coverUrl = publicUrl;
     }
 
-    const emailBody = `
-<h2>Nuova Candidatura Partner NoloSubito</h2>
-<hr/>
-<h3>Dati Personali</h3>
-<p><strong>Nome:</strong> ${form.firstName} ${form.lastName}</p>
-<p><strong>Email:</strong> ${form.email}</p>
-<p><strong>Telefono:</strong> ${form.phone}</p>
-<hr/>
-<h3>Profilo Professionale</h3>
-<p><strong>Tipo Profilo:</strong> ${form.profileType}</p>
-<p><strong>Ragione Sociale:</strong> ${form.companyName || "—"}</p>
-<p><strong>P.IVA:</strong> ${form.vatNumber || "—"}</p>
-<p><strong>Regione:</strong> ${form.region}</p>
-<p><strong>Esperienza nel settore auto/noleggio:</strong> ${form.experience}</p>
-<hr/>
-<h3>Motivazione</h3>
-<p>${form.motivation}</p>
-<hr/>
-${cvUrl ? `<p><a href="${cvUrl}">📄 Scarica CV</a></p>` : ""}
-${coverUrl ? `<p><a href="${coverUrl}">📝 Scarica Lettera di Presentazione</a></p>` : ""}
-    `.trim();
-
-    await base44.integrations.Core.SendEmail({
-      to: "partner@nolosubito.it",
-      subject: `Candidatura Partner: ${form.firstName} ${form.lastName} — ${form.profileType}`,
-      body: emailBody,
+    // Save candidatura to DB (email via Edge Function — Sprint 5)
+    await supabase.from('leads').insert({
+      nome: `${form.firstName} ${form.lastName}`,
+      email: form.email,
+      telefono: form.phone,
+      messaggio: `[CANDIDATURA PARTNER] Tipo: ${form.profileType} | Regione: ${form.region} | Esperienza: ${form.experience} | Motivazione: ${form.motivation}`,
+      fonte: 'partner-application',
     });
 
     setSending(false);

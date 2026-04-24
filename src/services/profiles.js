@@ -11,6 +11,16 @@ export const profilesService = {
     return data;
   },
 
+  async listByRole(role) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .eq('role', role)
+      .order('full_name');
+    if (error) throw error;
+    return data;
+  },
+
   async listAgenti() {
     const { data, error } = await supabase
       .from('profiles')

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { offersService } from "@/services/offers";
 import { useQuery } from "@tanstack/react-query";
 import VehicleCard from "../components/vehicles/VehicleCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,23 +13,10 @@ export default function PrivateOffers() {
   const [fuelFilter, setFuelFilter] = useState("all");
   const [sortBy, setSortBy] = useState("price_asc");
 
-  const { data: offers = [], isLoading } = useQuery({
-    queryKey: ["offers"],
-    queryFn: () => base44.entities.offers.list("-created_date", 500),
+  const { data: vehicles = [], isLoading } = useQuery({
+    queryKey: ["offers-privati"],
+    queryFn: () => offersService.listWithMinPrice("Privati"),
   });
-
-  const vehicles = useMemo(() => {
-    const vehicleMap = new Map();
-    offers
-      .filter(o => o.segment === "Privati")
-      .forEach(o => {
-        const key = `${o.make}-${o.model}`;
-        if (!vehicleMap.has(key) || o.monthly_rent < vehicleMap.get(key).monthly_rent) {
-          vehicleMap.set(key, o);
-        }
-      });
-    return Array.from(vehicleMap.values());
-  }, [offers]);
 
   const fuelTypes = useMemo(() => [...new Set(vehicles.map(o => o.fuel_type).filter(Boolean))], [vehicles]);
 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { praticheService } from "@/services/pratiche";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,10 +13,7 @@ export default function AssegnaAgenteDialog({ pratica, agenti, onClose }) {
   const assign = useMutation({
     mutationFn: () => {
       const agente = agenti.find(a => a.id === selectedAgente);
-      return base44.entities.Pratica.update(pratica.id, {
-        agente_id: agente?.id || null,
-        agente_nome: agente?.full_name || null,
-      });
+      return praticheService.assignAgente(pratica.id, agente?.id || null, agente?.full_name || null);
     },
     onSuccess: () => {
       qc.invalidateQueries(["pratiche-admin"]);

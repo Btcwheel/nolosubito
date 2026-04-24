@@ -1,5 +1,22 @@
 import { supabase } from '@/lib/supabase';
 
+const BUCKET = 'vehicle-images';
+
+// Carica un file immagine su Supabase Storage e restituisce la URL pubblica
+async function uploadVehicleImage(file, make, model) {
+  const ext  = file.name.split('.').pop();
+  const path = `${make}-${model}-${Date.now()}.${ext}`.toLowerCase().replace(/\s+/g, '-');
+
+  const { error: uploadError } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, file, { upsert: true, contentType: file.type });
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
 export const offersService = {
   // Catalogo veicoli
   async list() {
@@ -21,6 +38,8 @@ export const offersService = {
     if (error) throw error;
     return data;
   },
+
+  uploadVehicleImage,
 
   async create(offer) {
     const { data, error } = await supabase
