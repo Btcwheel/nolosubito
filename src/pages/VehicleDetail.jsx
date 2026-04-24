@@ -7,12 +7,20 @@ import LeadForm from "../components/lead/LeadForm";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  ChevronLeft, Fuel, Gauge, Zap, Leaf, ShieldCheck,
+  ChevronLeft, X, Fuel, Gauge, Zap, Leaf, ShieldCheck,
   Wrench, FileText, Lock, TrendingDown, CheckCircle2, ArrowDown
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getVehicleImage } from "@/lib/vehicleFallbacks";
+
+// Mock gallery extras — in produzione sostituire con vehicle.gallery_images[] dal DB
+const MOCK_GALLERY_EXTRAS = [
+  { src: "https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?w=1200&q=85", label: "3/4 anteriore" },
+  { src: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1200&q=85", label: "Laterale" },
+  { src: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=1200&q=85", label: "Interni" },
+  { src: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=1200&q=85", label: "Posteriore" },
+];
 
 const FUEL_PILL = {
   Electric: "bg-fuel-ev/20 text-fuel-ev border-fuel-ev/30",
@@ -30,6 +38,8 @@ export default function VehicleDetail() {
 
   const [quoteConfig, setQuoteConfig] = useState(null);
   const [showForm, setShowForm]       = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [imgKey, setImgKey]             = useState(0);
 
   useEffect(() => { window.scrollTo(0, 0); }, [make, model]);
 
@@ -95,6 +105,22 @@ export default function VehicleDetail() {
   const FuelIcon   = bestOffer.fuel_type === "Electric" ? Zap : Fuel;
   const fuelPill   = FUEL_PILL[bestOffer.fuel_type] ?? "bg-muted/20 text-white/60 border-white/20";
   const imgSrc     = bestOffer.vehicle_image || getVehicleImage(bestOffer);
+
+  // Gallery: immagine principale + extra mock (o vehicle.gallery_images[] dal DB)
+  const galleryImages = [
+    { src: imgSrc, label: "Esterno" },
+    ...(bestOffer.gallery_images?.map((s, i) => ({ src: s, label: `Foto ${i + 2}` })) ?? MOCK_GALLERY_EXTRAS),
+  ];
+
+  const handleThumb = (i) => {
+    setCurrentIndex(i);
+    setImgKey(k => k + 1);
+    if (i > 0) {
+      setTimeout(() => {
+        document.getElementById("gallery-detail")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }, 50);
+    }
+  };
   const isElectric = bestOffer.fuel_type === "Electric";
   const isHybrid   = bestOffer.fuel_type === "Hybrid";
 
@@ -119,36 +145,33 @@ export default function VehicleDetail() {
 
       <div className="bg-navy min-h-screen">
 
-        {/* ── Hero image — full bleed ── */}
-        <div className="relative w-full h-[55vw] max-h-[520px] min-h-[280px] overflow-hidden">
+        {/* ── Hero — sempre la prima foto, full-bleed con sfumatura ── */}
+        <div className="relative w-full h-[55vw] max-h-[560px] min-h-[320px] overflow-hidden">
           <img
-            src={imgSrc}
+            src={galleryImages[0].src}
             alt={`${decodedMake} ${decodedModel}`}
             className="w-full h-full object-cover"
             onError={(e) => { e.target.src = getVehicleImage({ make: decodedMake }); }}
           />
-          {/* Multi-layer gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/40 to-navy/30" />
-          <div className="absolute inset-0 bg-gradient-to-r from-navy/60 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/30 to-navy/20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-navy/50 via-transparent to-transparent" />
 
-          {/* Back button */}
-          <div className="absolute top-0 left-0 right-0 pt-24 sm:pt-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          {/* Back */}
+          <div className="absolute top-0 inset-x-0 pt-24 sm:pt-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
             <Link
               to="/offers"
-              className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors duration-200 group"
+              className="inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-white transition-colors group"
             >
               <ChevronLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
               Tutte le Offerte
             </Link>
           </div>
 
-          {/* Title over image */}
-          <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 lg:px-8 pb-8 max-w-7xl mx-auto">
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-              <div className="flex flex-wrap gap-2 mb-3">
-                <Badge className="bg-navy/70 text-white border-white/20 backdrop-blur-sm text-xs">
-                  {bestOffer.category}
-                </Badge>
+          {/* Titolo overlaid in basso */}
+          <div className="absolute bottom-0 inset-x-0 px-4 sm:px-6 lg:px-8 pb-8 max-w-7xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                <Badge className="bg-navy/60 text-white border-white/20 backdrop-blur-sm text-xs">{bestOffer.category}</Badge>
                 {isElectric && (
                   <Badge className="bg-fuel-ev/80 text-white border-0 text-xs backdrop-blur-sm flex items-center gap-1">
                     <Zap className="w-3 h-3" /> 0 emissioni
@@ -161,15 +184,98 @@ export default function VehicleDetail() {
                 )}
               </div>
               <p className="text-electric text-xs font-bold uppercase tracking-widest mb-1">{decodedMake}</p>
-              <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white leading-tight">
-                {decodedModel}
-              </h1>
-              {bestOffer.monthly_rent && (
-                <p className="text-white/50 text-sm mt-2">
-                  Da <span className="text-white font-semibold text-lg">€{Math.round(bestOffer.monthly_rent).toLocaleString("it-IT")}</span>/mese + IVA
-                </p>
-              )}
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white leading-tight">
+                  {decodedModel}
+                </h1>
+                {bestOffer.monthly_rent && (
+                  <div className="text-right mb-1">
+                    <p className="text-white/40 text-xs">a partire da</p>
+                    <p className="font-heading font-bold text-2xl text-white leading-tight">
+                      €{segmentFromState === "Privati"
+                        ? Math.round(bestOffer.monthly_rent * 1.22).toLocaleString("it-IT")
+                        : Math.round(bestOffer.monthly_rent).toLocaleString("it-IT")}
+                      <span className="text-white/40 text-sm font-normal">
+                        /mese {segmentFromState === "Privati" ? "IVA incl." : "+ IVA"}
+                      </span>
+                    </p>
+                  </div>
+                )}
+              </div>
             </motion.div>
+          </div>
+        </div>
+
+        {/* ── Thumbnail strip + sezione dettaglio ── */}
+        <div className="border-b border-white/[0.06]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+
+            {/* Thumbnails */}
+            <div className="flex gap-2 overflow-x-auto pb-0.5" style={{ scrollbarWidth: "none" }}>
+              {galleryImages.map((img, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleThumb(i)}
+                  title={img.label}
+                  className={`relative shrink-0 rounded-xl overflow-hidden cursor-pointer transition-all duration-200
+                    w-[88px] h-[56px] sm:w-[108px] sm:h-[68px]
+                    ${i === currentIndex && i > 0
+                      ? "ring-2 ring-electric ring-offset-2 ring-offset-navy opacity-100"
+                      : i === 0 && currentIndex === 0
+                        ? "ring-2 ring-white/30 ring-offset-2 ring-offset-navy opacity-100"
+                        : "opacity-40 hover:opacity-75"
+                    }`}
+                >
+                  <img src={img.src} alt={img.label} className="w-full h-full object-cover" />
+                  <span className="absolute bottom-0 inset-x-0 text-[9px] font-semibold text-white/80 text-center py-0.5 bg-black/50 leading-tight">
+                    {img.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Sezione dettaglio — appare solo per le foto extra (index > 0) */}
+            <AnimatePresence>
+              {currentIndex > 0 && (
+                <motion.div
+                  id="gallery-detail"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.38, ease: "easeInOut" }}
+                  className="overflow-hidden"
+                >
+                  <div className="relative mt-3 rounded-2xl overflow-hidden aspect-[16/9] sm:aspect-[21/9] bg-black/30">
+                    <AnimatePresence mode="wait">
+                      <motion.img
+                        key={imgKey}
+                        src={galleryImages[currentIndex].src}
+                        alt={`${decodedMake} ${decodedModel} — ${galleryImages[currentIndex].label}`}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        initial={{ opacity: 0, scale: 1.03 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.35, ease: "easeOut" }}
+                      />
+                    </AnimatePresence>
+
+                    {/* Label */}
+                    <span className="absolute bottom-3 left-3 text-xs font-semibold text-white/80 bg-black/40 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
+                      {galleryImages[currentIndex].label}
+                    </span>
+
+                    {/* Chiudi */}
+                    <button
+                      onClick={() => setCurrentIndex(0)}
+                      className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white/70 hover:text-white hover:bg-black/60 transition-colors cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
           </div>
         </div>
 
@@ -255,8 +361,8 @@ export default function VehicleDetail() {
                 </div>
               </div>
 
-              {/* Tax benefits */}
-              <div className="rounded-2xl bg-electric/5 border border-electric/15 p-5">
+              {/* Tax benefits — solo per P.IVA e Fleet, non per privati */}
+              {segmentFromState !== "Privati" && <div className="rounded-2xl bg-electric/5 border border-electric/15 p-5">
                 <h3 className="text-xs font-bold text-electric/70 uppercase tracking-widest mb-4">
                   Vantaggi fiscali P.IVA
                 </h3>
@@ -275,7 +381,7 @@ export default function VehicleDetail() {
                     </div>
                   ))}
                 </div>
-              </div>
+              </div>}
             </motion.div>
 
             {/* ── Right panel — QuoteBox ── */}
@@ -288,6 +394,7 @@ export default function VehicleDetail() {
               <QuoteBox
                 fixedMake={decodedMake}
                 fixedModel={decodedModel}
+                segment={segmentFromState}
                 onRequestQuote={handleRequestQuote}
               />
             </motion.div>

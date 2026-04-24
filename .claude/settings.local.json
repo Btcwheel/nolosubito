@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"/c/Users/Quixel/Downloads/fleet-flow-nolo\" && npm run build 2>&1 | tail -30)",
+      "Bash(find \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\\\\supabase\\\\functions\" -type f -name \"*.ts\" -o -name \"*.js\" 2>/dev/null | head -5)",
+      "Bash(cd \"/c/Users/Quixel/Downloads/fleet-flow-nolo\" && npm run build 2>&1 | grep -E \"error|Error|✓|✗\" | tail -10)",
+      "Bash(winget install:*)",
+      "Bash(supabase db:*)",
+      "Bash(ls C:/Users/Quixel/Downloads/fleet-flow-nolo/.env* 2>/dev/null; cat C:/Users/Quixel/Downloads/fleet-flow-nolo/.gitignore 2>/dev/null | grep env)",
+      "WebFetch(domain:www.autoscout24.de)"
+    ]
+  }
+}

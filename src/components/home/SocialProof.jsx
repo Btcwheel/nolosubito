@@ -42,7 +42,7 @@ function StarRating({ count = 5 }) {
 
 export default function SocialProof() {
   return (
-    <section className="py-20 sm:py-28 bg-navy">
+    <section className="py-20 sm:py-28 bg-[#2C2C2C]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Stats */}

@@ -1,0 +1,55 @@
+{
+  "name": "Post",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Titolo dell'articolo"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Slug univoco per l'URL (es. novita-nlt-2024)"
+    },
+    "summary": {
+      "type": "string",
+      "description": "Breve anteprima dell'articolo"
+    },
+    "content": {
+      "type": "string",
+      "description": "Contenuto completo in formato Markdown"
+    },
+    "cover_image_url": {
+      "type": "string",
+      "description": "URL immagine di copertina"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Notizie",
+        "Approfondimenti",
+        "Offerte",
+        "Green Mobility",
+        "Azienda"
+      ],
+      "description": "Categoria dell'articolo"
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data di pubblicazione"
+    },
+    "is_published": {
+      "type": "boolean",
+      "default": true,
+      "description": "Visibile sul sito"
+    }
+  },
+  "required": [
+    "title",
+    "slug",
+    "summary",
+    "content",
+    "cover_image_url",
+    "published_date"
+  ]
+}

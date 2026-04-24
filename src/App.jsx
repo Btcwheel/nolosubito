@@ -20,6 +20,7 @@ const WorkWithUs       = lazy(() => import('./pages/WorkWithUs'));
 const CommercialOffers = lazy(() => import('./pages/CommercialOffers'));
 const News             = lazy(() => import('./pages/News'));
 const NewsDetail       = lazy(() => import('./pages/NewsDetail'));
+const Usato            = lazy(() => import('./pages/Usato'));
 const PrivacyPolicy    = lazy(() => import('./pages/PrivacyPolicy'));
 const TerminiCondizioni = lazy(() => import('./pages/TerminiCondizioni'));
 const Login            = lazy(() => import('./pages/Login'));
@@ -64,6 +65,7 @@ const AppRoutes = () => {
           <Route path="/private-offers"       element={<PrivateOffers />} />
           <Route path="/careers"              element={<WorkWithUs />} />
           <Route path="/commercial"           element={<CommercialOffers />} />
+          <Route path="/usato"                element={<Usato />} />
           <Route path="/news"                 element={<News />} />
           <Route path="/news/:slug"           element={<NewsDetail />} />
           <Route path="/privacy"              element={<PrivacyPolicy />} />

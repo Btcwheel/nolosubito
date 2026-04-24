@@ -3,7 +3,7 @@ import { motion, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-const SCENE_COUNT = 5;
+const SCENE_COUNT = 2;
 
 export default function HeroScene({ scene, index, scrollYProgress, isFirst }) {
   const start = index / SCENE_COUNT;
@@ -36,8 +36,8 @@ export default function HeroScene({ scene, index, scrollYProgress, isFirst }) {
           alt={scene.label}
           className="w-full h-full object-cover object-center scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#2D2E82]/85 via-[#2D2E82]/50 to-[#2D2E82]/15" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#2D2E82]/70 via-transparent to-transparent" />
       </motion.div>
 
       {/* Text Content */}
@@ -51,7 +51,7 @@ export default function HeroScene({ scene, index, scrollYProgress, isFirst }) {
           <span className="text-electric text-xs sm:text-sm font-semibold tracking-widest uppercase">
             {scene.label}
           </span>
-          <span className="text-white/30 text-xs ml-1">{index + 1}/{SCENE_COUNT}</span>
+          <span className="text-white/30 text-xs ml-1">{index + 1} / {SCENE_COUNT}</span>
         </div>
 
         {/* Title — ridotto su mobile per evitare overflow */}

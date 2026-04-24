@@ -1,0 +1,102 @@
+{
+  "name": "offers",
+  "type": "object",
+  "properties": {
+    "offer_hash": {
+      "type": "string",
+      "description": "Unique offer identifier hash"
+    },
+    "make": {
+      "type": "string",
+      "description": "Vehicle manufacturer"
+    },
+    "model": {
+      "type": "string",
+      "description": "Vehicle model name"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Business Sedan",
+        "Business SUV",
+        "Electric Exec",
+        "Electric SUV",
+        "Commercial Van",
+        "Premium Sedan",
+        "Compact Business"
+      ],
+      "description": "Vehicle category"
+    },
+    "segment": {
+      "type": "string",
+      "enum": [
+        "P.IVA",
+        "Fleet",
+        "Privati"
+      ],
+      "description": "Target segment"
+    },
+    "duration_months": {
+      "type": "number",
+      "description": "Lease duration in months"
+    },
+    "annual_km": {
+      "type": "number",
+      "description": "Annual kilometers included"
+    },
+    "advance_payment": {
+      "type": "number",
+      "description": "Advance payment in euros"
+    },
+    "monthly_rent": {
+      "type": "number",
+      "description": "Monthly rental price in euros"
+    },
+    "vehicle_image": {
+      "type": "string",
+      "description": "URL of the vehicle image"
+    },
+    "fuel_type": {
+      "type": "string",
+      "enum": [
+        "Diesel",
+        "Petrol",
+        "Electric",
+        "Hybrid"
+      ],
+      "description": "Fuel type"
+    },
+    "transmission": {
+      "type": "string",
+      "enum": [
+        "Automatic",
+        "Manual"
+      ],
+      "description": "Transmission type"
+    },
+    "power_hp": {
+      "type": "number",
+      "description": "Engine power in HP"
+    },
+    "co2_emissions": {
+      "type": "number",
+      "description": "CO2 emissions g/km"
+    },
+    "features": {
+      "type": "array",
+      "description": "Key features list",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "make",
+    "model",
+    "category",
+    "duration_months",
+    "annual_km",
+    "advance_payment",
+    "monthly_rent"
+  ]
+}

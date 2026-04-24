@@ -1,0 +1,57 @@
+{
+  "name": "PraticaDocumento",
+  "type": "object",
+  "properties": {
+    "pratica_id": {
+      "type": "string",
+      "description": "ID della pratica associata"
+    },
+    "nome_file": {
+      "type": "string",
+      "description": "Nome originale del file"
+    },
+    "tipo_documento": {
+      "type": "string",
+      "enum": [
+        "Carta d'identit\u00e0",
+        "Codice fiscale",
+        "Patente di guida",
+        "Busta paga",
+        "CUD / 730",
+        "Visura camerale",
+        "Statuto aziendale",
+        "Bilancio",
+        "Partita IVA",
+        "Altro"
+      ],
+      "description": "Tipo di documento"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL del file caricato"
+    },
+    "stato_verifica": {
+      "type": "string",
+      "enum": [
+        "In attesa",
+        "Verificato",
+        "Rifiutato",
+        "Da rifare"
+      ],
+      "default": "In attesa",
+      "description": "Stato della verifica del documento"
+    },
+    "note_verifica": {
+      "type": "string",
+      "description": "Note dell'operatore sulla verifica"
+    },
+    "caricato_da": {
+      "type": "string",
+      "description": "Email o nome di chi ha caricato il documento"
+    }
+  },
+  "required": [
+    "pratica_id",
+    "file_url"
+  ]
+}

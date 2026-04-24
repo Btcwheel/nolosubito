@@ -28,10 +28,18 @@ const FUEL_TYPES = [
 ];
 const TRANSMISSIONS = ["Automatic", "Manual"];
 
+const SEGMENTS_OPTIONS = [
+  { value: "P.IVA",    label: "Business / P.IVA",      color: "bg-blue-100 text-blue-700 border-blue-200" },
+  { value: "Privati",  label: "Privati",                color: "bg-purple-100 text-purple-700 border-purple-200" },
+  { value: "Fleet",    label: "Veicoli Commerciali",    color: "bg-amber-100 text-amber-700 border-amber-200" },
+  { value: "Green",    label: "Green Mobility",         color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+];
+
 const EMPTY_VEHICLE = {
   make: "", model: "", category: "", fuel_type: "",
   transmission: "", power_hp: "", co2_emissions: "",
-  vehicle_image: "", description: "", features: [], is_active: true,
+  vehicle_image: "", description: "", features: [],
+  segments: [], is_active: true,
 };
 
 // ── Tag input per le dotazioni ────────────────────────────────────────────────
@@ -223,6 +231,43 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
             </div>
           </div>
 
+          {/* Sezioni / Segmenti */}
+          <div>
+            <Label className="text-xs font-semibold mb-2 block">
+              Sezioni <span className="text-muted-foreground font-normal">(dove appare il veicolo)</span>
+            </Label>
+            <div className="grid grid-cols-2 gap-2">
+              {SEGMENTS_OPTIONS.map(({ value, label, color }) => {
+                const active = (form.segments || []).includes(value);
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      const current = form.segments || [];
+                      set("segments", active
+                        ? current.filter(s => s !== value)
+                        : [...current, value]
+                      );
+                    }}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer text-left ${
+                      active
+                        ? `${color} border-current`
+                        : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
+                    }`}
+                  >
+                    <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                      active ? "bg-current border-current" : "border-muted-foreground/40"
+                    }`}>
+                      {active && <Check className="w-2.5 h-2.5 text-white" />}
+                    </span>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Potenza + CO2 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -327,7 +372,8 @@ export default function CmsVehicles() {
         power_hp:      form.power_hp      ? Number(form.power_hp)      : null,
         co2_emissions: form.co2_emissions  ? Number(form.co2_emissions) : null,
         vehicle_image: form.vehicle_image || null,
-        features:      form.features || [],
+        features:      form.features  || [],
+        segments:      form.segments  || [],
       };
       return form.id ? offersService.update(form.id, payload) : offersService.create(payload);
     },
@@ -429,6 +475,14 @@ export default function CmsVehicles() {
                     {v.power_hp && (
                       <span className="text-[11px] text-muted-foreground">{v.power_hp} CV</span>
                     )}
+                    {v.segments?.map(s => {
+                      const opt = SEGMENTS_OPTIONS.find(o => o.value === s);
+                      return opt ? (
+                        <span key={s} className={`text-[10px] font-semibold px-1.5 py-0 rounded-full border ${opt.color}`}>
+                          {s}
+                        </span>
+                      ) : null;
+                    })}
                   </div>
                 </div>
 

@@ -1,0 +1,113 @@
+{
+  "name": "Pratica",
+  "type": "object",
+  "properties": {
+    "codice": {
+      "type": "string",
+      "description": "Codice univoco pratica (es. NS-2024-001)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Nuova",
+        "In Lavorazione",
+        "Documenti Richiesti",
+        "Approvata",
+        "Consegnata",
+        "Chiusa"
+      ],
+      "default": "Nuova",
+      "description": "Stato della pratica"
+    },
+    "cliente_nome": {
+      "type": "string",
+      "description": "Nome completo o ragione sociale del cliente"
+    },
+    "cliente_email": {
+      "type": "string",
+      "description": "Email del cliente"
+    },
+    "cliente_telefono": {
+      "type": "string",
+      "description": "Telefono del cliente"
+    },
+    "cliente_tipo": {
+      "type": "string",
+      "enum": [
+        "Privato",
+        "P.IVA",
+        "Azienda"
+      ],
+      "description": "Tipo di cliente"
+    },
+    "cliente_piva": {
+      "type": "string",
+      "description": "Partita IVA o codice fiscale"
+    },
+    "veicolo_marca": {
+      "type": "string",
+      "description": "Marca del veicolo richiesto"
+    },
+    "veicolo_modello": {
+      "type": "string",
+      "description": "Modello del veicolo richiesto"
+    },
+    "segmento": {
+      "type": "string",
+      "enum": [
+        "P.IVA",
+        "Fleet",
+        "Privati"
+      ],
+      "description": "Segmento commerciale"
+    },
+    "durata_mesi": {
+      "type": "number",
+      "description": "Durata del contratto in mesi"
+    },
+    "km_annui": {
+      "type": "number",
+      "description": "Km annui inclusi"
+    },
+    "anticipo": {
+      "type": "number",
+      "description": "Anticipo in euro"
+    },
+    "canone_mensile": {
+      "type": "number",
+      "description": "Canone mensile in euro"
+    },
+    "agente_id": {
+      "type": "string",
+      "description": "ID dell'agente assegnato"
+    },
+    "agente_nome": {
+      "type": "string",
+      "description": "Nome dell'agente assegnato"
+    },
+    "note_cliente": {
+      "type": "string",
+      "description": "Note inserite dal cliente nel form"
+    },
+    "documenti_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URL dei documenti allegati"
+    },
+    "ultimo_aggiornamento_stato": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data ultimo cambio stato"
+    },
+    "access_token": {
+      "type": "string",
+      "description": "Token segreto per accesso cliente senza login"
+    }
+  },
+  "required": [
+    "cliente_nome",
+    "cliente_email"
+  ]
+}

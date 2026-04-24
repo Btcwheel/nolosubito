@@ -17,33 +17,11 @@ const SCENES = [
     title: "Potenza\nSenza Limiti",
     sub: "Scegli tra centinaia di motorizzazioni. Benzina, diesel, ibrido, elettrico.",
   },
-  {
-    image: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1920&q=90&auto=format&fit=crop",
-    label: "Su Strada",
-    title: "Comfort\ndi Guida",
-    sub: "Veicoli sempre in perfetto stato. Manutenzione inclusa nel canone mensile.",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1920&q=90&auto=format&fit=crop",
-    label: "Design",
-    title: "Stile\nItaliano",
-    sub: "Berlina, SUV, van commerciali. Il veicolo giusto per ogni esigenza.",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1616422285623-13ff0162193c?w=1920&q=90&auto=format&fit=crop",
-    label: "Interni",
-    title: "Ogni Dettaglio\nCurato",
-    sub: "Interni premium, tecnologia di bordo, comfort totale per ogni km.",
-  },
 ];
-
-// Su mobile: 3 scene (300vh), su desktop: 5 scene (500vh)
-const isMobile = () => window.innerWidth < 640;
 
 export default function HeroSection() {
   const containerRef = useRef(null);
-  const mobile = isMobile();
-  const activeScenes = mobile ? SCENES.slice(0, 3) : SCENES;
+  const activeScenes = SCENES;
   const totalHeight = activeScenes.length * 100;
 
   const { scrollYProgress } = useScroll({

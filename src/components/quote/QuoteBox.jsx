@@ -249,27 +249,29 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
         {/* ── Price display ── */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={`${rentWithVat}-${duration}-${annualKm}-${advance}`}
+            key={`${computedRent}-${duration}-${annualKm}-${advance}`}
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.15 }}
             className="rounded-2xl bg-gradient-to-br from-navy to-[hsl(220,100%,12%)] overflow-hidden"
           >
-            {rentWithVat ? (
+            {computedRent ? (
               <div className="p-5">
                 {/* Main price */}
                 <div className="text-center mb-4">
                   <p className="text-white/40 text-xs mb-1">Canone mensile</p>
                   <div className="flex items-baseline justify-center gap-1">
                     <span className="font-heading font-bold text-5xl text-white tracking-tight">
-                      €{rentWithVat.toLocaleString("it-IT")}
+                      €{(segment === "Privati" ? rentWithVat : computedRent).toLocaleString("it-IT")}
                     </span>
                     <span className="text-white/40 text-sm">/mese</span>
                   </div>
-                  <p className="text-white/30 text-[11px] mt-1">IVA 22% inclusa</p>
+                  <p className="text-white/30 text-[11px] mt-1">
+                    {segment === "Privati" ? "IVA 22% inclusa" : "+ IVA 22%"}
+                  </p>
                 </div>
 
-                {/* P.IVA net saving */}
-                {netCostPiva && risparmioMensile && (
+                {/* P.IVA net saving — solo per segmenti business/commercial */}
+                {segment !== "Privati" && netCostPiva && risparmioMensile && (
                   <div className="bg-electric/10 border border-electric/20 rounded-xl p-3 mb-3">
                     <div className="flex items-center justify-between">
                       <div>
@@ -323,7 +325,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
               segment: exactConfig?.segment || segment,
               duration, annualKm, advance, monthlyRent: computedRent,
             })}
-            disabled={!rentWithVat}
+            disabled={!computedRent}
             className="w-full h-13 bg-electric hover:bg-electric/90 text-white font-bold rounded-xl text-base cursor-pointer disabled:opacity-40 shadow-lg shadow-electric/25 py-3.5 transition-all duration-200"
           >
             Richiedi Offerta Personalizzata

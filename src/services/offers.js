@@ -133,9 +133,12 @@ export const offersService = {
       }
     });
 
-    return offersRes.data?.map(o => ({
-      ...o,
-      monthly_rent: minPriceMap[`${o.make}|${o.model}`] ?? null,
-    })) ?? [];
+    // Restituisce solo i veicoli che hanno almeno una config per il segmento richiesto
+    return offersRes.data
+      ?.filter(o => minPriceMap[`${o.make}|${o.model}`] != null)
+      .map(o => ({
+        ...o,
+        monthly_rent: minPriceMap[`${o.make}|${o.model}`],
+      })) ?? [];
   },
 };

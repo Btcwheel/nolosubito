@@ -127,7 +127,7 @@ export default function CommercialOffers() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filtered.map((v, i) => (
-                <VehicleCard key={`${v.make}-${v.model}`} vehicle={v} index={i} />
+                <VehicleCard key={`${v.make}-${v.model}`} vehicle={v} index={i} segment="Fleet" />
               ))}
             </div>
           )}

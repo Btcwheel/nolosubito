@@ -33,12 +33,14 @@ function BrandLogo({ make }) {
   );
 }
 
-export default function VehicleCard({ vehicle, index }) {
+export default function VehicleCard({ vehicle, index, segment }) {
+  const isPrivate = segment === "Privati";
   const FuelIcon   = vehicle.fuel_type === "Electric" ? Zap : Fuel;
   const imgSrc     = getVehicleImage(vehicle);
   const fuelClass  = FUEL_COLORS[vehicle.fuel_type] ?? "bg-muted text-muted-foreground";
   const isPopular  = POPULAR.includes(vehicle.model);
   const isNew      = NEW_TAG.includes(vehicle.model);
+  const hasEditorialImage = Boolean(vehicle.vehicle_image);
 
   return (
     <motion.div
@@ -48,26 +50,30 @@ export default function VehicleCard({ vehicle, index }) {
     >
       <Link
         to={`/vehicle/${encodeURIComponent(vehicle.make)}/${encodeURIComponent(vehicle.model)}`}
+        state={{ segment }}
         className="group block h-full"
       >
         <div className="h-full bg-card rounded-2xl border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-black/8 hover:border-electric/25 hover:-translate-y-1">
 
           {/* ── Image ── */}
-          <div className="relative aspect-[16/9] bg-muted overflow-hidden">
+          <div className="relative aspect-[5/4] overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.96),_rgba(241,245,249,0.92)_42%,_rgba(226,232,240,0.82)_100%)]">
+            <div className="absolute inset-x-6 bottom-5 h-10 rounded-full bg-navy/10 blur-2xl" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-transparent to-navy/5" />
             <img
               src={imgSrc}
               alt={`${vehicle.make} ${vehicle.model}`}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              className={`relative z-10 w-full h-full transition-transform duration-700 group-hover:scale-[1.03] ${
+                hasEditorialImage
+                  ? "object-contain object-center p-4 sm:p-5"
+                  : "object-cover object-center"
+              }`}
               loading="lazy"
               onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0"; }}
             />
 
-            {/* Permanent bottom gradient for text legibility */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
-
             {/* Top badges */}
-            <div className="absolute top-3 left-3 flex gap-1.5">
-              <Badge className="bg-navy/80 text-white border-0 text-[11px] backdrop-blur-sm px-2 py-0.5">
+            <div className="absolute top-3 left-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap gap-1.5">
+              <Badge className="bg-white/90 text-navy border border-white/70 text-[11px] backdrop-blur-sm px-2 py-0.5 shadow-sm">
                 {vehicle.category}
               </Badge>
               {isPopular && (
@@ -84,35 +90,31 @@ export default function VehicleCard({ vehicle, index }) {
 
             {/* Top-right EV/Hybrid badge */}
             {vehicle.fuel_type === "Electric" && (
-              <Badge className="absolute top-3 right-3 bg-fuel-ev/90 text-white border-0 text-[11px] backdrop-blur-sm flex items-center gap-1">
+              <Badge className="absolute top-3 right-3 z-20 bg-fuel-ev/90 text-white border-0 text-[11px] backdrop-blur-sm flex items-center gap-1 shadow-sm">
                 <Zap className="w-2.5 h-2.5" /> 0 CO₂
               </Badge>
             )}
             {vehicle.fuel_type === "Hybrid" && (
-              <Badge className="absolute top-3 right-3 bg-fuel-hybrid/90 text-white border-0 text-[11px] backdrop-blur-sm flex items-center gap-1">
+              <Badge className="absolute top-3 right-3 z-20 bg-fuel-hybrid/90 text-white border-0 text-[11px] backdrop-blur-sm flex items-center gap-1 shadow-sm">
                 <Leaf className="w-2.5 h-2.5" /> Ibrido
               </Badge>
             )}
-
-            {/* Bottom-left: make + model over image */}
-            <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
-              <div>
-                <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest leading-none mb-0.5">
-                  {vehicle.make}
-                </p>
-                <h3 className="font-heading font-bold text-lg text-white leading-tight drop-shadow">
-                  {vehicle.model}
-                </h3>
-              </div>
-            </div>
           </div>
 
           {/* ── Body ── */}
           <div className="p-4">
+            <div className="mb-4">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.24em] leading-none mb-1.5">
+                {vehicle.make}
+              </p>
+              <h3 className="font-heading font-bold text-xl text-foreground leading-tight [text-wrap:balance]">
+                {vehicle.model}
+              </h3>
+            </div>
 
             {/* Specs row & Logo */}
-            <div className="flex items-center justify-between gap-2 mb-4">
-              <div className="flex flex-wrap items-center gap-1.5 hover:opacity-100">
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="flex flex-wrap items-center gap-1.5">
                 {vehicle.fuel_type && (
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${fuelClass}`}>
                     <FuelIcon className="w-2.5 h-2.5" />
@@ -144,11 +146,15 @@ export default function VehicleCard({ vehicle, index }) {
                     <p className="text-[10px] text-white/50 leading-none mb-1">Da</p>
                     <div className="flex items-baseline gap-0.5">
                       <span className="font-heading font-bold text-2xl text-white leading-none">
-                        €{Math.round(vehicle.monthly_rent).toLocaleString("it-IT")}
+                        €{isPrivate
+                          ? Math.round(vehicle.monthly_rent * 1.22).toLocaleString("it-IT")
+                          : Math.round(vehicle.monthly_rent).toLocaleString("it-IT")}
                       </span>
                       <span className="text-white/50 text-xs ml-0.5">/mese</span>
                     </div>
-                    <p className="text-[10px] text-white/35 mt-0.5">+ IVA 22%</p>
+                    <p className="text-[10px] text-white/35 mt-0.5">
+                      {isPrivate ? "IVA inclusa" : "+ IVA"}
+                    </p>
                   </>
                 ) : (
                   <p className="text-sm font-semibold text-white/70">Su richiesta</p>

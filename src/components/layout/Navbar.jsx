@@ -9,6 +9,7 @@ const offersDropdown = [
   { label: "Offerte Privati", path: "/private-offers", desc: "Noleggio per privati" },
   { label: "Soluzioni Flotta", path: "/fleet", desc: "Flotte aziendali" },
   { label: "Veicoli Commerciali", path: "/commercial", desc: "Furgoni e van cargo" },
+  { label: "Usato Garantito", path: "/usato", desc: "Selezione AutoScout24" },
 ];
 
 const navLinks = [

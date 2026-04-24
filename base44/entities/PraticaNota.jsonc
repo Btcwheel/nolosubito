@@ -1,0 +1,37 @@
+{
+  "name": "PraticaNota",
+  "type": "object",
+  "properties": {
+    "pratica_id": {
+      "type": "string",
+      "description": "ID della pratica associata"
+    },
+    "autore_nome": {
+      "type": "string",
+      "description": "Nome di chi ha scritto la nota"
+    },
+    "autore_ruolo": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "agente",
+        "cliente",
+        "sistema"
+      ],
+      "description": "Ruolo dell'autore"
+    },
+    "testo": {
+      "type": "string",
+      "description": "Testo della nota"
+    },
+    "visibile_cliente": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se true, il cliente pu\u00f2 vedere questa nota"
+    }
+  },
+  "required": [
+    "pratica_id",
+    "testo"
+  ]
+}
