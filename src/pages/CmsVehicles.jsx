@@ -38,7 +38,7 @@ const SEGMENTS_OPTIONS = [
 const EMPTY_VEHICLE = {
   make: "", model: "", category: "", fuel_type: "",
   transmission: "", power_hp: "", co2_emissions: "",
-  vehicle_image: "", description: "", features: [],
+  vehicle_image: "", gallery_images: [], description: "", features: [],
   segments: [], is_active: true,
 };
 
@@ -168,6 +168,146 @@ function ImageUpload({ value, onChange, make, model }) {
   );
 }
 
+// ── Upload foto gallery ───────────────────────────────────────────────────────
+
+const GALLERY_MAX = 5;
+
+function GalleryImagesInput({ images, onChange, make, model }) {
+  const inputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [urlDraft, setUrlDraft] = useState("");
+  const { toast } = useToast();
+
+  const handleFile = async (file) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "File non valido", description: "Seleziona JPG, PNG o WebP.", variant: "destructive" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: "File troppo grande", description: "Massimo 5 MB per foto.", variant: "destructive" });
+      return;
+    }
+    if ((images || []).length >= GALLERY_MAX) {
+      toast({ title: "Limite raggiunto", description: `Massimo ${GALLERY_MAX} foto gallery.`, variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    try {
+      const url = await offersService.uploadVehicleImage(file, make || "vehicle", `${model || "gallery"}-gallery`);
+      onChange([...(images || []), url]);
+      toast({ title: "Foto aggiunta alla gallery" });
+    } catch (err) {
+      toast({ title: "Errore upload", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const addUrl = () => {
+    const url = urlDraft.trim();
+    if (!url) return;
+    if ((images || []).length >= GALLERY_MAX) return;
+    onChange([...(images || []), url]);
+    setUrlDraft("");
+  };
+
+  const remove = (i) => onChange((images || []).filter((_, idx) => idx !== i));
+
+  const list = images || [];
+
+  return (
+    <div className="space-y-3">
+      {list.length > 0 && (
+        <div className="grid grid-cols-3 gap-2">
+          {list.map((url, i) => (
+            <div key={i} className="relative aspect-video rounded-lg overflow-hidden border border-border/50 group">
+              <img src={url} alt={`gallery ${i + 1}`} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => remove(i)}
+                  className="bg-white/20 hover:bg-red-500 text-white p-1.5 rounded-full transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <span className="absolute bottom-1 right-1 text-[10px] text-white/70 bg-black/50 px-1 rounded">
+                {i + 1}
+              </span>
+            </div>
+          ))}
+          {list.length < GALLERY_MAX && (
+            <button
+              type="button"
+              onClick={() => !uploading && inputRef.current?.click()}
+              disabled={uploading}
+              className="aspect-video border-2 border-dashed border-border hover:border-electric/40 rounded-lg flex items-center justify-center text-muted-foreground hover:text-electric transition-colors disabled:opacity-50"
+            >
+              {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
+            </button>
+          )}
+        </div>
+      )}
+
+      {list.length === 0 && (
+        <button
+          type="button"
+          onClick={() => !uploading && inputRef.current?.click()}
+          disabled={uploading}
+          className="w-full border-2 border-dashed border-border hover:border-electric/40 rounded-xl p-5 flex flex-col items-center gap-2 text-muted-foreground hover:text-electric transition-colors disabled:opacity-50"
+        >
+          {uploading
+            ? <Loader2 className="w-6 h-6 animate-spin" />
+            : (
+              <>
+                <ImageIcon className="w-6 h-6" />
+                <p className="text-sm">Clicca per aggiungere foto gallery</p>
+                <p className="text-xs opacity-70">Max {GALLERY_MAX} foto · 1280×720px (16:9) · JPG/WebP · max 3 MB</p>
+              </>
+            )
+          }
+        </button>
+      )}
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={e => { handleFile(e.target.files[0]); e.target.value = ""; }}
+      />
+
+      <div className="flex gap-2">
+        <Input
+          value={urlDraft}
+          onChange={e => setUrlDraft(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addUrl())}
+          placeholder="oppure incolla URL foto…"
+          className="text-xs"
+          disabled={list.length >= GALLERY_MAX}
+        />
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={addUrl}
+          disabled={!urlDraft.trim() || list.length >= GALLERY_MAX}
+          className="shrink-0"
+        >
+          <Plus className="w-3.5 h-3.5" />
+        </Button>
+      </div>
+
+      {list.length > 0 && (
+        <p className="text-[11px] text-muted-foreground">
+          {list.length}/{GALLERY_MAX} foto · Formato ideale: <strong>1280×720px</strong> (16:9), JPG o WebP, max 3 MB
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ── Modal form veicolo ────────────────────────────────────────────────────────
 
 function VehicleModal({ initial, onSave, onClose, isSaving }) {
@@ -291,6 +431,19 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
             />
           </div>
 
+          {/* Gallery foto */}
+          <div>
+            <Label className="text-xs font-semibold mb-1.5 block">
+              Foto gallery <span className="text-muted-foreground font-normal">(foto aggiuntive nella pagina dettaglio)</span>
+            </Label>
+            <GalleryImagesInput
+              images={form.gallery_images || []}
+              onChange={urls => set("gallery_images", urls)}
+              make={form.make}
+              model={form.model}
+            />
+          </div>
+
           {/* Descrizione */}
           <div>
             <Label className="text-xs font-semibold mb-1.5 block">Descrizione</Label>
@@ -369,11 +522,12 @@ export default function CmsVehicles() {
     mutationFn: (form) => {
       const payload = {
         ...form,
-        power_hp:      form.power_hp      ? Number(form.power_hp)      : null,
-        co2_emissions: form.co2_emissions  ? Number(form.co2_emissions) : null,
-        vehicle_image: form.vehicle_image || null,
-        features:      form.features  || [],
-        segments:      form.segments  || [],
+        power_hp:       form.power_hp      ? Number(form.power_hp)      : null,
+        co2_emissions:  form.co2_emissions  ? Number(form.co2_emissions) : null,
+        vehicle_image:  form.vehicle_image || null,
+        features:       form.features  || [],
+        segments:       form.segments  || [],
+        gallery_images: form.gallery_images || [],
       };
       return form.id ? offersService.update(form.id, payload) : offersService.create(payload);
     },

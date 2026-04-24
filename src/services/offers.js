@@ -91,13 +91,27 @@ export const offersService = {
   },
 
   async upsertConfig(config) {
-    const { data, error } = await supabase
-      .from('offer_configs')
-      .upsert(config, { onConflict: 'make,model,duration_months,annual_km,segment' })
-      .select()
-      .single();
-    if (error) throw error;
-    return data;
+    if (config.id) {
+      // Modifica esistente — aggiorna per id, non per conflict key
+      const { id, ...updates } = config;
+      const { data, error } = await supabase
+        .from('offer_configs')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } else {
+      // Nuova config — insert con upsert per evitare duplicati
+      const { data, error } = await supabase
+        .from('offer_configs')
+        .upsert(config, { onConflict: 'make,model,duration_months,annual_km,segment' })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
   },
 
   async deleteConfig(id) {
