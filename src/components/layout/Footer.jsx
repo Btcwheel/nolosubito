@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <Link to="/" className="flex items-center mb-4">
               <img
-                src="/src/asset/logo-bianco.png"
+                src="/logo-bianco.png"
                 alt="NoloSubito"
                 className="h-10 w-auto object-contain"
               />

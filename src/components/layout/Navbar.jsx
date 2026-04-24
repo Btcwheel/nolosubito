@@ -64,7 +64,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link to="/" className="flex items-center group">
             <img
-              src="/src/asset/logo-bianco.png"
+              src="/logo-bianco.png"
               alt="NoloSubito"
               className="h-10 w-auto object-contain transition-all duration-300"
               

@@ -228,7 +228,7 @@ export default function AIChatWidget() {
             {/* Header */}
             <div className="bg-navy px-4 py-3.5 flex items-center gap-3 shrink-0">
               <img
-                src="/src/asset/logo-bianco.png"
+                src="/logo-bianco.png"
                 alt="NoloSubito"
                 className="h-6 w-auto object-contain shrink-0"
                 onError={e => e.target.style.display = "none"}

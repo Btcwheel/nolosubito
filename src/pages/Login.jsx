@@ -108,7 +108,7 @@ export default function Login({ context = "internal" }) {
         <div className="relative z-10 p-10">
           <Link to="/">
             <img
-              src="/src/asset/logo-bianco.png"
+              src="/logo-bianco.png"
               alt="NoloSubito"
               className="h-8 w-auto object-contain"
               onError={(e) => { e.target.style.display = "none"; }}
