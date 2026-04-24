@@ -245,22 +245,22 @@ create policy "Utente aggiorna il proprio profilo"
 create policy "Chiunque legge le offerte attive"
   on offers for select using (is_active = true);
 
-create policy "Admin gestisce le offerte"
-  on offers for all using (get_user_role() = 'admin');
+create policy "Admin e CMS gestiscono le offerte"
+  on offers for all using (get_user_role() in ('admin','cms'));
 
 -- ── RLS Offer Configs (pubbliche in lettura) ─────────────────
 create policy "Chiunque legge i prezzi attivi"
   on offer_configs for select using (is_active = true);
 
-create policy "Admin gestisce i prezzi"
-  on offer_configs for all using (get_user_role() = 'admin');
+create policy "Admin e CMS gestiscono i prezzi"
+  on offer_configs for all using (get_user_role() in ('admin','cms'));
 
 -- ── RLS Posts (pubbliche in lettura) ─────────────────────────
 create policy "Chiunque legge i post pubblicati"
   on posts for select using (is_published = true);
 
-create policy "Admin gestisce i post"
-  on posts for all using (get_user_role() = 'admin');
+create policy "Admin e CMS gestiscono i post"
+  on posts for all using (get_user_role() in ('admin','cms'));
 
 -- ── RLS Pratiche ─────────────────────────────────────────────
 create policy "Admin e backoffice vedono tutte le pratiche"
@@ -375,9 +375,9 @@ create policy "Chiunque legge materiali pubblici"
   on storage.objects for select
   using (bucket_id = 'materiali');
 
-create policy "Admin gestisce immagini veicoli"
+create policy "Admin e CMS gestiscono immagini veicoli"
   on storage.objects for all
-  using (bucket_id = 'vehicle-images' and get_user_role() = 'admin');
+  using (bucket_id = 'vehicle-images' and get_user_role() in ('admin','cms'));
 
 create policy "Chiunque legge immagini veicoli"
   on storage.objects for select
@@ -525,24 +525,24 @@ create policy "vehicle-images public read"
   on storage.objects for select
   using ( bucket_id = 'vehicle-images' );
 
--- Policy: solo admin può caricare/modificare/eliminare
-create policy "vehicle-images admin write"
+-- Policy: admin e cms possono caricare/modificare/eliminare
+create policy "vehicle-images staff write"
   on storage.objects for insert
   with check (
     bucket_id = 'vehicle-images'
-    and (select role from public.profiles where id = auth.uid()) = 'admin'
+    and (select role from public.profiles where id = auth.uid()) in ('admin','cms')
   );
 
-create policy "vehicle-images admin update"
+create policy "vehicle-images staff update"
   on storage.objects for update
   using (
     bucket_id = 'vehicle-images'
-    and (select role from public.profiles where id = auth.uid()) = 'admin'
+    and (select role from public.profiles where id = auth.uid()) in ('admin','cms')
   );
 
-create policy "vehicle-images admin delete"
+create policy "vehicle-images staff delete"
   on storage.objects for delete
   using (
     bucket_id = 'vehicle-images'
-    and (select role from public.profiles where id = auth.uid()) = 'admin'
+    and (select role from public.profiles where id = auth.uid()) in ('admin','cms')
   );
