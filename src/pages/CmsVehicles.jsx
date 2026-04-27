@@ -659,17 +659,22 @@ export default function CmsVehicles() {
     mutationFn: async ({ form, pricingRows, deletedConfigIds }) => {
       // 1. Salva il veicolo
       const payload = {
-        ...form,
-        power_hp:       form.power_hp      ? Number(form.power_hp)      : null,
-        co2_emissions:  form.co2_emissions  ? Number(form.co2_emissions) : null,
-        vehicle_image:  form.vehicle_image  || null,
-        description:    normalizeVehicleDescription(form.description || "") || null,
-        features:       form.features       || [],
-        segments:       form.segments       || [],
-        gallery_images: form.gallery_images || [],
-        seo_title:      form.seo_title      || null,
+        make:            form.make,
+        model:           form.model,
+        category:        form.category,
+        fuel_type:       form.fuel_type       || null,
+        transmission:    form.transmission    || null,
+        power_hp:        form.power_hp        ? Number(form.power_hp)      : null,
+        co2_emissions:   form.co2_emissions   ? Number(form.co2_emissions) : null,
+        vehicle_image:   form.vehicle_image   || null,
+        description:     normalizeVehicleDescription(form.description || "") || null,
+        features:        form.features        || [],
+        segments:        form.segments        || [],
+        gallery_images:  form.gallery_images  || [],
+        seo_title:       form.seo_title       || null,
         seo_description: form.seo_description || null,
-        seo_keywords:   form.seo_keywords   || [],
+        seo_keywords:    form.seo_keywords    || [],
+        is_active:       form.is_active       ?? true,
       };
       const saved = form.id
         ? await offersService.update(form.id, payload)
