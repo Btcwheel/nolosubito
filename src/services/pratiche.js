@@ -41,13 +41,11 @@ export const praticheService = {
     const codice = `NS-${new Date().getFullYear()}-${Date.now().toString().slice(-5)}`;
     const access_token = crypto.randomUUID();
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('pratiche')
-      .insert({ ...pratica, codice, access_token, status: 'Nuova' })
-      .select()
-      .single();
+      .insert({ ...pratica, codice, access_token, status: 'Nuova' });
     if (error) throw error;
-    return data;
+    return { codice, access_token };
   },
 
   async updateStatus(id, status) {
