@@ -24,7 +24,7 @@ const LucaAvatar = ({ size = "sm" }) => (
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const GROQ_MODEL   = "llama-3.3-70b-versatile";
 
-const SYSTEM_PROMPT = `Sei Luca, consulente di NoloSubito. Parli con i clienti via chat come faresti su WhatsApp — naturale, diretto, umano. Non sei un bot.
+const SYSTEM_PROMPT = `Sei Luca, consulente di Nolosubito. Parli con i clienti via chat come faresti su WhatsApp — naturale, diretto, umano. Non sei un bot.
 
 COSA FAI:
 Aiuti a trovare un'auto nuova con un fisso mensile tutto incluso (assicurazione, bollo, manutenzione). Il cliente pensa solo alla benzina.
@@ -112,7 +112,7 @@ async function callGroq(messages) {
 // ── Messaggio iniziale ─────────────────────────────────────────────────────────
 const WELCOME = {
   role: "assistant",
-  content: "Salve! Sono Luca di NoloSubito, sono a tua disposizione per aiutarti a trovare quello di cui hai bisogno. 😊",
+  content: "Salve! Sono Luca di Nolosubito, sono a tua disposizione per aiutarti a trovare quello di cui hai bisogno. 😊",
 };
 
 // ── Componente ─────────────────────────────────────────────────────────────────
@@ -229,12 +229,12 @@ export default function AIChatWidget() {
             <div className="bg-navy px-4 py-3.5 flex items-center gap-3 shrink-0">
               <img
                 src="/logo-bianco.png"
-                alt="NoloSubito"
+                alt="Nolosubito"
                 className="h-6 w-auto object-contain shrink-0"
                 onError={e => e.target.style.display = "none"}
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white leading-none">Assistente NoloSubito</p>
+                <p className="text-sm font-semibold text-white leading-none">Assistente Nolosubito</p>
                 <p className="text-[11px] text-white/45 mt-0.5 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
                   Online — risposta immediata
@@ -352,7 +352,7 @@ export default function AIChatWidget() {
             >
               <X className="w-3 h-3" />
             </button>
-            <p className="text-sm font-semibold text-foreground pr-4">Hai domande sul NLT?</p>
+            <p className="text-sm font-semibold text-foreground pr-4">Hai domande sul Noleggio Lungo Termine?</p>
             <p className="text-xs text-muted-foreground mt-0.5">Il nostro assistente AI risponde subito!</p>
             <div className="absolute -bottom-2 right-7 w-4 h-2 overflow-hidden">
               <div className="w-3 h-3 bg-white border-r border-b border-border/50 rotate-45 translate-y-[-50%] translate-x-[2px]" />

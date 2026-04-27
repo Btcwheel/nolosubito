@@ -391,7 +391,7 @@ export default function MiaPratica() {
             Tracciamento in tempo reale
           </div>
           <h1 className="font-heading font-bold text-4xl md:text-5xl text-white mb-4 leading-tight">
-            La tua pratica NLT
+            La tua pratica Noleggio Lungo Termine
           </h1>
           <p className="text-white/60 text-lg max-w-md mx-auto">
             Inserisci l'email utilizzata per la richiesta e monitora lo stato del tuo noleggio.

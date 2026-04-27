@@ -29,7 +29,7 @@ const mandati = [
 ];
 
 const corsi = [
-  { titolo: "Fondamenti NLT", completato: true, durata: "2h 30m" },
+  { titolo: "Fondamenti Noleggio Lungo Termine", completato: true, durata: "2h 30m" },
   { titolo: "Fiscalità e Deducibilità", completato: true, durata: "1h 45m" },
   { titolo: "Tecniche di Vendita B2B", completato: false, durata: "3h 00m", progress: 60 },
   { titolo: "Gestione Contratti Fleet", completato: false, durata: "2h 00m", progress: 0 },
@@ -67,7 +67,7 @@ export default function DashboardPreview() {
             <div className="w-7 h-7 rounded-lg bg-electric flex items-center justify-center">
               <Car className="w-4 h-4 text-white" />
             </div>
-            <span className="font-heading font-bold text-white text-sm">NoloSubito</span>
+            <span className="font-heading font-bold text-white text-sm">Nolosubito</span>
           </div>
 
           <nav className="space-y-1">

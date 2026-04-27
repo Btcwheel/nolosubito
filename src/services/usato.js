@@ -21,7 +21,7 @@
  *
  * export async function fetchUsato(sellerId) {
  *   const token = await getToken();
- *   // sellerId for NoloSubito: use the dealer slug "nolosubito-srl" or their numeric AS24 ID
+ *   // sellerId for Nolosubito: use the dealer slug "nolosubito-srl" or their numeric AS24 ID
  *   // Dealer page: https://www.autoscout24.it/concessionari/nolosubito-srl
  *   const res = await fetch(`${AS24_BASE}/sellers/${sellerId}/listings?status=active`, {
  *     headers: { Authorization: `Bearer ${token}` },

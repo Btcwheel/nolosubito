@@ -22,7 +22,7 @@ export default function CmsDashboard() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="font-heading font-bold text-3xl text-foreground">CMS</h1>
-          <p className="text-muted-foreground mt-1 text-sm">Gestione contenuti del sito NoloSubito</p>
+          <p className="text-muted-foreground mt-1 text-sm">Gestione contenuti del sito Nolosubito</p>
         </div>
 
         {/* Tabs */}

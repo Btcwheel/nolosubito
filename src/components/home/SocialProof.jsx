@@ -13,19 +13,19 @@ const TESTIMONIALS = [
   {
     name: "Marco Ferretti",
     role: "Titolare P.IVA — Milano",
-    text: "Ho noleggiato la mia prima auto con NoloSubito e non potevo essere più soddisfatto. Il processo è stato semplice, trasparente e il canone include davvero tutto. Nessuna sorpresa.",
+    text: "Ho noleggiato la mia prima auto con Nolosubito e non potevo essere più soddisfatto. Il processo è stato semplice, trasparente e il canone include davvero tutto. Nessuna sorpresa.",
     stars: 5,
   },
   {
     name: "Laura Conti",
     role: "Fleet Manager — Roma",
-    text: "Gestiamo una flotta di 30 veicoli con NoloSubito. Il team è professionale, i prezzi competitivi e la piattaforma ci permette di monitorare ogni pratica in tempo reale.",
+    text: "Gestiamo una flotta di 30 veicoli con Nolosubito. Il team è professionale, i prezzi competitivi e la piattaforma ci permette di monitorare ogni pratica in tempo reale.",
     stars: 5,
   },
   {
     name: "Giuseppe Russo",
     role: "Amministratore S.r.l. — Napoli",
-    text: "I vantaggi fiscali per la nostra azienda sono stati enormi. Grazie al NLT abbiamo ottimizzato i costi della flotta del 30% rispetto al leasing tradizionale.",
+    text: "I vantaggi fiscali per la nostra azienda sono stati enormi. Grazie al Noleggio Lungo Termine abbiamo ottimizzato i costi della flotta del 30% rispetto al leasing tradizionale.",
     stars: 5,
   },
 ];
@@ -42,7 +42,7 @@ function StarRating({ count = 5 }) {
 
 export default function SocialProof() {
   return (
-    <section className="py-20 sm:py-28 bg-[#2C2C2C]">
+    <section className="py-20 sm:py-28 bg-[#2D2E82]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Stats */}

@@ -290,7 +290,7 @@ export default function Usato() {
             rel="noopener noreferrer"
             className="underline underline-offset-2 hover:text-muted-foreground transition-colors"
           >
-            AutoScout24 — NoloSubito S.r.l.
+            AutoScout24 — Nolosubito S.r.l.
           </a>
           {" "}· I prezzi sono indicativi
         </div>

@@ -11,36 +11,44 @@ import PartnerApplicationForm from "@/components/careers/PartnerApplicationForm"
 import DashboardPreview from "@/components/careers/DashboardPreview";
 
 const benefits = [
-  { icon: Award, title: "Mandati con i Top Player NLT", desc: "Accedi ai contratti con le migliori società di noleggio a lungo termine del mercato: ALD, Leasys, Arval, Alphabet e altre." },
+  { icon: Award, title: "Mandati con i Top Player Noleggio a lungo termine", desc: "Accedi ai contratti con le migliori società di noleggio a lungo termine del mercato: Ayvens, Leasys, Arval, Alphabet e altre." },
   { icon: BookOpen, title: "Formazione Completa", desc: "Percorso di formazione professionale su prodotti, normative fiscali, tecniche di vendita e gestione del cliente." },
   { icon: FileText, title: "Gestione Pratiche Digitale", desc: "Area riservata con tutti gli strumenti per gestire preventivi, pratiche e contratti in modo semplice e veloce." },
   { icon: TrendingUp, title: "Commissioni Competitive", desc: "Struttura commissionale trasparente e vantaggiosa. Guadagni crescenti al crescere del tuo portafoglio clienti." },
-  { icon: ShieldCheck, title: "Supporto Dedicato", desc: "Un account manager NoloSubito sempre a disposizione per supportarti nelle trattative e nelle pratiche più complesse." },
-  { icon: Users, title: "Network di Professionisti", desc: "Entra in una community di agenti e consulenti NLT. Condividi best practice e fai crescere il tuo business." },
+  { icon: ShieldCheck, title: "Supporto Dedicato", desc: "Un account manager Nolosubito sempre a disposizione per supportarti nelle trattative e nelle pratiche più complesse." },
+  { icon: Users, title: "Network di Professionisti", desc: "Entra in una community di agenti e consulenti Noleggio Lungo Termine. Condividi best practice e fai crescere il tuo business." },
 ];
 
 const steps = [
   { num: "01", title: "Compila il Form", desc: "Inserisci i tuoi dati e il tuo profilo professionale. Ti ricontattiamo entro 48 ore." },
   { num: "02", title: "Colloquio Conoscitivo", desc: "Una call con il nostro team per capire le tue esigenze e presentarti le opportunità." },
   { num: "03", title: "Onboarding & Formazione", desc: "Attivazione dei mandati, accesso all'area riservata e percorso di formazione iniziale." },
-  { num: "04", title: "Inizia a Guadagnare", desc: "Proponi le soluzioni NLT ai tuoi clienti con tutto il supporto NoloSubito al tuo fianco." },
+  { num: "04", title: "Inizia a Guadagnare", desc: "Proponi le soluzioni Noleggio Lungo Termine ai tuoi clienti con tutto il supporto Nolosubito al tuo fianco." },
 ];
 
 const testimonials = [
-  { name: "Marco T.", role: "Agente Indipendente, Milano", text: "In 6 mesi ho chiuso 40 contratti NLT grazie ai mandati e al supporto di NoloSubito. L'area riservata mi ha cambiato la vita.", rating: 5 },
-  { name: "Silvia R.", role: "Titolare Agenzia Auto, Roma", desc: "Ho ampliato il mio business con il noleggio a lungo termine senza investire nulla. NoloSubito gestisce tutto.", text: "Ho ampliato il mio business con il noleggio a lungo termine senza investire nulla. NoloSubito gestisce tutto.", rating: 5 },
-  { name: "Luca M.", role: "Consulente Aziendale, Torino", text: "La formazione è stata eccellente. Ora offro NLT alle mie aziende clienti e genero revenue extra ogni mese.", rating: 5 },
+  { name: "Marco T.", role: "Agente Indipendente, Milano", text: "In 6 mesi ho chiuso 40 contratti Noleggio Lungo Termine grazie ai mandati e al supporto di Nolosubito. L'area riservata mi ha cambiato la vita.", rating: 5 },
+  { name: "Silvia R.", role: "Titolare Agenzia Auto, Roma", desc: "Ho ampliato il mio business con il noleggio a lungo termine senza investire nulla. Nolosubito gestisce tutto.", text: "Ho ampliato il mio business con il noleggio a lungo termine senza investire nulla. Nolosubito gestisce tutto.", rating: 5 },
+  { name: "Luca M.", role: "Consulente Aziendale, Torino", text: "La formazione è stata eccellente. Ora offro Noleggio Lungo Termine alle mie aziende clienti e genero revenue extra ogni mese.", rating: 5 },
 ];
 
 export default function WorkWithUs() {
   const [showForm, setShowForm] = useState(false);
+  const formSectionRef = React.useRef(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
+  const openForm = () => {
+    setShowForm(true);
+    setTimeout(() => {
+      formSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  };
+
   return (
-    <div className="bg-navy">
+    <div className="bg-[#2D2E82]">
       {/* Hero */}
       <div className="pt-24 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -50,10 +58,10 @@ export default function WorkWithUs() {
               <span className="text-sm text-electric font-medium">Partner Program</span>
             </div>
             <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white leading-tight">
-              Entra nel Settore <span className="text-electric">NLT</span> con NoloSubito
+              Entra nel Settore <span className="text-electric">Noleggio Lungo Termine</span> con Nolosubito
             </h1>
             <p className="mt-5 text-white/60 text-lg leading-relaxed">
-              Sei un'agenzia, un consulente o una P.IVA? Diventa partner NoloSubito e accedi ai mandati con le migliori società di noleggio a lungo termine del mercato. Formazione, strumenti digitali e supporto costante.
+              Sei un'agenzia, un consulente o una P.IVA? Diventa partner Nolosubito e accedi ai mandati con le migliori società di noleggio a lungo termine del mercato. Formazione, strumenti digitali e supporto costante.
             </p>
             <div className="flex flex-wrap gap-3 mt-6">
               {["Agenzie Auto", "Consulenti Aziendali", "Broker Assicurativi", "Agenti di Commercio"].map(tag => (
@@ -64,7 +72,7 @@ export default function WorkWithUs() {
             </div>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Button
-                onClick={() => setShowForm(true)}
+                onClick={openForm}
                 className="h-12 px-8 bg-electric hover:bg-electric/90 text-white font-semibold rounded-xl text-base cursor-pointer"
               >
                 Diventa Partner <ArrowRight className="w-4 h-4 ml-2" />
@@ -87,7 +95,7 @@ export default function WorkWithUs() {
             className="grid grid-cols-2 gap-4"
           >
             {[
-              { value: "15+", label: "Mandati attivi", sub: "Top società NLT" },
+              { value: "15+", label: "Mandati attivi", sub: "Top società Noleggio Lungo Termine" },
               { value: "500+", label: "Partner attivi", sub: "In tutta Italia" },
               { value: "€3.200", label: "Commissione media", sub: "Per contratto chiuso" },
               { value: "48h", label: "Attivazione", sub: "Dall'iscrizione al primo mandato" },
@@ -162,7 +170,7 @@ export default function WorkWithUs() {
             <h2 className="font-heading font-bold text-3xl sm:text-4xl text-foreground">
               Come Iniziare
             </h2>
-            <p className="mt-3 text-muted-foreground">4 step per diventare partner NoloSubito e iniziare a guadagnare.</p>
+            <p className="mt-3 text-muted-foreground">4 step per diventare partner Nolosubito e iniziare a guadagnare.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {steps.map((step, i) => (
@@ -192,7 +200,7 @@ export default function WorkWithUs() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="font-heading font-bold text-3xl sm:text-4xl text-foreground">
-                Chi Ha già Scelto NoloSubito
+                Chi Ha già Scelto Nolosubito
               </h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -222,7 +230,7 @@ export default function WorkWithUs() {
         </section>
 
         {/* CTA / Form */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <section ref={formSectionRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           {showForm ? (
             <PartnerApplicationForm onCancel={() => setShowForm(false)} />
           ) : (
@@ -230,7 +238,7 @@ export default function WorkWithUs() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="bg-navy rounded-3xl p-10 sm:p-16 text-center relative overflow-hidden"
+              className="bg-[#2D2E82] rounded-3xl p-10 sm:p-16 text-center relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-electric/10 to-transparent pointer-events-none" />
               <UserCheck className="w-12 h-12 text-electric mx-auto mb-5" />
@@ -241,7 +249,7 @@ export default function WorkWithUs() {
                 Compila il form di candidatura. Ti ricontatteremo entro 48 ore per un colloquio conoscitivo gratuito.
               </p>
               <Button
-                onClick={() => setShowForm(true)}
+                onClick={openForm}
                 className="h-14 px-10 bg-electric hover:bg-electric/90 text-white font-bold rounded-xl text-lg cursor-pointer"
               >
                 Candidati ora — è gratuito <ArrowRight className="w-5 h-5 ml-2" />

@@ -98,7 +98,7 @@ export default function BusinessOffers() {
   );
 
   return (
-    <div className="bg-navy">
+    <div className="bg-[#2D2E82]">
       {/* ── Hero ── */}
       <div className="relative overflow-hidden">
         {/* Background glows */}
@@ -114,10 +114,10 @@ export default function BusinessOffers() {
               <Zap className="w-3 h-3" /> Noleggio a Lungo Termine
             </span>
             <h1 className="font-heading font-bold text-3xl sm:text-5xl text-white leading-tight">
-              Offerte Business
+              Offerte per Aziende e P.IVA
             </h1>
             <p className="mt-3 text-white/50 max-w-xl text-sm sm:text-base leading-relaxed">
-              Gamma completa NLT per P.IVA e aziende.<br className="hidden sm:block" />
+              Gamma completa Noleggio Lungo Termine per P.IVA e aziende.<br className="hidden sm:block" />
               Assicurazione, manutenzione e soccorso stradale inclusi nel canone.
             </p>
 

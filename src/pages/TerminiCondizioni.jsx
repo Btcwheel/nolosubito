@@ -33,8 +33,8 @@ export default function TerminiCondizioni() {
 
         <Section title="2. Descrizione del Servizio">
           <p>
-            NoloSubito è una piattaforma che facilita la ricerca e la sottoscrizione di contratti di
-            noleggio a lungo termine (NLT) di veicoli per privati, titolari di Partita IVA e aziende.
+            Nolosubito è una piattaforma che facilita la ricerca e la sottoscrizione di contratti di
+            noleggio a lungo termine di veicoli per privati, titolari di Partita IVA e aziende.
           </p>
           <p>
             Il sito fornisce informazioni sulle offerte disponibili, consente di richiedere preventivi
@@ -62,18 +62,18 @@ export default function TerminiCondizioni() {
           </p>
           <p>
             La visualizzazione di un'offerta sul sito non costituisce un impegno contrattuale da parte
-            di NoloSubito.
+            di Nolosubito.
           </p>
         </Section>
 
         <Section title="5. Area Riservata">
           <p>
             L'accesso all'area riservata è subordinato alla creazione di un account o all'utilizzo
-            di un link personale fornito da NoloSubito. L'utente è responsabile della riservatezza
+            di un link personale fornito da Nolosubito. L'utente è responsabile della riservatezza
             delle proprie credenziali di accesso.
           </p>
           <p>
-            NoloSubito si riserva il diritto di sospendere o disattivare l'accesso in caso di
+            Nolosubito si riserva il diritto di sospendere o disattivare l'accesso in caso di
             utilizzo non autorizzato o violazione dei presenti termini.
           </p>
         </Section>
@@ -81,26 +81,26 @@ export default function TerminiCondizioni() {
         <Section title="6. Proprietà Intellettuale">
           <p>
             Tutti i contenuti del sito (testi, immagini, loghi, grafica, codice) sono di proprietà
-            di NoloSubito S.r.l. o dei rispettivi titolari e sono protetti dalle leggi sul diritto
+            di Nolosubito S.r.l. o dei rispettivi titolari e sono protetti dalle leggi sul diritto
             d'autore. È vietata la riproduzione, distribuzione o modifica senza autorizzazione scritta.
           </p>
         </Section>
 
         <Section title="7. Limitazione di Responsabilità">
           <p>
-            NoloSubito non è responsabile per eventuali danni diretti o indiretti derivanti dall'utilizzo
+            Nolosubito non è responsabile per eventuali danni diretti o indiretti derivanti dall'utilizzo
             del sito, da interruzioni del servizio, da errori nelle informazioni pubblicate o da
             decisioni prese sulla base dei contenuti del sito.
           </p>
           <p>
-            Il sito può contenere link a siti di terze parti. NoloSubito non è responsabile del
+            Il sito può contenere link a siti di terze parti. Nolosubito non è responsabile del
             contenuto o delle pratiche privacy di tali siti.
           </p>
         </Section>
 
         <Section title="8. Modifiche ai Termini">
           <p>
-            NoloSubito si riserva il diritto di modificare i presenti Termini in qualsiasi momento.
+            Nolosubito si riserva il diritto di modificare i presenti Termini in qualsiasi momento.
             Le modifiche entrano in vigore dalla data di pubblicazione sul sito. L'uso continuato
             del sito dopo la pubblicazione delle modifiche costituisce accettazione delle stesse.
           </p>
@@ -116,7 +116,7 @@ export default function TerminiCondizioni() {
 
         <div className="border-t border-border/40 pt-6 mt-4">
           <p className="text-xs text-muted-foreground">
-            NoloSubito S.r.l. — P.IVA IT12345678901 — Milano, Italia —{" "}
+            Nolosubito S.r.l. — P.IVA IT12345678901 — Milano, Italia —{" "}
             <Link to="/privacy" className="text-electric hover:underline">Privacy Policy</Link>
           </p>
         </div>

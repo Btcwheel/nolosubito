@@ -21,7 +21,7 @@ const ROLE_CONFIG = {
     color: "bg-blue-500/10 border-blue-500/20 text-blue-600",
     dot: "bg-blue-500",
     steps: [
-      { icon: ClipboardList, title: "Pratiche",           desc: "Visualizza, filtra e aggiorna tutte le pratiche NLT." },
+      { icon: ClipboardList, title: "Pratiche",           desc: "Visualizza, filtra e aggiorna tutte le pratiche Noleggio Lungo Termine." },
       { icon: FileText,      title: "Documenti",          desc: "Verifica i documenti caricati dai clienti." },
       { icon: CheckCircle2,  title: "Stato pratiche",     desc: "Aggiorna lo stato e lascia note interne o per il cliente." },
     ],

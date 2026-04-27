@@ -19,12 +19,12 @@ export default function FeaturedVehicles() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between mb-10">
           <div>
-            <p className="text-electric text-sm font-bold uppercase tracking-widest mb-2">Catalogo NLT</p>
+            <p className="text-electric text-sm font-bold uppercase tracking-widest mb-2">Catalogo Noleggio Lungo Termine</p>
             <h2 className="font-heading font-bold text-3xl sm:text-4xl text-foreground">
               Veicoli in Evidenza
             </h2>
             <p className="mt-2 text-muted-foreground max-w-md">
-              Le nostre offerte NLT più richieste per aziende e professionisti
+              Le nostre offerte Noleggio Lungo Termine più richieste per aziende e professionisti
             </p>
           </div>
           <Link to="/offers" className="hidden sm:block">
@@ -37,7 +37,7 @@ export default function FeaturedVehicles() {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array(6).fill(0).map((_, i) => (
-              <div key={i} className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+              <div key={i} className={`bg-card rounded-2xl border border-border/50 overflow-hidden ${i === 0 ? "sm:col-span-2 lg:col-span-1" : ""}`}>
                 <Skeleton className="aspect-video w-full" />
                 <div className="p-5 space-y-3">
                   <Skeleton className="h-4 w-20" />
@@ -51,7 +51,9 @@ export default function FeaturedVehicles() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {vehicles.map((v, i) => (
-              <VehicleCard key={v.id} vehicle={v} index={i} />
+              <div key={v.id} className={i === 0 ? "sm:col-span-2 lg:col-span-1" : ""}>
+                <VehicleCard vehicle={v} index={i} />
+              </div>
             ))}
           </div>
         )}

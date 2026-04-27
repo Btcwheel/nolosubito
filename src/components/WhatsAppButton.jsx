@@ -43,7 +43,7 @@ export default function WhatsAppButton() {
               <X className="w-3.5 h-3.5" />
             </button>
             <p className="text-sm font-semibold text-foreground pr-4">
-              Hai domande sul NLT?
+              Hai domande sul Noleggio Lungo Termine?
             </p>
             <p className="text-xs text-muted-foreground mt-1">
               Scrivici su WhatsApp, ti rispondiamo subito!

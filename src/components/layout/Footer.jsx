@@ -11,7 +11,7 @@ export default function Footer() {
             <Link to="/" className="flex items-center mb-4">
               <img
                 src="/logo-bianco.png"
-                alt="NoloSubito"
+                alt="Nolosubito"
                 className="h-10 w-auto object-contain"
               />
             </Link>
@@ -62,7 +62,7 @@ export default function Footer() {
 
         <div className="border-t border-white/10 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-white/40">
-            © {new Date().getFullYear()} NoloSubito. Tutti i diritti riservati.
+            © {new Date().getFullYear()} Nolosubito. Tutti i diritti riservati.
           </p>
           <p className="text-xs text-white/40">
             P.IVA: IT12345678901

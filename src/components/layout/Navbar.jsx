@@ -51,24 +51,31 @@ export default function Navbar() {
 
   const isOffersActive = offersDropdown.some(o => location.pathname === o.path);
 
-  // Always dark (navy) except homepage hero before scroll
   const isHomePage = location.pathname === "/";
-  const isDark = scrolled || !isHomePage;
+  // Light mode: pagine non-home quando si scrolla (sfondo bianco sotto la navbar)
+  const isLight = scrolled && !isHomePage;
+
+  const navBg = scrolled
+    ? isHomePage
+      ? "bg-[#2D2E82]/95 backdrop-blur-md shadow-lg"
+      : "bg-white/95 backdrop-blur-md shadow-sm"
+    : isHomePage
+      ? "bg-transparent"
+      : "bg-[#2D2E82]";
+
+  const linkBase    = isLight ? "text-foreground/80 hover:text-foreground hover:bg-black/5" : "text-white/80 hover:text-white hover:bg-white/10";
+  const linkActive  = isLight ? "text-[hsl(var(--electric))]" : "text-electric";
+  const linkActiveBg = isLight ? `${linkActive} bg-black/5` : `${linkActive} bg-white/10`;
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-20 transition-all duration-300 ${
-        scrolled ? "bg-navy/95 backdrop-blur-md shadow-lg" : isHomePage ? "bg-transparent" : "bg-navy"
-      }`}
-    >
+    <nav className={`fixed top-0 left-0 right-0 z-20 transition-all duration-300 ${navBg}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link to="/" className="flex items-center group">
             <img
               src="/logo-bianco.png"
-              alt="NoloSubito"
-              className="h-10 w-auto object-contain transition-all duration-300"
-              
+              alt="Nolosubito"
+              className={`h-10 w-auto object-contain transition-all duration-300 ${isLight ? "invert" : ""}`}
             />
           </Link>
 
@@ -77,9 +84,7 @@ export default function Navbar() {
             <Link
               to="/"
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                location.pathname === "/"
-                  ? "text-electric bg-white/10"
-                  : "text-white/80 hover:text-white hover:bg-white/10"
+                location.pathname === "/" ? linkActiveBg : linkBase
               }`}
             >
               Home
@@ -90,9 +95,7 @@ export default function Navbar() {
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${
-                  isOffersActive
-                    ? "text-electric"
-                    : "text-white/80 hover:text-white hover:bg-white/10"
+                  isOffersActive ? linkActive : linkBase
                 }`}
               >
                 Offerte
@@ -106,20 +109,26 @@ export default function Navbar() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 8 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute top-full left-0 mt-2 w-56 bg-navy backdrop-blur-md border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50"
+                    className={`absolute top-full left-0 mt-2 w-56 backdrop-blur-md rounded-xl shadow-2xl overflow-hidden z-50 border ${
+                      isLight
+                        ? "bg-white border-border"
+                        : "bg-[#2D2E82] border-white/10"
+                    }`}
                   >
                     {offersDropdown.map((item) => (
                       <Link
                         key={item.path}
                         to={item.path}
-                        className={`block px-4 py-3 hover:bg-white/5 transition-colors duration-200 border-b border-white/5 last:border-0 ${
-                          location.pathname === item.path ? "bg-white/10" : ""
+                        className={`block px-4 py-3 transition-colors duration-200 border-b last:border-0 ${
+                          isLight
+                            ? `border-border/50 hover:bg-muted/50 ${location.pathname === item.path ? "bg-muted" : ""}`
+                            : `border-white/5 hover:bg-white/5 ${location.pathname === item.path ? "bg-white/10" : ""}`
                         }`}
                       >
-                        <p className={`text-sm font-medium ${location.pathname === item.path ? "text-electric" : "text-white"}`}>
+                        <p className={`text-sm font-medium ${location.pathname === item.path ? linkActive : isLight ? "text-foreground" : "text-white"}`}>
                           {item.label}
                         </p>
-                        <p className="text-xs text-white/40 mt-0.5">{item.desc}</p>
+                        <p className={`text-xs mt-0.5 ${isLight ? "text-muted-foreground" : "text-white/40"}`}>{item.desc}</p>
                       </Link>
                     ))}
                   </motion.div>
@@ -132,9 +141,7 @@ export default function Navbar() {
                 key={link.path}
                 to={link.path}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                  location.pathname === link.path
-                    ? "text-electric"
-                    : "text-white/80 hover:text-white hover:bg-white/10"
+                  location.pathname === link.path ? linkActive : linkBase
                 }`}
               >
                 {link.label}
@@ -145,7 +152,9 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             <Link
               to="/accedi"
-              className="px-4 py-2 rounded-lg text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-colors duration-200"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                isLight ? "text-foreground/60 hover:text-foreground hover:bg-black/5" : "text-white/70 hover:text-white hover:bg-white/10"
+              }`}
             >
               Area Cliente
             </Link>
@@ -158,7 +167,7 @@ export default function Navbar() {
 
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className={`md:hidden p-2 ${isDark ? "text-white" : "text-navy"}`}
+            className={`md:hidden p-2 ${isLight ? "text-foreground" : "text-white"}`}
             aria-label={isOpen ? "Chiudi menu" : "Apri menu"}
           >
             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -174,13 +183,15 @@ export default function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden bg-navy/98 backdrop-blur-md border-t border-white/10"
+            className={`md:hidden backdrop-blur-md border-t ${
+              isLight ? "bg-white/98 border-border" : "bg-[#2D2E82]/98 border-white/10"
+            }`}
           >
             <div className="px-4 py-4 space-y-1">
               <Link
                 to="/"
                 className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                  location.pathname === "/" ? "text-electric bg-white/10" : "text-white/70 hover:text-white"
+                  location.pathname === "/" ? linkActiveBg : linkBase
                 }`}
               >
                 Home
@@ -191,7 +202,7 @@ export default function Navbar() {
                 <button
                   onClick={() => setMobileOffersOpen(!mobileOffersOpen)}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${
-                    isOffersActive ? "text-electric bg-white/10" : "text-white/70 hover:text-white"
+                    isOffersActive ? linkActiveBg : linkBase
                   }`}
                 >
                   Offerte
@@ -204,14 +215,14 @@ export default function Navbar() {
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.15 }}
-                      className="ml-4 mt-1 space-y-1 border-l border-white/10 pl-3"
+                      className={`ml-4 mt-1 space-y-1 border-l pl-3 ${isLight ? "border-border" : "border-white/10"}`}
                     >
                       {offersDropdown.map((item) => (
                         <Link
                           key={item.path}
                           to={item.path}
                           className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                            location.pathname === item.path ? "text-electric" : "text-white/60 hover:text-white"
+                            location.pathname === item.path ? linkActive : isLight ? "text-foreground/60 hover:text-foreground" : "text-white/60 hover:text-white"
                           }`}
                         >
                           {item.label}
@@ -227,7 +238,7 @@ export default function Navbar() {
                   key={link.path}
                   to={link.path}
                   className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                    location.pathname === link.path ? "text-electric bg-white/10" : "text-white/70 hover:text-white"
+                    location.pathname === link.path ? linkActiveBg : linkBase
                   }`}
                 >
                   {link.label}
@@ -235,7 +246,12 @@ export default function Navbar() {
               ))}
 
               <div className="pt-2 space-y-2">
-                <Link to="/accedi" className="block px-4 py-3 rounded-lg text-sm font-medium text-white/70 hover:text-white transition-colors">
+                <Link
+                  to="/accedi"
+                  className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                    isLight ? "text-foreground/60 hover:text-foreground" : "text-white/70 hover:text-white"
+                  }`}
+                >
                   Area Cliente
                 </Link>
                 <Link to="/contact">

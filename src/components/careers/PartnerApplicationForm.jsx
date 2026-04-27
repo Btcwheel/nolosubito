@@ -192,12 +192,12 @@ export default function PartnerApplicationForm({ onCancel }) {
         <div className="p-6 bg-card border border-border/50 rounded-2xl space-y-4">
           <h3 className="font-semibold text-foreground text-sm uppercase tracking-wide text-muted-foreground">Motivazione</h3>
           <div>
-            <Label className="text-xs font-medium">Perché vuoi diventare partner NoloSubito? *</Label>
+            <Label className="text-xs font-medium">Perché vuoi diventare partner Nolosubito? *</Label>
             <Textarea
               required
               value={form.motivation}
               onChange={e => handleChange("motivation", e.target.value)}
-              placeholder="Raccontaci la tua situazione attuale e cosa ti aspetti dalla partnership con NoloSubito..."
+              placeholder="Raccontaci la tua situazione attuale e cosa ti aspetti dalla partnership con Nolosubito..."
               className="mt-1.5 h-28"
             />
           </div>

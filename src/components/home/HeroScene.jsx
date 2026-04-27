@@ -36,8 +36,8 @@ export default function HeroScene({ scene, index, scrollYProgress, isFirst }) {
           alt={scene.label}
           className="w-full h-full object-cover object-center scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#2D2E82]/85 via-[#2D2E82]/50 to-[#2D2E82]/15" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#2D2E82]/70 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#2D2E82]/65 via-[#2D2E82]/25 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#2D2E82]/40 via-transparent to-transparent" />
       </motion.div>
 
       {/* Text Content */}
@@ -67,12 +67,12 @@ export default function HeroScene({ scene, index, scrollYProgress, isFirst }) {
           <>
             <div className="mt-6 sm:mt-10 flex flex-col sm:flex-row gap-3 sm:gap-4">
               <Link to="/contact">
-                <Button className="w-full sm:w-auto bg-electric hover:bg-electric/90 text-white font-semibold px-6 sm:px-8 h-11 sm:h-12 rounded-xl text-sm sm:text-base cursor-pointer">
+                <Button className="w-full sm:w-auto bg-white hover:bg-white/90 text-[#1D2A37] font-semibold px-6 sm:px-8 h-11 sm:h-12 rounded-xl text-sm sm:text-base cursor-pointer">
                   Richiedi Preventivo
                 </Button>
               </Link>
               <Link to="/offers">
-                <Button variant="outline" className="w-full sm:w-auto border-white/30 text-white hover:bg-white/10 font-semibold px-6 sm:px-8 h-11 sm:h-12 rounded-xl text-sm sm:text-base cursor-pointer bg-transparent">
+                <Button variant="outline" className="w-full sm:w-auto border-white/40 text-white hover:bg-white/10 font-semibold px-6 sm:px-8 h-11 sm:h-12 rounded-xl text-sm sm:text-base cursor-pointer bg-transparent">
                   Scopri le Offerte
                 </Button>
               </Link>

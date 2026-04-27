@@ -67,7 +67,7 @@ function SidebarContent({ config, profile, role, onLogout, onLinkClick }) {
         <Link to="/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 group">
           <img
             src="/logo-bianco.png"
-            alt="NoloSubito"
+            alt="Nolosubito"
             className="h-7 w-auto object-contain"
             onError={e => { e.target.style.display = "none"; }}
           />
@@ -204,7 +204,7 @@ export default function DashboardLayout() {
           </button>
           <img
             src="/logo-bianco.png"
-            alt="NoloSubito"
+            alt="Nolosubito"
             className="h-6 w-auto object-contain"
             onError={e => { e.target.style.display = "none"; }}
           />

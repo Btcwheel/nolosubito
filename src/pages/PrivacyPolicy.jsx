@@ -25,7 +25,7 @@ export default function PrivacyPolicy() {
 
         <Section title="1. Titolare del Trattamento">
           <p>
-            Il Titolare del trattamento dei dati personali è <strong>NoloSubito S.r.l.</strong>,
+            Il Titolare del trattamento dei dati personali è <strong>Nolosubito S.r.l.</strong>,
             con sede legale in Milano (MI), Italia — email:{" "}
             <a href="mailto:privacy@nolosubito.it" className="text-electric hover:underline">privacy@nolosubito.it</a>.
           </p>
@@ -115,7 +115,7 @@ export default function PrivacyPolicy() {
 
         <div className="border-t border-border/40 pt-6 mt-4">
           <p className="text-xs text-muted-foreground">
-            NoloSubito S.r.l. — P.IVA IT12345678901 — Milano, Italia
+            Nolosubito S.r.l. — P.IVA IT12345678901 — Milano, Italia
           </p>
         </div>
       </div>

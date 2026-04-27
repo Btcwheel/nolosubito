@@ -10,7 +10,7 @@ import { useToast } from "@/components/ui/use-toast";
 // Contenuto pannello sinistro per ogni contesto
 const CONTEXT_CONFIG = {
   internal: {
-    badge: "Piattaforma NLT",
+    badge: "Piattaforma Noleggio Lungo Termine",
     headline: <>Tutto il tuo<br />business,<br /><span className="text-electric">un solo posto.</span></>,
     sub: "Gestisci preventivi, pratiche e team con una piattaforma costruita per il noleggio a lungo termine italiano.",
     features: [
@@ -109,7 +109,7 @@ export default function Login({ context = "internal" }) {
           <Link to="/">
             <img
               src="/logo-bianco.png"
-              alt="NoloSubito"
+              alt="Nolosubito"
               className="h-8 w-auto object-contain"
               onError={(e) => { e.target.style.display = "none"; }}
             />
@@ -165,7 +165,7 @@ export default function Login({ context = "internal" }) {
 
         {/* Bottom */}
         <div className="relative z-10 px-10 pb-8 flex items-center justify-between">
-          <p className="text-xs text-white/20">© 2025 NoloSubito</p>
+          <p className="text-xs text-white/20">© 2025 Nolosubito</p>
           <div className="flex items-center gap-1.5 text-xs text-white/25">
             <Shield className="w-3 h-3" /> Connessione sicura SSL
           </div>
@@ -187,7 +187,7 @@ export default function Login({ context = "internal" }) {
               <Zap className="w-5 h-5 text-electric" />
             </div>
             <h1 className="font-heading font-bold text-2xl text-foreground">{cfg.mobileTitle}</h1>
-            <p className="text-muted-foreground text-sm mt-1">NoloSubito</p>
+            <p className="text-muted-foreground text-sm mt-1">Nolosubito</p>
           </div>
 
           {/* Desktop heading */}

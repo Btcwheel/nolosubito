@@ -76,12 +76,12 @@ export default function VehicleDetail() {
   // ── Loading ──
   if (isLoading) {
     return (
-      <div className="bg-navy pt-24 min-h-screen">
+      <div className="bg-background pt-24 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-          <Skeleton className="h-6 w-36 bg-white/10 mb-8" />
+          <Skeleton className="h-6 w-36 mb-8" />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <Skeleton className="aspect-[4/3] rounded-2xl bg-white/10" />
-            <Skeleton className="h-[500px] rounded-2xl bg-white/10" />
+            <Skeleton className="aspect-[4/3] rounded-2xl" />
+            <Skeleton className="h-[500px] rounded-2xl" />
           </div>
         </div>
       </div>
@@ -90,10 +90,10 @@ export default function VehicleDetail() {
 
   if (!bestOffer) {
     return (
-      <div className="min-h-screen bg-navy flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center px-4">
-          <p className="text-white text-xl font-heading font-bold mb-2">Veicolo non trovato</p>
-          <p className="text-white/50 text-sm mb-6">Il veicolo richiesto non è disponibile.</p>
+          <p className="text-foreground text-xl font-heading font-bold mb-2">Veicolo non trovato</p>
+          <p className="text-muted-foreground text-sm mb-6">Il veicolo richiesto non è disponibile.</p>
           <Link to="/offers">
             <Button className="bg-electric hover:bg-electric/90 text-white">← Torna alle Offerte</Button>
           </Link>
@@ -143,7 +143,7 @@ export default function VehicleDetail() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
 
-      <div className="bg-navy min-h-screen">
+      <div className="bg-background min-h-screen">
 
         {/* ── Hero — sempre la prima foto, full-bleed con sfumatura ── */}
         <div className="relative w-full h-[55vw] max-h-[560px] min-h-[320px] overflow-hidden">
@@ -207,7 +207,7 @@ export default function VehicleDetail() {
         </div>
 
         {/* ── Thumbnail strip + sezione dettaglio ── */}
-        <div className="border-b border-white/[0.06]">
+        <div className="border-b border-border/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
 
             {/* Thumbnails */}
@@ -220,9 +220,9 @@ export default function VehicleDetail() {
                   className={`relative shrink-0 rounded-xl overflow-hidden cursor-pointer transition-all duration-200
                     w-[88px] h-[56px] sm:w-[108px] sm:h-[68px]
                     ${i === currentIndex && i > 0
-                      ? "ring-2 ring-electric ring-offset-2 ring-offset-navy opacity-100"
+                      ? "ring-2 ring-electric ring-offset-2 ring-offset-background opacity-100"
                       : i === 0 && currentIndex === 0
-                        ? "ring-2 ring-white/30 ring-offset-2 ring-offset-navy opacity-100"
+                        ? "ring-2 ring-border ring-offset-2 ring-offset-background opacity-100"
                         : "opacity-40 hover:opacity-75"
                     }`}
                 >
@@ -298,18 +298,18 @@ export default function VehicleDetail() {
                   </span>
                 )}
                 {bestOffer.power_hp && (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border bg-white/5 text-white/70 border-white/10">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border bg-muted/60 text-foreground/70 border-border">
                     <Gauge className="w-3.5 h-3.5 text-electric" /> {bestOffer.power_hp} CV
                   </span>
                 )}
                 {bestOffer.transmission && (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border bg-white/5 text-white/70 border-white/10">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border bg-muted/60 text-foreground/70 border-border">
                     {bestOffer.transmission}
                   </span>
                 )}
                 {bestOffer.co2_emissions !== undefined && bestOffer.co2_emissions !== null && (
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border bg-white/5 text-white/70 border-white/10">
-                    <Leaf className="w-3.5 h-3.5 text-green-400" />
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border bg-muted/60 text-foreground/70 border-border">
+                    <Leaf className="w-3.5 h-3.5 text-green-500" />
                     {bestOffer.co2_emissions === 0 ? "0 CO₂" : `${bestOffer.co2_emissions} g/km`}
                   </span>
                 )}
@@ -317,7 +317,7 @@ export default function VehicleDetail() {
 
               {/* Description */}
               {bestOffer.description && (
-                <p className="text-white/60 text-[15px] leading-relaxed border-l-2 border-electric/40 pl-4">
+                <p className="text-muted-foreground text-[15px] leading-relaxed border-l-2 border-electric/40 pl-4">
                   {bestOffer.description}
                 </p>
               )}
@@ -325,12 +325,12 @@ export default function VehicleDetail() {
               {/* Features */}
               {bestOffer.features?.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3">
+                  <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">
                     Dotazioni principali
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {bestOffer.features.map((f, i) => (
-                      <div key={i} className="flex items-center gap-2.5 text-sm text-white/70">
+                      <div key={i} className="flex items-center gap-2.5 text-sm text-foreground/70">
                         <CheckCircle2 className="w-4 h-4 text-electric shrink-0" />
                         {f}
                       </div>
@@ -340,8 +340,8 @@ export default function VehicleDetail() {
               )}
 
               {/* Included in rent */}
-              <div className="rounded-2xl bg-white/[0.04] border border-white/[0.08] p-5">
-                <h3 className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4">
+              <div className="rounded-2xl bg-muted/30 border border-border p-5">
+                <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-4">
                   Incluso nel canone
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -351,7 +351,7 @@ export default function VehicleDetail() {
                     { icon: Zap,         label: "Soccorso stradale H24" },
                     { icon: FileText,    label: "Gestione bollo" },
                   ].map(({ icon: Icon, label }) => (
-                    <div key={label} className="flex items-center gap-2.5 text-sm text-white/60">
+                    <div key={label} className="flex items-center gap-2.5 text-sm text-foreground/70">
                       <div className="w-7 h-7 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
                         <Icon className="w-3.5 h-3.5 text-electric" />
                       </div>
@@ -375,8 +375,8 @@ export default function VehicleDetail() {
                     <div key={label} className="flex items-center gap-3">
                       <span className="font-heading font-bold text-lg text-electric w-14 shrink-0">{pct}</span>
                       <div>
-                        <p className="text-sm font-semibold text-white/80 leading-none">{label}</p>
-                        <p className="text-xs text-white/40 mt-0.5">{sub}</p>
+                        <p className="text-sm font-semibold text-foreground/80 leading-none">{label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>
                       </div>
                     </div>
                   ))}
