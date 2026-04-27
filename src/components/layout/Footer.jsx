@@ -50,11 +50,18 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-electric" />
-                <span>+39 02 1234 5678</span>
+                <a href="tel:+390640049490" className="hover:text-electric transition-colors duration-200">
+                  +39 06 40 049 490
+                </a>
               </li>
-              <li className="flex items-center gap-2">
+              <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-electric" />
-                <span>Milano, Italia</span>
+                <div className="leading-relaxed">
+                  <p className="font-medium text-white">Sede legale</p>
+                  <p className="text-white/60">Via Nuova Poggioreale, 60L</p>
+                  <p className="text-white/60">Centro Polifunzionale INAIL, Torre 7</p>
+                  <p className="text-white/60">80143 Napoli</p>
+                </div>
               </li>
             </ul>
           </div>
