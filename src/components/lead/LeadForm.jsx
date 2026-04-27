@@ -181,7 +181,7 @@ export default function LeadForm({ prefilledConfig }) {
         veicolo_marca:            f.marca            || null,
         veicolo_modello:          f.modello.trim()   || null,
         veicolo_alimentazione:    f.alimentazione    || null,
-        segmento:                 prefilledConfig?.segment  || null,
+        segmento:                 ["P.IVA","Fleet","Privati"].includes(prefilledConfig?.segment) ? prefilledConfig.segment : null,
         durata_mesi:              prefilledConfig?.duration || null,
         km_annui:                 f.kmAnnui ? parseInt(f.kmAnnui) : (prefilledConfig?.annualKm || null),
         anticipo:                 prefilledConfig?.advance     || null,
@@ -192,10 +192,10 @@ export default function LeadForm({ prefilledConfig }) {
       setSubmittedEmail(f.email.trim().toLowerCase());
       setSubmitted(true);
     } catch (err) {
-      console.error(err);
+      console.error("LeadForm error:", err);
       toast({
         title: "Errore nell'invio",
-        description: "Si è verificato un problema. Riprova tra qualche minuto.",
+        description: err?.message || "Si è verificato un problema. Riprova tra qualche minuto.",
         variant: "destructive",
       });
     } finally {
