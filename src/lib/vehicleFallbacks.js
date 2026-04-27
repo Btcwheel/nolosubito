@@ -66,3 +66,21 @@ export function getVehicleImage(vehicle) {
     || MAKE_FALLBACKS[vehicle?.make]
     || DEFAULT_FALLBACK;
 }
+
+const IMAGE_CROP_POSITIONS = {
+  "Alfa Romeo Tonale": "50% 58%",
+  "Alfa Romeo": "50% 56%",
+  "SUV": "50% 48%",
+  "Commercial Van": "50% 50%",
+};
+
+export function getVehicleImagePosition(vehicle) {
+  const modelKey = `${vehicle?.make ?? ""} ${vehicle?.model ?? ""}`.trim();
+
+  return (
+    IMAGE_CROP_POSITIONS[modelKey]
+    || IMAGE_CROP_POSITIONS[vehicle?.model]
+    || IMAGE_CROP_POSITIONS[vehicle?.category]
+    || "50% 50%"
+  );
+}

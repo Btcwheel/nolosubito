@@ -5,19 +5,20 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 
 const offersDropdown = [
-  { label: "Offerte Business", path: "/offers", desc: "P.IVA e aziende" },
-  { label: "Offerte Privati", path: "/private-offers", desc: "Noleggio per privati" },
-  { label: "Soluzioni Flotta", path: "/fleet", desc: "Flotte aziendali" },
-  { label: "Veicoli Commerciali", path: "/commercial", desc: "Furgoni e van cargo" },
-  { label: "Usato Garantito", path: "/usato", desc: "Selezione AutoScout24" },
+  { label: "Offerte Business",     path: "/offers",          desc: "P.IVA e aziende" },
+  { label: "Offerte Privati",      path: "/private-offers",  desc: "Noleggio per privati" },
+  { label: "Offerte Moto",         path: "/moto",            desc: "Scooter, naked, touring" },
+  { label: "Soluzioni Flotta",     path: "/fleet",           desc: "Flotte aziendali" },
+  { label: "Veicoli Commerciali",  path: "/commercial",      desc: "Furgoni e van cargo" },
+  { label: "Mobilità Green",       path: "/green",           desc: "Elettrico e ibrido" },
 ];
 
 const navLinks = [
-  { label: "Home", path: "/" },
-  { label: "News", path: "/news" },
-  { label: "Mobilità Green", path: "/green" },
+  { label: "Home",          path: "/" },
+  { label: "News",          path: "/news" },
+  { label: "Usato Sicuro",  path: "/usato" },
   { label: "Lavora con Noi", path: "/careers" },
-  { label: "Contatti", path: "/contact" },
+  { label: "Contatti",      path: "/contact" },
 ];
 
 export default function Navbar() {
@@ -98,7 +99,7 @@ export default function Navbar() {
                   isOffersActive ? linkActive : linkBase
                 }`}
               >
-                Offerte
+                Offerte Noleggio
                 <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`} />
               </button>
 
@@ -205,7 +206,7 @@ export default function Navbar() {
                     isOffersActive ? linkActiveBg : linkBase
                   }`}
                 >
-                  Offerte
+                  Offerte Noleggio
                   <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${mobileOffersOpen ? "rotate-180" : ""}`} />
                 </button>
                 <AnimatePresence>

@@ -1,68 +1,101 @@
-import React, { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ChevronDown } from "lucide-react";
-import HeroScene from "./HeroScene";
-import HeroProgressBar from "./HeroProgressBar";
-
-const SCENES = [
-  {
-    image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1920&q=90&auto=format&fit=crop",
-    label: "Il Tuo Veicolo",
-    title: "Guida il Tuo\nSogno",
-    sub: "Noleggio a lungo termine per privati, P.IVA e flotte aziendali.",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=1920&q=90&auto=format&fit=crop",
-    label: "Motore",
-    title: "Potenza\nSenza Limiti",
-    sub: "Scegli tra centinaia di motorizzazioni. Benzina, diesel, ibrido, elettrico.",
-  },
-];
+import React from "react";
+import { ChevronRight, ShieldCheck, Timer, Wallet } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export default function HeroSection() {
-  const containerRef = useRef(null);
-  const activeScenes = SCENES;
-  const totalHeight = activeScenes.length * 100;
-
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"],
-  });
-
-  const scrollHintOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
-
   return (
-    <div ref={containerRef} style={{ height: `${totalHeight}vh` }} className="relative">
-      <div className="sticky top-0 h-screen overflow-hidden">
-        {activeScenes.map((scene, i) => (
-          <HeroScene
-            key={i}
-            scene={scene}
-            index={i}
-            scrollYProgress={scrollYProgress}
-            isFirst={i === 0}
-            totalScenes={activeScenes.length}
-          />
-        ))}
-
-        <HeroProgressBar scrollYProgress={scrollYProgress} />
-
-        {/* Scroll hint */}
-        <motion.div
-          className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-          style={{ opacity: scrollHintOpacity }}
-        >
-          <span className="text-white/40 text-[10px] sm:text-xs tracking-widest uppercase">
-            Scorri per esplorare
-          </span>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
-          >
-            <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-white/40" />
-          </motion.div>
-        </motion.div>
+    <section className="relative isolate overflow-hidden bg-navy text-white">
+      <div className="absolute inset-0">
+        <img
+          src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1920&q=90&auto=format&fit=crop"
+          alt=""
+          aria-hidden="true"
+          className="h-full w-full object-cover object-[68%_center] scale-110 sm:object-center sm:scale-105"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#2D2E82]/65 via-[#2D2E82]/25 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#2D2E82]/40 via-transparent to-transparent" />
       </div>
-    </div>
+
+      <div className="relative mx-auto flex min-h-[92svh] max-w-7xl flex-col justify-end px-4 pb-8 pt-24 sm:px-6 lg:min-h-[88svh] lg:justify-center lg:pb-14">
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75 backdrop-blur-md">
+            <span className="h-2 w-2 rounded-full bg-electric shadow-[0_0_18px_rgba(243,146,0,0.9)]" />
+            Noleggio su misura
+          </div>
+
+          <h1 className="mt-5 max-w-xl font-heading text-[2.45rem] leading-[0.95] tracking-tight text-white sm:text-5xl lg:text-7xl">
+            Guida il tuo
+            <br />
+            sogno.
+          </h1>
+
+          <p className="mt-4 max-w-lg text-[0.98rem] leading-7 text-white/72 sm:text-lg">
+            Noleggio a lungo termine per privati, P.IVA e flotte aziendali, con
+            consulenza rapida e condizioni chiare.
+          </p>
+
+          <div className="mt-6 grid max-w-md grid-cols-3 gap-2 sm:mt-8 sm:gap-3">
+            {[
+              { icon: ShieldCheck, label: "Assistenza completa" },
+              { icon: Wallet, label: "Canone chiaro" },
+              { icon: Timer, label: "Risposta rapida" },
+            ].map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <div
+                  key={feature.label}
+                  className="rounded-2xl border border-white/10 bg-white/8 px-3 py-3 text-center backdrop-blur-md"
+                >
+                  <Icon className="mx-auto h-4 w-4 text-electric" />
+                  <p className="mt-2 text-[11px] font-medium leading-snug text-white/78">
+                    {feature.label}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-6 flex flex-col gap-3 sm:mt-8 sm:flex-row">
+            <Button asChild className="h-12 flex-1 rounded-2xl bg-white text-navy hover:bg-white/90">
+              <Link to="/contact">
+                Preventivo
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+
+            <Button
+              asChild
+              variant="outline"
+              className="h-12 flex-1 rounded-2xl border-white/25 bg-white/5 text-white hover:bg-white/10"
+            >
+              <Link to="/offers">Offerte</Link>
+            </Button>
+          </div>
+
+          <div className="mt-6 flex max-w-md items-center justify-between rounded-2xl border border-white/10 bg-black/15 px-4 py-3 backdrop-blur-md sm:mt-8">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">
+                Tempo medio
+              </p>
+              <p className="mt-1 font-heading text-lg font-bold text-white">
+                24h
+              </p>
+            </div>
+
+            <div className="h-10 w-px bg-white/10" />
+
+            <div className="text-right">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">
+                Clienti soddisfatti
+              </p>
+              <p className="mt-1 font-heading text-lg font-bold text-white">
+                98%
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

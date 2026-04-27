@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Fuel, Gauge, Zap, ArrowRight, Flame, Sparkles, Leaf } from "lucide-react";
 import { motion } from "framer-motion";
-import { getVehicleImage, BRAND_LOGOS } from "@/lib/vehicleFallbacks";
+import { getVehicleImage, getVehicleImagePosition, BRAND_LOGOS } from "@/lib/vehicleFallbacks";
 
 const POPULAR = ["Model Y", "Classe C", "5 Series"];
 const NEW_TAG  = ["Q4 e-tron", "e-Expert"];
@@ -37,10 +37,10 @@ export default function VehicleCard({ vehicle, index, segment }) {
   const isPrivate = segment === "Privati";
   const FuelIcon   = vehicle.fuel_type === "Electric" ? Zap : Fuel;
   const imgSrc     = getVehicleImage(vehicle);
+  const imgPos     = getVehicleImagePosition(vehicle);
   const fuelClass  = FUEL_COLORS[vehicle.fuel_type] ?? "bg-muted text-muted-foreground";
   const isPopular  = POPULAR.includes(vehicle.model);
   const isNew      = NEW_TAG.includes(vehicle.model);
-  const hasEditorialImage = Boolean(vehicle.vehicle_image);
 
   return (
     <motion.div
@@ -62,11 +62,8 @@ export default function VehicleCard({ vehicle, index, segment }) {
             <img
               src={imgSrc}
               alt={`${vehicle.make} ${vehicle.model}`}
-              className={`relative z-10 w-full h-full transition-transform duration-700 group-hover:scale-[1.03] ${
-                hasEditorialImage
-                  ? "object-contain object-center p-4 sm:p-5"
-                  : "object-cover object-center"
-              }`}
+              className="relative z-10 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+              style={{ objectPosition: imgPos }}
               loading="lazy"
               onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0"; }}
             />

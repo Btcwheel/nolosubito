@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getVehicleImage } from "@/lib/vehicleFallbacks";
+import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
+import { splitVehicleDescription } from "@/lib/vehicleText";
 
 // Mock gallery extras — in produzione sostituire con vehicle.gallery_images[] dal DB
 const MOCK_GALLERY_EXTRAS = [
@@ -105,6 +106,7 @@ export default function VehicleDetail() {
   const FuelIcon   = bestOffer.fuel_type === "Electric" ? Zap : Fuel;
   const fuelPill   = FUEL_PILL[bestOffer.fuel_type] ?? "bg-muted/20 text-white/60 border-white/20";
   const imgSrc     = bestOffer.vehicle_image || getVehicleImage(bestOffer);
+  const imgPos     = getVehicleImagePosition(bestOffer);
 
   // Gallery: immagine principale + extra mock (o vehicle.gallery_images[] dal DB)
   const galleryImages = [
@@ -123,6 +125,7 @@ export default function VehicleDetail() {
   };
   const isElectric = bestOffer.fuel_type === "Electric";
   const isHybrid   = bestOffer.fuel_type === "Hybrid";
+  const descriptionParagraphs = splitVehicleDescription(bestOffer.description);
 
   // schema.org
   const schemaData = {
@@ -151,6 +154,7 @@ export default function VehicleDetail() {
             src={galleryImages[0].src}
             alt={`${decodedMake} ${decodedModel}`}
             className="w-full h-full object-cover"
+            style={{ objectPosition: imgPos }}
             onError={(e) => { e.target.src = getVehicleImage({ make: decodedMake }); }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/30 to-navy/20" />
@@ -316,10 +320,14 @@ export default function VehicleDetail() {
               </div>
 
               {/* Description */}
-              {bestOffer.description && (
-                <p className="text-muted-foreground text-[15px] leading-relaxed border-l-2 border-electric/40 pl-4">
-                  {bestOffer.description}
-                </p>
+              {descriptionParagraphs.length > 0 && (
+                <div className="space-y-3 border-l-2 border-electric/40 pl-4">
+                  {descriptionParagraphs.map((paragraph, i) => (
+                    <p key={i} className="text-muted-foreground text-[15px] leading-relaxed">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
               )}
 
               {/* Features */}
