@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 export const praticheService = {
   // ── Pratiche ──────────────────────────────────────────────
 
+  /** @param {{ agenteId?: string, clienteEmail?: string }} [opts] */
   async list({ agenteId, clienteEmail } = {}) {
     let query = supabase
       .from('pratiche')
@@ -45,6 +46,23 @@ export const praticheService = {
       .from('pratiche')
       .insert({ ...pratica, codice, access_token, status: 'Nuova' });
     if (error) throw error;
+
+    // Notifica backoffice (best-effort) — i dati vengono passati direttamente
+    try {
+      await supabase.functions.invoke('notify-nuova-pratica', {
+        body: {
+          codice,
+          clienteNome:      pratica.cliente_nome,
+          clienteEmail:     pratica.cliente_email,
+          clienteTelefono:  pratica.cliente_telefono ?? null,
+          segmento:         pratica.segmento ?? null,
+          veicoloInteresse: [pratica.veicolo_marca, pratica.veicolo_modello].filter(Boolean).join(" ") || null,
+        },
+      });
+    } catch (e) {
+      console.warn('notify-nuova-pratica non disponibile:', e.message);
+    }
+
     return { codice, access_token };
   },
 

@@ -107,10 +107,9 @@ export const offersService = {
       const { data, error } = await supabase
         .from('offer_configs')
         .upsert(config, { onConflict: 'make,model,duration_months,annual_km,segment' })
-        .select()
-        .single();
+        .select();
       if (error) throw error;
-      return data;
+      return data?.[0] ?? null;
     }
   },
 

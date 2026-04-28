@@ -8,9 +8,7 @@ const offersDropdown = [
   { label: "Offerte Business",     path: "/offers",          desc: "P.IVA e aziende" },
   { label: "Offerte Privati",      path: "/private-offers",  desc: "Noleggio per privati" },
   { label: "Offerte Moto",         path: "/moto",            desc: "Scooter, naked, touring" },
-  { label: "Soluzioni Flotta",     path: "/fleet",           desc: "Flotte aziendali" },
   { label: "Veicoli Commerciali",  path: "/commercial",      desc: "Furgoni e van cargo" },
-  { label: "Mobilità Green",       path: "/green",           desc: "Elettrico e ibrido" },
 ];
 
 const navLinks = [
