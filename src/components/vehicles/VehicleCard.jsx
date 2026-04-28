@@ -17,9 +17,8 @@ const FUEL_COLORS = {
 
 function BrandLogo({ make, compact }) {
   const [failed, setFailed] = React.useState(false);
-  const key = make?.trim();
-  const logo = BRAND_LOGOS[key]
-    ?? Object.entries(BRAND_LOGOS).find(([k]) => k.toLowerCase() === key?.toLowerCase())?.[1];
+  const key = make?.trim().toUpperCase();
+  const logo = BRAND_LOGOS[key];
   const sz = compact ? "w-9 h-9" : "w-11 h-11";
   if (!logo || failed) {
     return (
