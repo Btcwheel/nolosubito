@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { Fuel, Gauge, Zap, ArrowRight, Flame, Sparkles, Leaf } from "lucide-react";
+import { Fuel, Gauge, Zap, ArrowRight, Flame, Sparkles, Leaf, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 import { getVehicleImage, getVehicleImagePosition, BRAND_LOGOS } from "@/lib/vehicleFallbacks";
 
@@ -41,6 +41,7 @@ export default function VehicleCard({ vehicle, index, segment, compact = false }
   const fuelClass  = FUEL_COLORS[vehicle.fuel_type] ?? "bg-muted text-muted-foreground";
   const isPopular  = POPULAR.includes(vehicle.model);
   const isNew      = NEW_TAG.includes(vehicle.model);
+  const isReUse    = vehicle.segments?.includes("ReUse");
 
   return (
     <motion.div
@@ -84,6 +85,13 @@ export default function VehicleCard({ vehicle, index, segment, compact = false }
                 </Badge>
               )}
             </div>
+
+            {/* Re-Use badge */}
+            {isReUse && (
+              <Badge className={`absolute left-3 bottom-3 z-20 bg-teal-500/90 text-white border-0 backdrop-blur-sm flex items-center gap-1 shadow-sm ${compact ? "px-1.5 py-0.5 text-[10px]" : "text-[11px]"}`}>
+                <RefreshCw className="h-2.5 w-2.5" /> Re-Use
+              </Badge>
+            )}
 
             {/* Top-right EV/Hybrid badge */}
             {vehicle.fuel_type === "Electric" && (

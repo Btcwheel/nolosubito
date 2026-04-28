@@ -9,6 +9,7 @@ const offersDropdown = [
   { label: "Offerte Privati",      path: "/private-offers",  desc: "Noleggio per privati" },
   { label: "Offerte Moto",         path: "/moto",            desc: "Scooter, naked, touring" },
   { label: "Veicoli Commerciali",  path: "/commercial",      desc: "Furgoni e van cargo" },
+  { label: "Offerte Re-Use",       path: "/reuse",           desc: "Usato certificato NLT" },
 ];
 
 const navLinks = [
