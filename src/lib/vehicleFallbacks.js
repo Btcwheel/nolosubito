@@ -29,8 +29,8 @@ export const MAKE_FALLBACKS = {
 export const BRAND_LOGOS = {
   "Audi":           "/brands/audi.svg",
   "BMW":            "/brands/bmw.svg",
-  "Mercedes":       "/brands/mercedes.svg",
-  "Mercedes-Benz":  "/brands/mercedes.svg",
+  "Mercedes":       "/brands/mercedes.png",
+  "Mercedes-Benz":  "/brands/mercedes.png",
   "Tesla":          "/brands/tesla.svg",
   "Volkswagen":     "/brands/volkswagen.svg",
   "Volvo":          "/brands/volvo.svg",
