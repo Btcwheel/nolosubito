@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, Calculator, Info, CheckCircle2, Shield, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { ADVANCE_BRACKETS, formatAdvanceAmount } from "@/lib/vehiclePricing";
 
 const ALL_DURATIONS = [24, 36, 48, 60];
 const ALL_KM        = [10000, 15000, 20000, 25000, 30000, 40000];
-const ALL_ADVANCES  = [0, 1500, 3000, 5000, 7500, 10000];
 
 const STEPS = [
   { n: 1, label: "Durata" },
@@ -233,14 +233,14 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
             )}
           </div>
           <div className="grid grid-cols-3 gap-2">
-            {ALL_ADVANCES.map(a => (
+            {ADVANCE_BRACKETS.map(a => (
               <button key={a} onClick={() => setAdvance(a)}
                 className={`py-2.5 rounded-xl text-sm font-bold border-2 transition-all duration-150 cursor-pointer
                   ${advance === a
                     ? "bg-navy border-electric text-white shadow-md shadow-navy/20"
                     : "border-border text-foreground hover:border-electric/50 hover:bg-electric/5"}`}
               >
-                {a === 0 ? "€0" : `€${(a / 1000).toFixed(a % 1000 === 0 ? 0 : 1)}k`}
+                {formatAdvanceAmount(a)}
               </button>
             ))}
           </div>

@@ -116,7 +116,7 @@ export default function TerminiCondizioni() {
 
         <div className="border-t border-border/40 pt-6 mt-4">
           <p className="text-xs text-muted-foreground">
-            Nolosubito S.r.l. — P.IVA IT12345678901 — Milano, Italia —{" "}
+            Nolosubito S.r.l. — P.IVA IT08350931211 — Napoli, Italia —{" "}
             <Link to="/privacy" className="text-electric hover:underline">Privacy Policy</Link>
           </p>
         </div>

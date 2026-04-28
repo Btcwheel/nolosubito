@@ -14,6 +14,7 @@ import {
   Loader2, ToggleLeft, ToggleRight, ChevronDown, ChevronUp, Wand2,
 } from "lucide-react";
 import { normalizeVehicleDescription } from "@/lib/vehicleText";
+import { ADVANCE_BRACKETS, formatAdvanceAmount } from "@/lib/vehiclePricing";
 
 // ── Costanti ──────────────────────────────────────────────────────────────────
 
@@ -48,7 +49,7 @@ const EMPTY_PRICE_ROW = {
   segment: "P.IVA",
   duration_months: 36,
   annual_km: 20000,
-  has_advance: false,
+  advance_payment: 0,
   monthly_rent: "",
   is_active: true,
 };
@@ -272,7 +273,7 @@ function PricingConfigsEditor({ rows, onChange }) {
       {rows.length > 0 && (
         <div className="space-y-2">
           {/* Header */}
-          <div className="grid grid-cols-[1fr_90px_110px_80px_110px_32px] gap-2 px-1">
+          <div className="grid grid-cols-[1fr_90px_110px_130px_110px_32px] gap-2 px-1">
             {["Segmento", "Durata", "KM/anno", "Anticipo", "Canone €/mese", ""].map(h => (
               <p key={h} className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{h}</p>
             ))}
@@ -280,7 +281,7 @@ function PricingConfigsEditor({ rows, onChange }) {
 
           {/* Righe */}
           {rows.map(row => (
-            <div key={row._key} className="grid grid-cols-[1fr_90px_110px_80px_110px_32px] gap-2 items-center bg-muted/30 rounded-xl px-3 py-2 border border-border/50">
+            <div key={row._key} className="grid grid-cols-[1fr_90px_110px_130px_110px_32px] gap-2 items-start bg-muted/30 rounded-xl px-3 py-2 border border-border/50">
 
               {/* Segmento */}
               <Select value={row.segment} onValueChange={v => updateRow(row._key, "segment", v)}>
@@ -300,18 +301,37 @@ function PricingConfigsEditor({ rows, onChange }) {
                 <SelectContent>{KM_OPTIONS.map(k => <SelectItem key={k} value={String(k)}>{k.toLocaleString("it-IT")}</SelectItem>)}</SelectContent>
               </Select>
 
-              {/* Anticipo toggle */}
-              <button
-                type="button"
-                onClick={() => updateRow(row._key, "has_advance", !row.has_advance)}
-                className={`flex items-center justify-center h-8 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
-                  row.has_advance
-                    ? "bg-electric/10 border-electric/30 text-electric"
-                    : "bg-muted border-border text-muted-foreground"
-                }`}
-              >
-                {row.has_advance ? "Sì" : "No"}
-              </button>
+              {/* Anticipo */}
+              <div className="space-y-1">
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="100"
+                    value={row.advance_payment}
+                    onChange={e => updateRow(row._key, "advance_payment", e.target.value)}
+                    placeholder="0"
+                    className="h-8 text-xs pl-6"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {ADVANCE_BRACKETS.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => updateRow(row._key, "advance_payment", preset)}
+                      className={`px-2 py-1 rounded-full text-[10px] font-semibold border transition-colors ${
+                        Number(row.advance_payment || 0) === preset
+                          ? "bg-electric/10 border-electric/30 text-electric"
+                          : "bg-background border-border text-muted-foreground hover:border-electric/40 hover:text-electric"
+                      }`}
+                    >
+                      {formatAdvanceAmount(preset)}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               {/* Canone */}
               <div className="relative">
@@ -438,7 +458,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
       setPricingRows(existingConfigs.map(c => ({
         ...c,
         _key: nextKey(),
-        has_advance: !!c.advance_payment,
+        advance_payment: Number(c.advance_payment ?? 0),
       })));
     }
   }, [existingConfigs]);
@@ -689,7 +709,7 @@ export default function CmsVehicles() {
           segment:         row.segment,
           duration_months: Number(row.duration_months),
           annual_km:       Number(row.annual_km),
-          advance_payment: row.has_advance ? 1 : 0,
+          advance_payment: Number(row.advance_payment ?? 0),
           monthly_rent:    Number(row.monthly_rent),
           is_active:       row.is_active ?? true,
           ...(row.id ? { id: row.id } : {}),

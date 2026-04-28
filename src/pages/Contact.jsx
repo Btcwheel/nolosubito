@@ -4,7 +4,7 @@ import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import LeadForm from "../components/lead/LeadForm";
 
 const contactInfo = [
-  { icon: Mail, label: "Email", value: "offerte@nolosubito.it", href: "mailto:offerte@nolosubito.it" },
+  { icon: Mail, label: "Email", value: "info@nolosubito.it", href: "mailto:info@nolosubito.it" },
   { icon: Phone, label: "Telefono", value: "+39 06 40 049 490", href: "tel:+390640049490" },
   { icon: MapPin, label: "Indirizzo", value: "Presenza su tutto il territorio nazionale" },
   { icon: Clock, label: "Orari", value: "Lun–Ven: 9:00–18:00" },
@@ -69,12 +69,12 @@ export default function Contact() {
                       <a href={c.href} className="text-sm font-medium text-foreground hover:text-electric transition-colors duration-200">
                         {c.value}
                       </a>
-                  ) : (
-                    <p className="text-sm font-medium text-foreground">{c.value}</p>
-                  )}
+                    ) : (
+                      <p className="text-sm font-medium text-foreground">{c.value}</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
               <div className="pt-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground mb-3">

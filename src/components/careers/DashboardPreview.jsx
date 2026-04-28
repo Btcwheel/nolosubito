@@ -330,7 +330,7 @@ export default function DashboardPreview() {
       {/* Preview label */}
       <div className="bg-muted/50 border-t border-border/50 px-5 py-3 flex items-center justify-between">
         <span className="text-xs text-muted-foreground">📱 Anteprima Area Riservata Partner — disponibile dopo l'attivazione</span>
-        <Badge className="bg-electric/10 text-electric border-0 text-xs">Demo</Badge>
+        <Badge variant="default" className="bg-electric/10 text-electric border-0 text-xs">Demo</Badge>
       </div>
     </div>
   );

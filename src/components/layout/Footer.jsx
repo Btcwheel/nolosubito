@@ -46,12 +46,13 @@ export default function Footer() {
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-electric" />
-                <a href="mailto:offerte@nolosubito.it" className="hover:text-electric transition-colors duration-200">offerte@nolosubito.it</a>
+                <a href="mailto:info@nolosubito.it" className="hover:text-electric transition-colors duration-200">info@nolosubito.it</a>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-electric" />
                 <a href="tel:+390640049490" className="hover:text-electric transition-colors duration-200">
-                  +39 06 40 049 490
+                  +39 06 4004 9490 <br /> +39 3454300936
+
                 </a>
               </li>
               <li className="flex items-start gap-2">
