@@ -19,9 +19,13 @@ import { ADVANCE_BRACKETS, formatAdvanceAmount } from "@/lib/vehiclePricing";
 // ── Costanti ──────────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  "Business Sedan", "Business SUV", "Electric Exec",
-  "Electric SUV", "Commercial Van", "Premium Sedan", "Compact Business",
-  "Scooter", "Naked", "Sport", "Touring", "Enduro", "Custom", "Elettrica",
+  "Sedan",
+  "SUV",
+  "CityCar",
+  "Quadricicli",
+  "Moto e Scooter",
+  "Commercial Van",
+  "Touring",
 ];
 const FUEL_TYPES = [
   { value: "Diesel",   label: "Diesel" },
