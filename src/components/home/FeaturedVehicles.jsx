@@ -11,15 +11,16 @@ export default function FeaturedVehicles() {
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["offers-featured"],
     queryFn: () => offersService.listWithMinPrice(),
-    select: (data) => data.slice(0, 6),
+    select: (data) => data.slice(0, 8),
   });
 
   return (
-    <section className="py-20 sm:py-28 bg-muted/30">
+    <section className="relative overflow-hidden border-y border-electric/10 bg-[linear-gradient(180deg,rgba(45,46,130,0.06)_0%,rgba(243,244,246,0.96)_16%,rgba(243,244,246,0.78)_100%)] py-16 sm:py-20">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/70 to-transparent" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between mb-10">
+        <div className="mb-8 flex items-end justify-between border-b border-border/40 pb-6">
           <div>
-            <p className="text-electric text-sm font-bold uppercase tracking-widest mb-2">Catalogo Noleggio Lungo Termine</p>
+            <p className="mb-2 text-sm font-bold uppercase tracking-widest text-electric">Catalogo Noleggio Lungo Termine</p>
             <h2 className="font-heading font-bold text-3xl sm:text-4xl text-foreground">
               Veicoli in Evidenza
             </h2>
@@ -35,11 +36,11 @@ export default function FeaturedVehicles() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array(6).fill(0).map((_, i) => (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {Array(8).fill(0).map((_, i) => (
               <div key={i} className={`bg-card rounded-2xl border border-border/50 overflow-hidden ${i === 0 ? "sm:col-span-2 lg:col-span-1" : ""}`}>
-                <Skeleton className="aspect-video w-full" />
-                <div className="p-5 space-y-3">
+                <Skeleton className="aspect-[4/3] w-full" />
+                <div className="space-y-3 p-4">
                   <Skeleton className="h-4 w-20" />
                   <Skeleton className="h-5 w-36" />
                   <Skeleton className="h-4 w-28" />
@@ -49,10 +50,10 @@ export default function FeaturedVehicles() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {vehicles.map((v, i) => (
-              <div key={v.id} className={i === 0 ? "sm:col-span-2 lg:col-span-1" : ""}>
-                <VehicleCard vehicle={v} index={i} />
+              <div key={v.id} className={i === 0 ? "sm:col-span-2 xl:col-span-1" : ""}>
+                <VehicleCard vehicle={v} index={i} compact />
               </div>
             ))}
           </div>

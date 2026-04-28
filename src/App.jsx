@@ -10,6 +10,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 
 // Lazy loading — ogni pagina è un chunk separato
 const Home             = lazy(() => import('./pages/Home'));
+const HeroCompare      = lazy(() => import('./pages/HeroCompare'));
 const BusinessOffers   = lazy(() => import('./pages/BusinessOffers'));
 const VehicleDetail    = lazy(() => import('./pages/VehicleDetail'));
 const FleetSolutions   = lazy(() => import('./pages/FleetSolutions'));
@@ -58,6 +59,7 @@ const AppRoutes = () => {
         {/* ── Sito pubblico ── */}
         <Route element={<AppLayout />}>
           <Route path="/"                     element={<Home />} />
+          <Route path="/hero-compare"         element={<HeroCompare />} />
           <Route path="/offers"               element={<BusinessOffers />} />
           <Route path="/vehicle/:make/:model" element={<VehicleDetail />} />
           <Route path="/fleet"                element={<FleetSolutions />} />

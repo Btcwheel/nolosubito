@@ -33,7 +33,7 @@ function BrandLogo({ make }) {
   );
 }
 
-export default function VehicleCard({ vehicle, index, segment }) {
+export default function VehicleCard({ vehicle, index, segment, compact = false }) {
   const isPrivate = segment === "Privati";
   const FuelIcon   = vehicle.fuel_type === "Electric" ? Zap : Fuel;
   const imgSrc     = getVehicleImage(vehicle);
@@ -53,103 +53,103 @@ export default function VehicleCard({ vehicle, index, segment }) {
         state={{ segment }}
         className="group block h-full"
       >
-        <div className="h-full bg-card rounded-2xl border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-black/8 hover:border-electric/25 hover:-translate-y-1">
+        <div className={`h-full bg-card rounded-2xl border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-black/8 hover:border-electric/25 hover:-translate-y-1 ${compact ? "rounded-[1.4rem]" : ""}`}>
 
           {/* ── Image ── */}
-          <div className="relative aspect-[5/4] overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.96),_rgba(241,245,249,0.92)_42%,_rgba(226,232,240,0.82)_100%)]">
-            <div className="absolute inset-x-6 bottom-5 h-10 rounded-full bg-navy/10 blur-2xl" />
+          <div className={`relative overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.96),_rgba(241,245,249,0.92)_42%,_rgba(226,232,240,0.82)_100%)] ${compact ? "aspect-[4/3]" : "aspect-[5/4]"}`}>
+            <div className={`absolute inset-x-6 bottom-5 rounded-full bg-navy/10 blur-2xl ${compact ? "h-8" : "h-10"}`} />
             <div className="absolute inset-0 bg-gradient-to-b from-white/50 via-transparent to-navy/5" />
             <img
               src={imgSrc}
               alt={`${vehicle.make} ${vehicle.model}`}
-              className="relative z-10 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+              className="relative z-10 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
               style={{ objectPosition: imgPos }}
               loading="lazy"
               onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0"; }}
             />
 
             {/* Top badges */}
-            <div className="absolute top-3 left-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap gap-1.5">
-              <Badge className="bg-white/90 text-navy border border-white/70 text-[11px] backdrop-blur-sm px-2 py-0.5 shadow-sm">
+            <div className={`absolute left-3 top-3 z-20 flex max-w-[calc(100%-1.5rem)] flex-wrap gap-1.5 ${compact ? "right-3" : ""}`}>
+              <Badge className={`bg-white/90 text-navy border border-white/70 backdrop-blur-sm shadow-sm ${compact ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-[11px]"}`}>
                 {vehicle.category}
               </Badge>
               {isPopular && (
-                <Badge className="bg-electric text-white border-0 text-[11px] px-2 py-0.5 font-bold flex items-center gap-1">
-                  <Flame className="w-2.5 h-2.5" /> Più richiesto
+                <Badge className={`bg-electric text-white border-0 font-bold flex items-center gap-1 ${compact ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-[11px]"}`}>
+                  <Flame className="h-2.5 w-2.5" /> Più richiesto
                 </Badge>
               )}
               {isNew && !isPopular && (
-                <Badge className="bg-electric/90 text-white border-0 text-[11px] px-2 py-0.5 font-bold flex items-center gap-1">
-                  <Sparkles className="w-2.5 h-2.5" /> Novità
+                <Badge className={`bg-electric/90 text-white border-0 font-bold flex items-center gap-1 ${compact ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-[11px]"}`}>
+                  <Sparkles className="h-2.5 w-2.5" /> Novità
                 </Badge>
               )}
             </div>
 
             {/* Top-right EV/Hybrid badge */}
             {vehicle.fuel_type === "Electric" && (
-              <Badge className="absolute top-3 right-3 z-20 bg-fuel-ev/90 text-white border-0 text-[11px] backdrop-blur-sm flex items-center gap-1 shadow-sm">
-                <Zap className="w-2.5 h-2.5" /> 0 CO₂
+              <Badge className={`absolute right-3 top-3 z-20 bg-fuel-ev/90 text-white border-0 backdrop-blur-sm flex items-center gap-1 shadow-sm ${compact ? "px-1.5 py-0.5 text-[10px]" : "text-[11px]"}`}>
+                <Zap className="h-2.5 w-2.5" /> 0 CO₂
               </Badge>
             )}
             {vehicle.fuel_type === "Hybrid" && (
-              <Badge className="absolute top-3 right-3 z-20 bg-fuel-hybrid/90 text-white border-0 text-[11px] backdrop-blur-sm flex items-center gap-1 shadow-sm">
-                <Leaf className="w-2.5 h-2.5" /> Ibrido
+              <Badge className={`absolute right-3 top-3 z-20 bg-fuel-hybrid/90 text-white border-0 backdrop-blur-sm flex items-center gap-1 shadow-sm ${compact ? "px-1.5 py-0.5 text-[10px]" : "text-[11px]"}`}>
+                <Leaf className="h-2.5 w-2.5" /> Ibrido
               </Badge>
             )}
           </div>
 
           {/* ── Body ── */}
-          <div className="p-4">
-            <div className="mb-4">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.24em] leading-none mb-1.5">
+          <div className={compact ? "p-3.5" : "p-4"}>
+            <div className={compact ? "mb-3" : "mb-4"}>
+              <p className={`font-bold text-muted-foreground uppercase tracking-[0.24em] leading-none mb-1.5 ${compact ? "text-[9px]" : "text-[10px]"}`}>
                 {vehicle.make}
               </p>
-              <h3 className="font-heading font-bold text-xl text-foreground leading-tight [text-wrap:balance]">
+              <h3 className={`font-heading font-bold text-foreground leading-tight [text-wrap:balance] ${compact ? "text-lg" : "text-xl"}`}>
                 {vehicle.model}
               </h3>
             </div>
 
             {/* Specs row & Logo */}
-            <div className="flex items-start justify-between gap-3 mb-4">
+            <div className={`flex items-start justify-between gap-3 ${compact ? "mb-3" : "mb-4"}`}>
               <div className="flex flex-wrap items-center gap-1.5">
                 {vehicle.fuel_type && (
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${fuelClass}`}>
-                    <FuelIcon className="w-2.5 h-2.5" />
+                  <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${fuelClass}`}>
+                    <FuelIcon className="h-2.5 w-2.5" />
                     {vehicle.fuel_type}
                   </span>
                 )}
                 {vehicle.power_hp && (
-                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">
-                    <Gauge className="w-2.5 h-2.5" />
+                  <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-[11px] text-muted-foreground">
+                    <Gauge className="h-2.5 w-2.5" />
                     {vehicle.power_hp} CV
                   </span>
                 )}
                 {vehicle.transmission && (
-                  <span className="text-[11px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">
+                  <span className="rounded-full bg-muted/60 px-2 py-0.5 text-[11px] text-muted-foreground">
                     {vehicle.transmission}
                   </span>
                 )}
               </div>
-              <div className="shrink-0">
+              <div className="shrink-0 scale-90 origin-top-right">
                 <BrandLogo make={vehicle.make} />
               </div>
             </div>
 
             {/* Price block */}
-            <div className="rounded-xl bg-gradient-to-br from-navy to-navy-light p-3.5 flex items-center justify-between gap-3">
+            <div className={`flex items-center justify-between gap-3 rounded-xl bg-gradient-to-br from-navy to-navy-light ${compact ? "p-3" : "p-3.5"}`}>
               <div>
                 {vehicle.monthly_rent ? (
                   <>
-                    <p className="text-[10px] text-white/50 leading-none mb-1">Da</p>
+                    <p className="mb-1 leading-none text-[10px] text-white/50">Da</p>
                     <div className="flex items-baseline gap-0.5">
-                      <span className="font-heading font-bold text-2xl text-white leading-none">
+                      <span className={`font-heading font-bold leading-none text-white ${compact ? "text-xl" : "text-2xl"}`}>
                         €{isPrivate
                           ? Math.round(vehicle.monthly_rent * 1.22).toLocaleString("it-IT")
                           : Math.round(vehicle.monthly_rent).toLocaleString("it-IT")}
                       </span>
-                      <span className="text-white/50 text-xs ml-0.5">/mese</span>
+                      <span className="ml-0.5 text-xs text-white/50">/mese</span>
                     </div>
-                    <p className="text-[10px] text-white/35 mt-0.5">
+                    <p className="mt-0.5 text-[10px] text-white/35">
                       {isPrivate ? "IVA inclusa" : "+ IVA"}
                     </p>
                   </>
@@ -158,9 +158,9 @@ export default function VehicleCard({ vehicle, index, segment }) {
                 )}
               </div>
 
-              <div className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 transition-colors text-white text-xs font-bold px-3 py-2 rounded-lg shrink-0 group-hover:bg-electric/80">
+              <div className={`flex shrink-0 items-center gap-1.5 rounded-lg bg-white/15 px-3 py-2 text-white transition-colors hover:bg-white/25 group-hover:bg-electric/80 ${compact ? "text-[11px]" : "text-xs"} font-bold`}>
                 Configura
-                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
               </div>
             </div>
           </div>

@@ -3,7 +3,15 @@ import { ChevronRight, ShieldCheck, Timer, Wallet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-export default function HeroSection() {
+const heroFeatures = [
+  { icon: ShieldCheck, label: "Assistenza completa" },
+  { icon: Wallet, label: "Canone chiaro" },
+  { icon: Timer, label: "Risposta rapida" },
+];
+
+export default function HeroSection({ variant = "default" } = {}) {
+  const isCompact = variant === "compact";
+
   return (
     <section className="relative isolate overflow-hidden bg-navy text-white">
       <div className="absolute inset-0">
@@ -17,7 +25,14 @@ export default function HeroSection() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#2D2E82]/40 via-transparent to-transparent" />
       </div>
 
-      <div className="relative mx-auto flex min-h-[92svh] max-w-7xl flex-col justify-end px-4 pb-8 pt-24 sm:px-6 lg:min-h-[88svh] lg:justify-center lg:pb-14">
+      <div
+          className={[
+            "relative mx-auto flex max-w-7xl flex-col px-4 sm:px-6",
+          isCompact
+            ? "min-h-[58svh] justify-end pb-7 pt-[4.5rem] lg:min-h-[62svh] lg:justify-center lg:pb-10 lg:pt-20"
+            : "min-h-[68svh] justify-end pb-8 pt-20 lg:min-h-[72svh] lg:justify-center lg:pb-12 lg:pt-24",
+        ].join(" ")}
+      >
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75 backdrop-blur-md">
             <span className="h-2 w-2 rounded-full bg-electric shadow-[0_0_18px_rgba(243,146,0,0.9)]" />
@@ -25,9 +40,9 @@ export default function HeroSection() {
           </div>
 
           <h1 className="mt-5 max-w-xl font-heading text-[2.45rem] leading-[0.95] tracking-tight text-white sm:text-5xl lg:text-7xl">
-            Guida il tuo
+            Noleggiamo
             <br />
-            sogno.
+            il futuro
           </h1>
 
           <p className="mt-4 max-w-lg text-[0.98rem] leading-7 text-white/72 sm:text-lg">
@@ -36,11 +51,7 @@ export default function HeroSection() {
           </p>
 
           <div className="mt-6 grid max-w-md grid-cols-3 gap-2 sm:mt-8 sm:gap-3">
-            {[
-              { icon: ShieldCheck, label: "Assistenza completa" },
-              { icon: Wallet, label: "Canone chiaro" },
-              { icon: Timer, label: "Risposta rapida" },
-            ].map((feature) => {
+            {heroFeatures.map((feature) => {
               const Icon = feature.icon;
               return (
                 <div
@@ -73,27 +84,29 @@ export default function HeroSection() {
             </Button>
           </div>
 
-          <div className="mt-6 flex max-w-md items-center justify-between rounded-2xl border border-white/10 bg-black/15 px-4 py-3 backdrop-blur-md sm:mt-8">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">
-                Tempo medio
-              </p>
-              <p className="mt-1 font-heading text-lg font-bold text-white">
-                24h
-              </p>
-            </div>
+          {!isCompact && (
+            <div className="mt-6 flex max-w-md items-center justify-between rounded-2xl border border-white/10 bg-black/15 px-4 py-3 backdrop-blur-md sm:mt-8">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">
+                  Tempo medio
+                </p>
+                <p className="mt-1 font-heading text-lg font-bold text-white">
+                  24h
+                </p>
+              </div>
 
-            <div className="h-10 w-px bg-white/10" />
+              <div className="h-10 w-px bg-white/10" />
 
-            <div className="text-right">
-              <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">
-                Clienti soddisfatti
-              </p>
-              <p className="mt-1 font-heading text-lg font-bold text-white">
-                98%
-              </p>
+              <div className="text-right">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-white/45">
+                  Clienti soddisfatti
+                </p>
+                <p className="mt-1 font-heading text-lg font-bold text-white">
+                  98%
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </section>

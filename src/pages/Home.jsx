@@ -8,10 +8,10 @@ import SocialProof from "../components/home/SocialProof";
 export default function Home() {
   return (
     <>
-      <HeroSection />
+      <HeroSection variant="compact" />
       <FeaturedVehicles />
-      <BrandMarquee />
       <WhySection />
+      <BrandMarquee />
       <SocialProof />
     </>
   );

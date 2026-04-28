@@ -9,22 +9,22 @@ const PRIMARY = {
 };
 
 const SECONDARY = [
-  { icon: Percent,     title: "Vantaggi Fiscali",   desc: "Deducibilità IVA completa per P.IVA. Fino al 70% per veicoli aziendali." },
-  { icon: Wrench,      title: "Zero Pensieri",      desc: "Tagliandi, gomme, sostituzione veicolo: ci pensiamo noi." },
-  { icon: Clock,       title: "Consegna Rapida",    desc: "Preventivo in 24h. Veicolo in 2–4 settimane." },
-  { icon: FileText,    title: "Prezzi Trasparenti", desc: "Il prezzo che vedi è quello che paghi, ogni mese." },
-  { icon: Headphones,  title: "Supporto Dedicato",  desc: "Un fleet manager personale fin dal primo giorno." },
+  { icon: Percent, title: "Vantaggi Fiscali", desc: "Deducibilità IVA completa per P.IVA. Fino al 70% per veicoli aziendali." },
+  { icon: Wrench, title: "Zero Pensieri", desc: "Tagliandi, gomme, sostituzione veicolo: ci pensiamo noi." },
+  { icon: Clock, title: "Consegna Rapida", desc: "Preventivo in 24h. Veicolo in 2–4 settimane." },
+  { icon: FileText, title: "Prezzi Trasparenti", desc: "Il prezzo che vedi è quello che paghi, ogni mese." },
+  { icon: Headphones, title: "Supporto Dedicato", desc: "Un fleet manager personale fin dal primo giorno." },
 ];
 
 export default function WhySection() {
   return (
-    <section className="py-28 bg-background">
+    <section className="pb-36 pt-28 bg-background sm:pb-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
         <div className="mb-16">
           <p className="text-electric text-xs font-bold uppercase tracking-widest mb-3">
-            Perché Nolosubito
+            Perché scegliere Nolosubito
           </p>
           <h2 className="font-heading font-bold text-3xl sm:text-4xl text-foreground max-w-lg">
             L'esperienza Noleggio Lungo Termine più semplice d'Italia
