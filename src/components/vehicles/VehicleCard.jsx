@@ -19,7 +19,7 @@ function BrandLogo({ make, compact }) {
   const [failed, setFailed] = React.useState(false);
   const key = make?.trim().toUpperCase();
   const logo = BRAND_LOGOS[key];
-  const sz = compact ? "w-9 h-9" : "w-11 h-11";
+  const sz = "w-8 h-8";
   if (!logo || failed) {
     return (
       <div className={`${sz} rounded-full bg-muted flex items-center justify-center border border-border/50`}>
