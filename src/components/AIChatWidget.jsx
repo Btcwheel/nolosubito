@@ -329,7 +329,7 @@ export default function AIChatWidget() {
                 </button>
               </div>
               <p className="text-[10px] text-muted-foreground/40 text-center mt-2">
-                Powered by AI · I tuoi dati sono al sicuro
+                Powered by Nolosubito · I tuoi dati sono al sicuro
               </p>
             </div>
           </motion.div>
@@ -353,7 +353,7 @@ export default function AIChatWidget() {
               <X className="w-3 h-3" />
             </button>
             <p className="text-sm font-semibold text-foreground pr-4">Hai domande sul Noleggio Lungo Termine?</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Il nostro assistente AI risponde subito!</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Il nostro consulente risponde subito!</p>
             <div className="absolute -bottom-2 right-7 w-4 h-2 overflow-hidden">
               <div className="w-3 h-3 bg-white border-r border-b border-border/50 rotate-45 translate-y-[-50%] translate-x-[2px]" />
             </div>
