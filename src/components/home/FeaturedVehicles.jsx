@@ -11,7 +11,10 @@ export default function FeaturedVehicles() {
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["offers-featured"],
     queryFn: () => offersService.listWithMinPrice(),
-    select: (data) => data.slice(0, 8),
+    select: (data) => {
+      const featured = data.filter(v => v.is_featured);
+      return featured.length > 0 ? featured.slice(0, 8) : data.slice(0, 8);
+    },
   });
 
   return (

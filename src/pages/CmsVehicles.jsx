@@ -63,7 +63,7 @@ const EMPTY_VEHICLE = {
   make: "", model: "", category: "", fuel_type: "",
   transmission: "", power_hp: "", co2_emissions: "",
   vehicle_image: "", gallery_images: [], description: "", features: [],
-  segments: [], is_active: true,
+  segments: [], is_active: true, is_featured: false,
   // SEO
   seo_title: "", seo_description: "", seo_keywords: [],
 };
@@ -630,18 +630,32 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
           {/* ── Opzioni ── */}
           <div>
             <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Opzioni</p>
-            <label className="flex items-center gap-3 cursor-pointer select-none">
-              <button type="button" onClick={() => set("is_active", !form.is_active)}
-                className={`transition-colors ${form.is_active ? "text-electric" : "text-muted-foreground"}`}>
-                {form.is_active ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
-              </button>
-              <div>
-                <p className="text-sm font-medium text-foreground">{form.is_active ? "Attivo" : "Disattivo"}</p>
-                <p className="text-xs text-muted-foreground">
-                  {form.is_active ? "Il veicolo è visibile nel catalogo" : "Il veicolo è nascosto dal catalogo"}
-                </p>
-              </div>
-            </label>
+            <div className="space-y-3">
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <button type="button" onClick={() => set("is_active", !form.is_active)}
+                  className={`transition-colors ${form.is_active ? "text-electric" : "text-muted-foreground"}`}>
+                  {form.is_active ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                </button>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{form.is_active ? "Attivo" : "Disattivo"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {form.is_active ? "Il veicolo è visibile nel catalogo" : "Il veicolo è nascosto dal catalogo"}
+                  </p>
+                </div>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <button type="button" onClick={() => set("is_featured", !form.is_featured)}
+                  className={`transition-colors ${form.is_featured ? "text-amber-500" : "text-muted-foreground"}`}>
+                  {form.is_featured ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                </button>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{form.is_featured ? "In evidenza" : "Non in evidenza"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {form.is_featured ? "Appare tra i primi 8 in homepage" : "Non compare nella sezione in evidenza"}
+                  </p>
+                </div>
+              </label>
+            </div>
           </div>
 
           {/* ── SEO ── */}
@@ -700,6 +714,7 @@ export default function CmsVehicles() {
         seo_description: form.seo_description || null,
         seo_keywords:    form.seo_keywords    || [],
         is_active:       form.is_active       ?? true,
+        is_featured:     form.is_featured     ?? false,
       };
       const saved = form.id
         ? await offersService.update(form.id, payload)
@@ -820,6 +835,9 @@ export default function CmsVehicles() {
                         <span key={s} className={`text-[10px] font-semibold px-1.5 py-0 rounded-full border ${opt.color}`}>{s}</span>
                       ) : null;
                     })}
+                    {v.is_featured && (
+                      <span className="text-[10px] font-semibold bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0 rounded-full">★ Evidenza</span>
+                    )}
                     {v.seo_title && (
                       <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0 rounded">SEO ✓</span>
                     )}
