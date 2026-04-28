@@ -17,8 +17,9 @@ const FUEL_COLORS = {
 
 function BrandLogo({ make, compact }) {
   const [failed, setFailed] = React.useState(false);
-  const logo = BRAND_LOGOS[make]
-    ?? Object.entries(BRAND_LOGOS).find(([k]) => k.toLowerCase() === make?.toLowerCase())?.[1];
+  const key = make?.trim();
+  const logo = BRAND_LOGOS[key]
+    ?? Object.entries(BRAND_LOGOS).find(([k]) => k.toLowerCase() === key?.toLowerCase())?.[1];
   const sz = compact ? "w-9 h-9" : "w-11 h-11";
   if (!logo || failed) {
     return (
@@ -114,7 +115,7 @@ export default function VehicleCard({ vehicle, index, segment, compact = false }
             <div className={`flex items-start justify-between gap-2 ${compact ? "mb-3" : "mb-4"}`}>
               <div className="min-w-0">
                 <p className={`font-bold text-muted-foreground uppercase tracking-[0.24em] leading-none mb-1.5 ${compact ? "text-[9px]" : "text-[10px]"}`}>
-                  {vehicle.make}
+                  {vehicle.make?.trim()}
                 </p>
                 <h3 className={`font-heading font-bold text-foreground leading-tight [text-wrap:balance] ${compact ? "text-lg" : "text-xl"}`}>
                   {vehicle.model}
