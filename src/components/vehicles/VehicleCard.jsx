@@ -17,7 +17,8 @@ const FUEL_COLORS = {
 
 function BrandLogo({ make }) {
   const [failed, setFailed] = React.useState(false);
-  const logo = BRAND_LOGOS[make];
+  const logo = BRAND_LOGOS[make]
+    ?? Object.entries(BRAND_LOGOS).find(([k]) => k.toLowerCase() === make?.toLowerCase())?.[1];
   if (!logo || failed) {
     return (
       <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border/50">
