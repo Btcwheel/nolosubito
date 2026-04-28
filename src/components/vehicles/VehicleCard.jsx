@@ -15,21 +15,22 @@ const FUEL_COLORS = {
   Petrol:   "bg-fuel-petrol/15 text-fuel-petrol border-fuel-petrol/25",
 };
 
-function BrandLogo({ make }) {
+function BrandLogo({ make, compact }) {
   const [failed, setFailed] = React.useState(false);
   const logo = BRAND_LOGOS[make]
     ?? Object.entries(BRAND_LOGOS).find(([k]) => k.toLowerCase() === make?.toLowerCase())?.[1];
+  const sz = compact ? "w-9 h-9" : "w-11 h-11";
   if (!logo || failed) {
     return (
-      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border/50">
-        <span className="text-[10px] font-bold text-muted-foreground">
+      <div className={`${sz} rounded-full bg-muted flex items-center justify-center border border-border/50`}>
+        <span className="text-[11px] font-bold text-muted-foreground">
           {make?.slice(0, 2).toUpperCase() ?? "?"}
         </span>
       </div>
     );
   }
   return (
-    <img src={logo} alt={make} className="w-8 h-8 object-contain"
+    <img src={logo} alt={make} className={`${sz} object-contain`}
       onError={() => setFailed(true)} />
   );
 }
@@ -109,39 +110,40 @@ export default function VehicleCard({ vehicle, index, segment, compact = false }
 
           {/* ── Body ── */}
           <div className={compact ? "p-3.5" : "p-4"}>
-            <div className={compact ? "mb-3" : "mb-4"}>
-              <p className={`font-bold text-muted-foreground uppercase tracking-[0.24em] leading-none mb-1.5 ${compact ? "text-[9px]" : "text-[10px]"}`}>
-                {vehicle.make}
-              </p>
-              <h3 className={`font-heading font-bold text-foreground leading-tight [text-wrap:balance] ${compact ? "text-lg" : "text-xl"}`}>
-                {vehicle.model}
-              </h3>
+            {/* Make / Model + Logo */}
+            <div className={`flex items-start justify-between gap-2 ${compact ? "mb-3" : "mb-4"}`}>
+              <div className="min-w-0">
+                <p className={`font-bold text-muted-foreground uppercase tracking-[0.24em] leading-none mb-1.5 ${compact ? "text-[9px]" : "text-[10px]"}`}>
+                  {vehicle.make}
+                </p>
+                <h3 className={`font-heading font-bold text-foreground leading-tight [text-wrap:balance] ${compact ? "text-lg" : "text-xl"}`}>
+                  {vehicle.model}
+                </h3>
+              </div>
+              <div className="shrink-0">
+                <BrandLogo make={vehicle.make} compact={compact} />
+              </div>
             </div>
 
-            {/* Specs row & Logo */}
-            <div className={`flex items-start justify-between gap-3 ${compact ? "mb-3" : "mb-4"}`}>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {vehicle.fuel_type && (
-                  <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${fuelClass}`}>
-                    <FuelIcon className="h-2.5 w-2.5" />
-                    {vehicle.fuel_type}
-                  </span>
-                )}
-                {vehicle.power_hp && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-[11px] text-muted-foreground">
-                    <Gauge className="h-2.5 w-2.5" />
-                    {vehicle.power_hp} CV
-                  </span>
-                )}
-                {vehicle.transmission && (
-                  <span className="rounded-full bg-muted/60 px-2 py-0.5 text-[11px] text-muted-foreground">
-                    {vehicle.transmission}
-                  </span>
-                )}
-              </div>
-              <div className="shrink-0 scale-90 origin-top-right">
-                <BrandLogo make={vehicle.make} />
-              </div>
+            {/* Specs row */}
+            <div className={`flex flex-wrap items-center gap-1.5 ${compact ? "mb-3" : "mb-4"}`}>
+              {vehicle.fuel_type && (
+                <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${fuelClass}`}>
+                  <FuelIcon className="h-2.5 w-2.5" />
+                  {vehicle.fuel_type}
+                </span>
+              )}
+              {vehicle.power_hp && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-[11px] text-muted-foreground">
+                  <Gauge className="h-2.5 w-2.5" />
+                  {vehicle.power_hp} CV
+                </span>
+              )}
+              {vehicle.transmission && (
+                <span className="rounded-full bg-muted/60 px-2 py-0.5 text-[11px] text-muted-foreground">
+                  {vehicle.transmission}
+                </span>
+              )}
             </div>
 
             {/* Price block */}
