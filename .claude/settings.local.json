@@ -7,7 +7,25 @@
       "Bash(winget install:*)",
       "Bash(supabase db:*)",
       "Bash(ls C:/Users/Quixel/Downloads/fleet-flow-nolo/.env* 2>/dev/null; cat C:/Users/Quixel/Downloads/fleet-flow-nolo/.gitignore 2>/dev/null | grep env)",
-      "WebFetch(domain:www.autoscout24.de)"
+      "WebFetch(domain:www.autoscout24.de)",
+      "Bash(cd \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\" && vercel domains add nolosubito.quixel.it --scope btcwheel-7771s-projects 2>&1)",
+      "Bash(npx playwright:*)",
+      "Bash(cd \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\" && npm install --save-dev playwright 2>&1 | tail -3)",
+      "Bash(cd \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\" && node .jez/screenshot.mjs 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\" && npm run dev 2>&1)",
+      "Read(//c/Users/Quixel/AppData/Roaming/Claude/**)",
+      "Read(//c/Users/Quixel/.claude/**)",
+      "Bash(cd \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\" && npx autoskills 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\" && npm run dev)",
+      "Bash(cd \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\" && npx supabase functions deploy notify-nuova-pratica --project-ref nowoiywrzfnjocvsbmih 2>&1 && npx supabase functions deploy send-preventivo-email --project-ref nowoiywrzfnjocvsbmih 2>&1)",
+      "Bash(curl -s -X POST \"https://nowoiywrzfnjocvsbmih.supabase.co/functions/v1/notify-nuova-pratica\" -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vd29peXdyemZuam9jdnNibWloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTg1MDUsImV4cCI6MjA5MjA3NDUwNX0.0Qr7mgoNnpaxO3l8QKX_g-_LuS7-u2ZelSaCEa9gRIc\" -H \"Content-Type: application/json\" -d \"{\\\\\"codice\\\\\":\\\\\"NS-TEST-001\\\\\",\\\\\"clienteNome\\\\\":\\\\\"Test Cliente\\\\\",\\\\\"clienteEmail\\\\\":\\\\\"info@nolosubito.it\\\\\",\\\\\"clienteTelefono\\\\\":null,\\\\\"segmento\\\\\":\\\\\"P.IVA\\\\\",\\\\\"veicoloInteresse\\\\\":\\\\\"BMW Serie 3\\\\\"}\")",
+      "Bash(cd \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\" && npx supabase functions deploy notify-nuova-pratica --project-ref nowoiywrzfnjocvsbmih 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\" && npx supabase functions deploy notify-nuova-pratica --project-ref nowoiywrzfnjocvsbmih 2>&1 && sleep 3 && curl -s -X POST \"https://nowoiywrzfnjocvsbmih.supabase.co/functions/v1/notify-nuova-pratica\" -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vd29peXdyemZuam9jdnNibWloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTg1MDUsImV4cCI6MjA5MjA3NDUwNX0.0Qr7mgoNnpaxO3l8QKX_g-_LuS7-u2ZelSaCEa9gRIc\" -H \"Content-Type: application/json\" -d \"{\\\\\"codice\\\\\":\\\\\"NS-TEST-001\\\\\",\\\\\"clienteNome\\\\\":\\\\\"Test Cliente\\\\\",\\\\\"clienteEmail\\\\\":\\\\\"info@nolosubito.it\\\\\",\\\\\"clienteTelefono\\\\\":null,\\\\\"segmento\\\\\":\\\\\"P.IVA\\\\\",\\\\\"veicoloInteresse\\\\\":\\\\\"BMW Serie 3\\\\\"}\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{content_type} %{size_download}\" \"https://logo.clearbit.com/bmw.com\" && echo \"\" && curl -s -o /dev/null -w \"%{http_code} %{content_type} %{size_download}\" \"https://logo.clearbit.com/audi.com\" && echo \"\" && curl -s -o /dev/null -w \"%{http_code} %{content_type} %{size_download}\" \"https://logo.clearbit.com/mercedes-benz.com\" && echo \"\" && curl -s -o /dev/null -w \"%{http_code} %{content_type} %{size_download}\" \"https://logo.clearbit.com/volkswagen.com\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://www.google.com\" 2>&1 | head -5)",
+      "Bash(curl -L -s -o /dev/null -w \"clearbit bmw: %{http_code}\\\\n\" \"https://logo.clearbit.com/bmw.com\"; curl -L -s -o /dev/null -w \"wikimedia bmw: %{http_code}\\\\n\" \"https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/BMW.svg/200px-BMW.svg.png\"; curl -L -s -o /dev/null -w \"wikimedia audi: %{http_code}\\\\n\" \"https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Audi-Logo_2016.svg/200px-Audi-Logo_2016.svg.png\")",
+      "Bash(ls \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\\\\public\\\\\"*.png 2>/dev/null || ls \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\\\\public\\\\\" | grep -i mercedes)",
+      "Bash(ls \"C:/Users/Quixel/Downloads/fleet-flow-nolo/\"*.env* 2>/dev/null; ls \"C:/Users/Quixel/Downloads/fleet-flow-nolo/.env\"* 2>/dev/null)"
     ]
   }
 }

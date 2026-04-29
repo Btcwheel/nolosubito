@@ -103,7 +103,7 @@ export default function AdminDashboard() {
             <div>
               <p className="text-white/45 text-sm font-medium mb-1">{greeting},</p>
               <h1 className="font-heading font-bold text-3xl md:text-4xl text-white leading-tight">
-                {name} <span className="text-electric">·</span> Admin
+                {name} <span className="text-[#71BAED]">·</span> Admin
               </h1>
               <p className="text-white/35 text-sm mt-1.5">
                 {format(new Date(), "EEEE d MMMM yyyy", { locale: it })}
@@ -124,11 +124,11 @@ export default function AdminDashboard() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.06 }}
                   className={`rounded-2xl px-4 py-3.5 border ${k.accent
-                    ? "bg-electric/15 border-electric/30"
+                    ? "style={{backgroundColor:'#71BAED'}}/15 style={{borderColor:'#71BAED'}}/30"
                     : "bg-white/[0.05] border-white/[0.08]"
                   }`}
                 >
-                  <p className={`font-heading font-bold text-2xl ${k.accent ? "text-electric" : "text-white"}`}>
+                  <p className={`font-heading font-bold text-2xl ${k.accent ? "style={{color:'#71BAED'}}" : "text-white"}`}>
                     {k.value}
                   </p>
                   <p className="text-white/45 text-xs mt-0.5 leading-tight">{k.label}</p>
@@ -182,7 +182,7 @@ export default function AdminDashboard() {
                 {label}
                 {count !== null && (
                   <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
-                    activeTab === id ? "bg-electric/10 text-electric" : "bg-muted text-muted-foreground"
+                    activeTab === id ? "style={{backgroundColor:'#71BAED'}}/10 style={{color:'#71BAED'}}" : "bg-muted text-muted-foreground"
                   }`}>
                     {count}
                   </span>
@@ -257,7 +257,7 @@ export default function AdminDashboard() {
                           >
                             {/* Codice */}
                             <td className="px-4 py-3.5">
-                              <span className="font-mono text-xs font-bold text-electric tracking-wide">
+                              <span className="font-mono text-xs font-bold text-[#71BAED] tracking-wide">
                                 {p.codice}
                               </span>
                             </td>
@@ -274,7 +274,7 @@ export default function AdminDashboard() {
                                 <div>
                                   <p className="text-sm text-foreground font-medium">{p.veicolo_marca} {p.veicolo_modello}</p>
                                   {p.canone_mensile && (
-                                    <p className="text-xs font-bold text-electric mt-0.5">€{p.canone_mensile}/mese</p>
+                                    <p className="text-xs font-bold text-[#71BAED] mt-0.5">€{p.canone_mensile}/mese</p>
                                   )}
                                 </div>
                               ) : (
@@ -306,7 +306,7 @@ export default function AdminDashboard() {
                             {/* Action */}
                             <td className="px-4 py-3.5 text-right">
                               <Link to={`/admin/pratica/${p.id}`}>
-                                <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer group-hover:text-electric">
+                                <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer group-hover:text-[#71BAED]">
                                   Apri <ChevronRight className="w-3.5 h-3.5" />
                                 </button>
                               </Link>
@@ -369,7 +369,7 @@ export default function AdminDashboard() {
                   >
                     <div className="flex items-start justify-between gap-3 mb-4">
                       <div className="min-w-0">
-                        <p className="text-[11px] font-bold text-electric uppercase tracking-widest mb-0.5">{o.make}</p>
+                        <p className="text-[11px] font-bold text-[#71BAED] uppercase tracking-widest mb-0.5">{o.make}</p>
                         <p className="font-heading font-bold text-lg text-foreground leading-tight truncate">{o.model}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">{o.category}</p>
                       </div>

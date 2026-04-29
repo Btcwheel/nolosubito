@@ -35,7 +35,7 @@ export default function HeroSection({ variant = "default" } = {}) {
       >
         <div className="max-w-2xl">
           <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/75 backdrop-blur-md">
-            <span className="h-2 w-2 rounded-full bg-electric shadow-[0_0_18px_rgba(243,146,0,0.9)]" />
+            <span className="h-2 w-2 rounded-full bg-[#71BAED] shadow-[0_0_18px_rgba(243,146,0,0.9)]" />
             Noleggio su misura
           </div>
 
@@ -58,7 +58,7 @@ export default function HeroSection({ variant = "default" } = {}) {
                   key={feature.label}
                   className="rounded-2xl border border-white/10 bg-white/8 px-3 py-3 text-center backdrop-blur-md"
                 >
-                  <Icon className="mx-auto h-4 w-4 text-electric" />
+                  <Icon className="mx-auto h-4 w-4 text-[#71BAED]" />
                   <p className="mt-2 text-[11px] font-medium leading-snug text-white/78">
                     {feature.label}
                   </p>

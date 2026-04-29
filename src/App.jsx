@@ -39,7 +39,7 @@ const PageNotFound        = lazy(() => import('./lib/PageNotFound'));
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-background">
-    <div className="w-8 h-8 border-4 border-electric/20 border-t-electric rounded-full animate-spin" />
+    <div className="w-8 h-8 border-4 border-t-[#71BAED] border-[#71BAED]/20 rounded-full animate-spin" />
   </div>
 );
 

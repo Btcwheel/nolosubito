@@ -24,11 +24,11 @@ export default function FleetSolutions() {
       <div className="pt-24 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 mb-6">
-            <Building2 className="w-4 h-4 text-electric" />
+            <Building2 className="w-4 h-4 text-[#71BAED]" />
             <span className="text-sm text-white/70">Gestione Flotte Aziendali</span>
           </div>
           <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white max-w-3xl mx-auto">
-            Scala la Tua Flotta Senza <span className="text-electric">Complicazioni</span>
+            Scala la Tua Flotta Senza <span className="text-[#71BAED]">Complicazioni</span>
           </h1>
           <p className="mt-4 text-white/50 max-w-2xl mx-auto text-lg">
             Gestione completa della flotta per aziende in crescita. Un partner, una fattura, zero pensieri.
@@ -49,8 +49,8 @@ export default function FleetSolutions() {
                 transition={{ duration: 0.3, delay: i * 0.08 }}
                 className="p-6 bg-card rounded-2xl border border-border/50"
               >
-                <div className="w-12 h-12 rounded-xl bg-electric/10 flex items-center justify-center mb-4">
-                  <f.icon className="w-6 h-6 text-electric" />
+                <div className="w-12 h-12 rounded-xl bg-[#71BAED]/10 flex items-center justify-center mb-4">
+                  <f.icon className="w-6 h-6 text-[#71BAED]" />
                 </div>
                 <h3 className="font-heading font-semibold text-foreground mb-2">{f.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
@@ -66,11 +66,11 @@ export default function FleetSolutions() {
               {/* Text side */}
               <div className="p-8 sm:p-12 flex flex-col justify-center">
                 <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 py-1.5 mb-6 w-fit">
-                  <Truck className="w-4 h-4 text-electric" />
+                  <Truck className="w-4 h-4 text-[#71BAED]" />
                   <span className="text-xs text-white/70 font-medium">Veicoli Commerciali</span>
                 </div>
                 <h2 className="font-heading font-bold text-3xl sm:text-4xl text-white mb-4">
-                  Furgoni e Van per il <span className="text-electric">Tuo Business</span>
+                  Furgoni e Van per il <span className="text-[#71BAED]">Tuo Business</span>
                 </h2>
                 <p className="text-white/60 text-base leading-relaxed mb-8">
                   Dalla consegna dell'ultimo miglio alla logistica aziendale: noleggiamo furgoni, van cargo e veicoli commerciali leggeri con manutenzione e assicurazione già incluse nel canone.
@@ -84,7 +84,7 @@ export default function FleetSolutions() {
                   ].map((item) => (
                     <div key={item.label} className="flex items-start gap-3">
                       <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                        <item.icon className="w-4 h-4 text-electric" />
+                        <item.icon className="w-4 h-4 text-[#71BAED]" />
                       </div>
                       <div>
                         <p className="text-white text-sm font-semibold">{item.label}</p>
@@ -94,7 +94,7 @@ export default function FleetSolutions() {
                   ))}
                 </div>
                 <Link to="/contact">
-                  <Button className="bg-electric hover:bg-electric/90 text-white font-semibold cursor-pointer w-fit">
+                  <Button className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold cursor-pointer w-fit">
                     Richiedi Preventivo Commerciali <ArrowRight className="w-4 h-4 ml-1" />
                   </Button>
                 </Link>
@@ -127,7 +127,7 @@ export default function FleetSolutions() {
                 transition={{ duration: 0.3, delay: i * 0.1 }}
                 className={`rounded-2xl p-6 border ${
                   tier.highlight
-                    ? "bg-navy text-white border-electric shadow-xl shadow-electric/10"
+                    ? "bg-navy text-white style={{borderColor:'#71BAED'}} shadow-xl style={{boxShadow:'0 4px 6px -1px rgba(113,186,237,0.25)'}}/10"
                     : "bg-card border-border/50"
                 }`}
               >
@@ -138,7 +138,7 @@ export default function FleetSolutions() {
                 <ul className="mt-6 space-y-3">
                   {tier.features.map(f => (
                     <li key={f} className={`text-sm flex items-center gap-2 ${tier.highlight ? "text-white/80" : "text-foreground"}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${tier.highlight ? "bg-electric" : "bg-electric"}`} />
+                      <div className={`w-1.5 h-1.5 rounded-full ${tier.highlight ? "style={{backgroundColor:'#71BAED'}}" : "style={{backgroundColor:'#71BAED'}}"}`} />
                       {f}
                     </li>
                   ))}
@@ -147,7 +147,7 @@ export default function FleetSolutions() {
                   <Button
                     className={`w-full cursor-pointer ${
                       tier.highlight
-                        ? "bg-electric hover:bg-electric/90 text-white"
+                        ? "style={{backgroundColor:'#71BAED'}} hover:style={{backgroundColor:'#71BAED'}}/90 text-white"
                         : "bg-secondary text-foreground hover:bg-secondary/80"
                     }`}
                   >

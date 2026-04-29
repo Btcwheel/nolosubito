@@ -133,11 +133,11 @@ function MaterialeModal({ onClose, onSaved }) {
             <Label className="text-xs font-semibold mb-1.5 block">File *</Label>
             <div
               onClick={() => fileRef.current?.click()}
-              className="border-2 border-dashed border-border rounded-xl p-6 cursor-pointer hover:border-electric/40 hover:bg-electric/3 transition-colors text-center"
+              className="border-2 border-dashed border-border rounded-xl p-6 cursor-pointer hover:border-[#71BAED]/40 hover:bg-[#71BAED]/3 transition-colors text-center"
             >
               {file ? (
                 <div className="flex items-center justify-center gap-2">
-                  <FileText className="w-5 h-5 text-electric" />
+                  <FileText className="w-5 h-5 text-[#71BAED]" />
                   <span className="text-sm font-medium text-foreground">{file.name}</span>
                   <span className="text-xs text-muted-foreground">({(file.size / 1024).toFixed(0)} KB)</span>
                 </div>
@@ -157,7 +157,7 @@ function MaterialeModal({ onClose, onSaved }) {
         <div className="flex gap-3 px-6 py-4 border-t border-border">
           <Button variant="outline" onClick={onClose} className="flex-1">Annulla</Button>
           <Button onClick={handleSubmit} disabled={saving}
-            className="flex-1 bg-electric hover:bg-electric/90 text-white gap-2">
+            className="flex-1 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white gap-2">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
             Carica
           </Button>
@@ -196,7 +196,7 @@ export default function CmsMateriali() {
           <p className="text-sm text-muted-foreground mt-0.5">{materiali.length} documenti caricati</p>
         </div>
         <Button onClick={() => setShowModal(true)}
-          className="bg-electric hover:bg-electric/90 text-white gap-2">
+          className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white gap-2">
           <Plus className="w-4 h-4" /> Nuovo Materiale
         </Button>
       </div>

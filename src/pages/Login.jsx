@@ -11,7 +11,7 @@ import { useToast } from "@/components/ui/use-toast";
 const CONTEXT_CONFIG = {
   internal: {
     badge: "Piattaforma Noleggio Lungo Termine",
-    headline: <>Tutto il tuo<br />business,<br /><span className="text-electric">un solo posto.</span></>,
+    headline: <>Tutto il tuo<br />business,<br /><span className="text-[#71BAED]">un solo posto.</span></>,
     sub: "Gestisci preventivi, pratiche e team con una piattaforma costruita per il noleggio a lungo termine italiano.",
     features: [
       { icon: TrendingUp, title: "Pratiche in tempo reale",  desc: "Stato aggiornato ad ogni cambio" },
@@ -24,7 +24,7 @@ const CONTEXT_CONFIG = {
   },
   partner: {
     badge: "Portale Partner",
-    headline: <>Il tuo portale<br />partner.<br /><span className="text-electric">Tutto sotto controllo.</span></>,
+    headline: <>Il tuo portale<br />partner.<br /><span className="text-[#71BAED]">Tutto sotto controllo.</span></>,
     sub: "Gestisci le tue pratiche, accedi ai materiali di vendita e monitora le tue commissioni in tempo reale.",
     features: [
       { icon: FileText,        title: "Le tue pratiche",           desc: "Pipeline aggiornata in tempo reale" },
@@ -37,7 +37,7 @@ const CONTEXT_CONFIG = {
   },
   cliente: {
     badge: "Area Cliente",
-    headline: <>La tua auto<br />è in arrivo.<br /><span className="text-electric">Segui ogni passo.</span></>,
+    headline: <>La tua auto<br />è in arrivo.<br /><span className="text-[#71BAED]">Segui ogni passo.</span></>,
     sub: "Consulta lo stato della tua pratica, carica i documenti richiesti e comunica direttamente con il nostro team.",
     features: [
       { icon: Car,    title: "Stato pratica live",    desc: "Aggiornamenti in tempo reale" },
@@ -94,9 +94,9 @@ export default function Login({ context = "internal" }) {
       <div className="hidden lg:flex lg:w-[52%] relative flex-col overflow-hidden bg-[hsl(220,100%,10%)]">
 
         {/* Layered glow blobs */}
-        <div className="absolute top-[-120px] left-[-80px]  w-[500px] h-[500px] rounded-full bg-electric/20 blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[-80px] right-[-60px] w-[400px] h-[400px] rounded-full bg-electric/10 blur-[100px] pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-electric/5 blur-[140px] pointer-events-none" />
+        <div className="absolute top-[-120px] left-[-80px]  w-[500px] h-[500px] rounded-full bg-[#71BAED]/20 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-80px] right-[-60px] w-[400px] h-[400px] rounded-full bg-[#71BAED]/10 blur-[100px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#71BAED]/5 blur-[140px] pointer-events-none" />
 
         {/* Dot grid */}
         <div
@@ -123,7 +123,7 @@ export default function Login({ context = "internal" }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-electric tracking-widest uppercase bg-electric/10 border border-electric/20 rounded-full px-3 py-1 mb-6">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#71BAED] tracking-widest uppercase bg-[#71BAED]/10 border border-[#71BAED]/20 rounded-full px-3 py-1 mb-6">
               <Zap className="w-3 h-3" /> {cfg.badge}
             </span>
 
@@ -151,8 +151,8 @@ export default function Login({ context = "internal" }) {
                 transition={{ delay: 0.4 + i * 0.1, duration: 0.4 }}
                 className="flex items-center gap-3.5 bg-white/[0.04] border border-white/[0.06] rounded-2xl px-4 py-3.5 backdrop-blur-sm"
               >
-                <div className="w-8 h-8 rounded-xl bg-electric/15 flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4 text-electric" />
+                <div className="w-8 h-8 rounded-xl bg-[#71BAED]/15 flex items-center justify-center shrink-0">
+                  <Icon className="w-4 h-4 text-[#71BAED]" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white leading-none">{title}</p>
@@ -184,7 +184,7 @@ export default function Login({ context = "internal" }) {
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-10">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-navy mb-4">
-              <Zap className="w-5 h-5 text-electric" />
+              <Zap className="w-5 h-5 text-[#71BAED]" />
             </div>
             <h1 className="font-heading font-bold text-2xl text-foreground">{cfg.mobileTitle}</h1>
             <p className="text-muted-foreground text-sm mt-1">Nolosubito</p>
@@ -238,7 +238,7 @@ export default function Login({ context = "internal" }) {
                     htmlFor="email"
                     className={`absolute left-4 transition-all duration-200 pointer-events-none z-10 ${
                       focused === "email" || email
-                        ? "top-2 text-[10px] font-semibold text-electric"
+                        ? "top-2 text-[10px] font-semibold style={{color:'#71BAED'}}"
                         : "top-1/2 -translate-y-1/2 text-sm text-muted-foreground"
                     }`}
                   >
@@ -253,7 +253,7 @@ export default function Login({ context = "internal" }) {
                     onFocus={() => setFocused("email")}
                     onBlur={() => setFocused(null)}
                     className={`h-14 pt-5 pb-1 bg-muted/40 border transition-all duration-200 rounded-xl ${
-                      focused === "email" ? "border-electric/60 ring-1 ring-electric/20 bg-electric/[0.03]" : "border-border/60"
+                      focused === "email" ? "border-[#71BAED]/60 ring-1 ring-[#71BAED]/20 bg-[#71BAED]/[0.03]" : "border-border/60"
                     }`}
                     autoComplete="email"
                   />
@@ -265,7 +265,7 @@ export default function Login({ context = "internal" }) {
                     htmlFor="password"
                     className={`absolute left-4 transition-all duration-200 pointer-events-none z-10 ${
                       focused === "password" || password
-                        ? "top-2 text-[10px] font-semibold text-electric"
+                        ? "top-2 text-[10px] font-semibold style={{color:'#71BAED'}}"
                         : "top-1/2 -translate-y-1/2 text-sm text-muted-foreground"
                     }`}
                   >
@@ -280,7 +280,7 @@ export default function Login({ context = "internal" }) {
                     onFocus={() => setFocused("password")}
                     onBlur={() => setFocused(null)}
                     className={`h-14 pt-5 pb-1 bg-muted/40 border transition-all duration-200 rounded-xl pr-12 ${
-                      focused === "password" ? "border-electric/60 ring-1 ring-electric/20 bg-electric/[0.03]" : "border-border/60"
+                      focused === "password" ? "border-[#71BAED]/60 ring-1 ring-[#71BAED]/20 bg-[#71BAED]/[0.03]" : "border-border/60"
                     }`}
                     autoComplete="current-password"
                   />
@@ -317,9 +317,9 @@ export default function Login({ context = "internal" }) {
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 20 }}
-                  className="w-16 h-16 rounded-full bg-electric/10 flex items-center justify-center mx-auto mb-5"
+                  className="w-16 h-16 rounded-full bg-[#71BAED]/10 flex items-center justify-center mx-auto mb-5"
                 >
-                  <CheckCircle2 className="w-8 h-8 text-electric" />
+                  <CheckCircle2 className="w-8 h-8 text-[#71BAED]" />
                 </motion.div>
                 <p className="font-heading font-bold text-xl text-foreground">Controlla la mail</p>
                 <p className="text-sm text-muted-foreground mt-2 leading-relaxed px-4">
@@ -328,7 +328,7 @@ export default function Login({ context = "internal" }) {
                 </p>
                 <button
                   onClick={() => setMagicSent(false)}
-                  className="text-xs text-electric hover:underline mt-5 cursor-pointer"
+                  className="text-xs text-[#71BAED] hover:underline mt-5 cursor-pointer"
                 >
                   Usa un'altra email
                 </button>
@@ -349,7 +349,7 @@ export default function Login({ context = "internal" }) {
                     htmlFor="magic-email"
                     className={`absolute left-4 transition-all duration-200 pointer-events-none z-10 ${
                       focused === "magic" || email
-                        ? "top-2 text-[10px] font-semibold text-electric"
+                        ? "top-2 text-[10px] font-semibold style={{color:'#71BAED'}}"
                         : "top-1/2 -translate-y-1/2 text-sm text-muted-foreground"
                     }`}
                   >
@@ -364,14 +364,14 @@ export default function Login({ context = "internal" }) {
                     onFocus={() => setFocused("magic")}
                     onBlur={() => setFocused(null)}
                     className={`h-14 pt-5 pb-1 bg-muted/40 border transition-all duration-200 rounded-xl ${
-                      focused === "magic" ? "border-electric/60 ring-1 ring-electric/20 bg-electric/[0.03]" : "border-border/60"
+                      focused === "magic" ? "border-[#71BAED]/60 ring-1 ring-[#71BAED]/20 bg-[#71BAED]/[0.03]" : "border-border/60"
                     }`}
                     autoComplete="email"
                   />
                 </div>
 
-                <div className="flex items-start gap-2.5 bg-electric/5 border border-electric/15 rounded-xl px-4 py-3">
-                  <Zap className="w-3.5 h-3.5 text-electric shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2.5 bg-[#71BAED]/5 border border-[#71BAED]/15 rounded-xl px-4 py-3">
+                  <Zap className="w-3.5 h-3.5 text-[#71BAED] shrink-0 mt-0.5" />
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     Ricevi un link sicuro via email — nessuna password necessaria.
                   </p>

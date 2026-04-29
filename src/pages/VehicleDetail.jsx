@@ -96,7 +96,7 @@ export default function VehicleDetail() {
           <p className="text-foreground text-xl font-heading font-bold mb-2">Veicolo non trovato</p>
           <p className="text-muted-foreground text-sm mb-6">Il veicolo richiesto non è disponibile.</p>
           <Link to="/offers">
-            <Button className="bg-electric hover:bg-electric/90 text-white">← Torna alle Offerte</Button>
+            <Button className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white">← Torna alle Offerte</Button>
           </Link>
         </div>
       </div>
@@ -187,7 +187,7 @@ export default function VehicleDetail() {
                   </Badge>
                 )}
               </div>
-              <p className="text-electric text-xs font-bold uppercase tracking-widest mb-1">{decodedMake}</p>
+              <p className="text-[#71BAED] text-xs font-bold uppercase tracking-widest mb-1">{decodedMake}</p>
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white leading-tight">
                   {decodedModel}
@@ -224,7 +224,7 @@ export default function VehicleDetail() {
                   className={`relative shrink-0 rounded-xl overflow-hidden cursor-pointer transition-all duration-200
                     w-[88px] h-[56px] sm:w-[108px] sm:h-[68px]
                     ${i === currentIndex && i > 0
-                      ? "ring-2 ring-electric ring-offset-2 ring-offset-background opacity-100"
+                      ? "ring-2 ring-[#71BAED] ring-offset-2 ring-offset-background opacity-100"
                       : i === 0 && currentIndex === 0
                         ? "ring-2 ring-border ring-offset-2 ring-offset-background opacity-100"
                         : "opacity-40 hover:opacity-75"
@@ -303,7 +303,7 @@ export default function VehicleDetail() {
                 )}
                 {bestOffer.power_hp && (
                   <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border bg-muted/60 text-foreground/70 border-border">
-                    <Gauge className="w-3.5 h-3.5 text-electric" /> {bestOffer.power_hp} CV
+                    <Gauge className="w-3.5 h-3.5 text-[#71BAED]" /> {bestOffer.power_hp} CV
                   </span>
                 )}
                 {bestOffer.transmission && (
@@ -321,7 +321,7 @@ export default function VehicleDetail() {
 
               {/* Description */}
               {descriptionParagraphs.length > 0 && (
-                <div className="space-y-3 border-l-2 border-electric/40 pl-4">
+                <div className="space-y-3 border-l-2 border-[#71BAED]/40 pl-4">
                   {descriptionParagraphs.map((paragraph, i) => (
                     <p key={i} className="text-muted-foreground text-[15px] leading-relaxed">
                       {paragraph}
@@ -339,7 +339,7 @@ export default function VehicleDetail() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {bestOffer.features.map((f, i) => (
                       <div key={i} className="flex items-center gap-2.5 text-sm text-foreground/70">
-                        <CheckCircle2 className="w-4 h-4 text-electric shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-[#71BAED] shrink-0" />
                         {f}
                       </div>
                     ))}
@@ -360,8 +360,8 @@ export default function VehicleDetail() {
                     { icon: FileText,    label: "Gestione bollo" },
                   ].map(({ icon: Icon, label }) => (
                     <div key={label} className="flex items-center gap-2.5 text-sm text-foreground/70">
-                      <div className="w-7 h-7 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
-                        <Icon className="w-3.5 h-3.5 text-electric" />
+                      <div className="w-7 h-7 rounded-lg bg-[#71BAED]/10 flex items-center justify-center shrink-0">
+                        <Icon className="w-3.5 h-3.5 text-[#71BAED]" />
                       </div>
                       {label}
                     </div>
@@ -370,8 +370,8 @@ export default function VehicleDetail() {
               </div>
 
               {/* Tax benefits — solo per P.IVA e Fleet, non per privati */}
-              {segmentFromState !== "Privati" && <div className="rounded-2xl bg-electric/5 border border-electric/15 p-5">
-                <h3 className="text-xs font-bold text-electric/70 uppercase tracking-widest mb-4">
+              {segmentFromState !== "Privati" && <div className="rounded-2xl bg-[#71BAED]/5 border border-[#71BAED]/15 p-5">
+                <h3 className="text-xs font-bold text-[#71BAED]/70 uppercase tracking-widest mb-4">
                   Vantaggi fiscali P.IVA
                 </h3>
                 <div className="space-y-3">
@@ -381,7 +381,7 @@ export default function VehicleDetail() {
                     { pct: "100%", label: "Agenti di commercio", sub: "Deduzione e IVA integrali" },
                   ].map(({ pct, label, sub }) => (
                     <div key={label} className="flex items-center gap-3">
-                      <span className="font-heading font-bold text-lg text-electric w-14 shrink-0">{pct}</span>
+                      <span className="font-heading font-bold text-lg text-[#71BAED] w-14 shrink-0">{pct}</span>
                       <div>
                         <p className="text-sm font-semibold text-foreground/80 leading-none">{label}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>
@@ -416,8 +416,8 @@ export default function VehicleDetail() {
           <div className="max-w-2xl mx-auto px-4 sm:px-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div className="flex items-center gap-2 mb-2">
-                <ArrowDown className="w-4 h-4 text-electric" />
-                <p className="text-xs font-bold text-electric uppercase tracking-widest">Passo finale</p>
+                <ArrowDown className="w-4 h-4 text-[#71BAED]" />
+                <p className="text-xs font-bold text-[#71BAED] uppercase tracking-widest">Passo finale</p>
               </div>
               <h2 className="font-heading font-bold text-2xl text-foreground mb-1">
                 Richiedi il tuo preventivo

@@ -140,8 +140,8 @@ export default function AgenteDashboard() {
               label: "Provvigioni maturate",
               value: `€${stats.provvigioneTotale.toLocaleString("it-IT")}`,
               icon: Euro,
-              color: "text-electric",
-              bg: "bg-electric/5",
+              color: "style={{color:'#71BAED'}}",
+              bg: "style={{backgroundColor:'#71BAED'}}/5",
               trend: `€${stats.provvigionePagata.toLocaleString("it-IT")} pagati`
             },
           ].map((kpi, i) => (
@@ -253,7 +253,7 @@ export default function AgenteDashboard() {
                       >
                         {/* Codice */}
                         <div className="col-span-2">
-                          <span className="font-mono text-xs font-bold text-electric">
+                          <span className="font-mono text-xs font-bold text-[#71BAED]">
                             {p.codice || `#${p.id.slice(0, 8).toUpperCase()}`}
                           </span>
                           <p className="text-xs text-muted-foreground mt-0.5">
@@ -277,7 +277,7 @@ export default function AgenteDashboard() {
                               {p.veicolo_marca} {p.veicolo_modello}
                             </p>
                             {p.canone_mensile && (
-                              <p className="text-xs text-electric font-semibold">€{p.canone_mensile}/mese</p>
+                              <p className="text-xs text-[#71BAED] font-semibold">€{p.canone_mensile}/mese</p>
                             )}
                           </div>
                         </div>

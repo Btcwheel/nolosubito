@@ -50,7 +50,7 @@ export default function AssegnaAgenteDialog({ pratica, agenti, onClose }) {
           </label>
           {agenti.map(a => (
             <label key={a.id} className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
-              selectedAgente === a.id ? "border-electric bg-electric/5" : "border-border hover:bg-muted/50"
+              selectedAgente === a.id ? "style={{borderColor:'#71BAED'}} style={{backgroundColor:'#71BAED'}}/5" : "border-border hover:bg-muted/50"
             }`}>
               <input
                 type="radio"
@@ -79,7 +79,7 @@ export default function AssegnaAgenteDialog({ pratica, agenti, onClose }) {
           <Button
             onClick={() => assign.mutate()}
             disabled={assign.isPending}
-            className="flex-1 bg-electric hover:bg-electric/90 text-white"
+            className="flex-1 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white"
           >
             Salva
           </Button>

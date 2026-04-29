@@ -18,12 +18,12 @@ export default function FeaturedVehicles() {
   });
 
   return (
-    <section className="relative overflow-hidden border-y border-electric/10 bg-[linear-gradient(180deg,rgba(45,46,130,0.06)_0%,rgba(243,244,246,0.96)_16%,rgba(243,244,246,0.78)_100%)] py-16 sm:py-20">
+    <section className="relative overflow-hidden border-y border-[#71BAED]/10 bg-[linear-gradient(180deg,rgba(45,46,130,0.06)_0%,rgba(243,244,246,0.96)_16%,rgba(243,244,246,0.78)_100%)] py-16 sm:py-20">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white/70 to-transparent" />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-end justify-between border-b border-border/40 pb-6">
           <div>
-            <p className="mb-2 text-sm font-bold uppercase tracking-widest text-electric">Catalogo Noleggio Lungo Termine</p>
+            <p className="mb-2 text-sm font-bold uppercase tracking-widest text-[#71BAED]">Catalogo Noleggio Lungo Termine</p>
             <h2 className="font-heading font-bold text-3xl sm:text-4xl text-foreground">
               Veicoli in Evidenza
             </h2>
@@ -32,7 +32,7 @@ export default function FeaturedVehicles() {
             </p>
           </div>
           <Link to="/offers" className="hidden sm:block">
-            <Button variant="ghost" className="text-electric font-semibold cursor-pointer">
+            <Button variant="ghost" className="text-[#71BAED] font-semibold cursor-pointer">
               Vedi Tutte <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
@@ -64,7 +64,7 @@ export default function FeaturedVehicles() {
 
         <div className="mt-8 text-center sm:hidden">
           <Link to="/offers">
-            <Button variant="ghost" className="text-electric font-semibold cursor-pointer">
+            <Button variant="ghost" className="text-[#71BAED] font-semibold cursor-pointer">
               Vedi Tutte le Offerte <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>

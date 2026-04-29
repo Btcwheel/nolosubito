@@ -54,12 +54,12 @@ export default function WorkWithUs() {
       <div className="pt-24 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div className="inline-flex items-center gap-2 bg-electric/10 border border-electric/20 rounded-full px-4 py-2 mb-6">
-              <Building2 className="w-4 h-4 text-electric" />
-              <span className="text-sm text-electric font-medium">Partner Program</span>
+            <div className="inline-flex items-center gap-2 bg-[#71BAED]/10 border border-[#71BAED]/20 rounded-full px-4 py-2 mb-6">
+              <Building2 className="w-4 h-4 text-[#71BAED]" />
+              <span className="text-sm text-[#71BAED] font-medium">Partner Program</span>
             </div>
             <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white leading-tight">
-              Entra nel Settore <span className="text-electric">Noleggio Lungo Termine</span> con Nolosubito
+              Entra nel Settore <span className="text-[#71BAED]">Noleggio Lungo Termine</span> con Nolosubito
             </h1>
             <p className="mt-5 text-white/60 text-lg leading-relaxed">
               Sei un'agenzia, un consulente o una P.IVA? Diventa partner Nolosubito e accedi ai mandati con le migliori società di noleggio a lungo termine del mercato. Formazione, strumenti digitali e supporto costante.
@@ -74,7 +74,7 @@ export default function WorkWithUs() {
             <div className="mt-8 flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={openForm}
-                className="h-12 px-8 bg-electric hover:bg-electric/90 text-white font-semibold rounded-xl text-base cursor-pointer"
+                className="h-12 px-8 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold rounded-xl text-base cursor-pointer"
               >
                 Diventa Partner <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
@@ -108,7 +108,7 @@ export default function WorkWithUs() {
                 transition={{ delay: 0.2 + i * 0.08 }}
                 className="bg-white/5 border border-white/10 rounded-2xl p-5"
               >
-                <div className="font-heading font-bold text-3xl text-electric">{stat.value}</div>
+                <div className="font-heading font-bold text-3xl text-[#71BAED]">{stat.value}</div>
                 <div className="text-white font-semibold text-sm mt-1">{stat.label}</div>
                 <div className="text-white/40 text-xs mt-0.5">{stat.sub}</div>
               </motion.div>
@@ -137,10 +137,10 @@ export default function WorkWithUs() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.3, delay: i * 0.07 }}
-                className="group p-6 bg-card rounded-2xl border border-border/50 hover:border-electric/30 hover:shadow-lg transition-all duration-300"
+                className="group p-6 bg-card rounded-2xl border border-border/50 hover:border-[#71BAED]/30 hover:shadow-lg transition-all duration-300"
               >
-                <div className="w-12 h-12 rounded-xl bg-electric/10 flex items-center justify-center mb-4 group-hover:bg-electric/20 transition-colors">
-                  <b.icon className="w-6 h-6 text-electric" />
+                <div className="w-12 h-12 rounded-xl bg-[#71BAED]/10 flex items-center justify-center mb-4 group-hover:bg-[#71BAED]/20 transition-colors">
+                  <b.icon className="w-6 h-6 text-[#71BAED]" />
                 </div>
                 <h3 className="font-heading font-semibold text-foreground mb-2">{b.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{b.desc}</p>
@@ -153,7 +153,7 @@ export default function WorkWithUs() {
         <section id="dashboard-preview" className="bg-muted/40 py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <Badge className="bg-electric/10 text-electric border-electric/20 mb-4">Area Riservata Partner</Badge>
+              <Badge className="bg-[#71BAED]/10 text-[#71BAED] border-[#71BAED]/20 mb-4">Area Riservata Partner</Badge>
               <h2 className="font-heading font-bold text-3xl sm:text-4xl text-foreground">
                 Il Tuo Pannello di Controllo
               </h2>
@@ -184,12 +184,12 @@ export default function WorkWithUs() {
                 className="relative"
               >
                 <div className="p-6 bg-card rounded-2xl border border-border/50 h-full">
-                  <div className="font-heading font-bold text-4xl text-electric/20 mb-3">{step.num}</div>
+                  <div className="font-heading font-bold text-4xl text-[#71BAED]/20 mb-3">{step.num}</div>
                   <h3 className="font-heading font-semibold text-foreground mb-2">{step.title}</h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
                 </div>
                 {i < steps.length - 1 && (
-                  <ChevronRight className="hidden lg:block absolute top-1/2 -right-3 -translate-y-1/2 w-5 h-5 text-electric/30 z-10" />
+                  <ChevronRight className="hidden lg:block absolute top-1/2 -right-3 -translate-y-1/2 w-5 h-5 text-[#71BAED]/30 z-10" />
                 )}
               </motion.div>
             ))}
@@ -242,7 +242,7 @@ export default function WorkWithUs() {
               className="bg-[#2D2E82] rounded-3xl p-10 sm:p-16 text-center relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-electric/10 to-transparent pointer-events-none" />
-              <UserCheck className="w-12 h-12 text-electric mx-auto mb-5" />
+              <UserCheck className="w-12 h-12 text-[#71BAED] mx-auto mb-5" />
               <h2 className="font-heading font-bold text-3xl sm:text-4xl text-white mb-4">
                 Pronto a Iniziare?
               </h2>
@@ -251,7 +251,7 @@ export default function WorkWithUs() {
               </p>
               <Button
                 onClick={openForm}
-                className="h-14 px-10 bg-electric hover:bg-electric/90 text-white font-bold rounded-xl text-lg cursor-pointer"
+                className="h-14 px-10 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-bold rounded-xl text-lg cursor-pointer"
               >
                 Candidati ora — è gratuito <ArrowRight className="w-5 h-5 ml-2" />
               </Button>

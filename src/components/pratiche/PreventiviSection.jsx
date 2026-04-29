@@ -37,7 +37,7 @@ const KM_OPTIONS = [
 
 const STATUS_CFG = {
   Bozza:     { label: "Bozza",    cls: "bg-muted text-muted-foreground border-border" },
-  Inviato:   { label: "Inviato",  cls: "bg-electric/10 text-electric border-electric/20" },
+  Inviato:   { label: "Inviato",  cls: "style={{backgroundColor:'#71BAED'}}/10 style={{color:'#71BAED'}} style={{borderColor:'#71BAED'}}/20" },
   Accettato: { label: "Accettato",cls: "bg-fuel-ev/10 text-fuel-ev border-fuel-ev/20" },
   Rifiutato: { label: "Rifiutato",cls: "bg-destructive/10 text-destructive border-destructive/20" },
 };
@@ -96,9 +96,9 @@ function PreventivoCard({ prev, onInvia, onReinvia, onDelete, isLoading }) {
           <p className="text-muted-foreground mb-0.5">Anticipo</p>
           <p className="font-semibold">€{(prev.anticipo || 0).toLocaleString("it-IT")}</p>
         </div>
-        <div className="bg-electric/5 border border-electric/15 rounded-lg p-2.5">
+        <div className="bg-[#71BAED]/5 border border-[#71BAED]/15 rounded-lg p-2.5">
           <p className="text-muted-foreground mb-0.5">Canone</p>
-          <p className="font-bold text-electric">€{prev.canone_mensile?.toLocaleString("it-IT")}/mese</p>
+          <p className="font-bold text-[#71BAED]">€{prev.canone_mensile?.toLocaleString("it-IT")}/mese</p>
         </div>
       </div>
 
@@ -139,7 +139,7 @@ function PreventivoCard({ prev, onInvia, onReinvia, onDelete, isLoading }) {
               size="sm"
               onClick={() => onInvia(prev.id)}
               disabled={isLoading}
-              className="bg-electric hover:bg-electric/90 text-white gap-1.5 flex-1"
+              className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white gap-1.5 flex-1"
             >
               {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               Invia al Cliente
@@ -279,7 +279,7 @@ export default function PreventiviSection({ praticaId }) {
           size="sm"
           variant={showForm ? "outline" : "default"}
           onClick={() => setShowForm((v) => !v)}
-          className={showForm ? "" : "bg-electric hover:bg-electric/90 text-white gap-1.5"}
+          className={showForm ? "" : "style={{backgroundColor:'#71BAED'}} hover:style={{backgroundColor:'#71BAED'}}/90 text-white gap-1.5"}
         >
           {showForm ? (
             <><ChevronUp className="w-3.5 h-3.5" /> Annulla</>

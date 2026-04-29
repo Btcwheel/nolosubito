@@ -209,11 +209,11 @@ export default function PartnerApplicationForm({ onCancel }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="text-xs font-medium">CV / Profilo Professionale</Label>
-              <label className={`mt-1.5 flex flex-col items-center justify-center gap-2 h-24 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${cvFile ? "border-electric/50 bg-electric/5" : "border-border/50 hover:border-electric/30 hover:bg-muted/50"}`}>
+              <label className={`mt-1.5 flex flex-col items-center justify-center gap-2 h-24 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${cvFile ? "style={{borderColor:'#71BAED'}}/50 style={{backgroundColor:'#71BAED'}}/5" : "border-border/50 hover:style={{borderColor:'#71BAED'}}/30 hover:bg-muted/50"}`}>
                 {cvFile ? (
                   <>
-                    <FileText className="w-5 h-5 text-electric" />
-                    <span className="text-xs text-electric font-medium truncate max-w-[160px]">{cvFile.name}</span>
+                    <FileText className="w-5 h-5 text-[#71BAED]" />
+                    <span className="text-xs text-[#71BAED] font-medium truncate max-w-[160px]">{cvFile.name}</span>
                   </>
                 ) : (
                   <>
@@ -226,11 +226,11 @@ export default function PartnerApplicationForm({ onCancel }) {
             </div>
             <div>
               <Label className="text-xs font-medium">Lettera di Presentazione</Label>
-              <label className={`mt-1.5 flex flex-col items-center justify-center gap-2 h-24 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${coverFile ? "border-electric/50 bg-electric/5" : "border-border/50 hover:border-electric/30 hover:bg-muted/50"}`}>
+              <label className={`mt-1.5 flex flex-col items-center justify-center gap-2 h-24 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${coverFile ? "style={{borderColor:'#71BAED'}}/50 style={{backgroundColor:'#71BAED'}}/5" : "border-border/50 hover:style={{borderColor:'#71BAED'}}/30 hover:bg-muted/50"}`}>
                 {coverFile ? (
                   <>
-                    <FileText className="w-5 h-5 text-electric" />
-                    <span className="text-xs text-electric font-medium truncate max-w-[160px]">{coverFile.name}</span>
+                    <FileText className="w-5 h-5 text-[#71BAED]" />
+                    <span className="text-xs text-[#71BAED] font-medium truncate max-w-[160px]">{coverFile.name}</span>
                   </>
                 ) : (
                   <>
@@ -247,7 +247,7 @@ export default function PartnerApplicationForm({ onCancel }) {
         <Button
           type="submit"
           disabled={sending}
-          className="w-full h-14 bg-electric hover:bg-electric/90 text-white font-bold rounded-xl text-base cursor-pointer"
+          className="w-full h-14 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-bold rounded-xl text-base cursor-pointer"
         >
           {sending ? (
             <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Invio in corso…</>

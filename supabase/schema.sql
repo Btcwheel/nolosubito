@@ -55,6 +55,7 @@ create table if not exists offers (
   features        text[] default '{}',
   description     text,
   is_active       boolean default true,
+  is_featured     boolean default false,
   created_at      timestamptz default now(),
   updated_at      timestamptz default now(),
   unique (make, model)
@@ -499,7 +500,8 @@ alter table offers
   add column if not exists gallery_images text[]    default '{}',
   add column if not exists seo_title      text,
   add column if not exists seo_description text,
-  add column if not exists seo_keywords   text[]    default '{}';
+  add column if not exists seo_keywords   text[]    default '{}',
+  add column if not exists is_featured    boolean   default false;
 
 -- Rimuove il CHECK su category (ora gestito lato app) e aggiunge tutte le categorie
 alter table offers drop constraint if exists offers_category_check;

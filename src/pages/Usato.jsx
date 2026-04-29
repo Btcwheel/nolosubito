@@ -5,6 +5,10 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Search, Fuel, Gauge, Calendar, MapPin, ExternalLink, Zap, Leaf, SlidersHorizontal, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const CARBURANTE_COLORS = {
@@ -28,7 +32,7 @@ function UsatoCard({ v, i }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: Math.min(i * 0.05, 0.3) }}
-      className="group bg-card border border-border/50 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-black/8 hover:border-electric/25 hover:-translate-y-1 transition-all duration-300"
+      className="group bg-card border border-border/50 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-black/8 hover:border-[#71BAED]/25 hover:-translate-y-1 transition-all duration-300"
     >
       {/* Image */}
       <div className="relative aspect-[16/9] bg-muted overflow-hidden">
@@ -46,7 +50,7 @@ function UsatoCard({ v, i }) {
             Usato
           </span>
           {v.targa_prova && (
-            <span className="text-[11px] font-bold bg-electric text-white px-2.5 py-1 rounded-full">
+            <span className="text-[11px] font-bold bg-[#71BAED] text-white px-2.5 py-1 rounded-full">
               Targa prova
             </span>
           )}
@@ -139,14 +143,20 @@ function CardSkeleton() {
 }
 
 export default function Usato() {
-  const [search, setSearch]         = useState("");
-  const [filterFuel, setFilterFuel] = useState("tutti");
-  const [sortBy, setSortBy]         = useState("default");
+  const [search, setSearch]             = useState("");
+  const [brandFilter, setBrandFilter]   = useState("tutti");
+  const [filterFuel, setFilterFuel]     = useState("tutti");
+  const [sortBy, setSortBy]             = useState("default");
+  const [filterOpen, setFilterOpen]     = useState(false);
 
   const { data: veicoli = [], isLoading } = useQuery({
     queryKey: ["usato"],
     queryFn: () => usatoService.list(),
   });
+
+  const brands = useMemo(() =>
+    ["tutti", ...new Set(veicoli.map(v => v.marca?.trim().toUpperCase()).filter(Boolean))].sort(),
+  [veicoli]);
 
   const carburanti = useMemo(() =>
     ["tutti", ...new Set(veicoli.map(v => v.carburante))],
@@ -159,8 +169,9 @@ export default function Usato() {
         v.marca.toLowerCase().includes(q) ||
         v.modello.toLowerCase().includes(q) ||
         v.colore.toLowerCase().includes(q);
-      const matchFuel = filterFuel === "tutti" || v.carburante === filterFuel;
-      return matchSearch && matchFuel;
+      const matchBrand = brandFilter === "tutti" || v.marca?.trim().toUpperCase() === brandFilter;
+      const matchFuel  = filterFuel === "tutti" || v.carburante === filterFuel;
+      return matchSearch && matchBrand && matchFuel;
     });
 
     if (sortBy === "prezzo-asc")  list = [...list].sort((a, b) => a.prezzo - b.prezzo);
@@ -169,7 +180,52 @@ export default function Usato() {
     if (sortBy === "anno-desc")   list = [...list].sort((a, b) => b.anno - a.anno);
 
     return list;
-  }, [veicoli, search, filterFuel, sortBy]);
+  }, [veicoli, search, brandFilter, filterFuel, sortBy]);
+
+  const activeFilters = [brandFilter !== "tutti", filterFuel !== "tutti"].filter(Boolean).length;
+
+  const FiltersContent = () => (
+    <div className="space-y-5">
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Marca</p>
+        <Select value={brandFilter} onValueChange={setBrandFilter}>
+          <SelectTrigger className="h-11"><SelectValue placeholder="Tutte le marche" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="tutti">Tutte le marche</SelectItem>
+            {brands.filter(b => b !== "tutti").map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Carburante</p>
+        <Select value={filterFuel} onValueChange={setFilterFuel}>
+          <SelectTrigger className="h-11"><SelectValue placeholder="Tutti i carburanti" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="tutti">Tutti i carburanti</SelectItem>
+            {carburanti.filter(f => f !== "tutti").map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Ordina per</p>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">Ordina per</SelectItem>
+            <SelectItem value="prezzo-asc">Prezzo ↑</SelectItem>
+            <SelectItem value="prezzo-desc">Prezzo ↓</SelectItem>
+            <SelectItem value="km-asc">Km ↑</SelectItem>
+            <SelectItem value="anno-desc">Anno più recente</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      {activeFilters > 0 && (
+        <Button variant="ghost" onClick={() => { setBrandFilter("tutti"); setFilterFuel("tutti"); setSortBy("default"); }} className="w-full text-muted-foreground hover:text-foreground">
+          <X className="w-4 h-4 mr-1" /> Cancella filtri
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -198,7 +254,7 @@ export default function Usato() {
               { value: "Garantiti",         label: "Tutti certificati" },
               { value: "Pronta",            label: "Consegna" },
             ].map(s => (
-              <div key={s.label} className="border-l-2 border-electric/40 pl-4">
+              <div key={s.label} className="border-l-2 border-[#71BAED]/40 pl-4">
                 <p className="font-heading font-bold text-xl text-white">{s.value}</p>
                 <p className="text-xs text-white/40 mt-0.5">{s.label}</p>
               </div>
@@ -217,7 +273,7 @@ export default function Usato() {
               placeholder="Cerca marca, modello, colore…"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="pl-9 h-10"
+              className="pl-9 h-11"
             />
             {search && (
               <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer">
@@ -226,35 +282,65 @@ export default function Usato() {
             )}
           </div>
 
-          {/* Fuel filter */}
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5 sm:pb-0">
-            {carburanti.map(f => (
-              <button
-                key={f}
-                onClick={() => setFilterFuel(f)}
-                className={`shrink-0 px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                  filterFuel === f
-                    ? "bg-[#2D2E82] text-white"
-                    : "bg-muted/60 text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                {f === "tutti" ? "Tutti" : f}
-              </button>
-            ))}
+          {/* Desktop filters */}
+          <div className="hidden sm:flex gap-3">
+            <Select value={brandFilter} onValueChange={setBrandFilter}>
+              <SelectTrigger className="w-44 h-11">
+                <SelectValue placeholder="Marca" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tutti">Tutte le marche</SelectItem>
+                {brands.filter(b => b !== "tutti").map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filterFuel} onValueChange={setFilterFuel}>
+              <SelectTrigger className="w-44 h-11">
+                <SelectValue placeholder="Carburante" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tutti">Tutti i carburanti</SelectItem>
+                {carburanti.filter(f => f !== "tutti").map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-44 h-11">
+                <SlidersHorizontal className="w-4 h-4 mr-2" />
+                <SelectValue placeholder="Ordina" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Ordina per</SelectItem>
+                <SelectItem value="prezzo-asc">Prezzo ↑</SelectItem>
+                <SelectItem value="prezzo-desc">Prezzo ↓</SelectItem>
+                <SelectItem value="km-asc">Km ↑</SelectItem>
+                <SelectItem value="anno-desc">Anno più recente</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Sort */}
-          <select
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value)}
-            className="h-10 rounded-xl border border-border/50 bg-background text-sm px-3 text-foreground cursor-pointer"
-          >
-            <option value="default">Ordina per</option>
-            <option value="prezzo-asc">Prezzo ↑</option>
-            <option value="prezzo-desc">Prezzo ↓</option>
-            <option value="km-asc">Km ↑</option>
-            <option value="anno-desc">Anno più recente</option>
-          </select>
+          {/* Mobile filter button */}
+          <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" className="sm:hidden h-11 px-4 relative cursor-pointer">
+                <SlidersHorizontal className="w-4 h-4 mr-2" />
+                Filtri
+                {activeFilters > 0 && (
+                  <Badge className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center bg-[#71BAED] text-white text-[10px]">
+                    {activeFilters}
+                  </Badge>
+                )}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="rounded-t-2xl px-6 pb-8">
+              <SheetHeader className="mb-6">
+                <SheetTitle className="text-left">Filtra veicoli</SheetTitle>
+              </SheetHeader>
+              <FiltersContent />
+              <Button className="w-full mt-6 h-12 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold rounded-xl cursor-pointer"
+                onClick={() => setFilterOpen(false)}>
+                Mostra {filtered.length} veicoli
+              </Button>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 

@@ -99,11 +99,11 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
     <div className="bg-white rounded-2xl shadow-2xl border border-border/50 overflow-hidden">
 
       {/* ── Header ── */}
-      <div className="relative bg-navy overflow-hidden px-5 sm:px-6 pt-5 pb-6">
-        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-electric/10 blur-2xl pointer-events-none" />
+      <div className="relative overflow-hidden px-5 sm:px-6 pt-5 pb-6" style={{ backgroundColor: "#2D2E82" }}>
+        <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full" style={{ backgroundColor: "#71BAED20", filter: "blur(2xl)" }} />
         <div className="flex items-center gap-2.5 mb-1 relative z-10">
-          <div className="w-8 h-8 rounded-lg bg-electric/15 flex items-center justify-center">
-            <Calculator className="w-4 h-4 text-electric" />
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#71BAED15" }}>
+            <Calculator className="w-4 h-4" style={{ color: "#71BAED" }} />
           </div>
           <h3 className="font-heading font-bold text-white text-lg">Configura il Canone</h3>
         </div>
@@ -116,8 +116,8 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
           {STEPS.map((s, i) => (
             <React.Fragment key={s.n}>
               <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-full bg-electric/20 border border-electric/40 flex items-center justify-center">
-                  <span className="text-[10px] font-bold text-electric">{s.n}</span>
+                <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: "#71BAED20", borderColor: "#71BAED40", borderWidth: 1 }}>
+                  <span className="text-[10px] font-bold" style={{ color: "#71BAED" }}>{s.n}</span>
                 </div>
                 <span className="text-[11px] text-white/40">{s.label}</span>
               </div>
@@ -139,7 +139,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
               <select
                 value={selectedMake}
                 onChange={e => { setSelectedMake(e.target.value); if (!fixedModel) setSelectedModel(""); }}
-                className="w-full h-11 rounded-xl border border-input bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-electric/30 focus:border-electric/50"
+                className="w-full h-11 rounded-xl border border-input bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#71BAED]/30 focus:border-[#71BAED]/50"
               >
                 <option value="">Seleziona marca</option>
                 {makes.map(m => <option key={m} value={m}>{m}</option>)}
@@ -151,7 +151,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
                 value={selectedModel}
                 onChange={e => setSelectedModel(e.target.value)}
                 disabled={!selectedMake}
-                className="w-full h-11 rounded-xl border border-input bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-electric/30 focus:border-electric/50 disabled:opacity-40"
+                className="w-full h-11 rounded-xl border border-input bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#71BAED]/30 focus:border-[#71BAED]/50 disabled:opacity-40"
               >
                 <option value="">Seleziona modello</option>
                 {models.map(m => <option key={m} value={m}>{m}</option>)}
@@ -163,7 +163,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
         {/* ── Step 1: Duration ── */}
         <div>
           <div className="flex items-center gap-2 mb-2.5">
-            <span className="w-4 h-4 rounded-full bg-electric text-white text-[9px] font-bold flex items-center justify-center shrink-0">1</span>
+            <span className="w-4 h-4 rounded-full bg-[#71BAED] text-white text-[9px] font-bold flex items-center justify-center shrink-0">1</span>
             <label className="text-xs font-semibold text-foreground">Durata contratto</label>
           </div>
           <div className="grid grid-cols-4 gap-2">
@@ -174,16 +174,18 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
                 <button key={d} onClick={() => available && setDuration(d)} disabled={!available}
                   className={`relative py-3 rounded-xl text-sm font-bold border-2 transition-all duration-150 cursor-pointer
                     ${selected
-                      ? "bg-navy border-electric text-white shadow-md shadow-navy/20"
+                      ? "text-white shadow-md"
                       : available
-                      ? "border-border text-foreground hover:border-electric/50 hover:bg-electric/5"
+                      ? "border-border text-foreground hover:border-opacity-50"
                       : "border-border/30 text-muted-foreground/30 cursor-not-allowed line-through"}`}
+                  style={selected ? { backgroundColor: "#2D2E82", borderColor: "#71BAED", boxShadow: "0 4px 6px -1px rgba(45,46,130,0.2)" } : {}}
                 >
                   {d}<span className="text-[10px] font-normal opacity-70">m</span>
                   {selected && (
                     <motion.span
                       layoutId="duration-dot"
-                      className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-electric rounded-full"
+                      className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: "#71BAED" }}
                     />
                   )}
                 </button>
@@ -195,7 +197,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
         {/* ── Step 2: KM ── */}
         <div>
           <div className="flex items-center gap-2 mb-2.5">
-            <span className="w-4 h-4 rounded-full bg-electric text-white text-[9px] font-bold flex items-center justify-center shrink-0">2</span>
+            <span className="w-4 h-4 rounded-full bg-[#71BAED] text-white text-[9px] font-bold flex items-center justify-center shrink-0">2</span>
             <label className="text-xs font-semibold text-foreground">Chilometri annui</label>
           </div>
           <div className="grid grid-cols-3 gap-2">
@@ -206,12 +208,13 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
                 <button key={k} onClick={() => available && setAnnualKm(k)} disabled={!available}
                   className={`py-2.5 rounded-xl text-sm font-bold border-2 transition-all duration-150 cursor-pointer
                     ${selected
-                      ? "bg-navy border-electric text-white shadow-md shadow-navy/20"
+                      ? "text-white shadow-md"
                       : available
-                      ? "border-border text-foreground hover:border-electric/50 hover:bg-electric/5"
+                      ? "border-border text-foreground hover:opacity-50"
                       : "border-border/30 text-muted-foreground/30 cursor-not-allowed line-through"}`}
+                  style={selected ? { backgroundColor: "#2D2E82", borderColor: "#71BAED", boxShadow: "0 4px 6px -1px rgba(45,46,130,0.2)" } : {}}
                 >
-                  {k >= 1000 ? `${k / 1000}k` : k}
+                  {k.toLocaleString("it-IT")}
                   <span className="text-[10px] font-normal opacity-70"> km</span>
                 </button>
               );
@@ -223,25 +226,26 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
         <div>
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-2">
-              <span className="w-4 h-4 rounded-full bg-electric text-white text-[9px] font-bold flex items-center justify-center shrink-0">3</span>
+              <span className="w-4 h-4 rounded-full bg-[#71BAED] text-white text-[9px] font-bold flex items-center justify-center shrink-0">3</span>
               <label className="text-xs font-semibold text-foreground">Anticipo iniziale</label>
             </div>
             {exactConfig && advance !== Number(exactConfig.advance_payment ?? 0) && (
-              <span className="text-[10px] text-electric/70 flex items-center gap-1">
+              <span className="text-[10px] text-[#71BAED]/70 flex items-center gap-1">
                 <Info className="w-3 h-3" /> Canone ricalcolato
               </span>
             )}
           </div>
           <div className="grid grid-cols-3 gap-2">
             {ADVANCE_BRACKETS.map(a => (
-              <button key={a} onClick={() => setAdvance(a)}
-                className={`py-2.5 rounded-xl text-sm font-bold border-2 transition-all duration-150 cursor-pointer
-                  ${advance === a
-                    ? "bg-navy border-electric text-white shadow-md shadow-navy/20"
-                    : "border-border text-foreground hover:border-electric/50 hover:bg-electric/5"}`}
-              >
-                {formatAdvanceAmount(a)}
-              </button>
+                <button key={a} onClick={() => setAdvance(a)}
+                  className={`py-2.5 rounded-xl text-sm font-bold border-2 transition-all duration-150 cursor-pointer
+                    ${advance === a
+                      ? "text-white shadow-md"
+                      : "border-border text-foreground hover:opacity-50"}`}
+                  style={advance === a ? { backgroundColor: "#2D2E82", borderColor: "#71BAED", boxShadow: "0 4px 6px -1px rgba(45,46,130,0.2)" } : {}}
+                >
+                  {formatAdvanceAmount(a)}
+                </button>
             ))}
           </div>
         </div>
@@ -252,7 +256,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
             key={`${computedRent}-${duration}-${annualKm}-${advance}`}
             initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.15 }}
-            className="rounded-2xl bg-gradient-to-br from-navy to-[hsl(220,100%,12%)] overflow-hidden"
+            className="rounded-2xl overflow-hidden" style={{ background: "linear-gradient(to bottom right, #2D2E82, hsl(220,100%,12%))" }}
           >
             {computedRent ? (
               <div className="p-5">
@@ -272,19 +276,19 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
 
                 {/* P.IVA net saving — solo per segmenti business/commercial */}
                 {segment !== "Privati" && netCostPiva && risparmioMensile && (
-                  <div className="bg-electric/10 border border-electric/20 rounded-xl p-3 mb-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-[11px] text-white/50 leading-none mb-0.5">Costo netto stimato P.IVA</p>
-                        <p className="text-white font-bold text-lg">€{netCostPiva.toLocaleString("it-IT")}/mese</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[11px] text-electric/70 leading-none mb-0.5">Risparmio fiscale</p>
-                        <p className="text-electric font-bold text-lg">-€{risparmioMensile.toLocaleString("it-IT")}</p>
-                      </div>
+                <div className="rounded-xl p-3 mb-3" style={{ backgroundColor: "#71BAED10", borderColor: "#71BAED20", borderWidth: 1 }}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[11px] leading-none mb-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>Costo netto stimato P.IVA</p>
+                      <p className="text-white font-bold text-lg">€{netCostPiva.toLocaleString("it-IT")}/mese</p>
                     </div>
-                    <p className="text-[10px] text-white/25 mt-2">* Stima con IVA 40% + deduzione 80% · aliquota 30%</p>
+                    <div className="text-right">
+                      <p className="text-[11px] leading-none mb-0.5" style={{ color: "#71BAED70" }}>Risparmio fiscale</p>
+                      <p className="font-bold text-lg" style={{ color: "#71BAED" }}>-€{risparmioMensile.toLocaleString("it-IT")}</p>
+                    </div>
                   </div>
+                  <p className="text-[10px] mt-2" style={{ color: "rgba(255,255,255,0.25)" }}>* Stima con IVA 40% + deduzione 80% · aliquota 30%</p>
+                </div>
                 )}
 
                 {/* Config summary */}
@@ -326,20 +330,20 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
               duration, annualKm, advance, monthlyRent: computedRent,
             })}
             disabled={!computedRent}
-            className="w-full h-13 bg-electric hover:bg-electric/90 text-white font-bold rounded-xl text-base cursor-pointer disabled:opacity-40 shadow-lg shadow-electric/25 py-3.5 transition-all duration-200"
+            className="w-full h-13 font-bold rounded-xl text-base cursor-pointer disabled:opacity-40 py-3.5 transition-all duration-200" style={{ backgroundColor: "#71BAED", color: "#FFFFFF", boxShadow: "0 4px 6px -1px rgba(113,186,237,0.25)" }}
           >
             Richiedi Offerta Personalizzata
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         ) : vehicleLink ? (
           <Link to={vehicleLink} className="block">
-            <Button className="w-full h-13 bg-electric hover:bg-electric/90 text-white font-bold rounded-xl text-base cursor-pointer shadow-lg shadow-electric/25 py-3.5">
+            <Button className="w-full h-13 font-bold rounded-xl text-base cursor-pointer shadow-lg py-3.5" style={{ backgroundColor: "#71BAED", color: "#FFFFFF", boxShadow: "0 4px 6px -1px rgba(113,186,237,0.25)" }}>
               Vedi Dettagli e Prezzi <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>
         ) : (
           <Link to="/contact">
-            <Button className="w-full h-13 bg-electric hover:bg-electric/90 text-white font-bold rounded-xl text-base cursor-pointer shadow-lg shadow-electric/25 py-3.5">
+            <Button className="w-full h-13 font-bold rounded-xl text-base cursor-pointer shadow-lg py-3.5" style={{ backgroundColor: "#71BAED", color: "#FFFFFF", boxShadow: "0 4px 6px -1px rgba(113,186,237,0.25)" }}>
               Richiedi Offerta <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>

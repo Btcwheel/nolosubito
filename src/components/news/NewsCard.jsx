@@ -51,7 +51,7 @@ export default function NewsCard({ post, index = 0 }) {
               </span>
             </div>
 
-            <h3 className="font-heading font-bold text-lg text-foreground leading-snug mb-2 group-hover:text-electric transition-colors duration-200 line-clamp-2">
+            <h3 className="font-heading font-bold text-lg text-foreground leading-snug mb-2 group-hover:text-[#71BAED] transition-colors duration-200 line-clamp-2">
               {post.title}
             </h3>
 
@@ -59,7 +59,7 @@ export default function NewsCard({ post, index = 0 }) {
               {post.summary}
             </p>
 
-            <div className="flex items-center gap-1 mt-4 text-electric text-sm font-semibold">
+            <div className="flex items-center gap-1 mt-4 text-[#71BAED] text-sm font-semibold">
               Leggi l'articolo
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" />
             </div>

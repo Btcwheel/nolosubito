@@ -49,7 +49,7 @@ const KM_OPTIONS = [
 ];
 
 const PREVENTIVO_STATUS = {
-  Inviato:   { label: "Da valutare", cls: "bg-electric/10 text-electric border-electric/20" },
+  Inviato:   { label: "Da valutare", cls: "style={{backgroundColor:'#71BAED'}}/10 style={{color:'#71BAED'}} style={{borderColor:'#71BAED'}}/20" },
   Accettato: { label: "Accettato",   cls: "bg-fuel-ev/10 text-fuel-ev border-fuel-ev/20" },
   Rifiutato: { label: "Non accettato", cls: "bg-destructive/10 text-destructive border-destructive/20" },
 };
@@ -151,7 +151,7 @@ function NuovaRichiestaDialog({ open, onClose, praticaId, clienteNome }) {
               type="submit"
               disabled={sending || (!form.marca && !form.modello)}
               size="sm"
-              className="bg-electric hover:bg-electric/90 text-white"
+              className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white"
             >
               {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
               Invia richiesta
@@ -280,7 +280,7 @@ function PreventiviCliente({ praticaId, clienteNome }) {
 
                 {/* Price */}
                 <div className="flex items-baseline gap-1.5 mb-3">
-                  <span className="text-2xl font-heading font-bold text-electric">
+                  <span className="text-2xl font-heading font-bold text-[#71BAED]">
                     €{(prev.canone_finale || prev.canone_mensile)?.toLocaleString("it-IT")}
                   </span>
                   <span className="text-sm text-muted-foreground">/mese</span>
@@ -387,7 +387,7 @@ export default function MiaPratica() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(37,99,235,0.25)_0%,_transparent_60%)]" />
         <div className="max-w-2xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-xs font-medium px-3 py-1.5 rounded-full border border-white/15 mb-5">
-            <div className="w-1.5 h-1.5 rounded-full bg-electric animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[#71BAED] animate-pulse" />
             Tracciamento in tempo reale
           </div>
           <h1 className="font-heading font-bold text-4xl md:text-5xl text-white mb-4 leading-tight">
@@ -416,7 +416,7 @@ export default function MiaPratica() {
                   required
                 />
               </div>
-              <Button type="submit" className="bg-electric hover:bg-electric/90 text-white h-11 px-6 gap-2 shrink-0">
+              <Button type="submit" className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white h-11 px-6 gap-2 shrink-0">
                 <Search className="w-4 h-4" /> Cerca
               </Button>
             </div>
@@ -486,14 +486,14 @@ export default function MiaPratica() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {(p.veicolo_marca || p.veicolo_modello) && (
                             <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-xl border border-border/30">
-                              <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
-                                <Car className="w-4 h-4 text-electric" />
+                              <div className="w-8 h-8 rounded-lg bg-[#71BAED]/10 flex items-center justify-center shrink-0">
+                                <Car className="w-4 h-4 text-[#71BAED]" />
                               </div>
                               <div>
                                 <p className="text-xs text-muted-foreground mb-0.5">Veicolo richiesto</p>
                                 <p className="font-semibold text-foreground text-sm">{p.veicolo_marca} {p.veicolo_modello}</p>
                                 {p.canone_mensile && (
-                                  <p className="text-electric font-bold text-sm mt-0.5">€{p.canone_mensile}/mese</p>
+                                  <p className="text-[#71BAED] font-bold text-sm mt-0.5">€{p.canone_mensile}/mese</p>
                                 )}
                               </div>
                             </div>
@@ -501,8 +501,8 @@ export default function MiaPratica() {
 
                           {p.agente_nome && (
                             <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-xl border border-border/30">
-                              <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
-                                <User className="w-4 h-4 text-electric" />
+                              <div className="w-8 h-8 rounded-lg bg-[#71BAED]/10 flex items-center justify-center shrink-0">
+                                <User className="w-4 h-4 text-[#71BAED]" />
                               </div>
                               <div>
                                 <p className="text-xs text-muted-foreground mb-0.5">Agente assegnato</p>
@@ -541,10 +541,10 @@ export default function MiaPratica() {
                             <div className="space-y-3">
                               {notePerPratica.map((n) => (
                                 <div key={n.id} className="flex gap-3">
-                                  <div className="w-7 h-7 rounded-full bg-electric/15 flex items-center justify-center shrink-0 mt-0.5">
-                                    <span className="text-electric font-bold text-xs">NS</span>
+                                  <div className="w-7 h-7 rounded-full bg-[#71BAED]/15 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span className="text-[#71BAED] font-bold text-xs">NS</span>
                                   </div>
-                                  <div className="flex-1 bg-electric/5 border border-electric/10 rounded-xl px-4 py-3">
+                                  <div className="flex-1 bg-[#71BAED]/5 border border-[#71BAED]/10 rounded-xl px-4 py-3">
                                     <p className="text-sm text-foreground leading-relaxed">{n.testo}</p>
                                     <p className="text-xs text-muted-foreground mt-1.5">
                                       {n.created_at ? format(new Date(n.created_at), "d MMM yyyy · HH:mm", { locale: it }) : ""}
@@ -564,7 +564,7 @@ export default function MiaPratica() {
                 <div className="text-center py-2">
                   <p className="text-xs text-muted-foreground">
                     Hai bisogno di assistenza?{" "}
-                    <a href="mailto:offerte@nolosubito.it" className="text-electric font-medium hover:underline">
+                    <a href="mailto:offerte@nolosubito.it" className="text-[#71BAED] font-medium hover:underline">
                       Contattaci
                     </a>
                   </p>

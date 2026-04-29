@@ -108,7 +108,7 @@ export default function PraticaDetail() {
     <div className="min-h-screen bg-background pt-8 pb-16 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Back */}
-        <button onClick={() => navigate(backPath)} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-electric transition-colors mb-6">
+        <button onClick={() => navigate(backPath)} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-[#71BAED] transition-colors mb-6">
           <ArrowLeft className="w-4 h-4" /> Torna alla lista
         </button>
 
@@ -144,7 +144,7 @@ export default function PraticaDetail() {
               <Button
                 disabled={!newStatus || updateStatus.isPending}
                 onClick={() => updateStatus.mutate(newStatus)}
-                className="bg-electric hover:bg-electric/90 text-white"
+                className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white"
               >
                 Salva
               </Button>
@@ -223,7 +223,7 @@ export default function PraticaDetail() {
               {pratica.canone_mensile && (
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Canone</dt>
-                  <dd className="font-bold text-electric">€{pratica.canone_mensile}/mese</dd>
+                  <dd className="font-bold text-[#71BAED]">€{pratica.canone_mensile}/mese</dd>
                 </div>
               )}
             </dl>
@@ -244,7 +244,7 @@ export default function PraticaDetail() {
         {pratica.agente_id && profile?.role !== "cliente" && (
           <div className="bg-card border border-border/50 rounded-2xl p-5 mb-6">
             <h2 className="font-heading font-semibold text-base mb-4 flex items-center gap-2">
-              <Euro className="w-4 h-4 text-electric" /> Provvigione Agente
+              <Euro className="w-4 h-4 text-[#71BAED]" /> Provvigione Agente
             </h2>
 
             {/* Stato attuale */}
@@ -255,7 +255,7 @@ export default function PraticaDetail() {
               </div>
               <div className="text-right">
                 <p className="text-xs text-muted-foreground mb-0.5">Importo</p>
-                <p className="font-bold text-lg text-electric">
+                <p className="font-bold text-lg text-[#71BAED]">
                   {pratica.provvigione != null ? `€${Number(pratica.provvigione).toLocaleString("it-IT")}` : "Non definita"}
                 </p>
               </div>
@@ -287,7 +287,7 @@ export default function PraticaDetail() {
                   size="sm"
                   disabled={!provvigione || saveProvvigione.isPending}
                   onClick={() => saveProvvigione.mutate({ importo: parseFloat(provvigione), pagata: pratica.provvigione_pagata ?? false })}
-                  className="bg-electric hover:bg-electric/90 text-white"
+                  className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white"
                 >
                   Salva importo
                 </Button>
@@ -365,7 +365,7 @@ export default function PraticaDetail() {
                   onClick={() => addNota.mutate()}
                   disabled={!notaTesto.trim() || addNota.isPending}
                   size="sm"
-                  className="bg-electric hover:bg-electric/90 text-white gap-1.5"
+                  className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white gap-1.5"
                 >
                   <Send className="w-3.5 h-3.5" /> Invia Nota
                 </Button>

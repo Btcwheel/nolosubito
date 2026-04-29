@@ -29,8 +29,8 @@ const ROLE_CONFIG = {
   agente: {
     title: "Benvenuto nel Portale Partner",
     subtitle: "Tutto quello che ti serve per vendere",
-    color: "bg-electric/10 border-electric/20 text-electric",
-    dot: "bg-electric",
+    color: "style={{backgroundColor:'#71BAED'}}/10 style={{borderColor:'#71BAED'}}/20 style={{color:'#71BAED'}}",
+    dot: "style={{backgroundColor:'#71BAED'}}",
     steps: [
       { icon: ClipboardList, title: "Le mie pratiche",    desc: "Segui l'avanzamento di ogni trattativa in corso." },
       { icon: FolderOpen,    title: "Materiali",           desc: "Accedi a brochure, listini e offerte riservate ai partner." },

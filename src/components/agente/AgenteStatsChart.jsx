@@ -127,7 +127,7 @@ export default function AgenteStatsChart({ pratiche }) {
                       </div>
                       <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-electric transition-all duration-700"
+                          className="h-full rounded-full bg-[#71BAED] transition-all duration-700"
                           style={{ width: `${pct}%` }}
                         />
                       </div>

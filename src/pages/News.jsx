@@ -25,10 +25,10 @@ export default function News() {
       <div className="bg-navy pt-28 pb-16 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-electric/20 rounded-xl flex items-center justify-center">
-              <Newspaper className="w-5 h-5 text-electric" />
+            <div className="w-10 h-10 bg-[#71BAED]/20 rounded-xl flex items-center justify-center">
+              <Newspaper className="w-5 h-5 text-[#71BAED]" />
             </div>
-            <span className="text-electric text-sm font-semibold tracking-wide uppercase">Blog & News</span>
+            <span className="text-[#71BAED] text-sm font-semibold tracking-wide uppercase">Blog & News</span>
           </div>
           <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white mb-4">
             Ultime Notizie

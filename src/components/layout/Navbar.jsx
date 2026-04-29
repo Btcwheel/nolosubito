@@ -64,7 +64,7 @@ export default function Navbar() {
       : "bg-[#2D2E82]";
 
   const linkBase    = isLight ? "text-foreground/80 hover:text-foreground hover:bg-black/5" : "text-white/80 hover:text-white hover:bg-white/10";
-  const linkActive  = isLight ? "text-[hsl(var(--electric))]" : "text-electric";
+  const linkActive  = isLight ? "text-[hsl(var(--electric))]" : "text-[#71BAED]";
   const linkActiveBg = isLight ? `${linkActive} bg-black/5` : `${linkActive} bg-white/10`;
 
   return (
@@ -159,7 +159,7 @@ export default function Navbar() {
               Area Cliente
             </Link>
             <Link to="/contact">
-              <Button className="bg-electric hover:bg-electric/90 text-white font-semibold px-6 rounded-lg cursor-pointer">
+              <Button className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold px-6 rounded-lg cursor-pointer">
                 Richiedi Preventivo
               </Button>
             </Link>
@@ -255,7 +255,7 @@ export default function Navbar() {
                   Area Cliente
                 </Link>
                 <Link to="/contact">
-                  <Button className="w-full bg-electric hover:bg-electric/90 text-white font-semibold rounded-lg cursor-pointer">
+                  <Button className="w-full bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold rounded-lg cursor-pointer">
                     Richiedi Preventivo
                   </Button>
                 </Link>

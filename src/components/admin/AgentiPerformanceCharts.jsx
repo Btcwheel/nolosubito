@@ -100,7 +100,7 @@ export default function AgentiPerformanceCharts({ pratiche, agenti }) {
                 <p className="font-semibold text-foreground">{a.nome}</p>
                 <p className="text-xs text-muted-foreground">{a.totale} pratiche totali</p>
               </div>
-              <span className="text-2xl font-bold text-electric">{a.totale}</span>
+              <span className="text-2xl font-bold text-[#71BAED]">{a.totale}</span>
             </div>
             <div className="flex gap-3 text-xs mb-3">
               <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full font-medium">{a.chiuse} chiuse</span>

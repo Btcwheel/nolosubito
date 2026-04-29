@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoloSubito — Noleggio Lungo Termine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg:        #0A0B14;
+      --surface:   #12132A;
+      
+      --navy:      #2D2E82;
+      --accent:    #F97316;
+      --electric:  #6366F1;
+      --white:     #F5F5F0;
+      --muted:     #6B6B8A;
+      --border:    rgba(255,255,255,0.08);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+      transition: color 200ms ease;
+    }
+
+    /* ─── NAVBAR ─────────────────────────────────────────── */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 11, 20, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 80px;
+      height: 68px;
+    }
+
+    .navbar__logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--white);
+      letter-spacing: -0.5px;
+      flex-shrink: 0;
+    }
+
+    .navbar__logo span {
+      color: var(--electric);
+    }
+
+    .navbar__links {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .navbar__links li a {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      font-size: 14px;
+      color: var(--muted);
+      position: relative;
+      padding-bottom: 4px;
+    }
+
+    .navbar__links li a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: var(--electric);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 200ms ease;
+    }
+
+    .navbar__links li a:hover {
+      color: var(--electric);
+    }
+
+    .navbar__links li a:hover::after {
+      transform: scaleX(1);
+    }
+
+    .navbar__cta {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--electric);
+      border: 1px solid var(--electric);
+      padding: 9px 22px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+      transition: all 200ms ease;
+      flex-shrink: 0;
+    }
+
+    .navbar__cta:hover {
+      background: var(--electric);
+      color: var(--white);
+    }
+
+    /* Hamburger (mobile) */
+    .navbar__hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+
+    .navbar__hamburger span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--white);
+      border-radius: 2px;
+      transition: all 200ms ease;
+    }
+
+    /* ─── HERO ────────────────────────────────────────────── */
+    .hero {
+      display: grid;
+      grid-template-columns: 60fr 40fr;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero__left {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero__page-number {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 200px;
+      color: var(--white);
+      opacity: 0.04;
+      position: absolute;
+      bottom: -30px;
+      right: -20px;
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+      z-index: 1;
+    }
+
+    .hero__badge {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 48px;
+    }
+
+    .hero__badge-line {
+      width: 32px;
+      height: 1px;
+      background: var(--muted);
+    }
+
+    .hero__badge-text {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .hero__heading {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-bottom: 28px;
+    }
+
+    .hero__h1-line1 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 72px;
+      line-height: 1.0;
+      color: var(--white);
+      letter-spacing: -2px;
+    }
+
+    .hero__h1-line2 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 96px;
+      line-height: 0.95;
+      color: var(--white);
+      letter-spacing: -3px;
+    }
+
+    .hero__h1-line3 {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 56px;
+      line-height: 1.1;
+      color: var(--electric);
+      letter-spacing: -1.5px;
+    }
+
+    .hero__subtitle {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      font-size: 18px;
+      line-height: 1.6;
+      color: var(--muted);
+      max-width: 420px;
+      margin-bottom: 48px;
+    }
+
+    .hero__cta {
+      display: inline-block;
+      font-family: 'Syne', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      color: var(--white);
+      background: var(--navy);
+      padding: 16px 40px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: background 200ms ease, transform 200ms ease;
+      align-self: flex-start;
+      letter-spacing: 0.2px;
+    }
+
+    .hero__cta:hover {
+      background: var(--electric);
+      transform: translateY(-2px);
+    }
+
+    .hero__scroll-hint {
+      position: absolute;
+      bottom: 40px;
+      left: 80px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    .hero__right {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero__image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+    }
+
+    .hero__image-blend {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 200px;
+      height: 100%;
+      background: linear-gradient(to right, var(--bg) 0%, transparent 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* ─── BRAND STRIP ─────────────────────────────────────── */
+    .brand-strip {
+      background: var(--surface);
+      padding: 32px 80px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand-strip__label {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .brand-strip__logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0;
+    }
+
+    .brand-strip__item {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      padding: 0 24px;
+      transition: color 200ms ease;
+    }
+
+    .brand-strip__item:hover {
+      color: var(--white);
+    }
+
+    .brand-strip__sep {
+      color: var(--border);
+      font-size: 18px;
+      opacity: 0.5;
+    }
+
+    /* ─── NUMERI (EDITORIAL) ─────────────────────────────── */
+    .editorial-numbers {
+      background: var(--surface);
+      padding: 100px 80px;
+      text-align: center;
+    }
+
+    .editorial-numbers__stat {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 64px;
+      line-height: 1.1;
+      color: var(--white);
+      letter-spacing: -2px;
+      margin-bottom: 32px;
+    }
+
+    .editorial-numbers__stat .dot {
+      color: var(--accent);
+      margin: 0 12px;
+    }
+
+    .editorial-numbers__desc {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      font-size: 18px;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ─── VEICOLI ─────────────────────────────────────────── */
+    .vehicles {
+      background: var(--bg);
+      padding: 100px 80px;
+    }
+
+    .vehicles__header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .vehicles__title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 40px;
+      color: var(--white);
+      letter-spacing: -1px;
+    }
+
+    .vehicles__title-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 6px;
+    }
+
+    .vehicles__all {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: var(--electric);
+      white-space: nowrap;
+      transition: opacity 200ms ease;
+    }
+
+    .vehicles__all:hover {
+      opacity: 0.7;
+    }
+
+    .vehicles__grid {
+      display: grid;
+      grid-template-columns: 58fr 42fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+
+    /* Featured card */
+    .vehicle-card--featured {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: border-color 200ms ease, transform 200ms ease;
+    }
+
+    .vehicle-card--featured:hover {
+      border-color: var(--electric);
+      transform: translateY(-4px);
+    }
+
+    .vehicle-card--featured img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+    }
+
+    .vehicle-card--featured__overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 32px 28px 28px;
+      background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+    }
+
+    .vehicle-card__brand {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .vehicle-card__model {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 32px;
+      color: var(--white);
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+      line-height: 1.0;
+    }
+
+    .vehicle-card__price {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      font-size: 15px;
+      color: rgba(245,245,240,0.7);
+      margin-bottom: 20px;
+    }
+
+    .vehicle-card__btn {
+      display: inline-block;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--white);
+      border: 1px solid rgba(255,255,255,0.35);
+      padding: 9px 20px;
+      border-radius: 4px;
+      transition: all 200ms ease;
+    }
+
+    .vehicle-card__btn:hover {
+      border-color: var(--electric);
+      color: var(--electric);
+    }
+
+    /* Stack column */
+    .vehicles__stack {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .vehicle-card--compact {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 200ms ease, transform 200ms ease;
+      height: 100%;
+      min-height: 180px;
+    }
+
+    .vehicle-card--compact:hover {
+      border-color: var(--electric);
+      transform: translateY(-4px);
+    }
+
+    .vehicle-card--compact__image {
+      width: 40%;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .vehicle-card--compact__image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .vehicle-card--compact__info {
+      width: 60%;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+
+    .vehicle-card--compact__top .vehicle-card__brand {
+      margin-bottom: 4px;
+    }
+
+    .vehicle-card--compact__top .vehicle-card__model {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+
+    .vehicle-card__specs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .vehicle-card__pill {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      font-size: 11px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: 2px;
+      letter-spacing: 0.3px;
+    }
+
+    .vehicle-card--compact__price {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      font-size: 14px;
+      color: var(--white);
+    }
+
+    /* ─── CTA SECTION ─────────────────────────────────────── */
+    .cta-section {
+      background: var(--navy);
+      padding: 100px 80px;
+      text-align: center;
+    }
+
+    .cta-section__heading {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 56px;
+      color: var(--white);
+      letter-spacing: -2px;
+      line-height: 1.1;
+      max-width: 700px;
+      margin: 0 auto 20px;
+    }
+
+    .cta-section__sub {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      font-size: 18px;
+      color: rgba(245,245,240,0.5);
+      margin-bottom: 48px;
+    }
+
+    .cta-section__btn {
+      display: inline-block;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--bg);
+      background: var(--accent);
+      padding: 20px 56px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: opacity 200ms ease, transform 200ms ease;
+      letter-spacing: 0.2px;
+    }
+
+    .cta-section__btn:hover {
+      opacity: 0.88;
+      transform: translateY(-2px);
+    }
+
+    /* ─── FOOTER ──────────────────────────────────────────── */
+    .footer {
+      background: #070812;
+      padding: 64px 80px 40px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer__grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 56px;
+    }
+
+    .footer__logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--white);
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .footer__logo span {
+      color: var(--electric);
+    }
+
+    .footer__desc {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 260px;
+    }
+
+    .footer__col-title {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+
+    .footer__col-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .footer__col-links li a {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      font-size: 14px;
+      color: rgba(245,245,240,0.5);
+      transition: color 200ms ease;
+    }
+
+    .footer__col-links li a:hover {
+      color: var(--white);
+    }
+
+    .footer__bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer__copy {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .footer__legal {
+      display: flex;
+      gap: 24px;
+    }
+
+    .footer__legal a {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 400;
+      font-size: 12px;
+      color: var(--muted);
+      transition: color 200ms ease;
+    }
+
+    .footer__legal a:hover {
+      color: var(--white);
+    }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .navbar {
+        padding: 0 40px;
+      }
+
+      .hero__left {
+        padding: 60px 40px;
+      }
+
+      .hero__h1-line2 {
+        font-size: 72px;
+      }
+
+      .editorial-numbers__stat {
+        font-size: 44px;
+      }
+
+      .vehicles,
+      .cta-section,
+      .footer,
+      .brand-strip {
+        padding-left: 40px;
+        padding-right: 40px;
+      }
+
+      .footer__grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 36px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 0 24px;
+      }
+
+      .navbar__links {
+        display: none;
+      }
+
+      .navbar__hamburger {
+        display: flex;
+      }
+
+      .hero {
+        display: flex;
+        flex-direction: column;
+        min-height: auto;
+      }
+
+      .hero__left {
+        padding: 60px 24px 40px;
+        order: 1;
+      }
+
+      .hero__right {
+        order: 2;
+        height: 280px;
+      }
+
+      .hero__h1-line1 {
+        font-size: 48px;
+        letter-spacing: -1px;
+      }
+
+      .hero__h1-line2 {
+        font-size: 64px;
+        letter-spacing: -2px;
+      }
+
+      .hero__h1-line3 {
+        font-size: 40px;
+        letter-spacing: -1px;
+      }
+
+      .hero__scroll-hint {
+        display: none;
+      }
+
+      .hero__page-number {
+        font-size: 140px;
+        right: -10px;
+        bottom: -20px;
+      }
+
+      .brand-strip {
+        padding: 24px;
+      }
+
+      .brand-strip__logos {
+        gap: 8px 0;
+      }
+
+      .brand-strip__item {
+        padding: 4px 12px;
+        font-size: 12px;
+      }
+
+      .editorial-numbers {
+        padding: 64px 24px;
+      }
+
+      .editorial-numbers__stat {
+        font-size: 32px;
+        letter-spacing: -1px;
+      }
+
+      .vehicles {
+        padding: 64px 24px;
+      }
+
+      .vehicles__grid {
+        grid-template-columns: 1fr;
+      }
+
+      .vehicles__stack {
+        gap: 16px;
+      }
+
+      .vehicle-card--compact {
+        min-height: 160px;
+      }
+
+      .cta-section {
+        padding: 64px 24px;
+      }
+
+      .cta-section__heading {
+        font-size: 36px;
+        letter-spacing: -1px;
+      }
+
+      .cta-section__btn {
+        padding: 16px 36px;
+        font-size: 15px;
+      }
+
+      .footer {
+        padding: 48px 24px 32px;
+      }
+
+      .footer__grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+
+      .footer__bottom {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+
+      .footer__legal {
+        justify-content: center;
+      }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAVBAR ──────────────────────────────── -->
+  <nav class="navbar">
+    <a href="#" class="navbar__logo">Nolo<span>Subito</span></a>
+
+    <ul class="navbar__links">
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Offerte</a></li>
+      <li><a href="#">News</a></li>
+      <li><a href="#">Green</a></li>
+      <li><a href="#">Lavora con Noi</a></li>
+      <li><a href="#">Contatti</a></li>
+    </ul>
+
+    <a href="#" class="navbar__cta">Preventivo Gratuito</a>
+
+    <button class="navbar__hamburger" aria-label="Menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </nav>
+
+  <!-- ─── HERO ────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero__left">
+      <div class="hero__badge">
+        <div class="hero__badge-line"></div>
+        <span class="hero__badge-text">— NLT · Noleggio Lungo Termine</span>
+      </div>
+
+      <div class="hero__heading">
+        <span class="hero__h1-line1">L'auto</span>
+        <span class="hero__h1-line2">giusta</span>
+        <span class="hero__h1-line3">ogni mese.</span>
+      </div>
+
+      <p class="hero__subtitle">
+        Noleggio a lungo termine per aziende e privati. Assicurazione, manutenzione e bollo inclusi.
+      </p>
+
+      <a href="#" class="hero__cta">Scopri le Offerte</a>
+
+      <div class="hero__page-number">01</div>
+    </div>
+
+    <div class="hero__right">
+      <img
+        class="hero__image"
+        src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1400&q=80"
+        alt="Auto in noleggio lungo termine"
+        loading="eager"
+      />
+      <div class="hero__image-blend"></div>
+    </div>
+
+    <div class="hero__scroll-hint">↓ Scopri i veicoli</div>
+  </section>
+
+  <!-- ─── BRAND STRIP ──────────────────────────── -->
+  <div class="brand-strip">
+    <p class="brand-strip__label">Trattiamo le principali marche</p>
+    <div class="brand-strip__logos">
+      <span class="brand-strip__item">BMW</span>
+      <span class="brand-strip__sep">·</span>
+      <span class="brand-strip__item">TESLA</span>
+      <span class="brand-strip__sep">·</span>
+      <span class="brand-strip__item">MERCEDES</span>
+      <span class="brand-strip__sep">·</span>
+      <span class="brand-strip__item">AUDI</span>
+      <span class="brand-strip__sep">·</span>
+      <span class="brand-strip__item">VOLKSWAGEN</span>
+      <span class="brand-strip__sep">·</span>
+      <span class="brand-strip__item">VOLVO</span>
+      <span class="brand-strip__sep">·</span>
+      <span class="brand-strip__item">TOYOTA</span>
+    </div>
+  </div>
+
+  <!-- ─── EDITORIAL NUMBERS ─────────────────────── -->
+  <section class="editorial-numbers">
+    <p class="editorial-numbers__stat">
+      36 mesi <span class="dot">·</span> €0 anticipo <span class="dot">·</span> tutto incluso
+    </p>
+    <p class="editorial-numbers__desc">
+      Un canone mensile fisso che copre assicurazione, manutenzione ordinaria e straordinaria, bollo e assistenza stradale. Zero sorprese, zero costi nascosti.
+    </p>
+  </section>
+
+  <!-- ─── VEICOLI ──────────────────────────────── -->
+  <section class="vehicles">
+    <div class="vehicles__header">
+      <h2 class="vehicles__title">Veicoli in Evidenza</h2>
+      <div class="vehicles__title-line"></div>
+      <a href="#" class="vehicles__all">Tutti i veicoli →</a>
+    </div>
+
+    <div class="vehicles__grid">
+
+      <!-- Featured -->
+      <div class="vehicle-card--featured">
+        <img
+          src="https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=900&q=80"
+          alt="Tesla Model 3"
+        />
+        <div class="vehicle-card--featured__overlay">
+          <p class="vehicle-card__brand">Tesla</p>
+          <p class="vehicle-card__model">Model 3</p>
+          <p class="vehicle-card__price">Da €560/mese + IVA</p>
+          <a href="#" class="vehicle-card__btn">Configura →</a>
+        </div>
+      </div>
+
+      <!-- Stack -->
+      <div class="vehicles__stack">
+
+        <div class="vehicle-card--compact">
+          <div class="vehicle-card--compact__image">
+            <img
+              src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80"
+              alt="BMW X5"
+            />
+          </div>
+          <div class="vehicle-card--compact__info">
+            <div class="vehicle-card--compact__top">
+              <p class="vehicle-card__brand">BMW</p>
+              <p class="vehicle-card__model">X5</p>
+              <div class="vehicle-card__specs">
+                <span class="vehicle-card__pill">SUV</span>
+                <span class="vehicle-card__pill">Diesel</span>
+                <span class="vehicle-card__pill">Automatico</span>
+              </div>
+            </div>
+            <p class="vehicle-card--compact__price">Da €1.050/mese + IVA</p>
+          </div>
+        </div>
+
+        <div class="vehicle-card--compact">
+          <div class="vehicle-card--compact__image">
+            <img
+              src="https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=600&q=80"
+              alt="Mercedes GLC"
+            />
+          </div>
+          <div class="vehicle-card--compact__info">
+            <div class="vehicle-card--compact__top">
+              <p class="vehicle-card__brand">Mercedes</p>
+              <p class="vehicle-card__model">GLC</p>
+              <div class="vehicle-card__specs">
+                <span class="vehicle-card__pill">SUV</span>
+                <span class="vehicle-card__pill">Benzina</span>
+                <span class="vehicle-card__pill">Automatico</span>
+              </div>
+            </div>
+            <p class="vehicle-card--compact__price">Da €860/mese + IVA</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── CTA SECTION ──────────────────────────── -->
+  <section class="cta-section">
+    <h2 class="cta-section__heading">Richiedi il tuo preventivo — è gratuito.</h2>
+    <p class="cta-section__sub">Risposta entro 24 ore. Nessun obbligo.</p>
+    <a href="#" class="cta-section__btn">Richiedi Preventivo</a>
+  </section>
+
+  <!-- ─── FOOTER ───────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer__grid">
+
+      <div>
+        <span class="footer__logo">Nolo<span>Subito</span></span>
+        <p class="footer__desc">
+          Noleggio lungo termine per privati e aziende in tutta Italia. Semplicità, trasparenza, qualità.
+        </p>
+      </div>
+
+      <div>
+        <p class="footer__col-title">Soluzioni</p>
+        <ul class="footer__col-links">
+          <li><a href="#">NLT Privati</a></li>
+          <li><a href="#">NLT Aziende</a></li>
+          <li><a href="#">Green Mobility</a></li>
+          <li><a href="#">Offerte in Corso</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="footer__col-title">Azienda</p>
+        <ul class="footer__col-links">
+          <li><a href="#">Chi Siamo</a></li>
+          <li><a href="#">News</a></li>
+          <li><a href="#">Lavora con Noi</a></li>
+          <li><a href="#">Partner</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <p class="footer__col-title">Contatti</p>
+        <ul class="footer__col-links">
+          <li><a href="mailto:info@nolosubito.it">info@nolosubito.it</a></li>
+          <li><a href="tel:+390281234567">02 8123 4567</a></li>
+          <li><a href="#">Richiedi Preventivo</a></li>
+          <li><a href="#">Area Clienti</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer__bottom">
+      <p class="footer__copy">© 2025 NoloSubito S.r.l. — P.IVA 12345678901</p>
+      <div class="footer__legal">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Cookie Policy</a>
+        <a href="#">Note Legali</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

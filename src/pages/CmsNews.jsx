@@ -95,7 +95,7 @@ export default function CmsNews() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-heading font-bold text-xl text-foreground">News & Articoli</h2>
-        <Button onClick={openNew} className="bg-electric hover:bg-electric/90 text-white gap-2">
+        <Button onClick={openNew} className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white gap-2">
           <Plus className="w-4 h-4" /> Nuovo Articolo
         </Button>
       </div>
@@ -165,7 +165,7 @@ export default function CmsNews() {
 
             <div className="flex gap-3 mt-6">
               <Button variant="outline" onClick={() => setEditing(null)} className="flex-1">Annulla</Button>
-              <Button onClick={handleSave} disabled={saveMutation.isPending} className="flex-1 bg-electric hover:bg-electric/90 text-white">
+              <Button onClick={handleSave} disabled={saveMutation.isPending} className="flex-1 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white">
                 <Check className="w-4 h-4 mr-1" /> Salva
               </Button>
             </div>

@@ -23,7 +23,7 @@ export default function WhySection() {
 
         {/* Header */}
         <div className="mb-16">
-          <p className="text-electric text-xs font-bold uppercase tracking-widest mb-3">
+          <p className="text-[#71BAED] text-xs font-bold uppercase tracking-widest mb-3">
             Perché scegliere Nolosubito
           </p>
           <h2 className="font-heading font-bold text-3xl sm:text-4xl text-foreground max-w-lg">
@@ -42,7 +42,7 @@ export default function WhySection() {
             transition={{ duration: 0.5 }}
             className="lg:col-span-2 flex flex-col justify-between bg-[#2D2E82] rounded-2xl p-8 sm:p-10 min-h-[280px]"
           >
-            <PRIMARY.icon className="w-10 h-10 text-electric" />
+            <PRIMARY.icon className="w-10 h-10 text-[#71BAED]" />
             <div>
               <h3 className="font-heading font-bold text-xl text-white mb-3">{PRIMARY.title}</h3>
               <p className="text-white/60 text-sm leading-relaxed">{PRIMARY.desc}</p>
@@ -60,7 +60,7 @@ export default function WhySection() {
                 transition={{ duration: 0.4, delay: i * 0.07 }}
                 className="flex flex-col gap-4 bg-card border border-border/50 rounded-xl p-5"
               >
-                <f.icon className="w-5 h-5 text-electric" />
+                <f.icon className="w-5 h-5 text-[#71BAED]" />
                 <div>
                   <h3 className="font-heading font-semibold text-sm text-foreground mb-1">{f.title}</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>

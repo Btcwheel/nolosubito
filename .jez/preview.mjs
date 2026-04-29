@@ -1,0 +1,16 @@
+import { chromium } from 'playwright';
+import path from 'path';
+const browser = await chromium.launch();
+const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+const page = await ctx.newPage();
+const filePath = path.resolve('.jez/artifacts/mockup-homepage.html');
+await page.goto('file:///' + filePath.replace(/\/g, '/'));
+await page.waitForTimeout(2000);
+await page.screenshot({ path: '.jez/artifacts/mockup-preview-desktop.png', fullPage: true });
+const mctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const mp = await mctx.newPage();
+await mp.goto('file:///' + filePath.replace(/\/g, '/'));
+await mp.waitForTimeout(2000);
+await mp.screenshot({ path: '.jez/artifacts/mockup-preview-mobile.png', fullPage: true });
+await browser.close();
+console.log('Done');

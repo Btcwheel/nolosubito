@@ -140,7 +140,7 @@ export default function AgenteMateriali() {
                       href={m.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-xs font-semibold text-electric hover:text-electric/80 transition-colors"
+                      style={{color:'#71BAED'}} className="flex items-center gap-1.5 text-xs font-semibold  hover:text-[#71BAED]/80 transition-colors"
                     >
                       <Download className="w-3.5 h-3.5" />
                       Scarica

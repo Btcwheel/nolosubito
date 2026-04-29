@@ -10,6 +10,8 @@ import { motion } from "framer-motion";
 
 export default function PrivateOffers() {
   const [search, setSearch] = useState("");
+  const [brandFilter, setBrandFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [fuelFilter, setFuelFilter] = useState("all");
   const [sortBy, setSortBy] = useState("price_asc");
 
@@ -18,6 +20,8 @@ export default function PrivateOffers() {
     queryFn: () => offersService.listWithMinPrice("Privati"),
   });
 
+  const brands = useMemo(() => [...new Set(vehicles.map(o => o.make?.trim().toUpperCase()).filter(Boolean))].sort(), [vehicles]);
+  const categories = useMemo(() => [...new Set(vehicles.map(o => o.category).filter(Boolean))], [vehicles]);
   const fuelTypes = useMemo(() => [...new Set(vehicles.map(o => o.fuel_type).filter(Boolean))], [vehicles]);
 
   const filtered = useMemo(() => {
@@ -25,6 +29,12 @@ export default function PrivateOffers() {
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(v => `${v.make} ${v.model}`.toLowerCase().includes(q));
+    }
+    if (brandFilter !== "all") {
+      result = result.filter(v => v.make?.trim().toUpperCase() === brandFilter);
+    }
+    if (categoryFilter !== "all") {
+      result = result.filter(v => v.category === categoryFilter);
     }
     if (fuelFilter !== "all") {
       result = result.filter(v => v.fuel_type === fuelFilter);
@@ -35,7 +45,7 @@ export default function PrivateOffers() {
       return `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`);
     });
     return result;
-  }, [vehicles, search, fuelFilter, sortBy]);
+  }, [vehicles, search, brandFilter, categoryFilter, fuelFilter, sortBy]);
 
   return (
     <div className="bg-navy">
@@ -62,6 +72,28 @@ export default function PrivateOffers() {
                 className="pl-10 h-11"
               />
             </div>
+            <Select value={brandFilter} onValueChange={setBrandFilter}>
+              <SelectTrigger className="w-full sm:w-40 h-11">
+                <SelectValue placeholder="Marca" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tutte le marche</SelectItem>
+                {brands.map(b => (
+                  <SelectItem key={b} value={b}>{b}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-full sm:w-44 h-11">
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tutte le categorie</SelectItem>
+                {categories.map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select value={fuelFilter} onValueChange={setFuelFilter}>
               <SelectTrigger className="w-full sm:w-36 h-11">
                 <SelectValue placeholder="Carburante" />

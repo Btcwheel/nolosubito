@@ -12,28 +12,28 @@ const contactInfo = [
 
 const offices = [
   {
-    name: "Sede Legale",
+    name: "Filiale Napoli",
     lines: ["Via Nuova Poggioreale, 60L", "Centro Polifunzionale INAIL, Torre 7", "80143 Napoli"],
     phones: ["+39 06 40 049 490", "+39 345 430 0936"],
   },
   {
-    name: "Sede Roma",
+    name: "Filiale Roma",
     lines: ["Via degli Archivi di Stato, 15", "00143 Roma"],
     phones: ["+39 06 40 049 490", "+39 345 430 0936"],
   },
   {
-    name: "Sede Napoli / Agnano",
+    name: "Filiale Napoli / Agnano",
     lines: ["Via Eduardo Scarfoglio, 6H", "80125 Napoli"],
     phones: ["+39 081 218 9702", "+39 334 353 1333"],
   },
   {
-    name: "Sede Viterbo",
+    name: "Filiale Viterbo",
     lines: ["Strada Tuscanese km 4.400", "01100 Viterbo"],
     phones: ["+39 393 218 7236", "+39 324 863 8552"],
   },
   {
-    name: "Sede Avellino Est",
-    lines: ["Via Tavernole, 40", "83030 Monocalzati"],
+    name: "Filiale Avellino Est",
+    lines: ["Via Tavernole, 40", "83030 Montecalzati"],
     phones: ["+39 06 40 049 490", "+39 345 430 0936"],
   },
 ];
@@ -60,13 +60,13 @@ export default function Contact() {
               <h2 className="font-heading font-bold text-xl text-foreground">Informazioni di Contatto</h2>
               {contactInfo.map((c) => (
                 <div key={c.label} className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
-                    <c.icon className="w-5 h-5 text-electric" />
+                  <div className="w-10 h-10 rounded-lg bg-[#71BAED]/10 flex items-center justify-center shrink-0">
+                    <c.icon className="w-5 h-5 text-[#71BAED]" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">{c.label}</p>
                     {c.href ? (
-                      <a href={c.href} className="text-sm font-medium text-foreground hover:text-electric transition-colors duration-200">
+                      <a href={c.href} className="text-sm font-medium text-foreground hover:text-[#71BAED] transition-colors duration-200">
                         {c.value}
                       </a>
                     ) : (
@@ -99,11 +99,11 @@ export default function Contact() {
           <div className="mt-16">
             <div className="flex items-end justify-between gap-4 mb-6">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-electric mb-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#71BAED] mb-2">
                   Rete territoriale
                 </p>
                 <h2 className="font-heading font-bold text-2xl text-foreground">
-                  Le nostre sedi
+                  Le nostre filiali
                 </h2>
               </div>
               <p className="hidden sm:block text-sm text-muted-foreground max-w-xl text-right">
@@ -115,8 +115,8 @@ export default function Contact() {
               {offices.map((office) => (
                 <div key={office.name} className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-electric/10 flex items-center justify-center shrink-0">
-                      <MapPin className="w-5 h-5 text-electric" />
+                    <div className="w-10 h-10 rounded-xl bg-[#71BAED]/10 flex items-center justify-center shrink-0">
+                      <MapPin className="w-5 h-5 text-[#71BAED]" />
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-heading font-semibold text-lg text-foreground">
@@ -132,7 +132,7 @@ export default function Contact() {
                           <a
                             key={phone}
                             href={`tel:${phone.replace(/\s+/g, "")}`}
-                            className="block text-sm font-medium text-foreground hover:text-electric transition-colors"
+                            className="block text-sm font-medium text-foreground hover:text-[#71BAED] transition-colors"
                           >
                             {phone}
                           </a>

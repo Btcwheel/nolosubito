@@ -67,7 +67,7 @@ export default function AgentePipelineView({ pratiche, isLoading }) {
                     <Link to={`/agente/pratica/${p.id}`}>
                       <div className="bg-card border border-border/50 rounded-xl p-3 hover:shadow-md hover:border-border transition-all cursor-pointer group">
                         <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot} mb-2`} />
-                        <p className="font-mono text-xs font-bold text-electric mb-1 truncate">
+                        <p className="font-mono text-xs font-bold text-[#71BAED] mb-1 truncate">
                           {p.codice || `#${p.id.slice(0, 8).toUpperCase()}`}
                         </p>
                         <p className="text-xs font-semibold text-foreground truncate">{p.cliente_nome}</p>
@@ -78,7 +78,7 @@ export default function AgentePipelineView({ pratiche, isLoading }) {
                           </div>
                         )}
                         {p.canone_mensile && (
-                          <p className="text-xs text-electric font-bold mt-1">€{p.canone_mensile}/m</p>
+                          <p className="text-xs text-[#71BAED] font-bold mt-1">€{p.canone_mensile}/m</p>
                         )}
                         <p className="text-xs text-muted-foreground/50 mt-1.5">
                           {p.created_date ? format(new Date(p.created_date), "d MMM", { locale: it }) : ""}

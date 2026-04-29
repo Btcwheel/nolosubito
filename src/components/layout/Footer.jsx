@@ -23,21 +23,21 @@ export default function Footer() {
           <div>
             <h4 className="font-heading font-semibold text-white mb-4">Soluzioni</h4>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/offers" className="hover:text-electric transition-colors duration-200">Offerte Business</Link></li>
-              <li><Link to="/fleet" className="hover:text-electric transition-colors duration-200">Soluzioni Flotta</Link></li>
-              <li><Link to="/green" className="hover:text-electric transition-colors duration-200">Mobilità Green</Link></li>
+              <li><Link to="/offers" className="hover:text-[#71BAED] transition-colors duration-200">Offerte Business</Link></li>
+              <li><Link to="/fleet" className="hover:text-[#71BAED] transition-colors duration-200">Soluzioni Flotta</Link></li>
+              <li><Link to="/green" className="hover:text-[#71BAED] transition-colors duration-200">Mobilità Green</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-heading font-semibold text-white mb-4">Azienda</h4>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/contact" className="hover:text-electric transition-colors duration-200">Contattaci</Link></li>
-              <li><Link to="/careers" className="hover:text-electric transition-colors duration-200">Diventa Partner</Link></li>
-              <li><Link to="/accedi" className="hover:text-electric transition-colors duration-200">Area Clienti</Link></li>
-              <li><Link to="/partner/accedi" className="hover:text-electric transition-colors duration-200">Area Partners</Link></li>
-              <li><Link to="/privacy" className="hover:text-electric transition-colors duration-200">Privacy Policy</Link></li>
-              <li><Link to="/termini" className="hover:text-electric transition-colors duration-200">Termini e Condizioni</Link></li>
+              <li><Link to="/contact" className="hover:text-[#71BAED] transition-colors duration-200">Contattaci</Link></li>
+              <li><Link to="/careers" className="hover:text-[#71BAED] transition-colors duration-200">Diventa Partner</Link></li>
+              <li><Link to="/accedi" className="hover:text-[#71BAED] transition-colors duration-200">Area Clienti</Link></li>
+              <li><Link to="/partner/accedi" className="hover:text-[#71BAED] transition-colors duration-200">Area Partners</Link></li>
+              <li><Link to="/privacy" className="hover:text-[#71BAED] transition-colors duration-200">Privacy Policy</Link></li>
+              <li><Link to="/termini" className="hover:text-[#71BAED] transition-colors duration-200">Termini e Condizioni</Link></li>
             </ul>
           </div>
 
@@ -45,18 +45,18 @@ export default function Footer() {
             <h4 className="font-heading font-semibold text-white mb-4">Contatti</h4>
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-electric" />
-                <a href="mailto:info@nolosubito.it" className="hover:text-electric transition-colors duration-200">info@nolosubito.it</a>
+                <Mail className="w-4 h-4 text-[#71BAED]" />
+                <a href="mailto:info@nolosubito.it" className="hover:text-[#71BAED] transition-colors duration-200">info@nolosubito.it</a>
               </li>
               <li className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-electric" />
-                <a href="tel:+390640049490" className="hover:text-electric transition-colors duration-200">
+                <Phone className="w-4 h-4 text-[#71BAED]" />
+                <a href="tel:+390640049490" className="hover:text-[#71BAED] transition-colors duration-200">
                   +39 06 4004 9490 <br /> +39 3454300936
 
                 </a>
               </li>
               <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-electric" />
+                <MapPin className="w-4 h-4 text-[#71BAED]" />
                 <div className="leading-relaxed">
                   <p className="font-medium text-white">Sede legale</p>
                   <p className="text-white/60">Via Nuova Poggioreale, 60L</p>

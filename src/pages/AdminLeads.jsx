@@ -113,7 +113,7 @@ function ConvertModal({ lead, onClose, onConverted }) {
         <div className="flex gap-3 px-6 py-4 border-t border-border">
           <Button variant="outline" onClick={onClose} className="flex-1">Annulla</Button>
           <Button onClick={handleSubmit} disabled={saving}
-            className="flex-1 bg-electric hover:bg-electric/90 text-white gap-2">
+            className="flex-1 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white gap-2">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
             Crea Pratica
           </Button>
@@ -171,7 +171,7 @@ export default function AdminLeads() {
         <div className="flex flex-wrap gap-3 mb-6">
           {ALL_STATUSES.map(s => (
             <div key={s} className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold cursor-pointer transition-colors ${
-              filterStatus === s ? "border-electric bg-electric/10 text-electric" : "border-border bg-card text-muted-foreground hover:border-electric/50"
+              filterStatus === s ? "style={{borderColor:'#71BAED'}} style={{backgroundColor:'#71BAED'}}/10 style={{color:'#71BAED'}}" : "border-border bg-card text-muted-foreground hover:style={{borderColor:'#71BAED'}}/50"
             }`}
               onClick={() => setFilter(filterStatus === s ? "tutti" : s)}
             >

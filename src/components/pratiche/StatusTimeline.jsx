@@ -33,16 +33,16 @@ export default function StatusTimeline({ currentStatus }) {
                   transition={{ duration: 0.6, repeat: isCurrent ? Infinity : 0, repeatDelay: 2 }}
                   className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
                     isDone
-                      ? "bg-electric border-electric"
+                      ? "style={{backgroundColor:'#71BAED'}} style={{borderColor:'#71BAED'}}"
                       : isCurrent
-                        ? "bg-white border-electric shadow-[0_0_0_4px_rgba(37,99,235,0.12)]"
+                        ? "bg-white style={{borderColor:'#71BAED'}} shadow-[0_0_0_4px_rgba(37,99,235,0.12)]"
                         : "bg-white border-border"
                   }`}
                 >
                   {isDone ? (
                     <Check className="w-4 h-4 text-white" strokeWidth={2.5} />
                   ) : isCurrent ? (
-                    <div className="w-2.5 h-2.5 rounded-full bg-electric" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#71BAED]" />
                   ) : (
                     <div className="w-2.5 h-2.5 rounded-full bg-border/60" />
                   )}
@@ -51,7 +51,7 @@ export default function StatusTimeline({ currentStatus }) {
                 {/* Label */}
                 <p className={`mt-2 text-center leading-tight px-1 transition-all duration-200 ${
                   isCurrent
-                    ? "font-semibold text-electric text-xs"
+                    ? "font-semibold style={{color:'#71BAED'}} text-xs"
                     : isDone
                       ? "text-muted-foreground text-xs"
                       : "text-muted-foreground/40 text-xs"
@@ -66,7 +66,7 @@ export default function StatusTimeline({ currentStatus }) {
                   <div className="w-full h-full bg-border/40 rounded-full" />
                   {isDone && (
                     <motion.div
-                      className="absolute inset-0 bg-electric rounded-full"
+                      className="absolute inset-0 bg-[#71BAED] rounded-full"
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: 1 }}
                       transition={{ duration: 0.4 }}

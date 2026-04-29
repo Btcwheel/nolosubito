@@ -72,7 +72,7 @@ export default function CmsOffers() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-heading font-bold text-xl text-foreground">Configurazioni Prezzi</h2>
-        <Button onClick={openNew} className="bg-electric hover:bg-electric/90 text-white gap-2">
+        <Button onClick={openNew} className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white gap-2">
           <Plus className="w-4 h-4" /> Nuova Config
         </Button>
       </div>
@@ -129,7 +129,7 @@ export default function CmsOffers() {
             </div>
             <div className="flex gap-3 mt-6">
               <Button variant="outline" onClick={() => setEditing(null)} className="flex-1">Annulla</Button>
-              <Button onClick={handleSave} disabled={saveMutation.isPending} className="flex-1 bg-electric hover:bg-electric/90 text-white">
+              <Button onClick={handleSave} disabled={saveMutation.isPending} className="flex-1 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white">
                 <Check className="w-4 h-4 mr-1" /> Salva
               </Button>
             </div>
@@ -163,7 +163,7 @@ export default function CmsOffers() {
                     <td className="px-4 py-3 text-muted-foreground">{o.segment}</td>
                     <td className="px-4 py-3 text-muted-foreground">{o.duration_months} mesi / {o.annual_km?.toLocaleString()} km</td>
                     <td className="px-4 py-3 text-muted-foreground">€{o.advance_payment?.toLocaleString()}</td>
-                    <td className="px-4 py-3 font-semibold text-electric">€{o.monthly_rent}/mese</td>
+                    <td className="px-4 py-3 font-semibold text-[#71BAED]">€{o.monthly_rent}/mese</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${o.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
                         {o.is_active ? "Attivo" : "Disattivo"}

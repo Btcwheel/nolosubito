@@ -27,7 +27,7 @@ export default function PrivacyPolicy() {
           <p>
             Il Titolare del trattamento dei dati personali è <strong>Nolosubito S.r.l.</strong>,
             con sede legale in Milano (MI), Italia — email:{" "}
-            <a href="mailto:privacy@nolosubito.it" className="text-electric hover:underline">privacy@nolosubito.it</a>.
+            <a href="mailto:privacy@nolosubito.it" className="text-[#71BAED] hover:underline">privacy@nolosubito.it</a>.
           </p>
         </Section>
 
@@ -56,7 +56,7 @@ export default function PrivacyPolicy() {
         <Section title="4. Cookie">
           <p>Il sito utilizza cookie tecnici (necessari al funzionamento) e cookie analitici/di marketing (solo con consenso).</p>
           <p className="mt-2">Puoi modificare le tue preferenze in qualsiasi momento cliccando su "Gestisci cookie" nel footer o reimpostando le preferenze dal tuo browser.</p>
-          <p className="mt-2">Per informazioni dettagliate sui cookie utilizzati, consulta la nostra <Link to="/cookie-policy" className="text-electric hover:underline">Cookie Policy</Link>.</p>
+          <p className="mt-2">Per informazioni dettagliate sui cookie utilizzati, consulta la nostra <Link to="/cookie-policy" className="text-[#71BAED] hover:underline">Cookie Policy</Link>.</p>
         </Section>
 
         <Section title="5. Conservazione dei Dati">
@@ -92,9 +92,9 @@ export default function PrivacyPolicy() {
           </ul>
           <p className="mt-2">
             Per esercitare i tuoi diritti scrivi a{" "}
-            <a href="mailto:privacy@nolosubito.it" className="text-electric hover:underline">privacy@nolosubito.it</a>.
+            <a href="mailto:privacy@nolosubito.it" className="text-[#71BAED] hover:underline">privacy@nolosubito.it</a>.
             Hai inoltre diritto di proporre reclamo al Garante per la Protezione dei Dati Personali (
-            <a href="https://www.garanteprivacy.it" target="_blank" rel="noopener noreferrer" className="text-electric hover:underline">garanteprivacy.it</a>).
+            <a href="https://www.garanteprivacy.it" target="_blank" rel="noopener noreferrer" className="text-[#71BAED] hover:underline">garanteprivacy.it</a>).
           </p>
         </Section>
 

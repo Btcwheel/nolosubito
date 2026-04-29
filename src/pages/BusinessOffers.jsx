@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 
 export default function BusinessOffers() {
   const [search, setSearch]               = useState("");
+  const [brandFilter, setBrandFilter]       = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [fuelFilter, setFuelFilter]       = useState("all");
   const [sortBy, setSortBy]               = useState("price_asc");
@@ -23,6 +24,7 @@ export default function BusinessOffers() {
     queryFn: () => offersService.listWithMinPrice("P.IVA"),
   });
 
+  const brands     = useMemo(() => [...new Set(vehicles.map(v => v.make?.trim().toUpperCase()).filter(Boolean))].sort(), [vehicles]);
   const categories = useMemo(() => [...new Set(vehicles.map(v => v.category).filter(Boolean))], [vehicles]);
   const fuelTypes  = useMemo(() => [...new Set(vehicles.map(v => v.fuel_type).filter(Boolean))], [vehicles]);
 
@@ -32,6 +34,7 @@ export default function BusinessOffers() {
       const q = search.toLowerCase();
       result = result.filter(v => `${v.make} ${v.model}`.toLowerCase().includes(q));
     }
+    if (brandFilter !== "all")    result = result.filter(v => v.make?.trim().toUpperCase() === brandFilter);
     if (categoryFilter !== "all") result = result.filter(v => v.category === categoryFilter);
     if (fuelFilter !== "all")     result = result.filter(v => v.fuel_type === fuelFilter);
     result.sort((a, b) => {
@@ -40,7 +43,7 @@ export default function BusinessOffers() {
       return `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`);
     });
     return result;
-  }, [vehicles, search, categoryFilter, fuelFilter, sortBy]);
+  }, [vehicles, search, brandFilter, categoryFilter, fuelFilter, sortBy]);
 
   const activeFilters = [categoryFilter, fuelFilter].filter(f => f !== "all").length;
 
@@ -102,15 +105,15 @@ export default function BusinessOffers() {
       {/* ── Hero ── */}
       <div className="relative overflow-hidden">
         {/* Background glows */}
-        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-electric/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full bg-electric/5 blur-3xl pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#71BAED]/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full bg-[#71BAED]/5 blur-3xl pointer-events-none" />
         {/* Dot grid */}
         <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
           style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
 
         <div className="relative pt-24 sm:pt-28 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-electric tracking-widest uppercase bg-electric/10 border border-electric/20 rounded-full px-3 py-1 mb-4">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#71BAED] tracking-widest uppercase bg-[#71BAED]/10 border border-[#71BAED]/20 rounded-full px-3 py-1 mb-4">
               <Zap className="w-3 h-3" /> Noleggio a Lungo Termine
             </span>
             <h1 className="font-heading font-bold text-3xl sm:text-5xl text-white leading-tight">
@@ -129,7 +132,7 @@ export default function BusinessOffers() {
                 { icon: Zap,    label: "Auto sostitutiva H24" },
               ].map(({ icon: Icon, label }) => (
                 <span key={label} className="inline-flex items-center gap-1.5 text-xs text-white/60 bg-white/5 border border-white/10 rounded-full px-3 py-1.5">
-                  <Icon className="w-3 h-3 text-electric" /> {label}
+                  <Icon className="w-3 h-3 text-[#71BAED]" /> {label}
                 </span>
               ))}
             </div>
@@ -154,6 +157,15 @@ export default function BusinessOffers() {
 
             {/* Desktop filters — inline */}
             <div className="hidden sm:flex gap-3">
+              <Select value={brandFilter} onValueChange={setBrandFilter}>
+                <SelectTrigger className="w-40 h-11">
+                  <SelectValue placeholder="Marca" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tutte le marche</SelectItem>
+                  {brands.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                </SelectContent>
+              </Select>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-44 h-11">
                   <SelectValue placeholder="Categoria" />
@@ -191,7 +203,7 @@ export default function BusinessOffers() {
                   <SlidersHorizontal className="w-4 h-4 mr-2" />
                   Filtri
                   {activeFilters > 0 && (
-                    <Badge className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center bg-electric text-white text-[10px]">
+                    <Badge className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center bg-[#71BAED] text-white text-[10px]">
                       {activeFilters}
                     </Badge>
                   )}
@@ -203,7 +215,7 @@ export default function BusinessOffers() {
                 </SheetHeader>
                 <FiltersContent />
                 <Button
-                  className="w-full mt-6 h-12 bg-electric hover:bg-electric/90 text-white font-semibold rounded-xl cursor-pointer"
+                  className="w-full mt-6 h-12 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold rounded-xl cursor-pointer"
                   onClick={() => setFilterOpen(false)}
                 >
                   Mostra {filtered.length} veicoli
@@ -219,13 +231,13 @@ export default function BusinessOffers() {
                 <span className="font-heading font-bold text-lg text-foreground">{filtered.length}</span>
                 <span className="text-sm text-muted-foreground">veicoli disponibili</span>
                 {activeFilters > 0 && (
-                  <span className="text-[11px] font-semibold bg-electric/10 text-electric px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] font-semibold bg-[#71BAED]/10 text-[#71BAED] px-2 py-0.5 rounded-full">
                     {activeFilters} filtri attivi
                   </span>
                 )}
               </div>
               {activeFilters > 0 && (
-                <button onClick={clearFilters} className="text-xs text-electric hover:underline cursor-pointer flex items-center gap-1">
+                <button onClick={clearFilters} className="text-xs text-[#71BAED] hover:underline cursor-pointer flex items-center gap-1">
                   <X className="w-3 h-3" /> Cancella filtri
                 </button>
               )}
@@ -253,7 +265,7 @@ export default function BusinessOffers() {
               </div>
               <p className="font-heading font-semibold text-lg text-foreground">Nessun veicolo trovato</p>
               <p className="text-sm text-muted-foreground mt-1.5 mb-5">Prova a modificare i filtri di ricerca.</p>
-              <button onClick={clearFilters} className="text-sm font-semibold text-electric hover:underline cursor-pointer">
+              <button onClick={clearFilters} className="text-sm font-semibold text-[#71BAED] hover:underline cursor-pointer">
                 Rimuovi tutti i filtri
               </button>
             </div>

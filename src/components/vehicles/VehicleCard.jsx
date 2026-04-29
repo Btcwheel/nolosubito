@@ -56,7 +56,7 @@ export default function VehicleCard({ vehicle, index, segment, compact = false }
         state={{ segment }}
         className="group block h-full"
       >
-        <div className={`h-full bg-card rounded-2xl border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-black/8 hover:border-electric/25 hover:-translate-y-1 ${compact ? "rounded-[1.4rem]" : ""}`}>
+        <div className={`h-full bg-card rounded-2xl border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-black/8 hover:style={{borderColor:'#71BAED'}}/25 hover:-translate-y-1 ${compact ? "rounded-[1.4rem]" : ""}`}>
 
           {/* ── Image ── */}
           <div className={`relative overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.96),_rgba(241,245,249,0.92)_42%,_rgba(226,232,240,0.82)_100%)] ${compact ? "aspect-[4/3]" : "aspect-[5/4]"}`}>
@@ -77,12 +77,12 @@ export default function VehicleCard({ vehicle, index, segment, compact = false }
                 {vehicle.category}
               </Badge>
               {isPopular && (
-                <Badge className={`bg-electric text-white border-0 font-bold flex items-center gap-1 ${compact ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-[11px]"}`}>
+                <Badge className={`style={{backgroundColor:'#71BAED'}} text-white border-0 font-bold flex items-center gap-1 ${compact ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-[11px]"}`}>
                   <Flame className="h-2.5 w-2.5" /> Più richiesto
                 </Badge>
               )}
               {isNew && !isPopular && (
-                <Badge className={`bg-electric/90 text-white border-0 font-bold flex items-center gap-1 ${compact ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-[11px]"}`}>
+                <Badge className={`style={{backgroundColor:'#71BAED'}}/90 text-white border-0 font-bold flex items-center gap-1 ${compact ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-[11px]"}`}>
                   <Sparkles className="h-2.5 w-2.5" /> Novità
                 </Badge>
               )}
@@ -169,7 +169,7 @@ export default function VehicleCard({ vehicle, index, segment, compact = false }
                 )}
               </div>
 
-              <div className={`flex shrink-0 items-center gap-1.5 rounded-lg bg-white/15 px-3 py-2 text-white transition-colors hover:bg-white/25 group-hover:bg-electric/80 ${compact ? "text-[11px]" : "text-xs"} font-bold`}>
+              <div className={`flex shrink-0 items-center gap-1.5 rounded-lg bg-white/15 px-3 py-2 text-white transition-colors hover:bg-white/25 group-hover:style={{backgroundColor:'#71BAED'}}/80 ${compact ? "text-[11px]" : "text-xs"} font-bold`}>
                 Configura
                 <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
               </div>

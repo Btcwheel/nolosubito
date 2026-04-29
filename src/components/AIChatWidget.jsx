@@ -253,10 +253,10 @@ export default function AIChatWidget() {
               {messages.map((msg, i) => (
                 msg.role === "user" ? (
                   <div key={i} className="flex gap-2.5 flex-row-reverse">
-                    <div className="w-7 h-7 rounded-full bg-electric/15 flex items-center justify-center shrink-0 mt-0.5">
-                      <User className="w-3.5 h-3.5 text-electric" />
+                    <div className="w-7 h-7 rounded-full bg-[#71BAED]/15 flex items-center justify-center shrink-0 mt-0.5">
+                      <User className="w-3.5 h-3.5 text-[#71BAED]" />
                     </div>
-                    <div className="max-w-[80%] px-3.5 py-2.5 rounded-2xl rounded-tr-sm bg-electric text-white text-sm leading-relaxed whitespace-pre-wrap">
+                    <div className="max-w-[80%] px-3.5 py-2.5 rounded-2xl rounded-tr-sm bg-[#71BAED] text-white text-sm leading-relaxed whitespace-pre-wrap">
                       {msg.content}
                     </div>
                   </div>
@@ -314,13 +314,13 @@ export default function AIChatWidget() {
                   onKeyDown={handleKey}
                   placeholder="Scrivi un messaggio…"
                   rows={1}
-                  className="flex-1 resize-none bg-muted/40 border border-border/50 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-electric/50 focus:ring-1 focus:ring-electric/20 transition-all max-h-24 leading-relaxed"
+                  className="flex-1 resize-none bg-muted/40 border border-border/50 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#71BAED]/50 focus:ring-1 focus:ring-[#71BAED]/20 transition-all max-h-24 leading-relaxed"
                   style={{ minHeight: "42px" }}
                 />
                 <button
                   onClick={sendMessage}
                   disabled={!input.trim() || typing}
-                  className="w-10 h-10 rounded-xl bg-electric disabled:bg-muted flex items-center justify-center text-white transition-all hover:bg-electric/90 active:scale-95 cursor-pointer disabled:cursor-not-allowed shrink-0"
+                  className="w-10 h-10 rounded-xl bg-[#71BAED] disabled:bg-muted flex items-center justify-center text-white transition-all hover:bg-[#71BAED]/90 active:scale-95 cursor-pointer disabled:cursor-not-allowed shrink-0"
                 >
                   {typing
                     ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -372,7 +372,7 @@ export default function AIChatWidget() {
         {/* Pulse quando chiuso */}
         {!open && (
           <motion.div
-            className="absolute inset-0 rounded-full bg-electric"
+            className="absolute inset-0 rounded-full bg-[#71BAED]"
             animate={{ scale: [1, 1.4, 1.4], opacity: [0.4, 0, 0] }}
             transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 2 }}
           />

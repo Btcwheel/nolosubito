@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 
 export default function CommercialOffers() {
   const [search, setSearch] = useState("");
+  const [brandFilter, setBrandFilter] = useState("all");
   const [fuelFilter, setFuelFilter] = useState("all");
   const [sortBy, setSortBy] = useState("price_asc");
 
@@ -23,6 +24,7 @@ export default function CommercialOffers() {
     [rawVehicles]
   );
 
+  const brands = useMemo(() => [...new Set(vehicles.map(v => v.make?.trim().toUpperCase()).filter(Boolean))].sort(), [vehicles]);
   const fuelTypes = useMemo(() => [...new Set(vehicles.map(o => o.fuel_type).filter(Boolean))], [vehicles]);
 
   const filtered = useMemo(() => {
@@ -30,6 +32,9 @@ export default function CommercialOffers() {
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(v => `${v.make} ${v.model}`.toLowerCase().includes(q));
+    }
+    if (brandFilter !== "all") {
+      result = result.filter(v => v.make?.trim().toUpperCase() === brandFilter);
     }
     if (fuelFilter !== "all") {
       result = result.filter(v => v.fuel_type === fuelFilter);
@@ -40,7 +45,7 @@ export default function CommercialOffers() {
       return `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`);
     });
     return result;
-  }, [vehicles, search, fuelFilter, sortBy]);
+  }, [vehicles, search, brandFilter, fuelFilter, sortBy]);
 
   return (
     <div className="bg-navy">
@@ -51,7 +56,7 @@ export default function CommercialOffers() {
           transition={{ duration: 0.4 }}
         >
           <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 mb-6">
-            <Truck className="w-4 h-4 text-electric" />
+            <Truck className="w-4 h-4 text-[#71BAED]" />
             <span className="text-sm text-white/70">Veicoli Commerciali</span>
           </div>
           <h1 className="font-heading font-bold text-3xl sm:text-4xl text-white">
@@ -76,6 +81,17 @@ export default function CommercialOffers() {
                 className="pl-10 h-11"
               />
             </div>
+            <Select value={brandFilter} onValueChange={setBrandFilter}>
+              <SelectTrigger className="w-full sm:w-40 h-11">
+                <SelectValue placeholder="Marca" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tutte le marche</SelectItem>
+                {brands.map(b => (
+                  <SelectItem key={b} value={b}>{b}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Select value={fuelFilter} onValueChange={setFuelFilter}>
               <SelectTrigger className="w-full sm:w-40 h-11">
                 <SelectValue placeholder="Carburante" />

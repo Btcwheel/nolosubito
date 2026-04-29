@@ -42,7 +42,7 @@ export default function NewsDetail() {
           <h1 className="font-heading font-bold text-3xl text-foreground mb-4">Articolo non trovato</h1>
           <p className="text-muted-foreground mb-8">L'articolo che cerchi non esiste o è stato rimosso.</p>
           <Link to="/news">
-            <Button className="bg-electric hover:bg-electric/90 text-white">
+            <Button className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white">
               Torna alle Notizie
             </Button>
           </Link>
@@ -57,7 +57,7 @@ export default function NewsDetail() {
         {/* Back */}
         <Link
           to="/news"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-electric transition-colors duration-200 mb-8"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-[#71BAED] transition-colors duration-200 mb-8"
         >
           <ArrowLeft className="w-4 h-4" />
           Tutte le Notizie
@@ -78,7 +78,7 @@ export default function NewsDetail() {
         {/* Meta */}
         <div className="flex flex-wrap items-center gap-3 mb-4">
           {post.category && (
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-electric bg-electric/10 px-3 py-1.5 rounded-full">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-[#71BAED] bg-[#71BAED]/10 px-3 py-1.5 rounded-full">
               <Tag className="w-3 h-3" />
               {post.category}
             </span>
@@ -97,7 +97,7 @@ export default function NewsDetail() {
         </h1>
 
         {/* Summary */}
-        <p className="text-lg text-muted-foreground leading-relaxed mb-8 border-l-4 border-electric pl-4">
+        <p style={{borderColor:'#71BAED'}} className="text-lg text-muted-foreground leading-relaxed mb-8 border-l-4  pl-4">
           {post.summary}
         </p>
 
@@ -105,11 +105,11 @@ export default function NewsDetail() {
         <div className="prose prose-slate max-w-none
           prose-headings:font-heading prose-headings:text-foreground
           prose-p:text-foreground/80 prose-p:leading-relaxed
-          prose-a:text-electric prose-a:no-underline hover:prose-a:underline
+          prose-a:style={{color:'#71BAED'}} prose-a:no-underline hover:prose-a:underline
           prose-strong:text-foreground
           prose-li:text-foreground/80
           prose-img:rounded-xl
-          prose-blockquote:border-electric prose-blockquote:text-muted-foreground
+          prose-blockquote:style={{borderColor:'#71BAED'}} prose-blockquote:text-muted-foreground
         ">
           <ReactMarkdown>{post.content}</ReactMarkdown>
         </div>

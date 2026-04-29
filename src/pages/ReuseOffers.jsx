@@ -13,6 +13,7 @@ import { motion } from "framer-motion";
 
 export default function ReuseOffers() {
   const [search, setSearch]                 = useState("");
+  const [brandFilter, setBrandFilter]       = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [fuelFilter, setFuelFilter]         = useState("all");
   const [sortBy, setSortBy]                 = useState("price_asc");
@@ -23,6 +24,7 @@ export default function ReuseOffers() {
     queryFn: () => offersService.listWithMinPrice("ReUse"),
   });
 
+  const brands     = useMemo(() => [...new Set(vehicles.map(v => v.make?.trim().toUpperCase()).filter(Boolean))].sort(), [vehicles]);
   const categories = useMemo(() => [...new Set(vehicles.map(v => v.category).filter(Boolean))], [vehicles]);
   const fuelTypes  = useMemo(() => [...new Set(vehicles.map(v => v.fuel_type).filter(Boolean))], [vehicles]);
 
@@ -32,6 +34,7 @@ export default function ReuseOffers() {
       const q = search.toLowerCase();
       result = result.filter(v => `${v.make} ${v.model}`.toLowerCase().includes(q));
     }
+    if (brandFilter !== "all")    result = result.filter(v => v.make?.trim().toUpperCase() === brandFilter);
     if (categoryFilter !== "all") result = result.filter(v => v.category === categoryFilter);
     if (fuelFilter !== "all")     result = result.filter(v => v.fuel_type === fuelFilter);
     result.sort((a, b) => {
@@ -40,7 +43,7 @@ export default function ReuseOffers() {
       return `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`);
     });
     return result;
-  }, [vehicles, search, categoryFilter, fuelFilter, sortBy]);
+  }, [vehicles, search, brandFilter, categoryFilter, fuelFilter, sortBy]);
 
   const activeFilters = [categoryFilter, fuelFilter].filter(f => f !== "all").length;
 
@@ -137,6 +140,15 @@ export default function ReuseOffers() {
                 onChange={(e) => setSearch(e.target.value)} className="pl-10 h-11" />
             </div>
             <div className="hidden sm:flex gap-3">
+              <Select value={brandFilter} onValueChange={setBrandFilter}>
+                <SelectTrigger className="w-40 h-11">
+                  <SelectValue placeholder="Marca" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tutte le marche</SelectItem>
+                  {brands.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
+                </SelectContent>
+              </Select>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger className="w-44 h-11"><SelectValue placeholder="Categoria" /></SelectTrigger>
                 <SelectContent>
@@ -166,7 +178,7 @@ export default function ReuseOffers() {
                   <SlidersHorizontal className="w-4 h-4 mr-2" />
                   Filtri
                   {activeFilters > 0 && (
-                    <Badge className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center bg-electric text-white text-[10px]">
+                    <Badge className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center bg-[#71BAED] text-white text-[10px]">
                       {activeFilters}
                     </Badge>
                   )}
@@ -177,7 +189,7 @@ export default function ReuseOffers() {
                   <SheetTitle className="text-left">Filtra veicoli</SheetTitle>
                 </SheetHeader>
                 <FiltersContent />
-                <Button className="w-full mt-6 h-12 bg-electric hover:bg-electric/90 text-white font-semibold rounded-xl cursor-pointer"
+                <Button className="w-full mt-6 h-12 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold rounded-xl cursor-pointer"
                   onClick={() => setFilterOpen(false)}>
                   Mostra {filtered.length} veicoli
                 </Button>
@@ -192,13 +204,13 @@ export default function ReuseOffers() {
                 <span className="font-heading font-bold text-lg text-foreground">{filtered.length}</span>
                 <span className="text-sm text-muted-foreground">veicoli disponibili</span>
                 {activeFilters > 0 && (
-                  <span className="text-[11px] font-semibold bg-electric/10 text-electric px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] font-semibold bg-[#71BAED]/10 text-[#71BAED] px-2 py-0.5 rounded-full">
                     {activeFilters} filtri attivi
                   </span>
                 )}
               </div>
               {activeFilters > 0 && (
-                <button onClick={clearFilters} className="text-xs text-electric hover:underline cursor-pointer flex items-center gap-1">
+                <button onClick={clearFilters} className="text-xs text-[#71BAED] hover:underline cursor-pointer flex items-center gap-1">
                   <X className="w-3 h-3" /> Cancella filtri
                 </button>
               )}
@@ -226,7 +238,7 @@ export default function ReuseOffers() {
               </div>
               <p className="font-heading font-semibold text-lg text-foreground">Nessun veicolo trovato</p>
               <p className="text-sm text-muted-foreground mt-1.5 mb-5">Prova a modificare i filtri di ricerca.</p>
-              <button onClick={clearFilters} className="text-sm font-semibold text-electric hover:underline cursor-pointer">
+              <button onClick={clearFilters} className="text-sm font-semibold text-[#71BAED] hover:underline cursor-pointer">
                 Rimuovi tutti i filtri
               </button>
             </div>
