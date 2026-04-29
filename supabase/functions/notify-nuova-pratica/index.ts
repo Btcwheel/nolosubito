@@ -10,7 +10,7 @@
  *   SMTP_PORT     = 587
  *   SMTP_USER     = preventivi@nolosubito.it
  *   SMTP_PASS     = xxxxxxxx
- *   SMTP_FROM     = NoloSubito <preventivi@nolosubito.it>
+ *   SMTP_FROM     = Nolosubito <preventivi@nolosubito.it>
  *   SMTP_SECURE   = false
  *   NOTIFY_TO     = info@nolosubito.it
  *   BACKOFFICE_URL = https://nolosubito.quixel.it/backoffice
@@ -43,15 +43,18 @@ serve(async (req: Request) => {
     });
   }
 
-  let codice: string, clienteNome: string, clienteEmail: string;
+  let praticaId: string | null, codice: string, clienteNome: string, clienteEmail: string;
   let clienteTelefono: string | null, segmento: string | null, veicoloInteresse: string | null;
   try {
-    ({ codice, clienteNome, clienteEmail, clienteTelefono, segmento, veicoloInteresse } = await req.json());
+    ({ praticaId = null, codice, clienteNome, clienteEmail, clienteTelefono, segmento, veicoloInteresse } = await req.json());
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400 });
   }
 
   const areaClienteLink = `${SITE_URL}/mia-pratica?email=${encodeURIComponent(clienteEmail)}`;
+  const praticaLink = praticaId
+    ? `${BACKOFFICE_URL}/pratica/${praticaId}`
+    : BACKOFFICE_URL;
   const dataRichiesta = new Date().toLocaleString("it-IT", {
     day: "2-digit", month: "long", year: "numeric",
     hour: "2-digit", minute: "2-digit",
@@ -70,15 +73,15 @@ serve(async (req: Request) => {
     await transporter.sendMail({
       from:    SMTP_FROM,
       to:      NOTIFY_TO,
-      subject: `[NoloSubito] Nuova richiesta — ${clienteNome} (${codice})`,
-      html:    buildNotifica({ codice, clienteNome, clienteEmail, clienteTelefono, segmento, veicoloInteresse, dataRichiesta, praticaLink: BACKOFFICE_URL }),
+      subject: `[Nolosubito] Nuova richiesta — ${clienteNome} (${codice})`,
+      html:    buildNotifica({ codice, clienteNome, clienteEmail, clienteTelefono, segmento, veicoloInteresse, dataRichiesta, praticaLink }),
     });
 
     // 2. Conferma al cliente
     await transporter.sendMail({
       from:    SMTP_FROM,
       to:      clienteEmail,
-      subject: `Richiesta ricevuta! Ti contatteremo presto — NoloSubito`,
+      subject: `Richiesta ricevuta! Ti contatteremo presto — Nolosubito`,
       html:    buildConfermaCliente({ nome: clienteNome, codice, veicoloInteresse, areaLink: areaClienteLink }),
     });
   } catch (err) {
@@ -127,7 +130,7 @@ function buildNotifica(d: NotificaData): string {
 <tr><td align="center">
 <table width="540" cellpadding="0" cellspacing="0" style="max-width:540px;width:100%;">
   <tr><td style="background:#2F3589;border-radius:16px 16px 0 0;padding:24px 32px;">
-    <p style="margin:0;color:#fff;font-size:20px;font-weight:700;">NoloSubito</p>
+    <p style="margin:0;color:#fff;font-size:20px;font-weight:700;">Nolosubito</p>
     <p style="margin:4px 0 0;color:rgba(255,255,255,0.6);font-size:12px;">Backoffice — Nuova richiesta</p>
   </td></tr>
   <tr><td style="background:#ffffff;padding:32px;">
@@ -151,7 +154,7 @@ function buildNotifica(d: NotificaData): string {
     </div>
   </td></tr>
   <tr><td style="background:#f8f9fc;border:1px solid #e5e7f0;border-top:none;border-radius:0 0 16px 16px;padding:16px 32px;text-align:center;">
-    <p style="margin:0;font-size:11px;color:#9ca3af;">Notifica automatica NoloSubito · Non rispondere a questa email</p>
+    <p style="margin:0;font-size:11px;color:#9ca3af;">Notifica automatica Nolosubito · Non rispondere a questa email</p>
   </td></tr>
 </table>
 </td></tr>
@@ -176,7 +179,7 @@ function buildConfermaCliente(d: ConfermaClienteData): string {
 <tr><td align="center">
 <table width="540" cellpadding="0" cellspacing="0" style="max-width:540px;width:100%;">
   <tr><td style="background:#2F3589;border-radius:16px 16px 0 0;padding:28px 36px;">
-    <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">NoloSubito</p>
+    <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">Nolosubito</p>
     <p style="margin:5px 0 0;color:rgba(255,255,255,0.6);font-size:13px;">Noleggio a Lungo Termine</p>
   </td></tr>
   <tr><td style="background:#ffffff;padding:36px;">

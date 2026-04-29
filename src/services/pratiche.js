@@ -47,10 +47,18 @@ export const praticheService = {
       .insert({ ...pratica, codice, access_token, status: 'Nuova' });
     if (error) throw error;
 
+    // Recupera l'ID della pratica appena creata
+    const { data: nuovaPratica } = await supabase
+      .from('pratiche')
+      .select('id')
+      .eq('codice', codice)
+      .single();
+
     // Notifica backoffice (best-effort) — i dati vengono passati direttamente
     try {
       await supabase.functions.invoke('notify-nuova-pratica', {
         body: {
+          praticaId:        nuovaPratica?.id ?? null,
           codice,
           clienteNome:      pratica.cliente_nome,
           clienteEmail:     pratica.cliente_email,
