@@ -67,7 +67,7 @@ export default function VehicleDetail() {
   const vehicleOffers = configs;
 
   const handleRequestQuote = (config) => {
-    setQuoteConfig(config);
+    setQuoteConfig({ ...config, version: bestOffer.version || "" });
     setShowForm(true);
     setTimeout(() => {
       document.getElementById("lead-form")?.scrollIntoView({ behavior: "smooth" });
@@ -189,9 +189,14 @@ export default function VehicleDetail() {
               </div>
               <p className="text-[#71BAED] text-xs font-bold uppercase tracking-widest mb-1">{decodedMake}</p>
               <div className="flex flex-wrap items-end justify-between gap-3">
-                <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white leading-tight">
-                  {decodedModel}
-                </h1>
+                <div>
+                  <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white leading-tight">
+                    {decodedModel}
+                  </h1>
+                  {bestOffer.version && (
+                    <p className="text-white/55 text-base font-medium mt-1">{bestOffer.version}</p>
+                  )}
+                </div>
                 {bestOffer.monthly_rent && (
                   <div className="text-right mb-1">
                     <p className="text-white/40 text-xs">a partire da</p>

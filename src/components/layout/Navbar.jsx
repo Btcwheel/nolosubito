@@ -63,12 +63,12 @@ export default function Navbar() {
       ? "bg-transparent"
       : "bg-[#2D2E82]";
 
-  const linkBase    = isLight ? "text-[#71BAED]/80 hover:text-[#71BAED] hover:bg-[#71BAED]/5" : "text-white/80 hover:text-white hover:bg-white/10";
-  const linkActive  = isLight ? "text-[#71BAED]" : "text-[#71BAED]";
-  const linkActiveBg = isLight ? `${linkActive} bg-black/5` : `${linkActive} bg-white/10`;
+  const linkBase    = isLight ? "text-[#2D2E82]/70 hover:text-[#2D2E82] hover:bg-[#2D2E82]/5" : "text-white/80 hover:text-white hover:bg-white/10";
+  const linkActive  = isLight ? "text-[#2D2E82]" : "text-[#71BAED]";
+  const linkActiveBg = isLight ? `${linkActive} bg-[#2D2E82]/8` : `${linkActive} bg-white/10`;
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 z-20 transition-all duration-300 ${navBg}`}>
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navBg}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link to="/" className="flex items-center group">

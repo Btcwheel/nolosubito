@@ -134,6 +134,7 @@ export default function LeadForm({ prefilledConfig }) {
     // vehicle
     marca:        prefilledConfig?.make        || "",
     modello:      prefilledConfig?.model       || "",
+    versione:     prefilledConfig?.version     || "",
      alimentazione: "",
      anticipo:      "",
      kmAnnui:      prefilledConfig?.annualKm    ? String(prefilledConfig.annualKm) : "",
@@ -181,6 +182,7 @@ export default function LeadForm({ prefilledConfig }) {
         cliente_anno_inizio_lavoro: f.annoInizioLavoro ? parseInt(f.annoInizioLavoro) : null,
         veicolo_marca:            f.marca            || null,
         veicolo_modello:          f.modello.trim()   || null,
+        veicolo_versione:         f.versione.trim()  || null,
         veicolo_alimentazione:    f.alimentazione    || null,
         anticipo:                 f.anticipo === "con" ? true : f.anticipo === "senza" ? false : (prefilledConfig?.advance ?? null),
         segmento:                 ["P.IVA","Fleet","Privati"].includes(prefilledConfig?.segment) ? prefilledConfig.segment : null,
@@ -529,6 +531,15 @@ export default function LeadForm({ prefilledConfig }) {
               value={f.modello}
               onChange={(e) => set("modello", e.target.value)}
               placeholder="es. Golf, Classe A, Panda…"
+              className="h-11"
+            />
+          </FieldGroup>
+
+          <FieldGroup label="Versione">
+            <Input
+              value={f.versione}
+              onChange={(e) => set("versione", e.target.value)}
+              placeholder="es. 320d Luxury Line, 1.5 TSI DSG…"
               className="h-11"
             />
           </FieldGroup>

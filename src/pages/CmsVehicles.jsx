@@ -47,7 +47,7 @@ const SEGMENTS_OPTIONS = [
 
 const PRICE_SEGMENTS = ["P.IVA", "Privati", "Fleet", "Moto", "ReUse"];
 const DURATE = [24, 36, 48, 60];
-const KM_OPTIONS = [10000, 15000, 20000, 25000, 30000];
+const KM_OPTIONS = [10000, 15000, 20000, 25000, 30000, 40000];
 
 const EMPTY_PRICE_ROW = {
   _key: null, // client-side key per React
@@ -61,7 +61,7 @@ const EMPTY_PRICE_ROW = {
 };
 
 const EMPTY_VEHICLE = {
-  make: "", model: "", category: "", fuel_type: "",
+  make: "", model: "", version: "", category: "", fuel_type: "",
   transmission: "", power_hp: "", co2_emissions: "",
   vehicle_image: "", gallery_images: [], description: "", features: [],
   segments: [], is_active: true, is_featured: false,
@@ -512,6 +512,17 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
                 </div>
               </div>
 
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block">
+                  Versione <span className="text-muted-foreground font-normal">(visibile solo nel dettaglio offerta)</span>
+                </Label>
+                <Input
+                  value={form.version || ""}
+                  onChange={e => set("version", e.target.value)}
+                  placeholder="es. 320d Luxury Line, 1.5 TSI DSG…"
+                />
+              </div>
+
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <Label className="text-xs font-semibold mb-1.5 block">Categoria *</Label>
@@ -701,6 +712,7 @@ export default function CmsVehicles() {
       const payload = {
         make:            form.make,
         model:           form.model,
+        version:         form.version          || null,
         category:        form.category,
         fuel_type:       form.fuel_type       || null,
         transmission:    form.transmission    || null,
