@@ -14,6 +14,8 @@ export default function PrivateOffers() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [fuelFilter, setFuelFilter] = useState("all");
   const [sortBy, setSortBy] = useState("price_asc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 12;
 
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["offers-privati"],
@@ -46,6 +48,12 @@ export default function PrivateOffers() {
     });
     return result;
   }, [vehicles, search, brandFilter, categoryFilter, fuelFilter, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const paginated = useMemo(
+    () => filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filtered, currentPage, pageSize]
+  );
 
   return (
     <div className="bg-navy">
@@ -137,11 +145,49 @@ export default function PrivateOffers() {
               <p className="text-sm text-muted-foreground mt-1">Prova a modificare i criteri di ricerca.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filtered.map((v, i) => (
-                <VehicleCard key={`${v.make}-${v.model}`} vehicle={v} index={i} segment="Privati" />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {paginated.map((v, i) => (
+                  <VehicleCard key={`${v.make}-${v.model}`} vehicle={v} index={i} segment="Privati" />
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8 flex-wrap">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1.5 rounded-lg border border-border/50 text-sm disabled:opacity-40 hover:bg-[#71BAED]/10 cursor-pointer"
+                  >
+                    &#8592;
+                  </button>
+
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-9 h-9 rounded-lg text-sm font-semibold cursor-pointer transition-colors ${
+                        currentPage === pageNum
+                          ? "bg-[#71BAED] text-white"
+                          : "border border-border/50 hover:bg-[#71BAED]/10"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  ))}
+
+                  <span className="text-sm text-muted-foreground px-2">/ {totalPages}</span>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1.5 rounded-lg border border-border/50 text-sm disabled:opacity-40 hover:bg-[#71BAED]/10 cursor-pointer"
+                  >
+                    &#8594;
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
