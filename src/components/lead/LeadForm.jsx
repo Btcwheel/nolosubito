@@ -193,7 +193,7 @@ export default function LeadForm({ prefilledConfig }) {
         veicolo_modello:          f.modello.trim()   || null,
         veicolo_versione:         f.versione.trim()  || null,
         veicolo_alimentazione:    f.alimentazione    || null,
-        anticipo:                 f.anticipo === "con" ? true : f.anticipo === "senza" ? false : (prefilledConfig?.advance ?? null),
+        anticipo:                 f.anticipo === "senza" ? 0 : (prefilledConfig?.advance ?? null),
         segmento:                 ["P.IVA","Fleet","Privati"].includes(prefilledConfig?.segment) ? prefilledConfig.segment : null,
         durata_mesi:              prefilledConfig?.duration || null,
         km_annui:                 f.kmAnnui ? parseInt(f.kmAnnui) : (prefilledConfig?.annualKm || null),
