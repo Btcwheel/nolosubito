@@ -330,20 +330,20 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
               duration, annualKm, advance, monthlyRent: computedRent,
             })}
             disabled={!computedRent}
-            className="w-full h-13 font-bold rounded-xl text-base cursor-pointer disabled:opacity-40 py-3.5 transition-all duration-200" style={{ backgroundColor: "#71BAED", color: "#FFFFFF", boxShadow: "0 4px 6px -1px rgba(113,186,237,0.25)" }}
+            className="w-full h-13 font-bold rounded-xl text-base cursor-pointer disabled:opacity-40 py-3.5 transition-all duration-200 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white shadow-lg shadow-[#71BAED]/25"
           >
             Richiedi Offerta Personalizzata
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         ) : vehicleLink ? (
           <Link to={vehicleLink} className="block">
-            <Button className="w-full h-13 font-bold rounded-xl text-base cursor-pointer shadow-lg py-3.5" style={{ backgroundColor: "#71BAED", color: "#FFFFFF", boxShadow: "0 4px 6px -1px rgba(113,186,237,0.25)" }}>
+            <Button className="w-full h-13 font-bold rounded-xl text-base cursor-pointer shadow-lg py-3.5 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white">
               Vedi Dettagli e Prezzi <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>
         ) : (
           <Link to="/contact">
-            <Button className="w-full h-13 font-bold rounded-xl text-base cursor-pointer shadow-lg py-3.5" style={{ backgroundColor: "#71BAED", color: "#FFFFFF", boxShadow: "0 4px 6px -1px rgba(113,186,237,0.25)" }}>
+            <Button className="w-full h-13 font-bold rounded-xl text-base cursor-pointer shadow-lg py-3.5 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white">
               Richiedi Offerta <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>

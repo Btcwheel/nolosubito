@@ -119,7 +119,7 @@ export default function PrivateOffers() {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {Array(6).fill(0).map((_, i) => (
                 <div key={i} className="bg-card rounded-2xl border border-border/50 overflow-hidden">
                   <Skeleton className="aspect-video w-full" />
@@ -137,7 +137,7 @@ export default function PrivateOffers() {
               <p className="text-sm text-muted-foreground mt-1">Prova a modificare i criteri di ricerca.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {filtered.map((v, i) => (
                 <VehicleCard key={`${v.make}-${v.model}`} vehicle={v} index={i} segment="Privati" />
               ))}

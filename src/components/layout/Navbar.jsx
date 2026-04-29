@@ -63,8 +63,8 @@ export default function Navbar() {
       ? "bg-transparent"
       : "bg-[#2D2E82]";
 
-  const linkBase    = isLight ? "text-foreground/80 hover:text-foreground hover:bg-black/5" : "text-white/80 hover:text-white hover:bg-white/10";
-  const linkActive  = isLight ? "text-[hsl(var(--electric))]" : "text-[#71BAED]";
+  const linkBase    = isLight ? "text-[#71BAED]/80 hover:text-[#71BAED] hover:bg-[#71BAED]/5" : "text-white/80 hover:text-white hover:bg-white/10";
+  const linkActive  = isLight ? "text-[#71BAED]" : "text-[#71BAED]";
   const linkActiveBg = isLight ? `${linkActive} bg-black/5` : `${linkActive} bg-white/10`;
 
   return (

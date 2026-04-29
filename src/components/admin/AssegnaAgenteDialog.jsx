@@ -38,14 +38,14 @@ export default function AssegnaAgenteDialog({ pratica, agenti, onClose }) {
 
         <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
           <label className="flex items-center gap-3 p-3 rounded-xl border border-border cursor-pointer hover:bg-muted/50 transition-colors">
-            <input
-              type="radio"
-              name="agente"
-              value=""
-              checked={selectedAgente === ""}
-              onChange={() => setSelectedAgente("")}
-              className="accent-electric"
-            />
+<input
+                type="radio"
+                name="agente"
+                value=""
+                checked={selectedAgente === ""}
+                onChange={() => setSelectedAgente("")}
+                className="accent-[#71BAED]"
+              />
             <span className="text-sm text-muted-foreground italic">Nessuno (rimuovi agente)</span>
           </label>
           {agenti.map(a => (

@@ -157,7 +157,7 @@ export default function CmsNews() {
                   </div>
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={form.is_published} onChange={e => set("is_published", e.target.checked)} className="accent-electric" />
+                  <input type="checkbox" checked={form.is_published} onChange={e => set("is_published", e.target.checked)} className="accent-[#71BAED]" />
                   <span className="text-sm">Visibile sul sito</span>
                 </label>
               </div>

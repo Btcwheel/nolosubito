@@ -169,7 +169,7 @@ export default function VehicleCard({ vehicle, index, segment, compact = false }
                 )}
               </div>
 
-              <div className={`flex shrink-0 items-center gap-1.5 rounded-lg bg-white/15 px-3 py-2 text-white transition-colors hover:bg-white/25 group-hover:style={{backgroundColor:'#71BAED'}}/80 ${compact ? "text-[11px]" : "text-xs"} font-bold`}>
+              <div className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-white transition-colors bg-[#71BAED] hover:bg-[#71BAED]/90 ${compact ? "text-[11px]" : "text-xs"} font-bold`}>
                 Configura
                 <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
               </div>

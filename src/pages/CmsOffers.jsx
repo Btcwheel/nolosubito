@@ -122,7 +122,7 @@ export default function CmsOffers() {
               </div>
               <div className="col-span-2">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={form.is_active} onChange={e => set("is_active", e.target.checked)} className="accent-electric" />
+                  <input type="checkbox" checked={form.is_active} onChange={e => set("is_active", e.target.checked)} className="accent-[#71BAED]" />
                   <span className="text-sm">Attivo (visibile nel configuratore)</span>
                 </label>
               </div>

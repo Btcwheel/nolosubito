@@ -241,7 +241,7 @@ export default function WorkWithUs() {
               viewport={{ once: true }}
               className="bg-[#2D2E82] rounded-3xl p-10 sm:p-16 text-center relative overflow-hidden"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-electric/10 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-br from-[#71BAED]/10 to-transparent pointer-events-none" />
               <UserCheck className="w-12 h-12 text-[#71BAED] mx-auto mb-5" />
               <h2 className="font-heading font-bold text-3xl sm:text-4xl text-white mb-4">
                 Pronto a Iniziare?

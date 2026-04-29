@@ -118,7 +118,7 @@ function MaterialeModal({ onClose, onSaved }) {
                         type="checkbox"
                         checked={selectedAgenti.includes(a.id)}
                         onChange={() => toggleAgente(a.id)}
-                        className="accent-electric"
+                        className="accent-[#71BAED]"
                       />
                       <span className="text-sm">{a.full_name || a.email}</span>
                     </label>

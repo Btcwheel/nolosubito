@@ -19,7 +19,8 @@ import { ADVANCE_BRACKETS, formatAdvanceAmount } from "@/lib/vehiclePricing";
 // ── Costanti ──────────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  "Sedan",
+  "Berlina",
+  "Station",
   "SUV",
   "CityCar",
   "Quadricicli",

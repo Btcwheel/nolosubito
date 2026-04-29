@@ -124,7 +124,7 @@ export default function AdminOverviewCharts({ pratiche }) {
               <XAxis dataKey="name" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
               <YAxis allowDecimals={false} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} width={28} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" name="Pratiche" radius={[6, 6, 0, 0]} fill="hsl(var(--electric))">
+              <Bar dataKey="value" name="Pratiche" radius={[6, 6, 0, 0]} fill="#71BAED">
                 {agentiPratiche.map((_, i) => (
                   <Cell key={i} fill={`hsl(${220 + i * 18} 80% ${55 - i * 4}%)`} />
                 ))}

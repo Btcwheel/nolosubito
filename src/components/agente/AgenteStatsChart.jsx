@@ -80,7 +80,7 @@ export default function AgenteStatsChart({ pratiche }) {
             <XAxis dataKey="mese" tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
             <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted))", radius: 6 }} />
-            <Bar dataKey="Pratiche" fill="hsl(var(--electric))" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="Pratiche" fill="#71BAED" radius={[6, 6, 0, 0]} />
             <Bar dataKey="Consegnate" fill="#a855f7" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
