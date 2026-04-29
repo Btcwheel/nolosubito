@@ -112,6 +112,15 @@ function SelField({ value, onValueChange, placeholder, options }) {
   );
 }
 
+// ─── Fuel type mapper ────────────────────────────────────────────────────────
+
+const FUEL_TYPE_MAP = {
+  Electric: "Elettrica",
+  Diesel:   "Diesel",
+  Petrol:   "Benzina",
+  Hybrid:   "Full Hybrid Benzina",
+};
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function LeadForm({ prefilledConfig }) {
@@ -132,10 +141,10 @@ export default function LeadForm({ prefilledConfig }) {
     // employment (Privato only)
     occupazione: "", tipoContratto: "", garante: "", annoInizioLavoro: "",
     // vehicle
-    marca:        prefilledConfig?.make        || "",
-    modello:      prefilledConfig?.model       || "",
-    versione:     prefilledConfig?.version     || "",
-     alimentazione: "",
+    marca:         prefilledConfig?.make                              || "",
+    modello:       prefilledConfig?.model                             || "",
+    versione:      prefilledConfig?.version                           || "",
+    alimentazione: FUEL_TYPE_MAP[prefilledConfig?.fuelType] || "",
      anticipo:      "",
      kmAnnui:      prefilledConfig?.annualKm    ? String(prefilledConfig.annualKm) : "",
      note: "",
@@ -518,11 +527,11 @@ export default function LeadForm({ prefilledConfig }) {
           </p>
 
           <FieldGroup label="Marca">
-            <SelField
+            <Input
               value={f.marca}
-              onValueChange={(v) => set("marca", v)}
-              placeholder="Seleziona marca…"
-              options={MARCHE}
+              onChange={(e) => set("marca", e.target.value)}
+              placeholder="es. BMW, Volkswagen, Renault…"
+              className="h-11"
             />
           </FieldGroup>
 

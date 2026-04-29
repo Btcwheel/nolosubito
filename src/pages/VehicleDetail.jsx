@@ -67,7 +67,7 @@ export default function VehicleDetail() {
   const vehicleOffers = configs;
 
   const handleRequestQuote = (config) => {
-    setQuoteConfig({ ...config, version: bestOffer.version || "" });
+    setQuoteConfig({ ...config, version: bestOffer.version || "", fuelType: bestOffer.fuel_type || "" });
     setShowForm(true);
     setTimeout(() => {
       document.getElementById("lead-form")?.scrollIntoView({ behavior: "smooth" });
