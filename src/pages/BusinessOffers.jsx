@@ -1,74 +1,92 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { offersService } from "@/services/offers";
-import VehicleCard from "../components/vehicles/VehicleCard";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
-import { Search, SlidersHorizontal, X, Zap, Shield, Wrench } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import { Search, SlidersHorizontal, X, Zap, Shield, Wrench } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import VehicleCard from "@/components/vehicles/VehicleCard";
+import { offersService } from "@/services/offers";
 
-export default function BusinessOffers() {
-  const [search, setSearch]               = useState("");
-  const [brandFilter, setBrandFilter]       = useState("all");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [fuelFilter, setFuelFilter]       = useState("all");
-  const [sortBy, setSortBy]               = useState("price_asc");
-  const [filterOpen, setFilterOpen]       = useState(false);
-  const [currentPage, setCurrentPage]     = useState(1);
-  const pageSize                       = 12; // 4x3 griglia
+// ── Constants ─────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 12;
+const SEGMENT = "P.IVA";
 
-  const { data: vehicles = [], isLoading } = useQuery({
-    queryKey: ["offers-business"],
-    queryFn: () => offersService.listWithMinPrice("P.IVA"),
-  });
+const TRUST_PILLS = [
+  { icon: Shield, label: "Kasko inclusa" },
+  { icon: Wrench, label: "Manutenzione inclusa" },
+  { icon: Zap, label: "Auto sostitutiva H24" },
+];
 
-  const brands     = useMemo(() => [...new Set(vehicles.map(v => v.make?.trim().toUpperCase()).filter(Boolean))].sort(), [vehicles]);
-  const categories = useMemo(() => [...new Set(vehicles.map(v => v.category).filter(Boolean))], [vehicles]);
-  const fuelTypes  = useMemo(() => [...new Set(vehicles.map(v => v.fuel_type).filter(Boolean))], [vehicles]);
-
-  const filtered = useMemo(() => {
-    let result = [...vehicles];
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(v => `${v.make} ${v.model}`.toLowerCase().includes(q));
-    }
-    if (brandFilter !== "all")    result = result.filter(v => v.make?.trim().toUpperCase() === brandFilter);
-    if (categoryFilter !== "all") result = result.filter(v => v.category === categoryFilter);
-    if (fuelFilter !== "all")     result = result.filter(v => v.fuel_type === fuelFilter);
-    result.sort((a, b) => {
-      if (sortBy === "price_asc")  return (a.monthly_rent ?? 0) - (b.monthly_rent ?? 0);
-      if (sortBy === "price_desc") return (b.monthly_rent ?? 0) - (a.monthly_rent ?? 0);
-      return `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`);
-    });
-    return result;
-  }, [vehicles, search, brandFilter, categoryFilter, fuelFilter, sortBy]);
-
-  const totalPages   = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const paginated   = useMemo(
-    () => filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize),
-    [filtered, currentPage, pageSize]
+// ── Skeleton grid ─────────────────────────────────────────────────────────────
+function GridSkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+          <Skeleton className="aspect-video w-full" />
+          <div className="p-5 space-y-3">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-5 w-36" />
+            <Skeleton className="h-8 w-24 mt-4" />
+          </div>
+        </div>
+      ))}
+    </div>
   );
+}
 
-  const activeFilters = [brandFilter, categoryFilter, fuelFilter].filter(f => f !== "all").length;
+// ── Pagination ────────────────────────────────────────────────────────────────
+function Pagination({ current, total, onChange }) {
+  if (total <= 1) return null;
+  return (
+    <div className="flex items-center justify-center gap-2 mt-8 flex-wrap">
+      <button
+        onClick={() => onChange(p => Math.max(1, p - 1))}
+        disabled={current === 1}
+        className="px-3 py-1.5 rounded-lg border border-border/50 text-sm disabled:opacity-40 hover:bg-accent/10 cursor-pointer"
+      >
+        &lt;
+      </button>
 
-  const clearFilters = () => {
-    setCategoryFilter("all");
-    setFuelFilter("all");
-    setSortBy("price_asc");
-  };
+      {Array.from({ length: total }, (_, i) => i + 1).map(n => (
+        <button
+          key={n}
+          onClick={() => onChange(() => n)}
+          className={`w-9 h-9 rounded-lg text-sm font-semibold cursor-pointer transition-colors ${
+            current === n
+              ? "bg-accent text-white"
+              : "border border-border/50 hover:bg-accent/10"
+          }`}
+        >
+          {n}
+        </button>
+      ))}
 
-  const FiltersContent = () => (
+      <span className="text-sm text-muted-foreground px-2">/ {total}</span>
+
+      <button
+        onClick={() => onChange(p => Math.min(total, p + 1))}
+        disabled={current === total}
+        className="px-3 py-1.5 rounded-lg border border-border/50 text-sm disabled:opacity-40 hover:bg-accent/10 cursor-pointer"
+      >
+        &gt;
+      </button>
+    </div>
+  );
+}
+
+// ── Filter panel (reused in sheet + desktop) ──────────────────────────────────
+function FiltersPanel({ categories, fuelTypes, categoryFilter, fuelFilter, sortBy, activeFilters, onCategory, onFuel, onSort, onClear }) {
+  return (
     <div className="space-y-5">
       <div>
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Categoria</p>
-        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="h-11">
-            <SelectValue placeholder="Tutte le categorie" />
-          </SelectTrigger>
+        <Select value={categoryFilter} onValueChange={onCategory}>
+          <SelectTrigger className="h-11"><SelectValue placeholder="Tutte le categorie" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tutte le categorie</SelectItem>
             {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
@@ -77,10 +95,8 @@ export default function BusinessOffers() {
       </div>
       <div>
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Alimentazione</p>
-        <Select value={fuelFilter} onValueChange={setFuelFilter}>
-          <SelectTrigger className="h-11">
-            <SelectValue placeholder="Tutti" />
-          </SelectTrigger>
+        <Select value={fuelFilter} onValueChange={onFuel}>
+          <SelectTrigger className="h-11"><SelectValue placeholder="Tutti" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tutti</SelectItem>
             {fuelTypes.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
@@ -89,10 +105,8 @@ export default function BusinessOffers() {
       </div>
       <div>
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Ordina per</p>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="h-11">
-            <SelectValue />
-          </SelectTrigger>
+        <Select value={sortBy} onValueChange={onSort}>
+          <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="price_asc">Prezzo: crescente</SelectItem>
             <SelectItem value="price_desc">Prezzo: decrescente</SelectItem>
@@ -101,27 +115,87 @@ export default function BusinessOffers() {
         </Select>
       </div>
       {activeFilters > 0 && (
-        <Button variant="ghost" onClick={clearFilters} className="w-full text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" onClick={onClear} className="w-full text-muted-foreground hover:text-foreground">
           <X className="w-4 h-4 mr-1" /> Cancella filtri
         </Button>
       )}
     </div>
   );
+}
 
+// ── Main page ─────────────────────────────────────────────────────────────────
+export default function BusinessOffers() {
+  const [search, setSearch]               = useState("");
+  const [brandFilter, setBrandFilter]     = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [fuelFilter, setFuelFilter]       = useState("all");
+  const [sortBy, setSortBy]               = useState("price_asc");
+  const [filterOpen, setFilterOpen]       = useState(false);
+  const [currentPage, setCurrentPage]     = useState(1);
+
+  const { data: vehicles = [], isLoading } = useQuery({
+    queryKey: ["offers-business"],
+    queryFn: () => offersService.listWithMinPrice(SEGMENT),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // ── Derived lists ──────────────────────────────────────────────────────────
+  const brands     = useMemo(() => [...new Set(vehicles.map(v => v.make?.trim().toUpperCase()).filter(Boolean))].sort(), [vehicles]);
+  const categories = useMemo(() => [...new Set(vehicles.map(v => v.category).filter(Boolean))], [vehicles]);
+  const fuelTypes  = useMemo(() => [...new Set(vehicles.map(v => v.fuel_type).filter(Boolean))], [vehicles]);
+
+  // ── Filtered + sorted list ─────────────────────────────────────────────────
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return [...vehicles]
+      .filter(v => !search || `${v.make} ${v.model}`.toLowerCase().includes(q))
+      .filter(v => brandFilter === "all" || v.make?.trim().toUpperCase() === brandFilter)
+      .filter(v => categoryFilter === "all" || v.category === categoryFilter)
+      .filter(v => fuelFilter === "all" || v.fuel_type === fuelFilter)
+      .sort((a, b) => {
+        if (sortBy === "price_asc")  return (a.monthly_rent ?? 0) - (b.monthly_rent ?? 0);
+        if (sortBy === "price_desc") return (b.monthly_rent ?? 0) - (a.monthly_rent ?? 0);
+        return `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`);
+      });
+  }, [vehicles, search, brandFilter, categoryFilter, fuelFilter, sortBy]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const paginated  = useMemo(
+    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filtered, currentPage],
+  );
+
+  const activeFilters = [brandFilter, categoryFilter, fuelFilter].filter(f => f !== "all").length;
+
+  const clearFilters = useCallback(() => {
+    setBrandFilter("all");
+    setCategoryFilter("all");
+    setFuelFilter("all");
+    setSortBy("price_asc");
+    setCurrentPage(1);
+  }, []);
+
+  // Reset page when filters change
+  const handleFilterChange = useCallback((setter) => (value) => {
+    setter(value);
+    setCurrentPage(1);
+  }, []);
+
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="bg-[#2D2E82]">
-      {/* ── Hero ── */}
+    <div className="bg-navy">
+      {/* Hero */}
       <div className="relative overflow-hidden">
-        {/* Background glows */}
-        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[#71BAED]/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full bg-[#71BAED]/5 blur-3xl pointer-events-none" />
-        {/* Dot grid */}
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "28px 28px" }} />
+        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full bg-accent/5 blur-3xl pointer-events-none" />
+        <div
+          className="absolute inset-0 opacity-[0.04] pointer-events-none"
+          style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "28px 28px" }}
+        />
 
         <div className="relative pt-24 sm:pt-28 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#71BAED] tracking-widest uppercase bg-[#71BAED]/10 border border-[#71BAED]/20 rounded-full px-3 py-1 mb-4">
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-accent tracking-widest uppercase bg-accent/10 border border-accent/20 rounded-full px-3 py-1 mb-4">
               <Zap className="w-3 h-3" /> Noleggio a Lungo Termine
             </span>
             <h1 className="font-heading font-bold text-3xl sm:text-5xl text-white leading-tight">
@@ -132,15 +206,10 @@ export default function BusinessOffers() {
               Assicurazione, manutenzione e soccorso stradale inclusi nel canone.
             </p>
 
-            {/* Trust pills */}
             <div className="flex flex-wrap gap-2 mt-5">
-              {[
-                { icon: Shield, label: "Kasko inclusa" },
-                { icon: Wrench, label: "Manutenzione inclusa" },
-                { icon: Zap,    label: "Auto sostitutiva H24" },
-              ].map(({ icon: Icon, label }) => (
+              {TRUST_PILLS.map(({ icon: Icon, label }) => (
                 <span key={label} className="inline-flex items-center gap-1.5 text-xs text-white/60 bg-white/5 border border-white/10 rounded-full px-3 py-1.5">
-                  <Icon className="w-3 h-3 text-[#71BAED]" /> {label}
+                  <Icon className="w-3 h-3 text-accent" /> {label}
                 </span>
               ))}
             </div>
@@ -148,6 +217,7 @@ export default function BusinessOffers() {
         </div>
       </div>
 
+      {/* Content */}
       <div className="bg-background rounded-t-3xl min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -158,44 +228,36 @@ export default function BusinessOffers() {
               <Input
                 placeholder="Cerca marca o modello…"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                 className="pl-10 h-11"
               />
             </div>
 
-            {/* Desktop filters — inline */}
+            {/* Desktop filters */}
             <div className="hidden sm:flex gap-3">
-              <Select value={brandFilter} onValueChange={setBrandFilter}>
-                <SelectTrigger className="w-40 h-11">
-                  <SelectValue placeholder="Marca" />
-                </SelectTrigger>
+              <Select value={brandFilter} onValueChange={handleFilterChange(setBrandFilter)}>
+                <SelectTrigger className="w-40 h-11"><SelectValue placeholder="Marca" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tutte le marche</SelectItem>
                   {brands.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-44 h-11">
-                  <SelectValue placeholder="Categoria" />
-                </SelectTrigger>
+              <Select value={categoryFilter} onValueChange={handleFilterChange(setCategoryFilter)}>
+                <SelectTrigger className="w-44 h-11"><SelectValue placeholder="Categoria" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tutte le categorie</SelectItem>
                   {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={fuelFilter} onValueChange={setFuelFilter}>
-                <SelectTrigger className="w-36 h-11">
-                  <SelectValue placeholder="Carburante" />
-                </SelectTrigger>
+              <Select value={fuelFilter} onValueChange={handleFilterChange(setFuelFilter)}>
+                <SelectTrigger className="w-36 h-11"><SelectValue placeholder="Carburante" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tutti</SelectItem>
                   {fuelTypes.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-40 h-11">
-                  <SelectValue />
-                </SelectTrigger>
+              <Select value={sortBy} onValueChange={handleFilterChange(setSortBy)}>
+                <SelectTrigger className="w-40 h-11"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="price_asc">Prezzo ↑</SelectItem>
                   <SelectItem value="price_desc">Prezzo ↓</SelectItem>
@@ -204,14 +266,13 @@ export default function BusinessOffers() {
               </Select>
             </div>
 
-            {/* Mobile filter button */}
+            {/* Mobile filter sheet */}
             <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" className="sm:hidden h-11 px-4 relative cursor-pointer">
-                  <SlidersHorizontal className="w-4 h-4 mr-2" />
-                  Filtri
+                  <SlidersHorizontal className="w-4 h-4 mr-2" /> Filtri
                   {activeFilters > 0 && (
-                    <Badge className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center bg-[#71BAED] text-white text-[10px]">
+                    <Badge className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center bg-accent text-white text-[10px]">
                       {activeFilters}
                     </Badge>
                   )}
@@ -221,9 +282,20 @@ export default function BusinessOffers() {
                 <SheetHeader className="mb-6">
                   <SheetTitle className="text-left">Filtra veicoli</SheetTitle>
                 </SheetHeader>
-                <FiltersContent />
+                <FiltersPanel
+                  categories={categories}
+                  fuelTypes={fuelTypes}
+                  categoryFilter={categoryFilter}
+                  fuelFilter={fuelFilter}
+                  sortBy={sortBy}
+                  activeFilters={activeFilters}
+                  onCategory={handleFilterChange(setCategoryFilter)}
+                  onFuel={handleFilterChange(setFuelFilter)}
+                  onSort={handleFilterChange(setSortBy)}
+                  onClear={clearFilters}
+                />
                 <Button
-                  className="w-full mt-6 h-12 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold rounded-xl cursor-pointer"
+                  className="w-full mt-6 h-12 bg-accent hover:bg-accent/90 text-white font-semibold rounded-xl cursor-pointer"
                   onClick={() => setFilterOpen(false)}
                 >
                   Mostra {filtered.length} veicoli
@@ -239,13 +311,13 @@ export default function BusinessOffers() {
                 <span className="font-heading font-bold text-lg text-foreground">{filtered.length}</span>
                 <span className="text-sm text-muted-foreground">veicoli disponibili</span>
                 {activeFilters > 0 && (
-                  <span className="text-[11px] font-semibold bg-[#71BAED]/10 text-[#71BAED] px-2 py-0.5 rounded-full">
+                  <span className="text-[11px] font-semibold bg-accent/10 text-accent px-2 py-0.5 rounded-full">
                     {activeFilters} filtri attivi
                   </span>
                 )}
               </div>
               {activeFilters > 0 && (
-                <button onClick={clearFilters} className="text-xs text-[#71BAED] hover:underline cursor-pointer flex items-center gap-1">
+                <button onClick={clearFilters} className="text-xs text-accent hover:underline cursor-pointer flex items-center gap-1">
                   <X className="w-3 h-3" /> Cancella filtri
                 </button>
               )}
@@ -254,18 +326,7 @@ export default function BusinessOffers() {
 
           {/* Grid */}
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {Array(6).fill(0).map((_, i) => (
-                <div key={i} className="bg-card rounded-2xl border border-border/50 overflow-hidden">
-                  <Skeleton className="aspect-video w-full" />
-                  <div className="p-5 space-y-3">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-5 w-36" />
-                    <Skeleton className="h-8 w-24 mt-4" />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <GridSkeleton />
           ) : filtered.length === 0 ? (
             <div className="text-center py-24">
               <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
@@ -273,52 +334,18 @@ export default function BusinessOffers() {
               </div>
               <p className="font-heading font-semibold text-lg text-foreground">Nessun veicolo trovato</p>
               <p className="text-sm text-muted-foreground mt-1.5 mb-5">Prova a modificare i filtri di ricerca.</p>
-              <button onClick={clearFilters} className="text-sm font-semibold text-[#71BAED] hover:underline cursor-pointer">
+              <button onClick={clearFilters} className="text-sm font-semibold text-accent hover:underline cursor-pointer">
                 Rimuovi tutti i filtri
               </button>
             </div>
-            ) : (
+          ) : (
             <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {paginated.map((v, i) => (
-                <VehicleCard key={v.id} vehicle={v} index={i} segment="P.IVA" />
-              ))}
-            </div>
-
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-8 flex-wrap">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1.5 rounded-lg border border-border/50 text-sm disabled:opacity-40 hover:bg-[#71BAED]/10 cursor-pointer"
-                >
-                  &lt;
-                </button>
-
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-                  <button
-                    key={pageNum}
-                    onClick={() => setCurrentPage(pageNum)}
-                    className={`w-9 h-9 rounded-lg text-sm font-semibold cursor-pointer transition-colors
-                      ${currentPage === pageNum
-                        ? "bg-[#71BAED] text-white"
-                        : "border border-border/50 hover:bg-[#71BAED]/10"}`}
-                  >
-                    {pageNum}
-                  </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {paginated.map((v, i) => (
+                  <VehicleCard key={v.id} vehicle={v} index={i} segment={SEGMENT} />
                 ))}
-
-                <span className="text-sm text-muted-foreground px-2">/ {totalPages}</span>
-
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1.5 rounded-lg border border-border/50 text-sm disabled:opacity-40 hover:bg-[#71BAED]/10 cursor-pointer"
-                >
-                  &gt;
-                </button>
               </div>
-            )}
+              <Pagination current={currentPage} total={totalPages} onChange={setCurrentPage} />
             </>
           )}
         </div>
