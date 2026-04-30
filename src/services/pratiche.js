@@ -50,7 +50,7 @@ export const praticheService = {
 
     // Notifica backoffice (best-effort) — i dati vengono passati direttamente
     try {
-      await supabase.functions.invoke('notify-nuova-pratica', {
+      const { data: fnData, error: fnError } = await supabase.functions.invoke('notify-nuova-pratica', {
         body: {
           praticaId,
           codice,
@@ -61,8 +61,10 @@ export const praticheService = {
           veicoloInteresse: [pratica.veicolo_marca, pratica.veicolo_modello].filter(Boolean).join(" ") || null,
         },
       });
+      if (fnError) console.error('notify-nuova-pratica error:', fnError);
+      else console.log('notify-nuova-pratica ok:', fnData);
     } catch (e) {
-      console.warn('notify-nuova-pratica non disponibile:', e.message);
+      console.error('notify-nuova-pratica exception:', e.message);
     }
 
     return { codice, access_token };
