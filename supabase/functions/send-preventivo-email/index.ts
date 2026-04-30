@@ -10,7 +10,7 @@
  *   SMTP_PORT        = 587
  *   SMTP_USER        = preventivi@nolosubito.it
  *   SMTP_PASS        = xxxxxxxx
- *   SMTP_FROM        = NoloSubito <preventivi@nolosubito.it>
+ *   SMTP_FROM        = Nolosubito <preventivi@nolosubito.it>
  *   SMTP_SECURE      = false
  *   BACKOFFICE_EMAIL = info@nolosubito.it
  *   SITE_URL         = https://nolosubito.quixel.it
@@ -180,7 +180,7 @@ function buildBackofficeNotifica(d: BackofficeNotificaData): string {
 <tr><td align="center">
 <table width="540" cellpadding="0" cellspacing="0" style="max-width:540px;width:100%;">
   <tr><td style="background:#2F3589;border-radius:16px 16px 0 0;padding:24px 32px;">
-    <p style="margin:0;color:#fff;font-size:20px;font-weight:700;">NoloSubito</p>
+    <p style="margin:0;color:#fff;font-size:20px;font-weight:700;">Nolosubito</p>
     <p style="margin:4px 0 0;color:rgba(255,255,255,0.6);font-size:12px;">Backoffice — Preventivo inviato</p>
   </td></tr>
   <tr><td style="background:#ffffff;padding:32px;">
@@ -216,7 +216,7 @@ function buildBackofficeNotifica(d: BackofficeNotificaData): string {
     </table>
   </td></tr>
   <tr><td style="background:#f8f9fc;border:1px solid #e5e7f0;border-top:none;border-radius:0 0 16px 16px;padding:16px 32px;text-align:center;">
-    <p style="margin:0;font-size:11px;color:#9ca3af;">Notifica automatica NoloSubito · Non rispondere a questa email</p>
+    <p style="margin:0;font-size:11px;color:#9ca3af;">Notifica automatica Nolosubito · Non rispondere a questa email</p>
   </td></tr>
 </table>
 </td></tr>
@@ -241,7 +241,7 @@ function buildEmail(d: EmailData): string {
 <table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;">
 
   <tr><td style="background:#2F3589;border-radius:16px 16px 0 0;padding:28px 36px;">
-    <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">NoloSubito</p>
+    <p style="margin:0;color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">Nolosubito</p>
     <p style="margin:5px 0 0;color:rgba(255,255,255,0.6);font-size:13px;">Noleggio a Lungo Termine</p>
   </td></tr>
 

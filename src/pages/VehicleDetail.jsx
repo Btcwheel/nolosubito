@@ -374,27 +374,7 @@ export default function VehicleDetail() {
                 </div>
               </div>
 
-              {/* Tax benefits — solo per P.IVA e Fleet, non per privati */}
-              {segmentFromState !== "Privati" && <div className="rounded-2xl bg-[#71BAED]/5 border border-[#71BAED]/15 p-5">
-                <h3 className="text-xs font-bold text-[#71BAED]/70 uppercase tracking-widest mb-4">
-                  Vantaggi fiscali P.IVA
-                </h3>
-                <div className="space-y-3">
-                  {[
-                    { pct: "80%",  label: "Canone deducibile", sub: "Art. 164 TUIR — uso promiscuo" },
-                    { pct: "40%",  label: "IVA detraibile",    sub: "100% per uso esclusivo aziendale" },
-                    { pct: "100%", label: "Agenti di commercio", sub: "Deduzione e IVA integrali" },
-                  ].map(({ pct, label, sub }) => (
-                    <div key={label} className="flex items-center gap-3">
-                      <span className="font-heading font-bold text-lg text-[#71BAED] w-14 shrink-0">{pct}</span>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground/80 leading-none">{label}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{sub}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>}
+
             </motion.div>
 
             {/* ── Right panel — QuoteBox ── */}

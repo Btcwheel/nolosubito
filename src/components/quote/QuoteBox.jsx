@@ -44,8 +44,8 @@ function OptionButton({ selected, available = true, onClick, children, layoutId 
   const cls = selected
     ? "text-white shadow-md"
     : available
-    ? "border-border text-foreground hover:opacity-80"
-    : "border-border/30 text-muted-foreground/30 cursor-not-allowed line-through";
+      ? "border-border text-foreground hover:opacity-80"
+      : "border-border/30 text-muted-foreground/30 cursor-not-allowed line-through";
 
   return (
     <button
@@ -297,7 +297,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
         {/* Step 3: Advance */}
         <div>
           <div className="flex items-center justify-between mb-2.5">
-            <StepLabel n={3}>Anticipo iniziale</StepLabel>
+            <StepLabel n={3}>Anticipo</StepLabel>
             {isModifiedAdvance && (
               <span className="text-[10px] flex items-center gap-1" style={{ color: `${ACCENT}B3` }}>
                 <Info className="w-3 h-3" /> Canone ricalcolato
@@ -340,25 +340,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
                   </p>
                 </div>
 
-                {/* P.IVA net saving */}
-                {segment !== "Privati" && netCostPiva && risparmioMensile && (
-                  <div
-                    className="rounded-xl p-3 mb-3"
-                    style={{ backgroundColor: `${ACCENT}10`, borderColor: `${ACCENT}20`, borderWidth: 1 }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-[11px] leading-none mb-0.5 text-white/50">Costo netto stimato P.IVA</p>
-                        <p className="text-white font-bold text-lg">€{netCostPiva.toLocaleString("it-IT")}/mese</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[11px] leading-none mb-0.5" style={{ color: `${ACCENT}B3` }}>Risparmio fiscale</p>
-                        <p className="font-bold text-lg" style={{ color: ACCENT }}>-€{risparmioMensile.toLocaleString("it-IT")}</p>
-                      </div>
-                    </div>
-                    <p className="text-[10px] mt-2 text-white/25">* Stima con IVA 40% + deduzione 80% · aliquota 30%</p>
-                  </div>
-                )}
+
 
                 {/* Config summary */}
                 <div className="flex items-center justify-center gap-3 text-[11px] text-white/30 mb-2">
@@ -382,8 +364,8 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
                   {!selectedMake || !selectedModel
                     ? "Seleziona marca e modello"
                     : vehicleConfigs.length === 0
-                    ? "Nessuna offerta disponibile"
-                    : "Seleziona una combinazione"}
+                      ? "Nessuna offerta disponibile"
+                      : "Seleziona una combinazione"}
                 </p>
               </div>
             )}
