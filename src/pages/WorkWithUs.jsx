@@ -49,75 +49,77 @@ export default function WorkWithUs() {
   };
 
   return (
-    <div className="bg-[#2D2E82]">
+    <div className="bg-[#F5F6FA]">
       {/* Hero */}
-      <div className="pt-24 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <div className="inline-flex items-center gap-2 bg-[#71BAED]/10 border border-[#71BAED]/20 rounded-full px-4 py-2 mb-6">
-              <Building2 className="w-4 h-4 text-[#71BAED]" />
-              <span className="text-sm text-[#71BAED] font-medium">Partner Program</span>
-            </div>
-            <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white leading-tight">
-              Entra nel Settore <span className="text-[#71BAED]">Noleggio Lungo Termine</span> con Nolosubito
-            </h1>
-            <p className="mt-5 text-white/60 text-lg leading-relaxed">
-              Sei un'agenzia, un consulente o una P.IVA? Diventa partner Nolosubito e accedi ai mandati con le migliori società di noleggio a lungo termine del mercato. Formazione, strumenti digitali e supporto costante.
-            </p>
-            <div className="flex flex-wrap gap-3 mt-6">
-              {["Agenzie Auto", "Consulenti Aziendali", "Broker Assicurativi", "Agenti di Commercio"].map(tag => (
-                <Badge key={tag} className="bg-white/5 border border-white/10 text-white/70 text-xs px-3 py-1.5">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-            <div className="mt-8 flex flex-col sm:flex-row gap-3">
-              <Button
-                onClick={openForm}
-                className="h-12 px-8 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold rounded-xl text-base cursor-pointer"
-              >
-                Diventa Partner <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => document.getElementById('dashboard-preview')?.scrollIntoView({ behavior: 'smooth' })}
-                className="h-12 px-8 border-white/20 text-white hover:bg-white/5 rounded-xl text-base cursor-pointer"
-              >
-                Vedi l'Area Riservata
-              </Button>
-            </div>
-          </motion.div>
+      <div className="bg-white border-b border-gray-100">
+        <div className="pt-28 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+              <div className="inline-flex items-center gap-2 bg-[#71BAED]/10 border border-[#71BAED]/20 rounded-full px-4 py-2 mb-6">
+                <Building2 className="w-4 h-4 text-[#71BAED]" />
+                <span className="text-sm text-[#71BAED] font-medium">Partner Program</span>
+              </div>
+              <h1 className="font-heading font-bold text-4xl sm:text-5xl text-[#2D2E82] leading-tight">
+                Entra nel Settore <span className="text-[#71BAED]">Noleggio Lungo Termine</span> con Nolosubito
+              </h1>
+              <p className="mt-5 text-gray-500 text-lg leading-relaxed">
+                Sei un'agenzia, un consulente o una P.IVA? Diventa partner Nolosubito e accedi ai mandati con le migliori società di noleggio a lungo termine del mercato. Formazione, strumenti digitali e supporto costante.
+              </p>
+              <div className="flex flex-wrap gap-3 mt-6">
+                {["Agenzie Auto", "Consulenti Aziendali", "Broker Assicurativi", "Agenti di Commercio"].map(tag => (
+                  <Badge key={tag} className="bg-[#f1f3ff] border border-[#2D2E82]/10 text-[#2D2E82] text-xs px-3 py-1.5">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                <Button
+                  onClick={openForm}
+                  className="h-12 px-8 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold rounded-xl text-base cursor-pointer"
+                >
+                  Diventa Partner <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => document.getElementById('dashboard-preview')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="h-12 px-8 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl text-base cursor-pointer"
+                >
+                  Vedi l'Area Riservata
+                </Button>
+              </div>
+            </motion.div>
 
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-            className="grid grid-cols-2 gap-4"
-          >
-            {[
-              { value: "15+", label: "Mandati attivi", sub: "Top società Noleggio Lungo Termine" },
-              { value: "500+", label: "Partner attivi", sub: "In tutta Italia" },
-              { value: "€3.200", label: "Commissione media", sub: "Per contratto chiuso" },
-              { value: "48h", label: "Attivazione", sub: "Dall'iscrizione al primo mandato" },
-            ].map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 + i * 0.08 }}
-                className="bg-white/5 border border-white/10 rounded-2xl p-5"
-              >
-                <div className="font-heading font-bold text-3xl text-[#71BAED]">{stat.value}</div>
-                <div className="text-white font-semibold text-sm mt-1">{stat.label}</div>
-                <div className="text-white/40 text-xs mt-0.5">{stat.sub}</div>
-              </motion.div>
-            ))}
-          </motion.div>
+            {/* Stats */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="grid grid-cols-2 gap-4"
+            >
+              {[
+                { value: "15+", label: "Mandati attivi", sub: "Top società Noleggio Lungo Termine" },
+                { value: "500+", label: "Partner attivi", sub: "In tutta Italia" },
+                { value: "€3.200", label: "Commissione media", sub: "Per contratto chiuso" },
+                { value: "48h", label: "Attivazione", sub: "Dall'iscrizione al primo mandato" },
+              ].map((stat, i) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + i * 0.08 }}
+                  className="bg-[#f1f3ff] border border-[#2D2E82]/10 rounded-2xl p-5"
+                >
+                  <div className="font-heading font-bold text-3xl text-[#71BAED]">{stat.value}</div>
+                  <div className="text-[#2D2E82] font-semibold text-sm mt-1">{stat.label}</div>
+                  <div className="text-gray-400 text-xs mt-0.5">{stat.sub}</div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
         </div>
       </div>
 
-      <div className="bg-background rounded-t-3xl">
+      <div>
 
         {/* Benefits */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">

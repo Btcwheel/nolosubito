@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Users, BarChart3, Settings, Shield, ArrowRight, Building2, Truck, Package, Wrench, Zap } from "lucide-react";
+import { PageHeader } from "@/components/layout/ListingLayout";
 
 const features = [
   { icon: Users, title: "Flotte di Ogni Dimensione", desc: "Da 5 a 500+ veicoli, cresciamo insieme alle esigenze della tua azienda." },
@@ -19,24 +20,14 @@ const tiers = [
 
 export default function FleetSolutions() {
   return (
-    <div className="bg-navy">
-      {/* Hero */}
-      <div className="pt-24 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-2 mb-6">
-            <Building2 className="w-4 h-4 text-[#71BAED]" />
-            <span className="text-sm text-white/70">Gestione Flotte Aziendali</span>
-          </div>
-          <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white max-w-3xl mx-auto">
-            Scala la Tua Flotta Senza <span className="text-[#71BAED]">Complicazioni</span>
-          </h1>
-          <p className="mt-4 text-white/50 max-w-2xl mx-auto text-lg">
-            Gestione completa della flotta per aziende in crescita. Un partner, una fattura, zero pensieri.
-          </p>
-        </motion.div>
-      </div>
+    <div className="bg-[#F5F6FA]">
+      <PageHeader
+        eyebrow="Gestione Flotte Aziendali"
+        title="Scala la Tua Flotta Senza Complicazioni"
+        description="Gestione completa della flotta per aziende in crescita. Un partner, una fattura, zero pensieri."
+      />
 
-      <div className="bg-background rounded-t-3xl">
+      <div>
         {/* Features */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

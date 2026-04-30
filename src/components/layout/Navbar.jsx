@@ -59,9 +59,7 @@ export default function Navbar() {
     ? isHomePage
       ? "bg-[#2D2E82]/95 backdrop-blur-md shadow-lg"
       : "bg-white/95 backdrop-blur-md shadow-sm"
-    : isHomePage
-      ? "bg-transparent"
-      : "bg-[#2D2E82]";
+    : "bg-[#2D2E82]";
 
   const linkBase    = isLight ? "text-[#2D2E82]/70 hover:text-[#2D2E82] hover:bg-[#2D2E82]/5" : "text-white/80 hover:text-white hover:bg-white/10";
   const linkActive  = isLight ? "text-[#2D2E82]" : "text-[#71BAED]";

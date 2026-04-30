@@ -2,8 +2,8 @@ import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usatoService } from "@/services/usato";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Search, Fuel, Gauge, Calendar, MapPin, ExternalLink, Zap, Leaf, SlidersHorizontal, X } from "lucide-react";
+import { Search, Fuel, Gauge, Calendar, ExternalLink, Zap, Leaf, SlidersHorizontal, X, ArrowRight, Settings2 } from "lucide-react";
+import { PageHeader } from "@/components/layout/ListingLayout";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -11,114 +11,120 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const CARBURANTE_COLORS = {
-  "Elettrico": "bg-emerald-50 text-emerald-700 border-emerald-200",
-  "Ibrido":    "bg-teal-50 text-teal-700 border-teal-200",
-  "Diesel":    "bg-slate-50 text-slate-600 border-slate-200",
-  "Benzina":   "bg-orange-50 text-orange-600 border-orange-200",
-};
-
 const FUEL_ICONS = {
   "Elettrico": Zap,
   "Ibrido":    Leaf,
 };
 
+function SpecBox({ icon: Icon, label }) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1.5 bg-[#f1f3ff] rounded-[8px] p-2 min-h-[56px]">
+      <Icon className="w-4 h-4 text-[#2D2E82]/60" />
+      <span className="text-[10px] font-bold text-[#464651] leading-none text-center">{label}</span>
+    </div>
+  );
+}
+
 function UsatoCard({ v, i }) {
   const FuelIcon = FUEL_ICONS[v.carburante] ?? Fuel;
-  const fuelClass = CARBURANTE_COLORS[v.carburante] ?? "bg-muted text-muted-foreground border-border";
+
+  const badge = (() => {
+    if (v.carburante === "Elettrico") return { icon: Zap,  text: "0 Emissioni CO₂", color: "text-green-700", border: "border-green-200" };
+    if (v.carburante === "Ibrido")   return { icon: Leaf, text: "Ibrido",            color: "text-lime-700",  border: "border-lime-200" };
+    if (v.targa_prova)               return { icon: null,  text: "Targa Prova",      color: "text-[#2D2E82]", border: "border-[#2D2E82]/20" };
+    return null;
+  })();
+
+  const specs = [
+    { icon: Calendar, label: String(v.anno) },
+    { icon: Gauge,    label: `${v.km.toLocaleString("it-IT")} km` },
+    { icon: FuelIcon, label: v.carburante },
+  ];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: Math.min(i * 0.05, 0.3) }}
-      className="group bg-card border border-border/50 rounded-2xl overflow-hidden hover:shadow-2xl hover:shadow-black/8 hover:border-[#71BAED]/25 hover:-translate-y-1 transition-all duration-300"
+      className="h-full"
     >
-      {/* Image */}
-      <div className="relative aspect-[16/9] bg-muted overflow-hidden">
-        <img
-          src={v.immagine}
-          alt={`${v.marca} ${v.modello}`}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+      <div className="h-full flex flex-col bg-white border border-[#f1f5f9] rounded-2xl shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_8px_32px_0px_rgba(45,46,130,0.12)] group">
 
-        {/* Badges top */}
-        <div className="absolute top-3 left-3 flex gap-1.5">
-          <span className="text-[11px] font-bold bg-[#2D2E82] text-white px-2.5 py-1 rounded-full">
-            Usato
-          </span>
-          {v.targa_prova && (
-            <span className="text-[11px] font-bold bg-[#71BAED] text-white px-2.5 py-1 rounded-full">
-              Targa prova
-            </span>
-          )}
-        </div>
+        {/* Image */}
+        <div className="relative bg-[#f8fafc] overflow-hidden h-[200px]">
+          <img
+            src={v.immagine}
+            alt={`${v.marca} ${v.modello}`}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+            loading="lazy"
+          />
 
-        {/* AS24 badge */}
-        <div className="absolute top-3 right-3">
-          <span className="text-[10px] font-bold bg-black/60 text-white/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FF6600] inline-block" />
-            AutoScout24
-          </span>
-        </div>
-
-        {/* Make + model */}
-        <div className="absolute bottom-3 left-3">
-          <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest">{v.marca}</p>
-          <h3 className="font-heading font-bold text-lg text-white leading-tight">{v.modello}</h3>
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="p-4">
-        {/* Specs */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${fuelClass}`}>
-            <FuelIcon className="w-2.5 h-2.5" />
-            {v.carburante}
-          </span>
-          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">
-            <Calendar className="w-2.5 h-2.5" />
-            {v.anno}
-          </span>
-          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">
-            <Gauge className="w-2.5 h-2.5" />
-            {v.km.toLocaleString("it-IT")} km
-          </span>
-          <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">
-            {v.potenza_cv} CV
-          </span>
-        </div>
-
-        {/* Descrizione */}
-        <p className="text-xs text-muted-foreground leading-relaxed mb-4 line-clamp-2">
-          {v.descrizione}
-        </p>
-
-        {/* Price + CTA */}
-        <div className="rounded-xl bg-gradient-to-br from-[#2D2E82] to-navy p-3.5 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[10px] text-white/50 leading-none mb-1">Prezzo</p>
-            <div className="flex items-baseline gap-0.5">
-              <span className="font-heading font-bold text-2xl text-white leading-none">
-                €{v.prezzo.toLocaleString("it-IT")}
+          {/* Top-right badge */}
+          {badge && (
+            <div className={`absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm border ${badge.border} rounded-[8px] px-3 py-[5px] max-w-[calc(100%-24px)]`}>
+              {badge.icon && <badge.icon className={`w-3 h-3 shrink-0 ${badge.color}`} />}
+              <span className={`text-[10px] font-bold uppercase tracking-wide leading-none ${badge.color} truncate`}>
+                {badge.text}
               </span>
             </div>
-            <p className="text-[10px] text-white/35 mt-0.5">IVA inclusa</p>
+          )}
+
+          {/* AS24 attribution */}
+          <div className="absolute bottom-3 left-3">
+            <span className="text-[10px] font-semibold bg-black/50 text-white/70 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FF6600] inline-block shrink-0" />
+              AutoScout24
+            </span>
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="flex-1 flex flex-col justify-between p-6">
+
+          {/* Label + Title + Subtitle */}
+          <div className="mb-4">
+            <p className="text-[12px] font-bold text-[#777682] uppercase tracking-[1.2px] leading-none mb-[5px]">
+              USATO SICURO
+            </p>
+            <h3 className="text-[20px] font-bold text-[#15146c] leading-7">
+              {v.marca} {v.modello}
+            </h3>
+            {v.descrizione && (
+              <p className="text-[14px] text-[#464651] leading-snug mt-0.5 line-clamp-1">
+                {v.descrizione}
+              </p>
+            )}
           </div>
 
-          <a
-            href={v.url_as24}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
-            className="flex items-center gap-1.5 bg-white/15 hover:bg-white/25 transition-colors text-white text-xs font-bold px-3 py-2 rounded-lg shrink-0"
-          >
-            Vedi annuncio
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+          {/* Spec boxes */}
+          <div className="grid grid-cols-3 gap-2 mb-6">
+            {specs.map(({ icon: Icon, label }, idx) => (
+              <SpecBox key={idx} icon={Icon} label={label} />
+            ))}
+          </div>
+
+          {/* Price + CTA */}
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[12px] font-medium text-[#777682] leading-none mb-1">Prezzo</p>
+              <div className="flex items-baseline gap-0.5 flex-wrap">
+                <span className="text-[28px] sm:text-[32px] font-bold text-[#15146c] leading-none">
+                  €{v.prezzo.toLocaleString("it-IT")}
+                </span>
+              </div>
+              <p className="text-[10px] italic text-[#777682] mt-1">IVA inclusa · {v.potenza_cv} CV</p>
+            </div>
+
+            <a
+              href={v.url_as24}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={e => e.stopPropagation()}
+              className="w-12 h-12 bg-[#71BAED] rounded-xl flex items-center justify-center shrink-0 transition-colors hover:bg-[#71BAED]/85"
+            >
+              <ExternalLink className="w-4 h-4 text-white" />
+            </a>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -127,16 +133,20 @@ function UsatoCard({ v, i }) {
 
 function CardSkeleton() {
   return (
-    <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
-      <Skeleton className="aspect-video w-full" />
-      <div className="p-4 space-y-3">
-        <div className="flex gap-2">
-          <Skeleton className="h-5 w-16 rounded-full" />
-          <Skeleton className="h-5 w-14 rounded-full" />
-          <Skeleton className="h-5 w-20 rounded-full" />
+    <div className="bg-white border border-[#f1f5f9] rounded-2xl overflow-hidden shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)]">
+      <Skeleton className="h-[200px] w-full" />
+      <div className="p-6 space-y-4">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="h-6 w-40" />
+        <div className="grid grid-cols-3 gap-2">
+          <Skeleton className="h-14 rounded-lg" />
+          <Skeleton className="h-14 rounded-lg" />
+          <Skeleton className="h-14 rounded-lg" />
         </div>
-        <Skeleton className="h-4 w-full" />
-        <Skeleton className="h-14 w-full rounded-xl mt-2" />
+        <div className="flex items-end justify-between">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-12 w-12 rounded-xl" />
+        </div>
       </div>
     </div>
   );
@@ -228,40 +238,13 @@ export default function Usato() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#F5F6FA]">
 
-      {/* Hero */}
-      <div className="bg-gradient-to-br from-[#2D2E82] via-[#252670] to-navy pt-28 pb-14 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(37,99,235,0.25)_0%,_transparent_65%)]" />
-        <div className="max-w-7xl mx-auto relative z-10">
-          {/* AS24 badge */}
-          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/15 rounded-full px-3 py-1.5 mb-5">
-            <span className="w-2 h-2 rounded-full bg-[#FF6600]" />
-            <span className="text-xs font-bold text-white/80 tracking-wide">Powered by AutoScout24</span>
-          </div>
-
-          <h1 className="font-heading font-bold text-4xl md:text-5xl text-white mb-3">
-            Veicoli Usati
-          </h1>
-          <p className="text-white/50 text-lg max-w-xl">
-            Selezione di usato garantito, verificato e pronto consegna.
-          </p>
-
-          {/* Stats strip */}
-          <div className="flex flex-wrap gap-6 mt-8">
-            {[
-              { value: `${veicoli.length}`, label: "Veicoli disponibili" },
-              { value: "Garantiti",         label: "Tutti certificati" },
-              { value: "Pronta",            label: "Consegna" },
-            ].map(s => (
-              <div key={s.label} className="border-l-2 border-[#71BAED]/40 pl-4">
-                <p className="font-heading font-bold text-xl text-white">{s.value}</p>
-                <p className="text-xs text-white/40 mt-0.5">{s.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Usato Garantito"
+        title="Veicoli Usati"
+        description="Selezione di usato garantito, verificato e pronto consegna."
+      />
 
       {/* Filters */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/40 px-4 sm:px-6 lg:px-8 py-3">

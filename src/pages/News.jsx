@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import NewsCard from "@/components/news/NewsCard";
 import { Newspaper } from "lucide-react";
+import { PageHeader } from "@/components/layout/ListingLayout";
 
 const CATEGORIES = ["Tutti", "Notizie", "Approfondimenti", "Offerte", "Green Mobility", "Azienda"];
 
@@ -20,27 +21,15 @@ export default function News() {
     : posts.filter(p => p.category === activeCategory);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero */}
-      <div className="bg-navy pt-28 pb-16 px-4">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-[#71BAED]/20 rounded-xl flex items-center justify-center">
-              <Newspaper className="w-5 h-5 text-[#71BAED]" />
-            </div>
-            <span className="text-[#71BAED] text-sm font-semibold tracking-wide uppercase">Blog & News</span>
-          </div>
-          <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white mb-4">
-            Ultime Notizie
-          </h1>
-          <p className="text-white/50 text-lg max-w-2xl">
-            Approfondimenti, aggiornamenti di settore e novità dal mondo del noleggio a lungo termine.
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#F5F6FA]">
+      <PageHeader
+        eyebrow="Blog & News"
+        title="Ultime Notizie"
+        description="Approfondimenti, aggiornamenti di settore e novità dal mondo del noleggio a lungo termine."
+      />
 
       {/* Category Filter */}
-      <div className="sticky top-16 md:top-20 z-10 bg-background/95 backdrop-blur border-b border-border/50">
+      <div className="sticky top-16 md:top-20 z-10 bg-white/95 backdrop-blur border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 overflow-x-auto py-3 scrollbar-hide">
             {CATEGORIES.map(cat => (
@@ -49,7 +38,7 @@ export default function News() {
                 onClick={() => setActiveCategory(cat)}
                 className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer flex-shrink-0 ${
                   activeCategory === cat
-                    ? "bg-navy text-white"
+                    ? "bg-[#2D2E82] text-white"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >

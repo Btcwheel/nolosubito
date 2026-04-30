@@ -1,127 +1,12 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { motion } from "framer-motion";
-import { Search, SlidersHorizontal, X, Zap, Shield, Wrench } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search } from "lucide-react";
 import VehicleCard from "@/components/vehicles/VehicleCard";
 import { offersService } from "@/services/offers";
+import { PageHeader, FilterBar, NativeSelect, CardSkeleton, Pagination } from "@/components/layout/ListingLayout";
 
-// ── Constants ─────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 12;
 const SEGMENT = "P.IVA";
-
-const TRUST_PILLS = [
-  { icon: Shield, label: "Kasko inclusa" },
-  { icon: Wrench, label: "Manutenzione inclusa" },
-  { icon: Zap, label: "Auto sostitutiva H24" },
-];
-
-// ── Skeleton grid ─────────────────────────────────────────────────────────────
-function GridSkeleton() {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="bg-card rounded-2xl border border-border/50 overflow-hidden">
-          <Skeleton className="aspect-video w-full" />
-          <div className="p-5 space-y-3">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-5 w-36" />
-            <Skeleton className="h-8 w-24 mt-4" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Pagination ────────────────────────────────────────────────────────────────
-function Pagination({ current, total, onChange }) {
-  if (total <= 1) return null;
-  return (
-    <div className="flex items-center justify-center gap-2 mt-8 flex-wrap">
-      <button
-        onClick={() => onChange(p => Math.max(1, p - 1))}
-        disabled={current === 1}
-        className="px-3 py-1.5 rounded-lg border border-border/50 text-sm disabled:opacity-40 hover:bg-accent/10 cursor-pointer"
-      >
-        &lt;
-      </button>
-
-      {Array.from({ length: total }, (_, i) => i + 1).map(n => (
-        <button
-          key={n}
-          onClick={() => onChange(() => n)}
-          className={`w-9 h-9 rounded-lg text-sm font-semibold cursor-pointer transition-colors ${
-            current === n
-              ? "bg-accent text-white"
-              : "border border-border/50 hover:bg-accent/10"
-          }`}
-        >
-          {n}
-        </button>
-      ))}
-
-      <span className="text-sm text-muted-foreground px-2">/ {total}</span>
-
-      <button
-        onClick={() => onChange(p => Math.min(total, p + 1))}
-        disabled={current === total}
-        className="px-3 py-1.5 rounded-lg border border-border/50 text-sm disabled:opacity-40 hover:bg-accent/10 cursor-pointer"
-      >
-        &gt;
-      </button>
-    </div>
-  );
-}
-
-// ── Filter panel (reused in sheet + desktop) ──────────────────────────────────
-function FiltersPanel({ categories, fuelTypes, categoryFilter, fuelFilter, sortBy, activeFilters, onCategory, onFuel, onSort, onClear }) {
-  return (
-    <div className="space-y-5">
-      <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Categoria</p>
-        <Select value={categoryFilter} onValueChange={onCategory}>
-          <SelectTrigger className="h-11"><SelectValue placeholder="Tutte le categorie" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tutte le categorie</SelectItem>
-            {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Alimentazione</p>
-        <Select value={fuelFilter} onValueChange={onFuel}>
-          <SelectTrigger className="h-11"><SelectValue placeholder="Tutti" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tutti</SelectItem>
-            {fuelTypes.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Ordina per</p>
-        <Select value={sortBy} onValueChange={onSort}>
-          <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="price_asc">Prezzo: crescente</SelectItem>
-            <SelectItem value="price_desc">Prezzo: decrescente</SelectItem>
-            <SelectItem value="name">Nome A–Z</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      {activeFilters > 0 && (
-        <Button variant="ghost" onClick={onClear} className="w-full text-muted-foreground hover:text-foreground">
-          <X className="w-4 h-4 mr-1" /> Cancella filtri
-        </Button>
-      )}
-    </div>
-  );
-}
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 export default function BusinessOffers() {
@@ -130,7 +15,6 @@ export default function BusinessOffers() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [fuelFilter, setFuelFilter]       = useState("all");
   const [sortBy, setSortBy]               = useState("price_asc");
-  const [filterOpen, setFilterOpen]       = useState(false);
   const [currentPage, setCurrentPage]     = useState(1);
 
   const { data: vehicles = [], isLoading } = useQuery({
@@ -183,172 +67,63 @@ export default function BusinessOffers() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="bg-navy">
-      {/* Hero */}
-      <div className="relative overflow-hidden">
-        <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-accent/10 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/3 w-64 h-64 rounded-full bg-accent/5 blur-3xl pointer-events-none" />
-        <div
-          className="absolute inset-0 opacity-[0.04] pointer-events-none"
-          style={{ backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)", backgroundSize: "28px 28px" }}
+    <div className="bg-[#F5F6FA] min-h-screen">
+      <PageHeader
+        eyebrow="Noleggio a Lungo Termine"
+        title="Offerte per Aziende e P.IVA"
+        description="Gamma completa NLT per P.IVA e aziende. Assicurazione, manutenzione e soccorso stradale inclusi nel canone mensile."
+      />
+
+      <FilterBar
+        searchValue={search}
+        onSearch={(v) => { setSearch(v); setCurrentPage(1); }}
+        searchPlaceholder="Cerca marca o modello…"
+        resultCount={filtered.length}
+      >
+        <NativeSelect
+          label="Marca"
+          value={brandFilter}
+          options={[{ value: "all", label: "Tutte le marche" }, ...brands.map(b => ({ value: b, label: b }))]}
+          onChange={handleFilterChange(setBrandFilter)}
         />
+        <NativeSelect
+          label="Categoria"
+          value={categoryFilter}
+          options={[{ value: "all", label: "Tutte le categorie" }, ...categories.map(c => ({ value: c, label: c }))]}
+          onChange={handleFilterChange(setCategoryFilter)}
+        />
+        <NativeSelect
+          label="Ordina per"
+          value={sortBy}
+          options={[
+            { value: "price_asc",  label: "Prezzo: crescente" },
+            { value: "price_desc", label: "Prezzo: decrescente" },
+            { value: "name",       label: "Nome A–Z" },
+          ]}
+          onChange={handleFilterChange(setSortBy)}
+        />
+      </FilterBar>
 
-        <div className="relative pt-24 sm:pt-28 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-            <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-accent tracking-widest uppercase bg-accent/10 border border-accent/20 rounded-full px-3 py-1 mb-4">
-              <Zap className="w-3 h-3" /> Noleggio a Lungo Termine
-            </span>
-            <h1 className="font-heading font-bold text-3xl sm:text-5xl text-white leading-tight">
-              Offerte per Aziende e P.IVA
-            </h1>
-            <p className="mt-3 text-white/50 max-w-xl text-sm sm:text-base leading-relaxed">
-              Gamma completa Noleggio Lungo Termine per P.IVA e aziende.<br className="hidden sm:block" />
-              Assicurazione, manutenzione e soccorso stradale inclusi nel canone.
-            </p>
-
-            <div className="flex flex-wrap gap-2 mt-5">
-              {TRUST_PILLS.map(({ icon: Icon, label }) => (
-                <span key={label} className="inline-flex items-center gap-1.5 text-xs text-white/60 bg-white/5 border border-white/10 rounded-full px-3 py-1.5">
-                  <Icon className="w-3 h-3 text-accent" /> {label}
-                </span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20 text-gray-400">
+            <p className="text-lg font-semibold mb-1">Nessun veicolo trovato</p>
+            <p className="text-sm">Prova a modificare i filtri di ricerca.</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {paginated.map((v, i) => (
+                <VehicleCard key={v.id} vehicle={v} index={i} segment={SEGMENT} />
               ))}
             </div>
-          </motion.div>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="bg-background rounded-t-3xl min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-          {/* Search + Filter bar */}
-          <div className="flex gap-3 mb-8">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Cerca marca o modello…"
-                value={search}
-                onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-                className="pl-10 h-11"
-              />
-            </div>
-
-            {/* Desktop filters */}
-            <div className="hidden sm:flex gap-3">
-              <Select value={brandFilter} onValueChange={handleFilterChange(setBrandFilter)}>
-                <SelectTrigger className="w-40 h-11"><SelectValue placeholder="Marca" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tutte le marche</SelectItem>
-                  {brands.map(b => <SelectItem key={b} value={b}>{b}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={categoryFilter} onValueChange={handleFilterChange(setCategoryFilter)}>
-                <SelectTrigger className="w-44 h-11"><SelectValue placeholder="Categoria" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tutte le categorie</SelectItem>
-                  {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={fuelFilter} onValueChange={handleFilterChange(setFuelFilter)}>
-                <SelectTrigger className="w-36 h-11"><SelectValue placeholder="Carburante" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tutti</SelectItem>
-                  {fuelTypes.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Select value={sortBy} onValueChange={handleFilterChange(setSortBy)}>
-                <SelectTrigger className="w-40 h-11"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="price_asc">Prezzo ↑</SelectItem>
-                  <SelectItem value="price_desc">Prezzo ↓</SelectItem>
-                  <SelectItem value="name">Nome A–Z</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Mobile filter sheet */}
-            <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="sm:hidden h-11 px-4 relative cursor-pointer">
-                  <SlidersHorizontal className="w-4 h-4 mr-2" /> Filtri
-                  {activeFilters > 0 && (
-                    <Badge className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center bg-accent text-white text-[10px]">
-                      {activeFilters}
-                    </Badge>
-                  )}
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="bottom" className="rounded-t-2xl px-6 pb-8">
-                <SheetHeader className="mb-6">
-                  <SheetTitle className="text-left">Filtra veicoli</SheetTitle>
-                </SheetHeader>
-                <FiltersPanel
-                  categories={categories}
-                  fuelTypes={fuelTypes}
-                  categoryFilter={categoryFilter}
-                  fuelFilter={fuelFilter}
-                  sortBy={sortBy}
-                  activeFilters={activeFilters}
-                  onCategory={handleFilterChange(setCategoryFilter)}
-                  onFuel={handleFilterChange(setFuelFilter)}
-                  onSort={handleFilterChange(setSortBy)}
-                  onClear={clearFilters}
-                />
-                <Button
-                  className="w-full mt-6 h-12 bg-accent hover:bg-accent/90 text-white font-semibold rounded-xl cursor-pointer"
-                  onClick={() => setFilterOpen(false)}
-                >
-                  Mostra {filtered.length} veicoli
-                </Button>
-              </SheetContent>
-            </Sheet>
-          </div>
-
-          {/* Results count */}
-          {!isLoading && (
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <span className="font-heading font-bold text-lg text-foreground">{filtered.length}</span>
-                <span className="text-sm text-muted-foreground">veicoli disponibili</span>
-                {activeFilters > 0 && (
-                  <span className="text-[11px] font-semibold bg-accent/10 text-accent px-2 py-0.5 rounded-full">
-                    {activeFilters} filtri attivi
-                  </span>
-                )}
-              </div>
-              {activeFilters > 0 && (
-                <button onClick={clearFilters} className="text-xs text-accent hover:underline cursor-pointer flex items-center gap-1">
-                  <X className="w-3 h-3" /> Cancella filtri
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Grid */}
-          {isLoading ? (
-            <GridSkeleton />
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-24">
-              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
-                <Search className="w-7 h-7 text-muted-foreground" />
-              </div>
-              <p className="font-heading font-semibold text-lg text-foreground">Nessun veicolo trovato</p>
-              <p className="text-sm text-muted-foreground mt-1.5 mb-5">Prova a modificare i filtri di ricerca.</p>
-              <button onClick={clearFilters} className="text-sm font-semibold text-accent hover:underline cursor-pointer">
-                Rimuovi tutti i filtri
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {paginated.map((v, i) => (
-                  <VehicleCard key={v.id} vehicle={v} index={i} segment={SEGMENT} />
-                ))}
-              </div>
-              <Pagination current={currentPage} total={totalPages} onChange={setCurrentPage} />
-            </>
-          )}
-        </div>
+            <Pagination current={currentPage} total={totalPages} onChange={setCurrentPage} />
+          </>
+        )}
       </div>
     </div>
   );

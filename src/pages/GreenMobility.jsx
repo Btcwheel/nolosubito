@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Leaf, Zap, TrendingDown, Globe } from "lucide-react";
 import VehicleCard from "../components/vehicles/VehicleCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/layout/ListingLayout";
 
 const stats = [
   { icon: Leaf, value: "0g/km", label: "Emissioni Scarico" },
@@ -25,42 +26,33 @@ export default function GreenMobility() {
   );
 
   return (
-    <div className="bg-navy">
-      <div className="pt-24 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-2 mb-6">
-            <Leaf className="w-4 h-4 text-green-400" />
-            <span className="text-sm text-green-300">Flotta Sostenibile</span>
-          </div>
-          <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white max-w-3xl mx-auto">
-            Guida Green, <span className="text-green-400">Risparmia di Più</span>
-          </h1>
-          <p className="mt-4 text-white/50 max-w-2xl mx-auto text-lg">
-            Veicoli elettrici e ibridi per aziende lungimiranti. Costi ridotti, zero emissioni, massimi benefici fiscali.
-          </p>
-        </motion.div>
+    <div className="bg-[#F5F6FA]">
+      <PageHeader
+        eyebrow="Flotta Sostenibile"
+        title="Guida Green, Risparmia di Più"
+        description="Veicoli elettrici e ibridi per aziende lungimiranti. Costi ridotti, zero emissioni, massimi benefici fiscali."
+      />
 
-        {/* Stats */}
-        <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto">
-          {stats.map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 + i * 0.08 }}
-              className="bg-white/5 border border-white/10 rounded-xl p-4"
-            >
-              <s.icon className="w-5 h-5 text-green-400 mx-auto mb-2" />
-              <p className="font-heading font-bold text-xl text-white">{s.value}</p>
-              <p className="text-xs text-white/40 mt-0.5">{s.label}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      <div className="bg-background rounded-t-3xl">
+      <div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <h2 className="font-heading font-bold text-2xl text-foreground mb-8">
+          {/* Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
+            {stats.map((s, i) => (
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: i * 0.08 }}
+                className="bg-white border border-[#f1f5f9] rounded-2xl p-4 text-center shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)]"
+              >
+                <s.icon className="w-5 h-5 text-[#71BAED] mx-auto mb-2" />
+                <p className="font-heading font-bold text-xl text-[#2D2E82]">{s.value}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          <h2 className="font-heading font-bold text-2xl text-[#2D2E82] mb-8">
             Veicoli Elettrici e Ibridi
           </h2>
 

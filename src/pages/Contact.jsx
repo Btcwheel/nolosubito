@@ -40,24 +40,25 @@ const offices = [
 
 export default function Contact() {
   return (
-    <div className="bg-navy">
-      <div className="pt-24 sm:pt-32 pb-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <h1 className="font-heading font-bold text-4xl sm:text-5xl text-white">
-            Contattaci
-          </h1>
-          <p className="mt-3 text-white/50 max-w-xl mx-auto text-lg">
-            Pronto a ottimizzare la mobilità della tua azienda? Costruiamo insieme la flotta perfetta.
-          </p>
-        </motion.div>
+    <div className="bg-[#F5F6FA] min-h-screen">
+      <div className="bg-white border-b border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-8">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <p className="text-xs font-bold text-[#71BAED] uppercase tracking-widest mb-2">Nolosubito</p>
+            <h1 className="font-heading font-bold text-3xl sm:text-4xl text-[#2D2E82]">Contattaci</h1>
+            <p className="mt-2 text-gray-500 max-w-xl">
+              Pronto a ottimizzare la mobilità della tua azienda? Costruiamo insieme la flotta perfetta.
+            </p>
+          </motion.div>
+        </div>
       </div>
 
-      <div className="bg-background rounded-t-3xl">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
             {/* Contact Info */}
             <div className="lg:col-span-2 space-y-6">
-              <h2 className="font-heading font-bold text-xl text-foreground">Informazioni di Contatto</h2>
+              <h2 className="font-heading font-bold text-xl text-[#2D2E82]">Informazioni di Contatto</h2>
               {contactInfo.map((c) => (
                 <div key={c.label} className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg bg-[#71BAED]/10 flex items-center justify-center shrink-0">
@@ -88,8 +89,8 @@ export default function Contact() {
 
             {/* Form */}
             <div className="lg:col-span-3">
-              <div className="bg-card rounded-2xl border border-border/50 p-6 sm:p-8">
-                <h2 className="font-heading font-bold text-xl text-foreground mb-1">Richiedi un'Offerta Business</h2>
+              <div className="bg-white rounded-2xl border border-[#f1f5f9] shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)] p-6 sm:p-8">
+                <h2 className="font-heading font-bold text-xl text-[#2D2E82] mb-1">Richiedi un'Offerta Business</h2>
                 <p className="text-sm text-muted-foreground mb-6">Ti risponderemo entro 24 ore con un preventivo personalizzato.</p>
                 <LeadForm />
               </div>
@@ -102,7 +103,7 @@ export default function Contact() {
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#71BAED] mb-2">
                   Rete territoriale
                 </p>
-                <h2 className="font-heading font-bold text-2xl text-foreground">
+                <h2 className="font-heading font-bold text-2xl text-[#2D2E82]">
                   Le nostre filiali
                 </h2>
               </div>
@@ -113,13 +114,13 @@ export default function Contact() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {offices.map((office) => (
-                <div key={office.name} className="bg-card border border-border/50 rounded-2xl p-5 shadow-sm">
+                <div key={office.name} className="bg-white border border-[#f1f5f9] rounded-2xl p-5 shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)]">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#71BAED]/10 flex items-center justify-center shrink-0">
                       <MapPin className="w-5 h-5 text-[#71BAED]" />
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-heading font-semibold text-lg text-foreground">
+                      <h3 className="font-heading font-semibold text-lg text-[#15146c]">
                         {office.name}
                       </h3>
                       <address className="not-italic mt-2 text-sm text-muted-foreground leading-6">

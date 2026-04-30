@@ -64,7 +64,7 @@ const EMPTY_VEHICLE = {
   make: "", model: "", version: "", category: "", fuel_type: "",
   transmission: "", power_hp: "", co2_emissions: "",
   vehicle_image: "", gallery_images: [], description: "", features: [],
-  segments: [], is_active: true, is_featured: false,
+  segments: [], is_active: true, is_featured: false, is_ready_delivery: false,
   // SEO
   seo_title: "", seo_description: "", seo_keywords: [],
 };
@@ -667,6 +667,18 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
                   </p>
                 </div>
               </label>
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <button type="button" onClick={() => set("is_ready_delivery", !form.is_ready_delivery)}
+                  className={`transition-colors ${form.is_ready_delivery ? "text-emerald-500" : "text-muted-foreground"}`}>
+                  {form.is_ready_delivery ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                </button>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{form.is_ready_delivery ? "Pronta consegna" : "Non pronta consegna"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {form.is_ready_delivery ? "Badge 'Pronta Consegna' visibile sulla card" : "Nessun badge pronta consegna"}
+                  </p>
+                </div>
+              </label>
             </div>
           </div>
 
@@ -726,8 +738,9 @@ export default function CmsVehicles() {
         seo_title:       form.seo_title       || null,
         seo_description: form.seo_description || null,
         seo_keywords:    form.seo_keywords    || [],
-        is_active:       form.is_active       ?? true,
-        // is_featured:     form.is_featured     ?? false,
+        is_active:          form.is_active          ?? true,
+        is_featured:        form.is_featured        ?? false,
+        is_ready_delivery:  form.is_ready_delivery  ?? false,
       };
       const saved = form.id
         ? await offersService.update(form.id, payload)
@@ -850,6 +863,9 @@ export default function CmsVehicles() {
                     })}
                     {v.is_featured && (
                       <span className="text-[10px] font-semibold bg-amber-100 text-amber-700 border border-amber-200 px-1.5 py-0 rounded-full">★ Evidenza</span>
+                    )}
+                    {v.is_ready_delivery && (
+                      <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-700 border border-emerald-200 px-1.5 py-0 rounded-full">⚡ Pronta consegna</span>
                     )}
                     {v.seo_title && (
                       <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0 rounded">SEO ✓</span>
