@@ -20,6 +20,12 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import nodemailer from "npm:nodemailer@6.9.13";
 
+const CORS = {
+  "Access-Control-Allow-Origin":  "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, apikey, x-client-info",
+};
+
 const SMTP_HOST      = Deno.env.get("SMTP_HOST")      ?? "";
 const SMTP_PORT      = parseInt(Deno.env.get("SMTP_PORT") ?? "587");
 const SMTP_USER      = Deno.env.get("SMTP_USER")      ?? "";
@@ -31,15 +37,18 @@ const BACKOFFICE_URL = Deno.env.get("BACKOFFICE_URL") ?? "https://nolosubito.qui
 const SITE_URL       = Deno.env.get("SITE_URL")       ?? "https://nolosubito.quixel.it";
 
 serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS });
+  }
   if (req.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405 });
+    return new Response("Method Not Allowed", { status: 405, headers: CORS });
   }
 
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
     console.warn("Configurazione SMTP mancante — email non inviata");
     return new Response(JSON.stringify({ ok: true, skipped: true, reason: "SMTP not configured" }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...CORS },
     });
   }
 
@@ -86,12 +95,12 @@ serve(async (req: Request) => {
     });
   } catch (err) {
     console.error("Errore SMTP:", err);
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500 });
+    return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: { "Content-Type": "application/json", ...CORS } });
   }
 
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...CORS },
   });
 });
 
