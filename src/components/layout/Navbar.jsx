@@ -57,13 +57,13 @@ export default function Navbar() {
 
   const navBg = scrolled
     ? isHomePage
-      ? "bg-[#2D2E82]/95 backdrop-blur-md shadow-lg"
+      ? "bg-navy/95 backdrop-blur-md shadow-lg"
       : "bg-white/95 backdrop-blur-md shadow-sm"
-    : "bg-[#2D2E82]";
+    : "bg-navy";
 
-  const linkBase    = isLight ? "text-[#2D2E82]/70 hover:text-[#2D2E82] hover:bg-[#2D2E82]/5" : "text-white/80 hover:text-white hover:bg-white/10";
-  const linkActive  = isLight ? "text-[#2D2E82]" : "text-[#71BAED]";
-  const linkActiveBg = isLight ? `${linkActive} bg-[#2D2E82]/8` : `${linkActive} bg-white/10`;
+  const linkBase    = isLight ? "text-navy/70 hover:text-navy hover:bg-navy/5" : "text-white/80 hover:text-white hover:bg-white/10";
+  const linkActive  = isLight ? "text-navy" : "text-electric";
+  const linkActiveBg = isLight ? `${linkActive} bg-navy/8` : `${linkActive} bg-white/10`;
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navBg}`}>
@@ -111,7 +111,7 @@ export default function Navbar() {
                     className={`absolute top-full left-0 mt-2 w-56 backdrop-blur-md rounded-xl shadow-2xl overflow-hidden z-50 border ${
                       isLight
                         ? "bg-white border-border"
-                        : "bg-[#2D2E82] border-white/10"
+                        : "bg-navy border-white/10"
                     }`}
                   >
                     {offersDropdown.map((item) => (
@@ -158,7 +158,7 @@ export default function Navbar() {
               Area Cliente
             </Link>
             <Link to="/contact">
-              <Button className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold px-6 rounded-lg cursor-pointer">
+              <Button className="bg-electric hover:bg-electric/90 text-white font-semibold px-6 rounded-lg cursor-pointer">
                 Richiedi Preventivo
               </Button>
             </Link>
@@ -183,7 +183,7 @@ export default function Navbar() {
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
             className={`md:hidden backdrop-blur-md border-t ${
-              isLight ? "bg-white/98 border-border" : "bg-[#2D2E82]/98 border-white/10"
+              isLight ? "bg-white/98 border-border" : "bg-navy/98 border-white/10"
             }`}
           >
             <div className="px-4 py-4 space-y-1">
@@ -254,7 +254,7 @@ export default function Navbar() {
                   Area Cliente
                 </Link>
                 <Link to="/contact">
-                  <Button className="w-full bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold rounded-lg cursor-pointer">
+                  <Button className="w-full bg-electric hover:bg-electric/90 text-white font-semibold rounded-lg cursor-pointer">
                     Richiedi Preventivo
                   </Button>
                 </Link>

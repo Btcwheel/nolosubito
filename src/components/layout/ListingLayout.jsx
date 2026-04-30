@@ -1,7 +1,7 @@
 /**
  * ListingLayout — layout condiviso per tutte le pagine di listing veicoli.
  * Implementa il pattern DESIGN.md:
- *   - bg-[#F5F6FA] background
+ *   - bg-surface background
  *   - White page header (pt-28)
  *   - White filter card con native selects
  *   - 3-col grid con gap-5
@@ -31,7 +31,7 @@ export function Pagination({ current, total, onChange }) {
           onClick={() => onChange(n)}
           className={`w-9 h-9 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
             current === n
-              ? "bg-[#2D2E82] text-white"
+              ? "bg-navy text-white"
               : "border border-gray-200 hover:bg-white text-gray-700"
           }`}
         >
@@ -60,7 +60,7 @@ export function NativeSelect({ label, value, options, onChange }) {
         <select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-800 pr-9 focus:outline-none focus:ring-2 focus:ring-[#2D2E82]/20 cursor-pointer"
+          className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-800 pr-9 focus:outline-none focus:ring-2 focus:ring-navy/20 cursor-pointer"
         >
           {options.map(opt => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -75,7 +75,7 @@ export function NativeSelect({ label, value, options, onChange }) {
 // ── CardSkeleton ───────────────────────────────────────────────────────────
 export function CardSkeleton() {
   return (
-    <div className="bg-white border border-[#f1f5f9] rounded-2xl overflow-hidden shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)]">
+    <div className="bg-white border border-frame rounded-2xl overflow-hidden shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)]">
       <Skeleton className="h-[200px] w-full" />
       <div className="p-6 space-y-4">
         <Skeleton className="h-3 w-24" />
@@ -101,9 +101,9 @@ export function PageHeader({ eyebrow, title, description }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-8">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
           {eyebrow && (
-            <p className="text-xs font-bold text-[#71BAED] uppercase tracking-widest mb-2">{eyebrow}</p>
+            <p className="text-xs font-bold text-electric uppercase tracking-widest mb-2">{eyebrow}</p>
           )}
-          <h1 className="font-heading font-bold text-3xl sm:text-4xl text-[#2D2E82]">{title}</h1>
+          <h1 className="font-heading font-bold text-3xl sm:text-4xl text-navy">{title}</h1>
           {description && (
             <p className="text-gray-500 mt-2 max-w-xl text-sm sm:text-base leading-relaxed">{description}</p>
           )}
@@ -129,7 +129,7 @@ export function FilterBar({ children, onSearch, searchValue, searchPlaceholder =
                 placeholder={searchPlaceholder}
                 value={searchValue}
                 onChange={e => onSearch(e.target.value)}
-                className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2D2E82]/20"
+                className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-navy/20"
               />
             </div>
           </div>

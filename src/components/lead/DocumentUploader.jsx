@@ -189,7 +189,7 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
           onClick={verifyDocuments}
           disabled={verifying}
           variant="outline"
-          className="w-full border-[#71BAED]/30 text-[#71BAED] hover:bg-[#71BAED]/5 font-semibold cursor-pointer"
+          className="w-full border-electric/30 text-electric hover:bg-electric/5 font-semibold cursor-pointer"
         >
           {verifying ? (
             <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifica in corso…</>

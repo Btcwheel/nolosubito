@@ -89,11 +89,11 @@ function TagInput({ tags, onChange, placeholder = "Scrivi e premi Invio…" }) {
     if (e.key === "Backspace" && !draft && tags.length) remove(tags[tags.length - 1]);
   };
   return (
-    <div className="border border-input rounded-xl p-2 min-h-[44px] flex flex-wrap gap-1.5 focus-within:ring-2 focus-within:ring-[#71BAED]/30 focus-within:border-[#71BAED]/50 bg-background">
+    <div className="border border-input rounded-xl p-2 min-h-[44px] flex flex-wrap gap-1.5 focus-within:ring-2 focus-within:ring-electric/30 focus-within:border-electric/50 bg-background">
       {tags.map(f => (
         <span key={f} className="inline-flex items-center gap-1 bg-navy text-white text-xs px-2 py-0.5 rounded-full">
           {f}
-          <button type="button" onClick={() => remove(f)} className="hover:text-[#71BAED] transition-colors">
+          <button type="button" onClick={() => remove(f)} className="hover:text-electric transition-colors">
             <X className="w-3 h-3" />
           </button>
         </span>
@@ -158,7 +158,7 @@ function ImageUpload({ value, onChange, make, model }) {
         ) : (
           <div className="aspect-[16/9] flex flex-col items-center justify-center gap-2 text-muted-foreground">
             {uploading
-              ? <Loader2 className="w-8 h-8 animate-spin text-[#71BAED]" />
+              ? <Loader2 className="w-8 h-8 animate-spin text-electric" />
               : <><ImageIcon className="w-8 h-8" /><p className="text-sm">Clicca o trascina qui la foto</p><p className="text-xs">JPG, PNG, WebP · max 5 MB</p></>
             }
           </div>
@@ -233,7 +233,7 @@ function GalleryImagesInput({ images, onChange, make, model }) {
           ))}
           {list.length < GALLERY_MAX && (
             <button type="button" onClick={() => !uploading && inputRef.current?.click()} disabled={uploading}
-              className="aspect-video border-2 border-dashed border-border hover:border-[#71BAED]/40 rounded-lg flex items-center justify-center text-muted-foreground hover:text-[#71BAED] transition-colors disabled:opacity-50">
+              className="aspect-video border-2 border-dashed border-border hover:border-electric/40 rounded-lg flex items-center justify-center text-muted-foreground hover:text-electric transition-colors disabled:opacity-50">
               {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
             </button>
           )}
@@ -241,7 +241,7 @@ function GalleryImagesInput({ images, onChange, make, model }) {
       )}
       {list.length === 0 && (
         <button type="button" onClick={() => !uploading && inputRef.current?.click()} disabled={uploading}
-          className="w-full border-2 border-dashed border-border hover:border-[#71BAED]/40 rounded-xl p-5 flex flex-col items-center gap-2 text-muted-foreground hover:text-[#71BAED] transition-colors disabled:opacity-50">
+          className="w-full border-2 border-dashed border-border hover:border-electric/40 rounded-xl p-5 flex flex-col items-center gap-2 text-muted-foreground hover:text-electric transition-colors disabled:opacity-50">
           {uploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <><ImageIcon className="w-6 h-6" /><p className="text-sm">Clicca per aggiungere foto gallery</p><p className="text-xs opacity-70">Max {GALLERY_MAX} foto · JPG/WebP · max 3 MB</p></>}
         </button>
       )}
@@ -369,7 +369,7 @@ function PricingConfigsEditor({ rows, onChange }) {
       <button
         type="button"
         onClick={addRow}
-        className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-border hover:border-[#71BAED]/40 rounded-xl py-2.5 text-sm text-muted-foreground hover:text-[#71BAED] transition-colors cursor-pointer"
+        className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-border hover:border-electric/40 rounded-xl py-2.5 text-sm text-muted-foreground hover:text-electric transition-colors cursor-pointer"
       >
         <Plus className="w-4 h-4" />
         Aggiungi configurazione canone
@@ -605,7 +605,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
                   <button
                     type="button"
                     onClick={() => set("description", normalizeVehicleDescription(form.description || ""))}
-                    style={{color:'#71BAED'}} className="inline-flex items-center gap-1.5 text-[11px] font-semibold  hover:text-[#71BAED]/80 transition-colors"
+                    style={{color:'#71BAED'}} className="inline-flex items-center gap-1.5 text-[11px] font-semibold  hover:text-electric/80 transition-colors"
                   >
                     <Wand2 className="w-3.5 h-3.5" />
                     Formatta testo
@@ -693,7 +693,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
           <Button
             onClick={() => onSave({ form, pricingRows, deletedConfigIds })}
             disabled={!canSave || isSaving}
-            className="flex-1 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white gap-2"
+            className="flex-1 bg-electric hover:bg-electric/90 text-white gap-2"
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
             {isNew ? "Crea Veicolo" : "Salva Modifiche"}
@@ -813,7 +813,7 @@ export default function CmsVehicles() {
         <div className="flex gap-2">
           <Input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Cerca marca o modello…" className="w-48" />
-          <Button onClick={() => setModal({})} className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white gap-2 shrink-0">
+          <Button onClick={() => setModal({})} className="bg-electric hover:bg-electric/90 text-white gap-2 shrink-0">
             <Plus className="w-4 h-4" /> Nuovo Veicolo
           </Button>
         </div>

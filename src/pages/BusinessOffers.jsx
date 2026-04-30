@@ -67,7 +67,7 @@ export default function BusinessOffers() {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="bg-[#F5F6FA] min-h-screen">
+    <div className="bg-surface min-h-screen">
       <PageHeader
         eyebrow="Noleggio a Lungo Termine"
         title="Offerte per Aziende e P.IVA"

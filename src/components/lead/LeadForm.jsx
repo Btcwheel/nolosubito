@@ -235,7 +235,7 @@ export default function LeadForm({ prefilledConfig }) {
           Puoi intanto seguire la tua pratica dalla tua area personale.
         </p>
         <Link to={`/mia-pratica?email=${encodeURIComponent(submittedEmail)}`}>
-          <Button className="w-full h-12 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold rounded-xl text-sm cursor-pointer">
+          <Button className="w-full h-12 bg-electric hover:bg-electric/90 text-white font-semibold rounded-xl text-sm cursor-pointer">
             Accedi alla Tua Area Pratica
             <ExternalLink className="w-4 h-4 ml-2" />
           </Button>
@@ -606,7 +606,7 @@ export default function LeadForm({ prefilledConfig }) {
           <label htmlFor="privacy1" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
             * Acconsento al trattamento dei miei dati personali ai sensi del Regolamento UE 2016/679
             (GDPR) per la gestione della richiesta di preventivo.{" "}
-            <Link to="/privacy" style={{color:'#71BAED'}} className=" underline hover:text-[#71BAED]/80">
+            <Link to="/privacy" style={{color:'#71BAED'}} className=" underline hover:text-electric/80">
               Leggi la Privacy Policy
             </Link>
           </label>
@@ -628,7 +628,7 @@ export default function LeadForm({ prefilledConfig }) {
       <Button
         type="submit"
         disabled={sending || !privacy1}
-        className="w-full h-12 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-bold rounded-xl text-base cursor-pointer shadow-md style={{boxShadow:'0 4px 6px -1px rgba(113,186,237,0.25)'}}/20 transition-all duration-200 disabled:opacity-50"
+        className="w-full h-12 bg-electric hover:bg-electric/90 text-white font-bold rounded-xl text-base cursor-pointer shadow-md style={{boxShadow:'0 4px 6px -1px rgba(113,186,237,0.25)'}}/20 transition-all duration-200 disabled:opacity-50"
       >
         {sending ? (
           <>

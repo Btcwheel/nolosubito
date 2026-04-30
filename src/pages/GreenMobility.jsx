@@ -26,7 +26,7 @@ export default function GreenMobility() {
   );
 
   return (
-    <div className="bg-[#F5F6FA]">
+    <div className="bg-surface">
       <PageHeader
         eyebrow="Flotta Sostenibile"
         title="Guida Green, Risparmia di Più"
@@ -43,16 +43,16 @@ export default function GreenMobility() {
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.08 }}
-                className="bg-white border border-[#f1f5f9] rounded-2xl p-4 text-center shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)]"
+                className="bg-white border border-frame rounded-2xl p-4 text-center shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)]"
               >
-                <s.icon className="w-5 h-5 text-[#71BAED] mx-auto mb-2" />
-                <p className="font-heading font-bold text-xl text-[#2D2E82]">{s.value}</p>
+                <s.icon className="w-5 h-5 text-electric mx-auto mb-2" />
+                <p className="font-heading font-bold text-xl text-navy">{s.value}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
               </motion.div>
             ))}
           </div>
 
-          <h2 className="font-heading font-bold text-2xl text-[#2D2E82] mb-8">
+          <h2 className="font-heading font-bold text-2xl text-navy mb-8">
             Veicoli Elettrici e Ibridi
           </h2>
 

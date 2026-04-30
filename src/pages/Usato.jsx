@@ -18,8 +18,8 @@ const FUEL_ICONS = {
 
 function SpecBox({ icon: Icon, label }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 bg-[#f1f3ff] rounded-[8px] p-2 min-h-[56px]">
-      <Icon className="w-4 h-4 text-[#2D2E82]/60" />
+    <div className="flex flex-col items-center justify-center gap-1.5 bg-spec rounded-[8px] p-2 min-h-[56px]">
+      <Icon className="w-4 h-4 text-navy/60" />
       <span className="text-[10px] font-bold text-[#464651] leading-none text-center">{label}</span>
     </div>
   );
@@ -31,7 +31,7 @@ function UsatoCard({ v, i }) {
   const badge = (() => {
     if (v.carburante === "Elettrico") return { icon: Zap,  text: "0 Emissioni CO₂", color: "text-green-700", border: "border-green-200" };
     if (v.carburante === "Ibrido")   return { icon: Leaf, text: "Ibrido",            color: "text-lime-700",  border: "border-lime-200" };
-    if (v.targa_prova)               return { icon: null,  text: "Targa Prova",      color: "text-[#2D2E82]", border: "border-[#2D2E82]/20" };
+    if (v.targa_prova)               return { icon: null,  text: "Targa Prova",      color: "text-navy", border: "border-navy/20" };
     return null;
   })();
 
@@ -48,7 +48,7 @@ function UsatoCard({ v, i }) {
       transition={{ duration: 0.3, delay: Math.min(i * 0.05, 0.3) }}
       className="h-full"
     >
-      <div className="h-full flex flex-col bg-white border border-[#f1f5f9] rounded-2xl shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_8px_32px_0px_rgba(45,46,130,0.12)] group">
+      <div className="h-full flex flex-col bg-white border border-frame rounded-2xl shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_8px_32px_0px_rgba(45,46,130,0.12)] group">
 
         {/* Image */}
         <div className="relative bg-[#f8fafc] overflow-hidden h-[200px]">
@@ -86,7 +86,7 @@ function UsatoCard({ v, i }) {
             <p className="text-[12px] font-bold text-[#777682] uppercase tracking-[1.2px] leading-none mb-[5px]">
               USATO SICURO
             </p>
-            <h3 className="text-[20px] font-bold text-[#15146c] leading-7">
+            <h3 className="text-[20px] font-bold text-navy-dark leading-7">
               {v.marca} {v.modello}
             </h3>
             {v.descrizione && (
@@ -108,7 +108,7 @@ function UsatoCard({ v, i }) {
             <div className="min-w-0">
               <p className="text-[12px] font-medium text-[#777682] leading-none mb-1">Prezzo</p>
               <div className="flex items-baseline gap-0.5 flex-wrap">
-                <span className="text-[28px] sm:text-[32px] font-bold text-[#15146c] leading-none">
+                <span className="text-[28px] sm:text-[32px] font-bold text-navy-dark leading-none">
                   €{v.prezzo.toLocaleString("it-IT")}
                 </span>
               </div>
@@ -120,7 +120,7 @@ function UsatoCard({ v, i }) {
               target="_blank"
               rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
-              className="w-12 h-12 bg-[#71BAED] rounded-xl flex items-center justify-center shrink-0 transition-colors hover:bg-[#71BAED]/85"
+              className="w-12 h-12 bg-electric rounded-xl flex items-center justify-center shrink-0 transition-colors hover:bg-electric/85"
             >
               <ExternalLink className="w-4 h-4 text-white" />
             </a>
@@ -133,7 +133,7 @@ function UsatoCard({ v, i }) {
 
 function CardSkeleton() {
   return (
-    <div className="bg-white border border-[#f1f5f9] rounded-2xl overflow-hidden shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)]">
+    <div className="bg-white border border-frame rounded-2xl overflow-hidden shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)]">
       <Skeleton className="h-[200px] w-full" />
       <div className="p-6 space-y-4">
         <Skeleton className="h-3 w-24" />
@@ -238,7 +238,7 @@ export default function Usato() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F5F6FA]">
+    <div className="min-h-screen bg-surface">
 
       <PageHeader
         eyebrow="Usato Garantito"
@@ -307,7 +307,7 @@ export default function Usato() {
                 <SlidersHorizontal className="w-4 h-4 mr-2" />
                 Filtri
                 {activeFilters > 0 && (
-                  <Badge className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center bg-[#71BAED] text-white text-[10px]">
+                  <Badge className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center bg-electric text-white text-[10px]">
                     {activeFilters}
                   </Badge>
                 )}
@@ -318,7 +318,7 @@ export default function Usato() {
                 <SheetTitle className="text-left">Filtra veicoli</SheetTitle>
               </SheetHeader>
               <FiltersContent />
-              <Button className="w-full mt-6 h-12 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white font-semibold rounded-xl cursor-pointer"
+              <Button className="w-full mt-6 h-12 bg-electric hover:bg-electric/90 text-white font-semibold rounded-xl cursor-pointer"
                 onClick={() => setFilterOpen(false)}>
                 Mostra {filtered.length} veicoli
               </Button>

@@ -22,7 +22,10 @@ module.exports = {
           light:   'hsl(var(--navy-light) / <alpha-value>)',
         },
         electric: 'hsl(var(--electric) / <alpha-value>)',
-        ice: 'hsl(var(--ice) / <alpha-value>)',
+        ice:      'hsl(var(--ice) / <alpha-value>)',
+        surface:  '#F5F6FA',
+        spec:     '#f1f3ff',
+        frame:    '#f1f5f9',
         fuel: {
           ev:     'hsl(var(--fuel-ev) / <alpha-value>)',
           hybrid: 'hsl(var(--fuel-hybrid) / <alpha-value>)',

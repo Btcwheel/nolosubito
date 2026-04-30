@@ -44,7 +44,7 @@ export default function ReuseOffers() {
   const reset = useCallback((setter) => (val) => { setter(val); setCurrentPage(1); }, []);
 
   return (
-    <div className="bg-[#F5F6FA] min-h-screen">
+    <div className="bg-surface min-h-screen">
       <PageHeader
         eyebrow="Usato Certificato NLT"
         title="Offerte Re-Use"

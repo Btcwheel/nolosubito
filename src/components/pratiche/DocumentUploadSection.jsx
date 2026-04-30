@@ -91,7 +91,7 @@ export default function DocumentUploadSection({ praticaId }) {
   return (
     <div className="bg-card border border-border/50 rounded-2xl p-5">
       <h2 className="font-heading font-semibold text-base mb-4 flex items-center gap-2">
-        <FileText className="w-4 h-4 text-[#71BAED]" />
+        <FileText className="w-4 h-4 text-electric" />
         Documenti
       </h2>
 
@@ -137,7 +137,7 @@ export default function DocumentUploadSection({ praticaId }) {
       >
         {uploading ? (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 text-[#71BAED] animate-spin" />
+            <Loader2 className="w-8 h-8 text-electric animate-spin" />
             <p className="text-sm text-muted-foreground">
               Caricamento in corso…
             </p>
@@ -149,8 +149,8 @@ export default function DocumentUploadSection({ praticaId }) {
           </div>
         ) : (
           <>
-            <div className="w-12 h-12 rounded-2xl bg-[#71BAED]/10 flex items-center justify-center mb-3">
-              <Upload className="w-6 h-6 text-[#71BAED]" />
+            <div className="w-12 h-12 rounded-2xl bg-electric/10 flex items-center justify-center mb-3">
+              <Upload className="w-6 h-6 text-electric" />
             </div>
             <p className="font-semibold text-sm text-foreground mb-1">
               {isDragging ? "Rilascia qui i file" : "Trascina qui i documenti"}

@@ -1,11 +1,14 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, Car } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 import VehicleCard from "../vehicles/VehicleCard";
 import { offersService } from "@/services/offers";
 
+// ── Constants ─────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 9;
+const HERO_IMG  = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&q=85&auto=format&fit=crop&crop=center";
 
 const TIPOLOGIA_OPTIONS = [
   { value: "all",     label: "Tutti" },
@@ -21,28 +24,30 @@ const BUDGET_OPTIONS = [
   { value: "600+",    label: "Oltre €600/mese" },
 ];
 
-const QUICK_FILTERS = ["SUV", "Berlina", "Ibrido", "Elettrica"];
+const QUICK_FILTERS = ["SUV", "Berlina", "Elettriche", "Ibride"];
 
-function NativeSelect({ label, value, options, onChange }) {
+// ── Filter dropdown ───────────────────────────────────────────────────────────
+function FilterSelect({ label, value, options, onChange }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</label>
+    <div className="flex flex-col gap-1 min-w-0">
+      <label className="text-[11px] font-bold text-[#2D2E82] uppercase tracking-wide px-1">{label}</label>
       <div className="relative">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-800 pr-9 focus:outline-none focus:ring-2 focus:ring-[#2D2E82]/20 cursor-pointer"
+          className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-medium text-gray-800 pr-8 focus:outline-none focus:ring-2 focus:ring-navy/20 cursor-pointer"
         >
           {options.map(opt => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
       </div>
     </div>
   );
 }
 
+// ── Toggle ────────────────────────────────────────────────────────────────────
 function Toggle({ checked, onChange }) {
   return (
     <button
@@ -50,19 +55,18 @@ function Toggle({ checked, onChange }) {
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex shrink-0 w-10 h-6 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none ${
-        checked ? "bg-[#71BAED]" : "bg-gray-200"
+      className={`relative inline-flex shrink-0 w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none ${
+        checked ? "bg-electric" : "bg-gray-200"
       }`}
     >
-      <span
-        className={`inline-block w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 mt-1 ${
-          checked ? "translate-x-5" : "translate-x-1"
-        }`}
-      />
+      <span className={`inline-block w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 mt-1 ${
+        checked ? "translate-x-6" : "translate-x-1"
+      }`} />
     </button>
   );
 }
 
+// ── Main component ────────────────────────────────────────────────────────────
 export default function FeaturedVehicles() {
   const [tipologia,      setTipologia]      = useState("all");
   const [search,         setSearch]         = useState("");
@@ -71,6 +75,8 @@ export default function FeaturedVehicles() {
   const [quickFilter,    setQuickFilter]    = useState(null);
   const [prontoConsegna, setProntoConsegna] = useState(false);
   const [currentPage,    setCurrentPage]    = useState(1);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const resultsRef = useRef(null);
 
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["offers-home-catalog"],
@@ -87,11 +93,6 @@ export default function FeaturedVehicles() {
     const q = search.toLowerCase();
     return vehicles
       .filter(v => !q || `${v.make} ${v.model}`.toLowerCase().includes(q))
-      .filter(v => {
-        if (tipologia === "all") return true;
-        // show vehicles that have a config for the selected segment
-        return true; // listWithMinPrice() fetches all; tipologia acts as a UI label for now
-      })
       .filter(v => categoryFilter === "all" || v.category === categoryFilter)
       .filter(v => {
         if (budgetFilter === "all") return true;
@@ -105,8 +106,8 @@ export default function FeaturedVehicles() {
       .filter(v => {
         if (!quickFilter) return true;
         if (quickFilter === "SUV" || quickFilter === "Berlina") return v.category === quickFilter;
-        if (quickFilter === "Ibrido")    return v.fuel_type === "Hybrid";
-        if (quickFilter === "Elettrica") return v.fuel_type === "Electric";
+        if (quickFilter === "Ibride")    return v.fuel_type === "Hybrid";
+        if (quickFilter === "Elettriche") return v.fuel_type === "Electric";
         return true;
       })
       .filter(v => !prontoConsegna || v.is_ready_delivery === true);
@@ -126,99 +127,173 @@ export default function FeaturedVehicles() {
   const handleBudget    = (v) => { setBudgetFilter(v);   resetPage(); };
   const handleQuick     = (v) => { setQuickFilter(prev => prev === v ? null : v); resetPage(); };
 
-  return (
-    <section className="bg-[#F5F6FA] min-h-screen">
-      {/* ── Filter bar ────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <NativeSelect
-              label="Tipologia"
-              value={tipologia}
-              options={TIPOLOGIA_OPTIONS}
-              onChange={handleTipologia}
-            />
+  const scrollToResults = () => {
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Marca / Modello</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Cerca veicolo…"
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2D2E82]/20"
-                />
+  return (
+    <section className="bg-surface min-h-screen">
+
+      {/* ── HERO ───────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-4">
+        <div className="flex flex-col sm:block relative w-full">
+
+          {/* ── Immagine & Testo ── */}
+          <div className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-lg h-[300px] sm:h-[400px]">
+            <img
+              src={HERO_IMG}
+              alt="Noleggio Lungo Termine"
+              className="absolute inset-0 w-full h-full object-cover object-center"
+              loading="eager"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/60" />
+
+            <div className="absolute bottom-0 inset-x-0 px-5 sm:px-8 lg:px-10 pb-10 sm:pb-6 z-10">
+              <motion.h1
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl text-white drop-shadow-md"
+              >
+                Noleggiamo il Futuro
+              </motion.h1>
+            </div>
+          </div>
+
+          {/* ── Barra filtri ── */}
+          <div className="relative sm:absolute sm:top-0 sm:inset-x-0 sm:pt-12 px-2 sm:px-8 lg:px-10 z-20 mt-3 sm:mt-0">
+            <div className="bg-white sm:bg-white/65 sm:backdrop-blur-xl rounded-2xl sm:rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] sm:shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 sm:border-white/60 p-4 sm:px-5 sm:py-4">
+              
+              {/* MOBILE TOGGLE HEADER */}
+              <div 
+                className="sm:hidden flex items-center justify-between cursor-pointer"
+                onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-[#2D2E82]/10 flex items-center justify-center">
+                    <Search className="w-4 h-4 text-[#2D2E82]" />
+                  </div>
+                  <span className="text-sm font-bold text-[#2D2E82]">Ricerca avanzata veicoli</span>
+                </div>
+                <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${isMobileFiltersOpen ? 'rotate-180' : ''}`} />
+              </div>
+
+              <div className={`grid grid-cols-2 gap-3 sm:flex sm:flex-row items-end sm:gap-2.5 mt-4 sm:mt-0 ${isMobileFiltersOpen ? 'block' : 'hidden sm:flex'}`}>
+
+                {/* Tipologia */}
+                <div className="col-span-2 sm:col-span-1 w-full sm:w-36 shrink-0">
+                  <FilterSelect
+                    label="Tipologia"
+                    value={tipologia}
+                    options={TIPOLOGIA_OPTIONS}
+                    onChange={handleTipologia}
+                  />
+                </div>
+
+                {/* Cerca marca/modello */}
+                <div className="col-span-2 w-full sm:flex-1 flex flex-col gap-1 min-w-0">
+                  <label className="text-[11px] font-bold text-[#2D2E82] uppercase tracking-wide px-1">Marca / Modello</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Cerca veicolo…"
+                      value={search}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-navy/20"
+                    />
+                  </div>
+                </div>
+
+                {/* Categoria */}
+                <div className="col-span-1 w-full sm:w-44 shrink-0">
+                  <FilterSelect
+                    label="Categoria"
+                    value={categoryFilter}
+                    options={[
+                      { value: "all", label: "Tutte le auto" },
+                      ...categories.map(c => ({ value: c, label: c })),
+                    ]}
+                    onChange={handleCategory}
+                  />
+                </div>
+
+                {/* Budget */}
+                <div className="col-span-1 w-full sm:w-40 shrink-0">
+                  <FilterSelect
+                    label="Budget Mensile"
+                    value={budgetFilter}
+                    options={BUDGET_OPTIONS}
+                    onChange={handleBudget}
+                  />
+                </div>
+
+                {/* CTA */}
+                <div className="col-span-2 w-full sm:w-auto shrink-0 flex flex-col gap-1 mt-1 sm:mt-0">
+                  <div className="h-[19px] hidden sm:block" /> {/* spacer per allineamento */}
+                  <button
+                    type="button"
+                    onClick={() => { resetPage(); setIsMobileFiltersOpen(false); scrollToResults(); }}
+                    className="flex items-center justify-center gap-2 bg-navy hover:bg-navy/90 text-white font-bold rounded-xl px-5 py-2.5 text-sm transition-colors cursor-pointer whitespace-nowrap shadow-md"
+                  >
+                    <Car className="w-4 h-4" />
+                    Trova Offerte
+                  </button>
+                </div>
+
               </div>
             </div>
-
-            <NativeSelect
-              label="Categoria"
-              value={categoryFilter}
-              options={[
-                { value: "all", label: "Tutte le auto" },
-                ...categories.map(c => ({ value: c, label: c })),
-              ]}
-              onChange={handleCategory}
-            />
-
-            <NativeSelect
-              label="Budget Mensile"
-              value={budgetFilter}
-              options={BUDGET_OPTIONS}
-              onChange={handleBudget}
-            />
           </div>
 
-          <div className="mt-4 flex justify-end">
-            <button
-              type="button"
-              onClick={resetPage}
-              className="flex items-center gap-2 bg-[#2D2E82] hover:bg-[#2D2E82]/90 text-white font-bold rounded-xl px-6 py-2.5 text-sm transition-colors cursor-pointer"
-            >
-              <Search className="w-4 h-4" />
-              Trova Offerta
-            </button>
-          </div>
         </div>
+      </div>
 
-        {/* Quick filters + toggle */}
-        <div className="flex items-center justify-between gap-3 mt-4 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm text-gray-500 font-medium">Filtri rapidi:</span>
-            {QUICK_FILTERS.map(f => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => handleQuick(f)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
-                  quickFilter === f
-                    ? "bg-[#2D2E82] text-white border-[#2D2E82]"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-[#2D2E82]/40"
-                }`}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-2.5">
-            <span className="text-xs text-gray-500">Mostra solo auto in pronta consegna</span>
-            <Toggle checked={prontoConsegna} onChange={setProntoConsegna} />
+      {/* ── Filtri rapidi + toggle ────────────────────────────────────── */}
+      <div className="bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-gray-500 font-medium">Filtri rapidi:</span>
+              {QUICK_FILTERS.map(f => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => handleQuick(f)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
+                    quickFilter === f
+                      ? "bg-electric text-white border-electric"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-electric/50 hover:text-navy"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs text-electric font-medium">Mostra solo auto in pronta consegna</span>
+              <Toggle checked={prontoConsegna} onChange={setProntoConsegna} />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── Results ───────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* ── Results ──────────────────────────────────────────────────── */}
+      <div ref={resultsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 scroll-mt-4">
         <div className="flex items-end justify-between mb-6">
-          <h2 className="font-heading font-bold text-2xl sm:text-3xl text-[#2D2E82]">
-            Migliori Offerte Noleggio
+          <h2 className="font-heading font-bold text-2xl sm:text-3xl text-navy">
+            Migliori Offerte Noleggio Lungo Termine
           </h2>
           {!isLoading && (
-            <p className="text-sm text-gray-500">
-              Trovati <strong className="text-gray-700">{filtered.length}</strong> risultati
-            </p>
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={filtered.length}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-sm text-gray-500 shrink-0"
+              >
+                Trovati <strong className="text-gray-700">{filtered.length}</strong> risultati
+              </motion.p>
+            </AnimatePresence>
           )}
         </div>
 
@@ -264,7 +339,7 @@ export default function FeaturedVehicles() {
                 onClick={() => setCurrentPage(n)}
                 className={`w-9 h-9 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
                   currentPage === n
-                    ? "bg-[#2D2E82] text-white"
+                    ? "bg-navy text-white"
                     : "border border-gray-200 hover:bg-white text-gray-700"
                 }`}
               >

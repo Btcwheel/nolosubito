@@ -96,9 +96,9 @@ function PreventivoCard({ prev, onInvia, onReinvia, onDelete, isLoading }) {
           <p className="text-muted-foreground mb-0.5">Anticipo</p>
           <p className="font-semibold">€{(prev.anticipo || 0).toLocaleString("it-IT")}</p>
         </div>
-        <div className="bg-[#71BAED]/5 border border-[#71BAED]/15 rounded-lg p-2.5">
+        <div className="bg-electric/5 border border-electric/15 rounded-lg p-2.5">
           <p className="text-muted-foreground mb-0.5">Canone</p>
-          <p className="font-bold text-[#71BAED]">€{prev.canone_mensile?.toLocaleString("it-IT")}/mese</p>
+          <p className="font-bold text-electric">€{prev.canone_mensile?.toLocaleString("it-IT")}/mese</p>
         </div>
       </div>
 
@@ -139,7 +139,7 @@ function PreventivoCard({ prev, onInvia, onReinvia, onDelete, isLoading }) {
               size="sm"
               onClick={() => onInvia(prev.id)}
               disabled={isLoading}
-              className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white gap-1.5 flex-1"
+              className="bg-electric hover:bg-electric/90 text-white gap-1.5 flex-1"
             >
               {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               Invia al Cliente

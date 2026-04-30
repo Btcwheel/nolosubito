@@ -64,7 +64,7 @@ export default function DashboardPreview() {
         {/* Sidebar */}
         <div className="w-56 bg-navy shrink-0 p-4 flex flex-col hidden sm:flex">
           <div className="flex items-center gap-2 px-2 mb-6 mt-1">
-            <div className="w-7 h-7 rounded-lg bg-[#71BAED] flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-electric flex items-center justify-center">
               <Car className="w-4 h-4 text-white" />
             </div>
             <span className="font-heading font-bold text-white text-sm">Nolosubito</span>
@@ -131,7 +131,7 @@ export default function DashboardPreview() {
                 </div>
                 <button className="relative p-2 rounded-lg bg-muted cursor-pointer">
                   <Bell className="w-4 h-4 text-muted-foreground" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-[#71BAED] rounded-full" />
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-electric rounded-full" />
                 </button>
               </div>
 
@@ -157,7 +157,7 @@ export default function DashboardPreview() {
               <div className="bg-card border border-border/50 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-sm text-foreground">Ultime Pratiche</h3>
-                  <button className="text-xs text-[#71BAED] font-medium cursor-pointer">Vedi tutte →</button>
+                  <button className="text-xs text-electric font-medium cursor-pointer">Vedi tutte →</button>
                 </div>
                 <div className="space-y-2">
                   {pratiche.slice(0, 3).map(p => (
@@ -181,7 +181,7 @@ export default function DashboardPreview() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-heading font-bold text-foreground text-lg">Gestione Pratiche</h2>
-                <button className="flex items-center gap-1.5 text-xs bg-[#71BAED] text-white px-3 py-2 rounded-lg font-medium cursor-pointer">
+                <button className="flex items-center gap-1.5 text-xs bg-electric text-white px-3 py-2 rounded-lg font-medium cursor-pointer">
                   <Plus className="w-3.5 h-3.5" /> Nuova Pratica
                 </button>
               </div>
@@ -192,11 +192,11 @@ export default function DashboardPreview() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.06 }}
-                    className="flex items-center justify-between p-4 bg-card border border-border/50 rounded-xl hover:border-[#71BAED]/30 transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-4 bg-card border border-border/50 rounded-xl hover:border-electric/30 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-[#71BAED]/10 flex items-center justify-center shrink-0">
-                        <Car className="w-4 h-4 text-[#71BAED]" />
+                      <div className="w-9 h-9 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
+                        <Car className="w-4 h-4 text-electric" />
                       </div>
                       <div>
                         <div className="font-medium text-sm text-foreground">{p.cliente}</div>
@@ -274,9 +274,9 @@ export default function DashboardPreview() {
               <h2 className="font-heading font-bold text-foreground text-lg mb-2">Formazione</h2>
               <p className="text-sm text-muted-foreground mb-5">Completa i corsi per sbloccare nuovi mandati e aumentare le commissioni.</p>
 
-              <div className="mb-4 p-4 bg-[#71BAED]/5 border border-[#71BAED]/20 rounded-xl flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-[#71BAED]/10 flex items-center justify-center shrink-0">
-                  <Award className="w-5 h-5 text-[#71BAED]" />
+              <div className="mb-4 p-4 bg-electric/5 border border-electric/20 rounded-xl flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
+                  <Award className="w-5 h-5 text-electric" />
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-semibold text-foreground">Certificazione Silver attiva</div>
@@ -312,11 +312,11 @@ export default function DashboardPreview() {
                         <div className="text-right">
                           <div className="text-[10px] text-muted-foreground mb-1">{c.progress}%</div>
                           <div className="w-20 h-1.5 bg-muted rounded-full">
-                            <div className="h-full bg-[#71BAED] rounded-full" style={{ width: `${c.progress}%` }} />
+                            <div className="h-full bg-electric rounded-full" style={{ width: `${c.progress}%` }} />
                           </div>
                         </div>
                       ) : (
-                        <button className="text-[10px] px-3 py-1.5 bg-[#71BAED]/10 text-[#71BAED] rounded-lg font-medium cursor-pointer hover:bg-[#71BAED]/20 transition-colors">Inizia</button>
+                        <button className="text-[10px] px-3 py-1.5 bg-electric/10 text-electric rounded-lg font-medium cursor-pointer hover:bg-electric/20 transition-colors">Inizia</button>
                       )}
                     </div>
                   </motion.div>
@@ -330,7 +330,7 @@ export default function DashboardPreview() {
       {/* Preview label */}
       <div className="bg-muted/50 border-t border-border/50 px-5 py-3 flex items-center justify-between">
         <span className="text-xs text-muted-foreground">📱 Anteprima Area Riservata Partner — disponibile dopo l'attivazione</span>
-        <Badge variant="default" className="bg-[#71BAED]/10 text-[#71BAED] border-0 text-xs">Demo</Badge>
+        <Badge variant="default" className="bg-electric/10 text-electric border-0 text-xs">Demo</Badge>
       </div>
     </div>
   );

@@ -22,8 +22,8 @@ const SEGMENT_LABEL = {
 
 function SpecBox({ icon: Icon, label }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 bg-[#f1f3ff] rounded-[8px] p-2 min-h-[56px]">
-      <Icon className="w-4 h-4 text-[#2D2E82]/60" />
+    <div className="flex flex-col items-center justify-center gap-1.5 bg-spec rounded-[8px] p-2 min-h-[56px]">
+      <Icon className="w-4 h-4 text-navy/60" />
       <span className="text-[10px] font-bold text-[#464651] leading-none text-center">{label}</span>
     </div>
   );
@@ -84,7 +84,7 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
         state={{ segment }}
         className="group block h-full"
       >
-        <div className="h-full flex flex-col bg-white border border-[#f1f5f9] rounded-2xl shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_8px_32px_0px_rgba(45,46,130,0.12)]">
+        <div className="h-full flex flex-col bg-white border border-frame rounded-2xl shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_8px_32px_0px_rgba(45,46,130,0.12)]">
 
           {/* ── Image ── */}
           <div className={`relative bg-[#f8fafc] overflow-hidden ${imgH}`}>
@@ -115,7 +115,7 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
               <p className="text-[12px] font-bold text-[#777682] uppercase tracking-[1.2px] leading-none mb-[5px]">
                 {segmentLabel}
               </p>
-              <h3 className="text-[20px] font-bold text-[#15146c] leading-7">
+              <h3 className="text-[20px] font-bold text-navy-dark leading-7">
                 {vehicle.make} {vehicle.model}
               </h3>
               {(vehicle.version || vehicle.fuel_type) && (
@@ -139,7 +139,7 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
               <div className="min-w-0">
                 <p className="text-[12px] font-medium text-[#777682] leading-none mb-1">Da soli</p>
                 <div className="flex items-baseline gap-0.5 flex-wrap">
-                  <span className="text-[28px] sm:text-[32px] font-bold text-[#15146c] leading-none">
+                  <span className="text-[28px] sm:text-[32px] font-bold text-navy-dark leading-none">
                     {displayPrice ? `${displayPrice.toLocaleString("it-IT")}€` : "Su richiesta"}
                   </span>
                   {displayPrice && (
@@ -151,7 +151,7 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
                 </p>
               </div>
 
-              <div className="w-12 h-12 bg-[#71BAED] rounded-xl flex items-center justify-center shrink-0 transition-colors group-hover:bg-[#71BAED]/85">
+              <div className="w-12 h-12 bg-electric rounded-xl flex items-center justify-center shrink-0 transition-colors group-hover:bg-electric/85">
                 <ArrowRight className="w-4 h-4 text-white" />
               </div>
             </div>

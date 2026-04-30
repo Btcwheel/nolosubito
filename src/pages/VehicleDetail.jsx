@@ -126,7 +126,7 @@ export default function VehicleDetail() {
           <p className="text-foreground text-xl font-heading font-bold mb-2">Veicolo non trovato</p>
           <p className="text-muted-foreground text-sm mb-6">Il veicolo richiesto non è disponibile.</p>
           <Link to="/offers">
-            <Button className="bg-[#71BAED] hover:bg-[#71BAED]/90 text-white">← Torna alle Offerte</Button>
+            <Button className="bg-electric hover:bg-electric/90 text-white">← Torna alle Offerte</Button>
           </Link>
         </div>
       </div>
@@ -172,16 +172,16 @@ export default function VehicleDetail() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
 
-      <div className="bg-[#F5F6FA] min-h-screen">
+      <div className="bg-surface min-h-screen">
 
         {/* ── Header: breadcrumb + title ─────────────────────────── */}
         <div className="bg-white border-b border-gray-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-6">
             {/* Breadcrumb */}
             <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-5">
-              <Link to="/" className="hover:text-[#2D2E82] transition-colors">Nolosubito</Link>
+              <Link to="/" className="hover:text-navy transition-colors">Nolosubito</Link>
               <ChevronRight className="w-3 h-3" />
-              <Link to="/offers" className="hover:text-[#2D2E82] transition-colors">Offerte Noleggio</Link>
+              <Link to="/offers" className="hover:text-navy transition-colors">Offerte Noleggio</Link>
               <ChevronRight className="w-3 h-3" />
               <span className="text-gray-600 font-medium">{decodedMake} {decodedModel}</span>
             </nav>
@@ -190,8 +190,8 @@ export default function VehicleDetail() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-bold text-[#71BAED] uppercase tracking-widest mb-1">{decodedMake}</p>
-                  <h1 className="font-heading font-bold text-3xl sm:text-4xl text-[#2D2E82] leading-tight">
+                  <p className="text-xs font-bold text-electric uppercase tracking-widest mb-1">{decodedMake}</p>
+                  <h1 className="font-heading font-bold text-3xl sm:text-4xl text-navy leading-tight">
                     {decodedModel}
                     {bestOffer.version && (
                       <span className="block text-lg font-medium text-gray-400 mt-1">{bestOffer.version}</span>
@@ -200,7 +200,7 @@ export default function VehicleDetail() {
                   <p className="text-sm text-gray-500 mt-2">
                     Noleggio a Lungo Termine
                     {displayPrice && (
-                      <span className="ml-2 font-extrabold text-[#2D2E82] text-base">
+                      <span className="ml-2 font-extrabold text-navy text-base">
                         · da €{displayPrice.toLocaleString("it-IT")}/mese
                       </span>
                     )}
@@ -209,29 +209,29 @@ export default function VehicleDetail() {
                   {/* Quick-info pills */}
                   <div className="flex flex-wrap gap-2 mt-4">
                     {bestOffer.category && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f1f3ff] text-[#2D2E82] text-xs font-semibold">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-spec text-navy text-xs font-semibold">
                         {bestOffer.category}
                       </span>
                     )}
                     {bestOffer.fuel_type && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f1f3ff] text-[#2D2E82] text-xs font-semibold">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-spec text-navy text-xs font-semibold">
                         <Fuel className="w-3.5 h-3.5 opacity-70" />
                         {FUEL_IT[bestOffer.fuel_type] || bestOffer.fuel_type}
                       </span>
                     )}
                     {bestOffer.power_hp && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f1f3ff] text-[#2D2E82] text-xs font-semibold">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-spec text-navy text-xs font-semibold">
                         <Gauge className="w-3.5 h-3.5 opacity-70" />
                         {bestOffer.power_hp} CV
                       </span>
                     )}
                     {bestOffer.transmission && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f1f3ff] text-[#2D2E82] text-xs font-semibold">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-spec text-navy text-xs font-semibold">
                         {bestOffer.transmission}
                       </span>
                     )}
                     {bestOffer.year && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f1f3ff] text-[#2D2E82] text-xs font-semibold">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-spec text-navy text-xs font-semibold">
                         {bestOffer.year}
                       </span>
                     )}
@@ -273,7 +273,7 @@ export default function VehicleDetail() {
 
                 {/* Top badges */}
                 <div className="absolute top-3 left-3 flex gap-2">
-                  <Badge className="bg-[#2D2E82]/80 text-white border-0 backdrop-blur-sm text-xs">
+                  <Badge className="bg-navy/80 text-white border-0 backdrop-blur-sm text-xs">
                     {bestOffer.category}
                   </Badge>
                   {isElectric && (
@@ -315,7 +315,7 @@ export default function VehicleDetail() {
                     onClick={() => handleThumb(i)}
                     className={`relative shrink-0 rounded-xl overflow-hidden cursor-pointer transition-all duration-200 w-[88px] h-[58px] sm:w-[110px] sm:h-[72px] ${
                       i === currentIndex
-                        ? "ring-2 ring-[#71BAED] ring-offset-2 ring-offset-[#F5F6FA]"
+                        ? "ring-2 ring-electric ring-offset-2 ring-offset-surface"
                         : "opacity-50 hover:opacity-80"
                     }`}
                   >
@@ -325,9 +325,9 @@ export default function VehicleDetail() {
               </div>
 
               {/* Specifiche tecniche */}
-              <div className="bg-white rounded-2xl border border-[#f1f5f9] shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)] overflow-hidden">
-                <div className="px-5 py-4 border-b border-[#f1f5f9]">
-                  <h3 className="text-xs font-bold text-[#71BAED] uppercase tracking-widest">Specifiche Tecniche</h3>
+              <div className="bg-white rounded-2xl border border-frame shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)] overflow-hidden">
+                <div className="px-5 py-4 border-b border-frame">
+                  <h3 className="text-xs font-bold text-electric uppercase tracking-widest">Specifiche Tecniche</h3>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4">
                   {[
@@ -338,13 +338,13 @@ export default function VehicleDetail() {
                     { icon: Car,      label: "Categoria",  value: bestOffer.category },
                     { icon: Calendar, label: "Anno",       value: bestOffer.year ? String(bestOffer.year) : null },
                   ].filter(s => s.value).map(({ icon: Icon, label, value }) => (
-                    <div key={label} className="flex items-center gap-3 bg-[#f1f3ff] rounded-xl p-3">
+                    <div key={label} className="flex items-center gap-3 bg-spec rounded-xl p-3">
                       <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm border border-[#e8e9f8]">
-                        <Icon className="w-4 h-4 text-[#2D2E82]" />
+                        <Icon className="w-4 h-4 text-navy" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-[10px] font-semibold text-[#777682] uppercase tracking-wide leading-none mb-1">{label}</p>
-                        <p className="text-sm font-bold text-[#15146c] leading-snug truncate">{value}</p>
+                        <p className="text-sm font-bold text-navy-dark leading-snug truncate">{value}</p>
                       </div>
                     </div>
                   ))}
@@ -357,7 +357,7 @@ export default function VehicleDetail() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {INCLUDED.map(({ icon: Icon, label }) => (
                     <div key={label} className="flex items-center gap-2.5">
-                      <CheckCircle2 className="w-4 h-4 text-[#71BAED] shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-electric shrink-0" />
                       <span className="text-sm text-gray-700">{label}</span>
                     </div>
                   ))}
@@ -366,10 +366,10 @@ export default function VehicleDetail() {
                 {/* Pack Servizi Optional */}
                 <div className="mt-5 pt-5 border-t border-gray-100">
                   <div className="flex items-center gap-2 mb-3">
-                    <div className="w-6 h-6 rounded-lg bg-[#2D2E82]/10 flex items-center justify-center">
-                      <TrendingDown className="w-3.5 h-3.5 text-[#2D2E82]" />
+                    <div className="w-6 h-6 rounded-lg bg-navy/10 flex items-center justify-center">
+                      <TrendingDown className="w-3.5 h-3.5 text-navy" />
                     </div>
-                    <p className="text-xs font-bold text-[#2D2E82] uppercase tracking-wider">Pack Servizi Optional</p>
+                    <p className="text-xs font-bold text-navy uppercase tracking-wider">Pack Servizi Optional</p>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {[
@@ -377,9 +377,9 @@ export default function VehicleDetail() {
                       { icon: Zap,         label: "Vettura Sostitutiva" },
                       { icon: Wrench,      label: "Servizio Pneumatici" },
                     ].map(({ icon: Icon, label }) => (
-                      <div key={label} className="flex flex-col items-center gap-1.5 text-center bg-[#2D2E82]/5 border border-[#2D2E82]/10 rounded-xl py-3 px-2">
-                        <Icon className="w-4 h-4 text-[#2D2E82]" />
-                        <span className="text-[11px] font-semibold text-[#2D2E82] leading-tight">{label}</span>
+                      <div key={label} className="flex flex-col items-center gap-1.5 text-center bg-navy/5 border border-navy/10 rounded-xl py-3 px-2">
+                        <Icon className="w-4 h-4 text-navy" />
+                        <span className="text-[11px] font-semibold text-navy leading-tight">{label}</span>
                       </div>
                     ))}
                   </div>
@@ -399,7 +399,7 @@ export default function VehicleDetail() {
                   {descParagraphs.length > 2 && (
                     <button
                       onClick={() => setShowAllDesc(v => !v)}
-                      className="mt-3 text-xs font-semibold text-[#71BAED] hover:text-[#71BAED]/80 cursor-pointer transition-colors"
+                      className="mt-3 text-xs font-semibold text-electric hover:text-electric/80 cursor-pointer transition-colors"
                     >
                       {showAllDesc ? "Mostra meno" : "Mostra tutti i dettagli ↓"}
                     </button>
@@ -414,7 +414,7 @@ export default function VehicleDetail() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {bestOffer.features.map((f, i) => (
                       <div key={i} className="flex items-center gap-2.5 text-sm text-gray-700">
-                        <CheckCircle2 className="w-4 h-4 text-[#71BAED] shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-electric shrink-0" />
                         {f}
                       </div>
                     ))}
@@ -446,12 +446,12 @@ export default function VehicleDetail() {
             <div className="border-t border-gray-200 pt-10">
               <div className="flex items-end justify-between mb-6">
                 <div>
-                  <p className="text-xs font-bold text-[#71BAED] uppercase tracking-widest mb-1">Veicoli Selezionati</p>
-                  <h2 className="font-heading font-bold text-2xl text-[#2D2E82]">Potrebbero interessarti</h2>
+                  <p className="text-xs font-bold text-electric uppercase tracking-widest mb-1">Veicoli Selezionati</p>
+                  <h2 className="font-heading font-bold text-2xl text-navy">Potrebbero interessarti</h2>
                 </div>
                 <Link
                   to="/offers"
-                  className="text-sm font-semibold text-[#71BAED] hover:text-[#71BAED]/80 transition-colors hidden sm:block"
+                  className="text-sm font-semibold text-electric hover:text-electric/80 transition-colors hidden sm:block"
                 >
                   Vedi tutti →
                 </Link>
@@ -472,8 +472,8 @@ export default function VehicleDetail() {
           <div className="max-w-2xl mx-auto px-4 sm:px-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
               <div className="flex items-center gap-2 mb-2">
-                <ArrowDown className="w-4 h-4 text-[#71BAED]" />
-                <p className="text-xs font-bold text-[#71BAED] uppercase tracking-widest">Passo finale</p>
+                <ArrowDown className="w-4 h-4 text-electric" />
+                <p className="text-xs font-bold text-electric uppercase tracking-widest">Passo finale</p>
               </div>
               <h2 className="font-heading font-bold text-2xl text-foreground mb-1">
                 Richiedi il tuo preventivo

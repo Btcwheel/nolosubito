@@ -21,7 +21,7 @@ export default function News() {
     : posts.filter(p => p.category === activeCategory);
 
   return (
-    <div className="min-h-screen bg-[#F5F6FA]">
+    <div className="min-h-screen bg-surface">
       <PageHeader
         eyebrow="Blog & News"
         title="Ultime Notizie"
@@ -38,7 +38,7 @@ export default function News() {
                 onClick={() => setActiveCategory(cat)}
                 className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer flex-shrink-0 ${
                   activeCategory === cat
-                    ? "bg-[#2D2E82] text-white"
+                    ? "bg-navy text-white"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >

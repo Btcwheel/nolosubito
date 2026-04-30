@@ -44,7 +44,7 @@ export default function AssegnaAgenteDialog({ pratica, agenti, onClose }) {
                 value=""
                 checked={selectedAgente === ""}
                 onChange={() => setSelectedAgente("")}
-                className="accent-[#71BAED]"
+                className="accent-electric"
               />
             <span className="text-sm text-muted-foreground italic">Nessuno (rimuovi agente)</span>
           </label>
@@ -79,7 +79,7 @@ export default function AssegnaAgenteDialog({ pratica, agenti, onClose }) {
           <Button
             onClick={() => assign.mutate()}
             disabled={assign.isPending}
-            className="flex-1 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white"
+            className="flex-1 bg-electric hover:bg-electric/90 text-white"
           >
             Salva
           </Button>

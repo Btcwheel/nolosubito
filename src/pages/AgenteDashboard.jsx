@@ -253,7 +253,7 @@ export default function AgenteDashboard() {
                       >
                         {/* Codice */}
                         <div className="col-span-2">
-                          <span className="font-mono text-xs font-bold text-[#71BAED]">
+                          <span className="font-mono text-xs font-bold text-electric">
                             {p.codice || `#${p.id.slice(0, 8).toUpperCase()}`}
                           </span>
                           <p className="text-xs text-muted-foreground mt-0.5">
@@ -277,7 +277,7 @@ export default function AgenteDashboard() {
                               {p.veicolo_marca} {p.veicolo_modello}
                             </p>
                             {p.canone_mensile && (
-                              <p className="text-xs text-[#71BAED] font-semibold">€{p.canone_mensile}/mese</p>
+                              <p className="text-xs text-electric font-semibold">€{p.canone_mensile}/mese</p>
                             )}
                           </div>
                         </div>

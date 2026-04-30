@@ -42,7 +42,7 @@ export default function StatusTimeline({ currentStatus }) {
                   {isDone ? (
                     <Check className="w-4 h-4 text-white" strokeWidth={2.5} />
                   ) : isCurrent ? (
-                    <div className="w-2.5 h-2.5 rounded-full bg-[#71BAED]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-electric" />
                   ) : (
                     <div className="w-2.5 h-2.5 rounded-full bg-border/60" />
                   )}
@@ -66,7 +66,7 @@ export default function StatusTimeline({ currentStatus }) {
                   <div className="w-full h-full bg-border/40 rounded-full" />
                   {isDone && (
                     <motion.div
-                      className="absolute inset-0 bg-[#71BAED] rounded-full"
+                      className="absolute inset-0 bg-electric rounded-full"
                       initial={{ scaleX: 0 }}
                       animate={{ scaleX: 1 }}
                       transition={{ duration: 0.4 }}

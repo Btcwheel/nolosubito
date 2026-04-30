@@ -230,7 +230,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
               <select
                 value={selectedMake}
                 onChange={handleMakeChange}
-                className="w-full h-11 rounded-xl border border-input bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-[#71BAED]/50"
+                className="w-full h-11 rounded-xl border border-input bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-electric/50"
                 style={{ "--tw-ring-color": `${ACCENT}30` }}
               >
                 <option value="">Seleziona marca</option>

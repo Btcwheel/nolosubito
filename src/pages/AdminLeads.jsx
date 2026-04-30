@@ -113,7 +113,7 @@ function ConvertModal({ lead, onClose, onConverted }) {
         <div className="flex gap-3 px-6 py-4 border-t border-border">
           <Button variant="outline" onClick={onClose} className="flex-1">Annulla</Button>
           <Button onClick={handleSubmit} disabled={saving}
-            className="flex-1 bg-[#71BAED] hover:bg-[#71BAED]/90 text-white gap-2">
+            className="flex-1 bg-electric hover:bg-electric/90 text-white gap-2">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
             Crea Pratica
           </Button>
