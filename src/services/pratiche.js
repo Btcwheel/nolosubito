@@ -42,17 +42,12 @@ export const praticheService = {
     const codice = `NS-${new Date().getFullYear()}-${Date.now().toString().slice(-5)}`;
     const access_token = crypto.randomUUID();
 
-    const { error } = await supabase
+    const { data: nuovaPratica, error } = await supabase
       .from('pratiche')
-      .insert({ ...pratica, codice, access_token, status: 'Nuova' });
-    if (error) throw error;
-
-    // Recupera l'ID della pratica appena creata
-    const { data: nuovaPratica } = await supabase
-      .from('pratiche')
+      .insert({ ...pratica, codice, access_token, status: 'Nuova' })
       .select('id')
-      .eq('codice', codice)
       .single();
+    if (error) throw error;
 
     // Notifica backoffice (best-effort) — i dati vengono passati direttamente
     try {
