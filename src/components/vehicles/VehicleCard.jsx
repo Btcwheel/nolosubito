@@ -5,6 +5,7 @@ import {
   ArrowRight, Settings2, Fuel, Zap, Gauge, Leaf, Flame, RefreshCw, Truck,
 } from "lucide-react";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
+import { getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
 
 const FUEL_IT = {
   Electric: "Elettrica",
@@ -89,13 +90,9 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
           {/* ── Image ── */}
           <div className={`relative bg-[#f8fafc] overflow-hidden ${imgH}`}>
             <img
-              src={imgSrc}
-              srcSet={
-                imgSrc.includes("supabase.co") && imgSrc.endsWith(".webp") && !imgSrc.includes("-400w")
-                  ? `${imgSrc.replace(".webp", "-400w.webp")} 400w, ${imgSrc} 800w`
-                  : undefined
-              }
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              src={getOptimizedSrc(imgSrc, 800)}
+              srcSet={getVehicleCardSrcSet(imgSrc)}
+              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
               alt={`${vehicle.make} ${vehicle.model}`}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
               style={{ objectPosition: imgPos }}

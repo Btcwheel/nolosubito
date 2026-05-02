@@ -15,6 +15,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
+import { getVehicleDetailSrcSet, getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
 import { splitVehicleDescription } from "@/lib/vehicleText";
 
 const MOCK_GALLERY_EXTRAS = [
@@ -259,13 +260,9 @@ export default function VehicleDetail() {
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={imgKey}
-                    src={galleryImages[currentIndex].src}
-                    srcSet={
-                      galleryImages[currentIndex].src.includes("supabase.co") && galleryImages[currentIndex].src.endsWith(".webp") && !galleryImages[currentIndex].src.includes("-400w")
-                        ? `${galleryImages[currentIndex].src.replace(".webp", "-400w.webp")} 400w, ${galleryImages[currentIndex].src} 800w`
-                        : undefined
-                    }
-                    sizes="(max-width: 1024px) 100vw, 800px"
+                    src={getOptimizedSrc(galleryImages[currentIndex].src, 1200)}
+                    srcSet={getVehicleDetailSrcSet(galleryImages[currentIndex].src)}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1280px) 60vw, 800px"
                     alt={`${decodedMake} ${decodedModel}`}
                     className="w-full aspect-[16/9] object-cover"
                     style={{ objectPosition: imgPos }}
@@ -325,7 +322,13 @@ export default function VehicleDetail() {
                         : "opacity-50 hover:opacity-80"
                     }`}
                   >
-                    <img src={img.src} alt={img.label} className="w-full h-full object-cover" />
+                    <img
+                      src={getOptimizedSrc(img.src, 200)}
+                      srcSet={getVehicleCardSrcSet(img.src)}
+                      sizes="110px"
+                      alt={img.label}
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
