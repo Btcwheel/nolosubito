@@ -3,42 +3,48 @@ import { supabase } from '@/lib/supabase';
 const BUCKET = 'vehicle-images';
 
 // Funzione per comprimere l'immagine lato client in WebP
-async function compressImageToWebP(file, maxWidth = 1920) {
+async function generateWebP(img, maxWidth, fileName, suffix = "") {
   return new Promise((resolve, reject) => {
-    if (!file.type.startsWith('image/') || file.type === 'image/svg+xml' || file.type === 'image/webp') {
-      return resolve(file);
+    let width = img.width;
+    let height = img.height;
+    
+    if (width > maxWidth) {
+      height = Math.round((height * maxWidth) / width);
+      width = maxWidth;
+    }
+    
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, width, height);
+    
+    canvas.toBlob((blob) => {
+      if (!blob) return reject(new Error("Canvas to Blob failed"));
+      const name = fileName.replace(/\.[^/.]+$/, "") + suffix + ".webp";
+      resolve(new File([blob], name, { type: 'image/webp', lastModified: Date.now() }));
+    }, 'image/webp', 0.8);
+  });
+}
+
+async function compressImageVariants(file) {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/') || file.type === 'image/svg+xml') {
+      return resolve({ main: file, small: null });
     }
 
     const img = new Image();
     img.src = URL.createObjectURL(file);
-    img.onload = () => {
+    img.onload = async () => {
       URL.revokeObjectURL(img.src);
-      let width = img.width;
-      let height = img.height;
-      
-      if (width > maxWidth) {
-        height = Math.round((height * maxWidth) / width);
-        width = maxWidth;
+      try {
+        const main = await generateWebP(img, 800, file.name);
+        const small = await generateWebP(img, 400, file.name, "-400w");
+        resolve({ main, small });
+      } catch (err) {
+        reject(err);
       }
-      
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          reject(new Error("Canvas to Blob failed"));
-          return;
-        }
-        const webpFile = new File([blob], file.name.replace(/\.[^/.]+$/, ".webp"), {
-          type: 'image/webp',
-          lastModified: Date.now(),
-        });
-        resolve(webpFile);
-      }, 'image/webp', 0.8);
     };
     img.onerror = (err) => {
       URL.revokeObjectURL(img.src);
@@ -49,19 +55,27 @@ async function compressImageToWebP(file, maxWidth = 1920) {
 
 // Carica un file immagine su Supabase Storage e restituisce la URL pubblica
 async function uploadVehicleImage(file, make, model) {
-  // Comprimi e converti in WebP prima di inviare
-  const optimizedFile = await compressImageToWebP(file);
+  // Comprimi e converti in WebP varianti (800w e 400w) prima di inviare
+  const { main, small } = await compressImageVariants(file);
   
-  const ext  = optimizedFile.name.split('.').pop();
-  const path = `${make}-${model}-${Date.now()}.${ext}`.toLowerCase().replace(/\s+/g, '-');
+  const ext = main.name.split('.').pop();
+  const basePath = `${make}-${model}-${Date.now()}`.toLowerCase().replace(/\s+/g, '-');
+  const mainPath = `${basePath}.${ext}`;
 
+  // Upload main (800w)
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
-    .upload(path, optimizedFile, { upsert: true, contentType: optimizedFile.type });
+    .upload(mainPath, main, { upsert: true, contentType: main.type });
 
   if (uploadError) throw uploadError;
 
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  // Upload small (400w) if exists
+  if (small) {
+    const smallPath = `${basePath}-400w.${ext}`;
+    await supabase.storage.from(BUCKET).upload(smallPath, small, { upsert: true, contentType: small.type });
+  }
+
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(mainPath);
   return data.publicUrl;
 }
 

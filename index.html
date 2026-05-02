@@ -9,10 +9,15 @@
     <meta property="og:description" content="Scopri le migliori offerte di Noleggio Lungo Termine per Aziende e Privati. Preventivi veloci e canoni trasparenti." />
     <meta property="og:type" content="website" />
     <link rel="icon" type="image/png" href="/favicon.png" />
+    <!-- Preload logo (above-fold, Navbar) -->
+    <link rel="preload" as="image" href="/logo-bianco.png" fetchpriority="high" />
+    <!-- Preload LCP hero image -->
+    <link rel="preload" as="image" imagesrcset="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&amp;q=80&amp;auto=format&amp;fit=crop&amp;crop=center 600w, https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&amp;q=85&amp;auto=format&amp;fit=crop&amp;crop=center 1200w" imagesizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1280px" fetchpriority="high" />
+    <!-- Google Fonts: non-blocking async load -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="preload" as="image" imagesrcset="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&amp;q=80&amp;auto=format&amp;fit=crop&amp;crop=center 600w, https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&amp;q=85&amp;auto=format&amp;fit=crop&amp;crop=center 1200w, https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&amp;q=85&amp;auto=format&amp;fit=crop&amp;crop=center 1920w" imagesizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1280px" fetchpriority="high" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=optional" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=optional" rel="stylesheet" /></noscript>
   </head>
   <body>
     <div id="root"></div>
