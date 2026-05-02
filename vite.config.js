@@ -5,12 +5,8 @@ import compression from 'vite-plugin-compression'
 
 /**
  * Plugin che converte i tag CSS render-blocking in caricamento asincrono.
- * Trasforma: <link rel="stylesheet" href="...">
- * In:        <link rel="preload" href="..." as="style" onload="this.onload=null;this.rel='stylesheet'">
- *            <noscript><link rel="stylesheet" href="..."></noscript>
- *
- * Questo rimuove il CSS dal critical rendering path:
- * il browser inizia a scaricare il CSS senza aspettarlo prima di disegnare.
+ * Usa il trick: media="print" onload="this.media='all'"
+ * È il metodo più affidabile per caricare CSS in modo non bloccante senza FOUC pesante.
  */
 function deferCssPlugin() {
   return {
@@ -18,12 +14,17 @@ function deferCssPlugin() {
     transformIndexHtml: {
       order: 'post',
       handler(html) {
-        // Trasforma tutti i <link rel="stylesheet"> (tranne quelli Google Fonts che già gestiamo)
+        // Match any stylesheet link (Vite assets or Google Fonts)
         return html.replace(
-          /<link rel="stylesheet" crossorigin href="(\/assets\/[^"]+\.css)">/g,
-          (_, href) =>
-            `<link rel="preload" href="${href}" as="style" onload="this.onload=null;this.rel='stylesheet'">` +
-            `<noscript><link rel="stylesheet" href="${href}"></noscript>`
+          /<link [^>]*rel="stylesheet"[^>]*href="([^"]+)"[^>]*>/g,
+          (match, href) => {
+            // Apply defer only to CSS files or Fonts
+            if (href.includes('.css') || href.includes('fonts.googleapis.com')) {
+              return `<link rel="stylesheet" href="${href}" media="print" onload="this.media='all'">` +
+                     `<noscript><link rel="stylesheet" href="${href}"></noscript>`;
+            }
+            return match;
+          }
         );
       },
     },
