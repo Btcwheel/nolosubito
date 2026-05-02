@@ -100,7 +100,9 @@ export default function VehicleDetail() {
     setQuoteConfig({ ...config, version: bestOffer.version || "", fuelType: bestOffer.fuel_type || "" });
     setShowForm(true);
     setTimeout(() => {
-      document.getElementById("lead-form")?.scrollIntoView({ behavior: "smooth" });
+      requestAnimationFrame(() => {
+        document.getElementById("lead-form")?.scrollIntoView({ behavior: "smooth" });
+      });
     }, 100);
   };
 

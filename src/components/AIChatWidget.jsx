@@ -126,9 +126,12 @@ export default function AIChatWidget() {
   const bottomRef                 = useRef(null);
   const inputRef                  = useRef(null);
 
-  // Scroll automatico ai nuovi messaggi
+  // Scroll automatico ai nuovi messaggi — dentro rAF per evitare forced reflow
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const rafId = requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    });
+    return () => cancelAnimationFrame(rafId);
   }, [messages]);
 
   // Focus input all'apertura

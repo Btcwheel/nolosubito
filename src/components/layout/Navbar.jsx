@@ -29,9 +29,19 @@ export default function Navbar() {
   const location = useLocation();
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    let rafId = null;
+    const onScroll = () => {
+      if (rafId) return;  // throttle: max 1 read per frame
+      rafId = requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 20);
+        rafId = null;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
   }, []);
 
   useEffect(() => {
@@ -73,10 +83,6 @@ export default function Navbar() {
             <img
               src="/logo-bianco.png"
               alt="Nolosubito"
-              width="160"
-              height="40"
-              fetchpriority="high"
-              decoding="async"
               className="h-10 w-auto object-contain transition-all duration-300"
               style={isLight ? { filter: "brightness(0) saturate(100%) invert(20%) sepia(90%) saturate(1500%) hue-rotate(215deg) brightness(75%)" } : undefined}
             />

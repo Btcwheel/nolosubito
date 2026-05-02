@@ -128,7 +128,9 @@ export default function FeaturedVehicles() {
   const handleQuick     = (v) => { setQuickFilter(prev => prev === v ? null : v); resetPage(); };
 
   const scrollToResults = () => {
-    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    requestAnimationFrame(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
   };
 
   return (
