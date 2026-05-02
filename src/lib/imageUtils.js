@@ -2,8 +2,12 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 /**
  * Converte un URL pubblico Supabase Storage in un URL della Transform API.
+ * Usa resize=contain per NON croppare l'immagine server-side:
+ * il veicolo rimane sempre completo, e CSS object-cover + objectPosition
+ * gestisce il crop e il centramento visivo nel browser.
+ *
  * Esempio: .../object/public/vehicle-images/file.webp
- * Diventa: .../render/image/public/vehicle-images/file.webp?width=X&quality=80
+ * Diventa: .../render/image/public/vehicle-images/file.webp?width=X&quality=80&resize=contain
  */
 function toTransformUrl(url, { width, quality = 80 } = {}) {
   if (!url || !url.includes('supabase.co/storage/v1/object/public/')) {
@@ -13,7 +17,10 @@ function toTransformUrl(url, { width, quality = 80 } = {}) {
     '/storage/v1/object/public/',
     '/storage/v1/render/image/public/'
   );
-  const params = new URLSearchParams({ quality: String(quality) });
+  const params = new URLSearchParams({
+    quality: String(quality),
+    resize: 'contain',
+  });
   if (width) params.set('width', String(width));
   return `${transformUrl}?${params.toString()}`;
 }
