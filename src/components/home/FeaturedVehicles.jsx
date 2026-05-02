@@ -142,9 +142,16 @@ export default function FeaturedVehicles() {
           <div className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-lg h-[300px] sm:h-[400px]">
             <img
               src={HERO_IMG}
+              srcSet={`
+                https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80&auto=format&fit=crop&crop=center 600w,
+                https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&q=85&auto=format&fit=crop&crop=center 1200w,
+                https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&q=85&auto=format&fit=crop&crop=center 1920w
+              `}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1280px"
               alt="Noleggio Lungo Termine"
               className="absolute inset-0 w-full h-full object-cover object-center"
               loading="eager"
+              fetchpriority="high"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/60" />
 
@@ -279,33 +286,50 @@ export default function FeaturedVehicles() {
 
       {/* ── Results ──────────────────────────────────────────────────── */}
       <div ref={resultsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 scroll-mt-4">
-        <div className="flex items-end justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3 min-h-[64px]">
           <h2 className="font-heading font-bold text-2xl sm:text-3xl text-navy">
             Migliori Offerte Noleggio Lungo Termine
           </h2>
-          {!isLoading && (
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={filtered.length}
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-sm text-gray-500 shrink-0"
-              >
-                Trovati <strong className="text-gray-700">{filtered.length}</strong> risultati
-              </motion.p>
-            </AnimatePresence>
-          )}
+          <div className="h-[20px] shrink-0">
+            {!isLoading && (
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={filtered.length}
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-sm text-gray-500"
+                >
+                  Trovati <strong className="text-gray-700">{filtered.length}</strong> risultati
+                </motion.p>
+              </AnimatePresence>
+            )}
+          </div>
         </div>
 
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {Array.from({ length: 9 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                <Skeleton className="aspect-[4/3] w-full" />
-                <div className="p-4 space-y-3">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-5 w-36" />
-                  <Skeleton className="h-8 w-24 mt-4" />
+              <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden h-full flex flex-col">
+                <Skeleton className="h-[200px] w-full shrink-0 rounded-none" />
+                <div className="p-6 flex-1 flex flex-col justify-between">
+                  <div>
+                    <Skeleton className="h-3 w-24 mb-2" />
+                    <Skeleton className="h-6 w-48 mb-1" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mt-4 mb-6">
+                    <Skeleton className="h-[56px] w-full" />
+                    <Skeleton className="h-[56px] w-full" />
+                    <Skeleton className="h-[56px] w-full" />
+                  </div>
+                  <div className="flex items-end justify-between gap-3 mt-auto">
+                    <div>
+                      <Skeleton className="h-3 w-16 mb-1" />
+                      <Skeleton className="h-8 w-32" />
+                      <Skeleton className="h-3 w-24 mt-1" />
+                    </div>
+                    <Skeleton className="h-12 w-12 rounded-xl shrink-0" />
+                  </div>
                 </div>
               </div>
             ))}

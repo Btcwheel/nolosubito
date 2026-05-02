@@ -17,8 +17,16 @@ export default function HeroSection({ variant = "default" } = {}) {
       <div className="absolute inset-0">
         <img
           src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1920&q=90&auto=format&fit=crop"
+          srcSet="
+            https://images.unsplash.com/photo-1555215695-3004980ad54e?w=600&q=80&auto=format&fit=crop 600w,
+            https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1200&q=85&auto=format&fit=crop 1200w,
+            https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1920&q=90&auto=format&fit=crop 1920w
+          "
+          sizes="100vw"
           alt=""
           aria-hidden="true"
+          loading="eager"
+          fetchpriority="high"
           className="h-full w-full object-cover object-[68%_center] scale-110 sm:object-center sm:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-navy/65 via-navy/25 to-transparent" />
