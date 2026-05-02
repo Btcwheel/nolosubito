@@ -260,6 +260,12 @@ export default function VehicleDetail() {
                   <motion.img
                     key={imgKey}
                     src={galleryImages[currentIndex].src}
+                    srcSet={
+                      galleryImages[currentIndex].src.includes("supabase.co") && galleryImages[currentIndex].src.endsWith(".webp") && !galleryImages[currentIndex].src.includes("-400w")
+                        ? `${galleryImages[currentIndex].src.replace(".webp", "-400w.webp")} 400w, ${galleryImages[currentIndex].src} 800w`
+                        : undefined
+                    }
+                    sizes="(max-width: 1024px) 100vw, 800px"
                     alt={`${decodedMake} ${decodedModel}`}
                     className="w-full aspect-[16/9] object-cover"
                     style={{ objectPosition: imgPos }}
