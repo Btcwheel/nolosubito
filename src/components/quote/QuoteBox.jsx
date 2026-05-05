@@ -40,7 +40,7 @@ function StepLabel({ n, children }) {
   );
 }
 
-function OptionButton({ selected, available = true, onClick, children, layoutId }) {
+function OptionButton({ selected, available = true, onClick, children }) {
   const cls = selected
     ? "text-white shadow-md"
     : available
@@ -55,13 +55,10 @@ function OptionButton({ selected, available = true, onClick, children, layoutId 
       style={selected ? SELECTED_STYLE : {}}
     >
       {children}
-      {selected && layoutId && (
-        <motion.span
-          layoutId={layoutId}
-          className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full"
-          style={{ backgroundColor: ACCENT }}
-        />
-      )}
+      <span
+        className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full transition-opacity duration-150"
+        style={{ backgroundColor: ACCENT, opacity: selected ? 1 : 0, pointerEvents: 'none' }}
+      />
     </button>
   );
 }
@@ -267,7 +264,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
                   selected={duration === d}
                   available={available}
                   onClick={() => available && setDuration(d)}
-                  layoutId="duration-dot"
+
                 >
                   {d}<span className="text-[10px] font-normal opacity-70">m</span>
                 </OptionButton>
