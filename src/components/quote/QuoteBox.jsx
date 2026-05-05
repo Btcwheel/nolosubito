@@ -10,6 +10,7 @@ import { ADVANCE_BRACKETS, formatAdvanceAmount } from "@/lib/vehiclePricing";
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ALL_DURATIONS = [24, 36, 48, 60];
 const ALL_KM = [10000, 15000, 20000, 25000, 30000, 40000];
+const MOTO_KM = [5000, 8000, 10000, 12000];
 const NAVY = "#2D2E82";
 const ACCENT = "#71BAED";
 
@@ -94,8 +95,10 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
 
   const vehicleConfigs = useMemo(() => {
     if (!selectedMake || !selectedModel) return [];
-    const isCommercial = vehicles.find(v => v.make === selectedMake && v.model === selectedModel)?.category === "Commercial Van";
-    const effectiveSegment = isCommercial ? "Veicoli Commerciali" : segment;
+    const vehicle = vehicles.find(v => v.make === selectedMake && v.model === selectedModel);
+    const isCommercial = vehicle?.category === "Commercial Van";
+    const isMoto = vehicle?.category === "Moto e Scooter";
+    const effectiveSegment = isCommercial ? "Veicoli Commerciali" : isMoto ? "Moto" : segment;
     return allConfigs.filter(
       c =>
         c.make === selectedMake &&
@@ -104,6 +107,12 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
         (!effectiveSegment || effectiveSegment === "all" || c.segment === effectiveSegment),
     );
   }, [allConfigs, selectedMake, selectedModel, segment, vehicles]);
+
+  const isMotoVehicle = useMemo(
+    () => vehicles.find(v => v.make === selectedMake && v.model === selectedModel)?.category === "Moto e Scooter",
+    [vehicles, selectedMake, selectedModel],
+  );
+  const kmOptions = isMotoVehicle ? MOTO_KM : ALL_KM;
 
   const availableDurations = useMemo(
     () => new Set(vehicleConfigs.map(c => c.duration_months)),
@@ -136,7 +145,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
   // ── Auto-select effects ───────────────────────────────────────────────────
   useEffect(() => {
     if (vehicleConfigs.length && !availableKm.has(annualKm)) {
-      const first = ALL_KM.find(k => availableKm.has(k));
+      const first = kmOptions.find(k => availableKm.has(k));
       if (first) setAnnualKm(first);
     }
   }, [duration, availableKm]); // eslint-disable-line
@@ -277,7 +286,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
         <div>
           <StepLabel n={2}>Chilometri annui</StepLabel>
           <div className="grid grid-cols-3 gap-2">
-            {ALL_KM.map(k => {
+            {kmOptions.map(k => {
               const noVehicleSelected = !selectedMake || !selectedModel;
               const available = noVehicleSelected || configsLoading || availableKm.has(k);
               return (
