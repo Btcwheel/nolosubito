@@ -39,13 +39,13 @@ const TRANSMISSIONS = ["Automatic", "Manual"];
 const SEGMENTS_OPTIONS = [
   { value: "P.IVA",    label: "Business / P.IVA",      color: "bg-blue-100 text-blue-700 border-blue-200" },
   { value: "Privati",  label: "Privati",                color: "bg-purple-100 text-purple-700 border-purple-200" },
-  { value: "Fleet",    label: "Veicoli Commerciali",    color: "bg-amber-100 text-amber-700 border-amber-200" },
+  { value: "Veicoli Commerciali", label: "Veicoli Commerciali",    color: "bg-amber-100 text-amber-700 border-amber-200" },
   { value: "Green",    label: "Green Mobility",         color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   { value: "Moto",     label: "Offerte Moto",           color: "bg-rose-100 text-rose-700 border-rose-200" },
   { value: "ReUse",    label: "Offerte Re-Use",         color: "bg-teal-100 text-teal-700 border-teal-200" },
 ];
 
-const PRICE_SEGMENTS = ["P.IVA", "Privati", "Fleet", "Moto", "ReUse"];
+const PRICE_SEGMENTS = ["P.IVA", "Privati", "Veicoli Commerciali", "Moto", "ReUse"];
 const DURATE = [24, 36, 48, 60];
 const KM_OPTIONS = [10000, 15000, 20000, 25000, 30000, 40000];
 
@@ -261,9 +261,9 @@ function GalleryImagesInput({ images, onChange, make, model }) {
 
 // ── Editor configurazioni prezzi ──────────────────────────────────────────────
 
-function PricingConfigsEditor({ rows, onChange }) {
+function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA" }) {
   const addRow = () => {
-    onChange([...rows, { ...EMPTY_PRICE_ROW, _key: nextKey() }]);
+    onChange([...rows, { ...EMPTY_PRICE_ROW, _key: nextKey(), segment: defaultSegment }]);
   };
 
   const updateRow = (key, field, value) => {
@@ -449,6 +449,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
   const [form, setForm] = useState({ ...EMPTY_VEHICLE, ...initial });
   const [pricingRows, setPricingRows] = useState([]);
   const [deletedConfigIds, setDeletedConfigIds] = useState([]);
+  const [modalKey, setModalKey] = useState(0);
 
   const set = (field, val) => setForm(prev => ({ ...prev, [field]: val }));
 
@@ -457,9 +458,12 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
     queryKey: ["vehicle-configs-edit", initial?.make, initial?.model],
     queryFn: () => offersService.getConfigs(initial.make, initial.model),
     enabled: !!initial?.id && !!initial?.make && !!initial?.model,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   useEffect(() => {
+    console.log("[VehicleModal] existingConfigs:", existingConfigs);
     if (existingConfigs) {
       setPricingRows(existingConfigs.map(c => ({
         ...c,
@@ -636,7 +640,15 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
               </p>
               {loadingConfigs && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
             </div>
-            <PricingConfigsEditor rows={pricingRows} onChange={handlePricingChange} />
+            <PricingConfigsEditor
+              rows={pricingRows}
+              onChange={handlePricingChange}
+              defaultSegment={
+                form.category === "Commercial Van" ? "Veicoli Commerciali" :
+                form.category === "Moto e Scooter" ? "Moto" :
+                "P.IVA"
+              }
+            />
           </div>
 
           {/* ── Opzioni ── */}
@@ -773,6 +785,7 @@ export default function CmsVehicles() {
     onSuccess: (_, { form }) => {
       qc.invalidateQueries({ queryKey: ["cms-vehicles"] });
       qc.invalidateQueries({ queryKey: ["cms-offers"] });
+      qc.invalidateQueries({ queryKey: ["vehicle-configs-edit"] });
       toast({ title: form.id ? "Veicolo aggiornato" : "Veicolo creato" });
       setModal(null);
     },

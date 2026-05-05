@@ -81,7 +81,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: allConfigs = [] } = useQuery({
+  const { data: allConfigs = [], isLoading: configsLoading } = useQuery({
     queryKey: ["offer-configs-all"],
     queryFn: offersService.getAllConfigs,
     staleTime: 5 * 60 * 1000,
@@ -97,14 +97,16 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
 
   const vehicleConfigs = useMemo(() => {
     if (!selectedMake || !selectedModel) return [];
+    const isCommercial = vehicles.find(v => v.make === selectedMake && v.model === selectedModel)?.category === "Commercial Van";
+    const effectiveSegment = isCommercial ? "Veicoli Commerciali" : segment;
     return allConfigs.filter(
       c =>
         c.make === selectedMake &&
         c.model === selectedModel &&
         c.is_active &&
-        (!segment || c.segment === segment),
+        (!effectiveSegment || effectiveSegment === "all" || c.segment === effectiveSegment),
     );
-  }, [allConfigs, selectedMake, selectedModel, segment]);
+  }, [allConfigs, selectedMake, selectedModel, segment, vehicles]);
 
   const availableDurations = useMemo(
     () => new Set(vehicleConfigs.map(c => c.duration_months)),
@@ -257,7 +259,8 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
           <StepLabel n={1}>Durata contratto</StepLabel>
           <div className="grid grid-cols-4 gap-2">
             {ALL_DURATIONS.map(d => {
-              const available = !vehicleConfigs.length || availableDurations.has(d);
+              const noVehicleSelected = !selectedMake || !selectedModel;
+              const available = noVehicleSelected || configsLoading || availableDurations.has(d);
               return (
                 <OptionButton
                   key={d}
@@ -278,7 +281,8 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
           <StepLabel n={2}>Chilometri annui</StepLabel>
           <div className="grid grid-cols-3 gap-2">
             {ALL_KM.map(k => {
-              const available = !vehicleConfigs.length || availableKm.has(k);
+              const noVehicleSelected = !selectedMake || !selectedModel;
+              const available = noVehicleSelected || configsLoading || availableKm.has(k);
               return (
                 <OptionButton
                   key={k}
