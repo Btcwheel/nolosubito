@@ -450,6 +450,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
   const [pricingRows, setPricingRows] = useState([]);
   const [deletedConfigIds, setDeletedConfigIds] = useState([]);
   const [modalKey, setModalKey] = useState(0);
+  const pricingInitialized = useRef(false);
 
   const set = (field, val) => setForm(prev => ({ ...prev, [field]: val }));
 
@@ -463,8 +464,8 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
   });
 
   useEffect(() => {
-    console.log("[VehicleModal] existingConfigs:", existingConfigs);
-    if (existingConfigs) {
+    if (existingConfigs && !pricingInitialized.current) {
+      pricingInitialized.current = true;
       setPricingRows(existingConfigs.map(c => ({
         ...c,
         _key: nextKey(),
