@@ -48,6 +48,7 @@ const SEGMENTS_OPTIONS = [
 const PRICE_SEGMENTS = ["P.IVA", "Privati", "Veicoli Commerciali", "Moto", "ReUse"];
 const DURATE = [24, 36, 48, 60];
 const KM_OPTIONS = [10000, 15000, 20000, 25000, 30000, 40000];
+const KM_OPTIONS_MOTO = [5000, 8000, 10000, 12000];
 
 const EMPTY_PRICE_ROW = {
   _key: null, // client-side key per React
@@ -261,7 +262,7 @@ function GalleryImagesInput({ images, onChange, make, model }) {
 
 // ── Editor configurazioni prezzi ──────────────────────────────────────────────
 
-function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA" }) {
+function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOptions = KM_OPTIONS }) {
   const addRow = () => {
     onChange([...rows, { ...EMPTY_PRICE_ROW, _key: nextKey(), segment: defaultSegment }]);
   };
@@ -304,7 +305,7 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA" }) {
               {/* KM */}
               <Select value={String(row.annual_km)} onValueChange={v => updateRow(row._key, "annual_km", Number(v))}>
                 <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>{KM_OPTIONS.map(k => <SelectItem key={k} value={String(k)}>{k.toLocaleString("it-IT")}</SelectItem>)}</SelectContent>
+                <SelectContent>{kmOptions.map(k => <SelectItem key={k} value={String(k)}>{k.toLocaleString("it-IT")}</SelectItem>)}</SelectContent>
               </Select>
 
               {/* Anticipo */}
@@ -649,6 +650,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
                 form.category === "Moto e Scooter" ? "Moto" :
                 "P.IVA"
               }
+              kmOptions={form.category === "Moto e Scooter" ? KM_OPTIONS_MOTO : KM_OPTIONS}
             />
           </div>
 
