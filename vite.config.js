@@ -45,11 +45,22 @@ export default defineConfig({
     },
   },
   build: {
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+        passes: 2,
+      },
+      mangle: { toplevel: true },
+      format: { comments: false },
+    },
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom', 'framer-motion', '@tanstack/react-query'],
-          ui: ['lucide-react', 'clsx', 'tailwind-merge']
+          vendor: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
+          motion: ['framer-motion'],
+          ui: ['lucide-react', 'clsx', 'tailwind-merge'],
         }
       }
     }

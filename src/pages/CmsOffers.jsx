@@ -15,7 +15,7 @@ const EMPTY_CONFIG = {
   advance_payment: 0, monthly_rent: 0, is_active: true,
 };
 
-const SEGMENTS = ["P.IVA", "Fleet", "Privati"];
+const SEGMENTS = ["P.IVA", "Veicoli Commerciali", "Privati"];
 
 export default function CmsOffers() {
   const { toast } = useToast();

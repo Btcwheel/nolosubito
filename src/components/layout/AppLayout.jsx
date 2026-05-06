@@ -1,10 +1,11 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import ScrollToTop from "./ScrollToTop";
-import AIChatWidget from "@/components/AIChatWidget";
-import CookieBanner from "@/components/CookieBanner";
+
+const AIChatWidget = lazy(() => import("@/components/AIChatWidget"));
+const CookieBanner = lazy(() => import("@/components/CookieBanner"));
 
 export default function AppLayout() {
   return (
@@ -15,8 +16,10 @@ export default function AppLayout() {
         <Outlet />
       </main>
       <Footer />
-      <AIChatWidget />
-      <CookieBanner />
+      <Suspense fallback={null}>
+        <AIChatWidget />
+        <CookieBanner />
+      </Suspense>
     </div>
   );
 }

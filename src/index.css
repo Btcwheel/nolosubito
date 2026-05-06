@@ -5,8 +5,8 @@
 
 @layer base {
   :root {
-    --font-heading: 'Space Grotesk', ui-sans-serif, system-ui, -apple-system, sans-serif;
-    --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-heading: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
 
     /* Neutrals */
     --background: 204 25% 96.1%; /* #F2F5F7 — Ice neutral */

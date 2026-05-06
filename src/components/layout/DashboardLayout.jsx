@@ -68,6 +68,8 @@ function SidebarContent({ config, profile, role, onLogout, onLinkClick }) {
           <img
             src="/logo-bianco.png"
             alt="Nolosubito"
+            width="160"
+            height="28"
             className="h-7 w-auto object-contain"
             onError={e => { e.target.style.display = "none"; }}
           />
@@ -205,6 +207,8 @@ export default function DashboardLayout() {
           <img
             src="/logo-bianco.png"
             alt="Nolosubito"
+            width="160"
+            height="24"
             className="h-6 w-auto object-contain"
             onError={e => { e.target.style.display = "none"; }}
           />

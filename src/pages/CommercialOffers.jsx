@@ -94,7 +94,7 @@ export default function CommercialOffers() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {paginated.map((v, i) => (
-                <VehicleCard key={v.id} vehicle={v} index={i} segment="Commerciale" />
+                <VehicleCard key={v.id} vehicle={v} index={i} segment="Veicoli Commerciali" />
               ))}
             </div>
             <Pagination current={currentPage} total={totalPages} onChange={setCurrentPage} />

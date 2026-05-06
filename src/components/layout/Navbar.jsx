@@ -83,6 +83,8 @@ export default function Navbar() {
             <img
               src="/logo-bianco.png"
               alt="Nolosubito"
+              width="160"
+              height="40"
               className="h-10 w-auto object-contain transition-all duration-300"
               style={isLight ? { filter: "brightness(0) saturate(100%) invert(20%) sepia(90%) saturate(1500%) hue-rotate(215deg) brightness(75%)" } : undefined}
             />

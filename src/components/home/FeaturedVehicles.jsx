@@ -8,7 +8,7 @@ import { offersService } from "@/services/offers";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 9;
-const HERO_IMG  = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&q=85&auto=format&fit=crop&crop=center";
+const HERO_IMG  = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=533&q=80&auto=format&fit=crop&crop=center";
 
 const TIPOLOGIA_OPTIONS = [
   { value: "all",     label: "Tutti" },
@@ -54,6 +54,7 @@ function Toggle({ checked, onChange }) {
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-label="Mostra solo auto in pronta consegna"
       onClick={() => onChange(!checked)}
       className={`relative inline-flex shrink-0 w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none ${
         checked ? "bg-electric" : "bg-gray-200"
@@ -145,15 +146,17 @@ export default function FeaturedVehicles() {
             <img
               src={HERO_IMG}
               srcSet={`
-                https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&q=80&auto=format&fit=crop&crop=center 600w,
-                https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&q=85&auto=format&fit=crop&crop=center 1200w,
-                https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&q=85&auto=format&fit=crop&crop=center 1920w
+                https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=267&q=75&auto=format&fit=crop&crop=center 400w,
+                https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=750&h=500&q=80&auto=format&fit=crop&crop=center 750w,
+                https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1280&h=533&q=80&auto=format&fit=crop&crop=center 1280w
               `}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1280px"
               alt="Noleggio Lungo Termine"
+              width="1280"
+              height="533"
               className="absolute inset-0 w-full h-full object-cover object-center"
-              loading="eager"
-              fetchpriority="high"
+               loading="eager"
+               fetchpriority="high"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/60" />
 
@@ -279,7 +282,7 @@ export default function FeaturedVehicles() {
               ))}
             </div>
             <div className="flex items-center gap-2.5">
-              <span className="text-xs text-electric font-medium">Mostra solo auto in pronta consegna</span>
+              <span className="text-xs text-[#2477A8] font-medium">Mostra solo auto in pronta consegna</span>
               <Toggle checked={prontoConsegna} onChange={setProntoConsegna} />
             </div>
           </div>
@@ -299,7 +302,7 @@ export default function FeaturedVehicles() {
                   key={filtered.length}
                   initial={{ opacity: 0, y: -4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-sm text-gray-500"
+                  className="text-sm text-gray-600"
                 >
                   Trovati <strong className="text-gray-700">{filtered.length}</strong> risultati
                 </motion.p>

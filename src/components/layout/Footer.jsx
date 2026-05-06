@@ -12,6 +12,8 @@ export default function Footer() {
               <img
                 src="/logo-bianco.png"
                 alt="Nolosubito"
+                width="160"
+                height="40"
                 className="h-10 w-auto object-contain"
               />
             </Link>

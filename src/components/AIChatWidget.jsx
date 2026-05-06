@@ -233,6 +233,8 @@ export default function AIChatWidget() {
               <img
                 src="/logo-bianco.png"
                 alt="Nolosubito"
+                width="160"
+                height="24"
                 className="h-6 w-auto object-contain shrink-0"
                 onError={e => e.target.style.display = "none"}
               />

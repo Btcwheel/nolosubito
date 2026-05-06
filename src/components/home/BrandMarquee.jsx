@@ -41,6 +41,8 @@ export default function BrandMarquee() {
               <img
                 src={brand.logo}
                 alt={brand.name}
+                width="88"
+                height="32"
                 className="h-auto max-h-7 w-auto max-w-[64px] object-contain sm:max-h-8 sm:max-w-[88px]"
                 loading="lazy"
                 onError={(e) => { e.target.style.display = 'none'; }}

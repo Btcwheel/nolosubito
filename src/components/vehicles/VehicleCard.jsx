@@ -18,7 +18,7 @@ const SEGMENT_LABEL = {
   "P.IVA":    "BUSINESS EXCLUSIVE",
   "Privati":  "PRIVATI NLT",
   "Moto":     "MOTO NLT",
-  "Commerciale": "VEICOLI COMMERCIALI",
+  "Veicoli Commerciali": "VEICOLI COMMERCIALI",
 };
 
 function SpecBox({ icon: Icon, label }) {
@@ -90,10 +90,12 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
           {/* ── Image ── */}
           <div className={`relative bg-[#f8fafc] overflow-hidden ${imgH}`}>
             <img
-              src={getOptimizedSrc(imgSrc, 800)}
+              src={getOptimizedSrc(imgSrc, 600)}
               srcSet={getVehicleCardSrcSet(imgSrc)}
               sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
               alt={`${vehicle.make} ${vehicle.model}`}
+              width="600"
+              height="400"
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
               style={{ objectPosition: imgPos }}
               loading="lazy"

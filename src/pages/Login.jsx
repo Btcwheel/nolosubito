@@ -110,6 +110,8 @@ export default function Login({ context = "internal" }) {
             <img
               src="/logo-bianco.png"
               alt="Nolosubito"
+              width="160"
+              height="32"
               className="h-8 w-auto object-contain"
               onError={(e) => { e.target.style.display = "none"; }}
             />
@@ -202,11 +204,13 @@ export default function Login({ context = "internal" }) {
 
           {/* Tab switcher */}
           <div className="relative flex bg-muted rounded-xl p-1 mb-7 gap-1">
-            <motion.div
+            <div
               className="absolute top-1 bottom-1 bg-white rounded-[10px] shadow-sm"
-              layoutId="tab-bg"
-              style={{ width: "calc(50% - 4px)", left: mode === "password" ? "4px" : "calc(50%)" }}
-              transition={{ type: "spring", stiffness: 500, damping: 40 }}
+              style={{
+                width: "calc(50% - 4px)",
+                left: mode === "password" ? "4px" : "calc(50%)",
+                transition: "left 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
             />
             {[{ id: "password", label: "Password" }, { id: "magic", label: "Magic Link" }].map(({ id, label }) => (
               <button

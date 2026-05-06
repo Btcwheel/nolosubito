@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /cms
+Disallow: /backoffice
+Disallow: /agente
+
+Sitemap: https://nolosubito.quixel.it/sitemap.xml

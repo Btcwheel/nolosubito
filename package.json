@@ -9,7 +9,10 @@
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "perf": "npx lighthouse https://nolosubito.quixel.it --output html --output-path ./lighthouse-report.html --form-factor mobile && start lighthouse-report.html",
+    "perf:desktop": "npx lighthouse https://nolosubito.quixel.it --output html --output-path ./lighthouse-report-desktop.html --preset desktop && start lighthouse-report-desktop.html",
+    "perf:site": "npx unlighthouse --site https://nolosubito.quixel.it"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
@@ -96,6 +99,7 @@
     "playwright": "^1.59.1",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
+    "terser": "^5.46.2",
     "typescript": "^5.8.2",
     "vite": "^6.1.0",
     "vite-plugin-compression": "^0.5.1"
