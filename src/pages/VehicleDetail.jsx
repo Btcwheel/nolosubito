@@ -165,10 +165,13 @@ export default function VehicleDetail() {
     })),
   };
 
+  const isMotoPrivatiDetail = segmentFromState === "Moto" && vehicle?.segments?.includes("Privati");
   const displayPrice = bestOffer.monthly_rent
-    ? (segmentFromState === "Privati"
-        ? Math.round(bestOffer.monthly_rent * 1.22)
-        : Math.round(bestOffer.monthly_rent))
+    ? (isMotoPrivatiDetail
+        ? Math.round(bestOffer.monthly_rent)
+        : segmentFromState === "Privati" || segmentFromState === "Moto"
+          ? Math.round(bestOffer.monthly_rent * 1.22)
+          : Math.round(bestOffer.monthly_rent))
     : null;
 
   return (

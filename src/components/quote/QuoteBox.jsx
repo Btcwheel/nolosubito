@@ -108,10 +108,12 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
     );
   }, [allConfigs, selectedMake, selectedModel, segment, vehicles]);
 
-  const isMotoVehicle = useMemo(
-    () => vehicles.find(v => v.make === selectedMake && v.model === selectedModel)?.category === "Moto e Scooter",
+  const currentVehicle = useMemo(
+    () => vehicles.find(v => v.make === selectedMake && v.model === selectedModel),
     [vehicles, selectedMake, selectedModel],
   );
+  const isMotoVehicle  = currentVehicle?.category === "Moto e Scooter";
+  const isMotoPrivati  = isMotoVehicle && currentVehicle?.segments?.includes("Privati");
   const kmOptions = isMotoVehicle ? MOTO_KM : ALL_KM;
 
   const availableDurations = useMemo(
@@ -182,7 +184,15 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
     ? `/vehicle/${encodeURIComponent(selectedMake)}/${encodeURIComponent(selectedModel)}`
     : null;
 
-  const displayRent = segment === "Privati" ? rentWithVat : computedRent;
+  // Moto+Privati: prezzo inserito già IVA inclusa → mostra as-is
+  // Moto only:    prezzo netto → aggiungi IVA al display
+  // Privati auto: prezzo netto → aggiungi IVA al display
+  // Altri:        prezzo netto → mostra as-is
+  const displayRent = isMotoPrivati
+    ? computedRent
+    : (segment === "Privati" || isMotoVehicle)
+      ? rentWithVat
+      : computedRent;
   const isModifiedAdvance = exactConfig && advance !== Number(exactConfig.advance_payment ?? 0);
   const isListPrice = exactConfig && !isModifiedAdvance;
 
@@ -346,7 +356,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
                     <span className="text-white/40 text-sm">/mese</span>
                   </div>
                   <p className="text-white/30 text-[11px] mt-1">
-                    {segment === "Privati" ? "IVA 22% inclusa" : "+ IVA 22%"}
+                    {(segment === "Privati" || isMotoVehicle) ? "IVA 22% inclusa" : "+ IVA 22%"}
                   </p>
                 </div>
 
