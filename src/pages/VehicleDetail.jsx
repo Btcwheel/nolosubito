@@ -8,7 +8,7 @@ import VehicleCard from "../components/vehicles/VehicleCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  ChevronLeft, ChevronRight, X, Fuel, Gauge, Zap, Leaf, ShieldCheck,
+  ChevronLeft, ChevronRight, Fuel, Gauge, Zap, Leaf, ShieldCheck,
   Wrench, FileText, Lock, TrendingDown, CheckCircle2, ArrowDown, Car,
   Settings2, Calendar,
 } from "lucide-react";
@@ -17,19 +17,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { getVehicleDetailSrcSet, getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
 import { splitVehicleDescription } from "@/lib/vehicleText";
+import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing";
 
 const MOCK_GALLERY_EXTRAS = [
   { src: "https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?w=1200&q=85", label: "3/4 anteriore" },
   { src: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1200&q=85", label: "Laterale" },
   { src: "https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=1200&q=85", label: "Interni" },
 ];
-
-const FUEL_PILL = {
-  Electric: "bg-fuel-ev/20 text-fuel-ev border-fuel-ev/30",
-  Hybrid:   "bg-fuel-hybrid/20 text-fuel-hybrid border-fuel-hybrid/30",
-  Diesel:   "bg-fuel-diesel/15 text-fuel-diesel border-fuel-diesel/25",
-  Petrol:   "bg-fuel-petrol/20 text-fuel-petrol border-fuel-petrol/30",
-};
 
 const FUEL_IT = {
   Electric: "Elettrica",
@@ -44,7 +38,6 @@ const INCLUDED = [
   { icon: Zap,         label: "Soccorso stradale H24" },
   { icon: FileText,    label: "Gestione bollo e tasse" },
   { icon: Lock,        label: "Furto e Incendio" },
-  { icon: Car,         label: "Auto sostitutiva" },
 ];
 
 export default function VehicleDetail() {
@@ -79,14 +72,23 @@ export default function VehicleDetail() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const preferredSegment = useMemo(() => {
+    if (!vehicle) return segmentFromState || null;
+    return resolvePricingSegment({
+      segment: segmentFromState || null,
+      vehicleCategory: vehicle.category,
+      vehicleSegments: vehicle.segments || [],
+    });
+  }, [vehicle, segmentFromState]);
+
   const bestOffer = useMemo(() => {
     if (!vehicle) return null;
-    const filtered = segmentFromState
-      ? configs.filter(c => c.segment === segmentFromState)
+    const filtered = preferredSegment
+      ? configs.filter(c => c.segment === preferredSegment)
       : configs;
     const minPrice = filtered.length ? Math.min(...filtered.map(c => Number(c.monthly_rent))) : null;
     return { ...vehicle, monthly_rent: minPrice };
-  }, [vehicle, configs, segmentFromState]);
+  }, [vehicle, configs, preferredSegment]);
 
   const similarVehicles = useMemo(() => {
     if (!bestOffer) return [];
@@ -165,13 +167,12 @@ export default function VehicleDetail() {
     })),
   };
 
-  const isMotoPrivatiDetail = segmentFromState === "Moto" && vehicle?.segments?.includes("Privati");
   const displayPrice = bestOffer.monthly_rent
-    ? (isMotoPrivatiDetail
-        ? Math.round(bestOffer.monthly_rent)
-        : segmentFromState === "Privati" || segmentFromState === "Moto"
-          ? Math.round(bestOffer.monthly_rent * 1.22)
-          : Math.round(bestOffer.monthly_rent))
+    ? formatDisplayedRent(bestOffer.monthly_rent, {
+        segment: preferredSegment,
+        vehicleCategory: bestOffer.category,
+        vehicleSegments: bestOffer.segments || [],
+      })
     : null;
 
   return (
@@ -351,10 +352,10 @@ export default function VehicleDetail() {
                     { icon: Leaf,     label: "CO₂",        value: bestOffer.co2_emissions != null ? (bestOffer.co2_emissions === 0 ? "0 g/km" : `${bestOffer.co2_emissions} g/km`) : null },
                     { icon: Car,      label: "Categoria",  value: bestOffer.category },
                     { icon: Calendar, label: "Anno",       value: bestOffer.year ? String(bestOffer.year) : null },
-                  ].filter(s => s.value).map(({ icon: Icon, label, value }) => (
+                  ].filter(s => s.value).map(({ icon, label, value }) => (
                     <div key={label} className="flex items-center gap-3 bg-spec rounded-xl p-3">
                       <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center shrink-0 shadow-sm border border-[#e8e9f8]">
-                        <Icon className="w-4 h-4 text-navy" />
+                        {React.createElement(icon, { className: "w-4 h-4 text-navy" })}
                       </div>
                       <div className="min-w-0">
                         <p className="text-[10px] font-semibold text-[#777682] uppercase tracking-wide leading-none mb-1">{label}</p>
@@ -369,7 +370,7 @@ export default function VehicleDetail() {
               <div className="bg-white rounded-2xl border border-gray-100 p-5">
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">I Servizi Inclusi</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {INCLUDED.map(({ icon: Icon, label }) => (
+                  {INCLUDED.map(({ label }) => (
                     <div key={label} className="flex items-center gap-2.5">
                       <CheckCircle2 className="w-4 h-4 text-electric shrink-0" />
                       <span className="text-sm text-gray-700">{label}</span>
@@ -472,7 +473,7 @@ export default function VehicleDetail() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {similarVehicles.map((v, i) => (
-                  <VehicleCard key={v.id} vehicle={v} index={i} />
+                  <VehicleCard key={v.id} vehicle={v} index={i} segment={preferredSegment} />
                 ))}
               </div>
             </div>

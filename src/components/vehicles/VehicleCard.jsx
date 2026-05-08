@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
+import { formatDisplayedRent, isVatIncludedForDisplay, resolvePricingSegment } from "@/lib/vehiclePricing";
 
 const FUEL_IT = {
   Electric: "Elettrica",
@@ -33,23 +34,21 @@ function SpecBox({ icon: Icon, label }) {
 export default function VehicleCard({ vehicle, index = 0, segment, compact = false }) {
   const imgSrc    = getVehicleImage(vehicle);
   const imgPos    = getVehicleImagePosition(vehicle);
-  const isPrivate      = segment === "Privati";
-  const isMoto         = segment === "Moto";
-  const isMotoPrivati  = isMoto && vehicle.segments?.includes("Privati");
+  const effectiveSegment = resolvePricingSegment({
+    segment,
+    vehicleCategory: vehicle.category,
+    vehicleSegments: vehicle.segments || [],
+  });
   const isElectric = vehicle.fuel_type === "Electric";
   const isHybrid   = vehicle.fuel_type === "Hybrid";
   const isReUse    = vehicle.segments?.includes("ReUse");
 
-  // Moto+Privati: prezzo inserito già IVA inclusa → mostra as-is
-  // Moto only:    prezzo inserito netto → aggiungi IVA al display
-  // Privati auto: prezzo netto → aggiungi IVA al display
-  // Altri:        prezzo netto → mostra as-is (IVA esclusa)
   const displayPrice = vehicle.monthly_rent
-    ? (isMotoPrivati
-        ? Math.round(vehicle.monthly_rent)
-        : isMoto || isPrivate
-          ? Math.round(vehicle.monthly_rent * 1.22)
-          : Math.round(vehicle.monthly_rent))
+    ? formatDisplayedRent(vehicle.monthly_rent, {
+        segment: effectiveSegment,
+        vehicleCategory: vehicle.category,
+        vehicleSegments: vehicle.segments || [],
+      })
     : null;
 
   // Segment label (above title)
@@ -160,7 +159,11 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
                   )}
                 </div>
                 <p className="text-[10px] italic text-[#777682] mt-1">
-                  {isPrivate || isMoto ? "IVA Inclusa" : "IVA Esclusa"} · Anticipo 0€
+                  {isVatIncludedForDisplay({
+                    segment: effectiveSegment,
+                    vehicleCategory: vehicle.category,
+                    vehicleSegments: vehicle.segments || [],
+                  }) ? "IVA Inclusa" : "IVA Esclusa"} · Anticipo 0€
                 </p>
               </div>
 

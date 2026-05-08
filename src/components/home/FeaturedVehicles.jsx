@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, ChevronDown, Car } from "lucide-react";
+import { ChevronDown, Car, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import VehicleCard from "../vehicles/VehicleCard";
@@ -70,7 +70,7 @@ function Toggle({ checked, onChange }) {
 // ── Main component ────────────────────────────────────────────────────────────
 export default function FeaturedVehicles() {
   const [tipologia,      setTipologia]      = useState("all");
-  const [search,         setSearch]         = useState("");
+  const [makeFilter,     setMakeFilter]     = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [budgetFilter,   setBudgetFilter]   = useState("all");
   const [quickFilter,    setQuickFilter]    = useState(null);
@@ -90,10 +90,14 @@ export default function FeaturedVehicles() {
     [vehicles],
   );
 
+  const brands = useMemo(
+    () => [...new Set(vehicles.map(v => v.make).filter(Boolean))].sort(),
+    [vehicles],
+  );
+
   const filtered = useMemo(() => {
-    const q = search.toLowerCase();
     return vehicles
-      .filter(v => !q || `${v.make} ${v.model}`.toLowerCase().includes(q))
+      .filter(v => makeFilter === "all" || v.make === makeFilter)
       .filter(v => categoryFilter === "all" || v.category === categoryFilter)
       .filter(v => {
         if (budgetFilter === "all") return true;
@@ -112,7 +116,7 @@ export default function FeaturedVehicles() {
         return true;
       })
       .filter(v => !prontoConsegna || v.is_ready_delivery === true);
-  }, [vehicles, search, tipologia, categoryFilter, budgetFilter, quickFilter, prontoConsegna]);
+  }, [vehicles, makeFilter, tipologia, categoryFilter, budgetFilter, quickFilter, prontoConsegna]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated  = useMemo(
@@ -123,7 +127,7 @@ export default function FeaturedVehicles() {
   const resetPage = useCallback(() => setCurrentPage(1), []);
 
   const handleTipologia = (v) => { setTipologia(v); resetPage(); };
-  const handleSearch    = (v) => { setSearch(v);    resetPage(); };
+  const handleMake      = (v) => { setMakeFilter(v); resetPage(); };
   const handleCategory  = (v) => { setCategoryFilter(v); resetPage(); };
   const handleBudget    = (v) => { setBudgetFilter(v);   resetPage(); };
   const handleQuick     = (v) => { setQuickFilter(prev => prev === v ? null : v); resetPage(); };
@@ -202,19 +206,17 @@ export default function FeaturedVehicles() {
                   />
                 </div>
 
-                {/* Cerca marca/modello */}
-                <div className="col-span-2 w-full sm:flex-1 flex flex-col gap-1 min-w-0">
-                  <label className="text-[11px] font-bold text-[#2D2E82] uppercase tracking-wide px-1">Marca / Modello</label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Cerca veicolo…"
-                      value={search}
-                      onChange={(e) => handleSearch(e.target.value)}
-                      className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-navy/20"
-                    />
-                  </div>
+                {/* Filtro marca */}
+                <div className="col-span-2 w-full sm:flex-1 min-w-0">
+                  <FilterSelect
+                    label="Marca"
+                    value={makeFilter}
+                    options={[
+                      { value: "all", label: "Tutte le marche" },
+                      ...brands.map(b => ({ value: b, label: b })),
+                    ]}
+                    onChange={handleMake}
+                  />
                 </div>
 
                 {/* Categoria */}

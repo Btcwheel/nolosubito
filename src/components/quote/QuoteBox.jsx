@@ -5,7 +5,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Calculator, Info, CheckCircle2, Shield, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { offersService } from "@/services/offers";
-import { ADVANCE_BRACKETS, formatAdvanceAmount } from "@/lib/vehiclePricing";
+import {
+  ADVANCE_BRACKETS,
+  formatAdvanceAmount,
+  formatDisplayedRent,
+  isVatIncludedForDisplay,
+  resolvePricingSegment,
+} from "@/lib/vehiclePricing";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ALL_DURATIONS = [24, 36, 48, 60];
@@ -71,6 +77,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
   const [duration, setDuration] = useState(36);
   const [annualKm, setAnnualKm] = useState(15000);
   const [advance, setAdvance] = useState(3000);
+  const [selectedSegment, setSelectedSegment] = useState(segment || null);
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const { data: vehicles = [] } = useQuery({
@@ -93,12 +100,41 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
     return [...new Set(vehicles.filter(v => v.make === selectedMake).map(v => v.model))].sort();
   }, [vehicles, selectedMake]);
 
+  const currentVehicle = useMemo(
+    () => vehicles.find(v => v.make === selectedMake && v.model === selectedModel),
+    [vehicles, selectedMake, selectedModel],
+  );
+  const isMotoVehicle  = currentVehicle?.category === "Moto e Scooter";
+  const kmOptions = isMotoVehicle ? MOTO_KM : ALL_KM;
+  const availableSegments = useMemo(() => {
+    const segs = currentVehicle?.segments || [];
+    return segs.filter(s => ["P.IVA", "Privati"].includes(s));
+  }, [currentVehicle]);
+  const canChooseSegment = !segment && availableSegments.length > 1;
+
+  useEffect(() => {
+    if (segment) {
+      setSelectedSegment(segment);
+      return;
+    }
+
+    const resolved = resolvePricingSegment({
+      segment: null,
+      vehicleCategory: currentVehicle?.category,
+      vehicleSegments: currentVehicle?.segments || [],
+    });
+
+    if (resolved) setSelectedSegment(resolved);
+  }, [segment, currentVehicle?.category, currentVehicle?.segments]);
+
+  const activeSegment = segment || selectedSegment;
+
   const vehicleConfigs = useMemo(() => {
     if (!selectedMake || !selectedModel) return [];
-    const vehicle = vehicles.find(v => v.make === selectedMake && v.model === selectedModel);
+    const vehicle = currentVehicle;
     const isCommercial = vehicle?.category === "Commercial Van";
     const isMoto = vehicle?.category === "Moto e Scooter";
-    const effectiveSegment = isCommercial ? "Veicoli Commerciali" : isMoto ? "Moto" : segment;
+    const effectiveSegment = isCommercial ? "Veicoli Commerciali" : isMoto ? "Moto" : activeSegment;
     return allConfigs.filter(
       c =>
         c.make === selectedMake &&
@@ -106,15 +142,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
         c.is_active &&
         (!effectiveSegment || effectiveSegment === "all" || c.segment === effectiveSegment),
     );
-  }, [allConfigs, selectedMake, selectedModel, segment, vehicles]);
-
-  const currentVehicle = useMemo(
-    () => vehicles.find(v => v.make === selectedMake && v.model === selectedModel),
-    [vehicles, selectedMake, selectedModel],
-  );
-  const isMotoVehicle  = currentVehicle?.category === "Moto e Scooter";
-  const isMotoPrivati  = isMotoVehicle && currentVehicle?.segments?.includes("Privati");
-  const kmOptions = isMotoVehicle ? MOTO_KM : ALL_KM;
+  }, [allConfigs, selectedMake, selectedModel, activeSegment, currentVehicle]);
 
   const availableDurations = useMemo(
     () => new Set(vehicleConfigs.map(c => c.duration_months)),
@@ -137,12 +165,13 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
     return Math.max(Math.round(Number(exactConfig.monthly_rent) - diff / duration), 50);
   }, [exactConfig, advance, duration]);
 
-  const rentWithVat = computedRent ? Math.round(computedRent * 1.22) : null;
-
-  const netCostPiva = computedRent
-    ? Math.round(computedRent - computedRent * 0.22 * 0.4 - computedRent * 0.8 * 0.3)
+  const displayRent = computedRent
+    ? formatDisplayedRent(computedRent, {
+        segment: activeSegment,
+        vehicleCategory: currentVehicle?.category,
+        vehicleSegments: currentVehicle?.segments || [],
+      })
     : null;
-  const risparmioMensile = rentWithVat && netCostPiva ? rentWithVat - netCostPiva : null;
 
   // ── Auto-select effects ───────────────────────────────────────────────────
   useEffect(() => {
@@ -150,14 +179,14 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
       const first = kmOptions.find(k => availableKm.has(k));
       if (first) setAnnualKm(first);
     }
-  }, [duration, availableKm]); // eslint-disable-line
+  }, [duration, availableKm]);
 
   useEffect(() => {
     if (vehicleConfigs.length && !availableDurations.has(duration)) {
       const sorted = [...availableDurations].sort((a, b) => a - b);
       if (sorted[0]) setDuration(sorted[0]);
     }
-  }, [vehicleConfigs]); // eslint-disable-line
+  }, [vehicleConfigs, availableDurations, duration]);
 
   useEffect(() => { if (fixedMake) setSelectedMake(fixedMake); }, [fixedMake]);
   useEffect(() => { if (fixedModel) setSelectedModel(fixedModel); }, [fixedModel]);
@@ -172,27 +201,18 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
     onRequestQuote?.({
       make: selectedMake,
       model: selectedModel,
-      segment: exactConfig?.segment ?? segment,
+      segment: exactConfig?.segment ?? activeSegment,
       duration,
       annualKm,
       advance,
       monthlyRent: computedRent,
     });
-  }, [onRequestQuote, selectedMake, selectedModel, exactConfig, segment, duration, annualKm, advance, computedRent]);
+  }, [onRequestQuote, selectedMake, selectedModel, exactConfig, activeSegment, duration, annualKm, advance, computedRent]);
 
   const vehicleLink = selectedMake && selectedModel
     ? `/vehicle/${encodeURIComponent(selectedMake)}/${encodeURIComponent(selectedModel)}`
     : null;
 
-  // Moto+Privati: prezzo inserito già IVA inclusa → mostra as-is
-  // Moto only:    prezzo netto → aggiungi IVA al display
-  // Privati auto: prezzo netto → aggiungi IVA al display
-  // Altri:        prezzo netto → mostra as-is
-  const displayRent = isMotoPrivati
-    ? computedRent
-    : (segment === "Privati" || isMotoVehicle)
-      ? rentWithVat
-      : computedRent;
   const isModifiedAdvance = exactConfig && advance !== Number(exactConfig.advance_payment ?? 0);
   const isListPrice = exactConfig && !isModifiedAdvance;
 
@@ -239,6 +259,26 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
       </div>
 
       <div className="p-5 sm:p-6 space-y-5">
+
+        {canChooseSegment && (
+          <div>
+            <p className="text-xs font-semibold text-foreground mb-2">Segmento prezzo</p>
+            <div className="grid grid-cols-2 gap-2">
+              {availableSegments.map(s => (
+                <OptionButton
+                  key={s}
+                  selected={activeSegment === s}
+                  onClick={() => setSelectedSegment(s)}
+                >
+                  {s}
+                </OptionButton>
+              ))}
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Seleziona il canone corretto per {availableSegments.join(" e ")}.
+            </p>
+          </div>
+        )}
 
         {/* Make & Model — only when not fixed */}
         {!fixedMake && (
@@ -356,7 +396,11 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
                     <span className="text-white/40 text-sm">/mese</span>
                   </div>
                   <p className="text-white/30 text-[11px] mt-1">
-                    {(segment === "Privati" || isMotoVehicle) ? "IVA 22% inclusa" : "+ IVA 22%"}
+                    {isVatIncludedForDisplay({
+                      segment: activeSegment,
+                      vehicleCategory: currentVehicle?.category,
+                      vehicleSegments: currentVehicle?.segments || [],
+                    }) ? "IVA 22% inclusa" : "+ IVA 22%"}
                   </p>
                 </div>
 
