@@ -867,6 +867,7 @@ export default function CmsVehicles() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-foreground text-sm leading-tight">{v.make} {v.model}</p>
+                  {v.version && <p className="text-xs text-muted-foreground leading-tight mt-0.5">{v.version}</p>}
                   <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                     <span className="text-xs text-muted-foreground">{v.category}</span>
                     {v.fuel_type && <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4">{v.fuel_type}</Badge>}
