@@ -476,7 +476,7 @@ function SeoSection({ form, set }) {
 
 // ── Modal form veicolo ────────────────────────────────────────────────────────
 
-function VehicleModal({ initial, onSave, onClose, isSaving }) {
+function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYPES, TRANSMISSIONS }) {
   const [form, setForm] = useState({ ...EMPTY_VEHICLE, ...initial });
   const [pricingRows, setPricingRows] = useState([]);
   const [deletedConfigIds, setDeletedConfigIds] = useState([]);
@@ -950,6 +950,9 @@ export default function CmsVehicles() {
           onSave={(data) => saveMutation.mutate(data)}
           onClose={() => setModal(null)}
           isSaving={saveMutation.isPending}
+          CATEGORIES={CATEGORIES}
+          FUEL_TYPES={FUEL_TYPES}
+          TRANSMISSIONS={TRANSMISSIONS}
         />
       )}
 
