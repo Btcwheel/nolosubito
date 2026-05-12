@@ -1,15 +1,17 @@
 import React, { useState } from "react";
-import { Car, Newspaper, Tag, FolderOpen } from "lucide-react";
+import { Car, Newspaper, Tag, FolderOpen, SlidersHorizontal } from "lucide-react";
 import CmsVehicles from "./CmsVehicles.jsx";
 import CmsOffers from "./CmsOffers.jsx";
 import CmsNews from "./CmsNews.jsx";
 import CmsMateriali from "./CmsMateriali.jsx";
+import CmsVehicleOptions from "./CmsVehicleOptions.jsx";
 
 const TABS = [
-  { id: "vehicles",  label: "Veicoli",    icon: Car,        desc: "Catalogo auto con foto e dettagli" },
-  { id: "prices",    label: "Prezzi",     icon: Tag,        desc: "Configurazioni canoni QuoteBox" },
-  { id: "news",      label: "News",       icon: Newspaper,  desc: "Articoli e notizie pubbliche" },
-  { id: "materiali", label: "Materiali",  icon: FolderOpen, desc: "Documenti per gli agenti" },
+  { id: "vehicles",  label: "Veicoli",    icon: Car,                desc: "Catalogo auto con foto e dettagli" },
+  { id: "prices",    label: "Prezzi",     icon: Tag,                desc: "Configurazioni canoni QuoteBox" },
+  { id: "news",      label: "News",       icon: Newspaper,          desc: "Articoli e notizie pubbliche" },
+  { id: "materiali", label: "Materiali",  icon: FolderOpen,         desc: "Documenti per gli agenti" },
+  { id: "options",   label: "Opzioni",    icon: SlidersHorizontal,  desc: "Categorie, carburanti e cambi" },
 ];
 
 export default function CmsDashboard() {
@@ -46,6 +48,7 @@ export default function CmsDashboard() {
         {tab === "prices"    && <CmsOffers />}
         {tab === "news"      && <CmsNews />}
         {tab === "materiali" && <CmsMateriali />}
+        {tab === "options"   && <CmsVehicleOptions />}
       </div>
     </div>
   );

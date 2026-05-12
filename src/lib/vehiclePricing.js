@@ -1,4 +1,8 @@
 export const ADVANCE_BRACKETS = [0, 1500, 2000, 5000, 7500, 10000];
+
+// Categorie che rientrano nel segmento "Moto" (prezzi e km dedicati)
+export const MOTO_CATEGORIES = ["Moto e Scooter", "Moto", "Scooter"];
+export function isMotoCategory(cat) { return MOTO_CATEGORIES.includes(cat); }
 export const VAT_RATE = 0.22;
 
 export function formatAdvanceAmount(value) {
@@ -14,7 +18,7 @@ export function resolvePricingSegment({ segment, vehicleCategory, vehicleSegment
   const hasPiva = segments.includes("P.IVA");
   const hasPrivati = segments.includes("Privati");
 
-  if (vehicleCategory === "Moto e Scooter") {
+  if (isMotoCategory(vehicleCategory)) {
     return "Moto";
   }
 
@@ -26,7 +30,7 @@ export function resolvePricingSegment({ segment, vehicleCategory, vehicleSegment
 }
 
 export function isVatIncludedForDisplay({ segment, vehicleCategory, vehicleSegments = [] } = {}) {
-  if (segment === "Moto" && vehicleCategory === "Moto e Scooter" && vehicleSegments.includes("Privati")) {
+  if (segment === "Moto" && isMotoCategory(vehicleCategory) && vehicleSegments.includes("Privati")) {
     return false;
   }
 

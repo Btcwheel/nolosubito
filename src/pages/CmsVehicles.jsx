@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { offersService } from "@/services/offers";
+import { vehicleOptionsService } from "@/services/vehicleOptions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,30 +12,28 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Plus, Pencil, Trash2, X, Check, ImageIcon,
-  Loader2, ToggleLeft, ToggleRight, ChevronDown, ChevronUp, Wand2,
+  Loader2, ToggleLeft, ToggleRight, ChevronDown, ChevronUp, Wand2, Copy,
 } from "lucide-react";
 import { normalizeVehicleDescription } from "@/lib/vehicleText";
-import { ADVANCE_BRACKETS, formatAdvanceAmount } from "@/lib/vehiclePricing";
+import { ADVANCE_BRACKETS, formatAdvanceAmount, isMotoCategory } from "@/lib/vehiclePricing";
 
-// ── Costanti ──────────────────────────────────────────────────────────────────
+// ── Costanti (fallback — rimpiazzate dal DB via useVehicleOptions) ─────────────
 
-const CATEGORIES = [
-  "Berlina",
-  "Station",
-  "SUV",
-  "CityCar",
-  "Quadricicli",
-  "Moto e Scooter",
-  "Commercial Van",
-  "Touring",
-];
-const FUEL_TYPES = [
-  { value: "Diesel",   label: "Diesel" },
-  { value: "Petrol",   label: "Benzina" },
-  { value: "Electric", label: "Elettrico" },
-  { value: "Hybrid",   label: "Ibrido" },
-];
-const TRANSMISSIONS = ["Automatic", "Manual"];
+const CATEGORIES_DEFAULT    = ["Berlina","Station","SUV","CityCar","Quadricicli","Moto","Scooter","Commercial Van","Touring"];
+const FUEL_TYPES_DEFAULT    = [{ value: "Diesel", label: "Diesel" },{ value: "Petrol", label: "Benzina" },{ value: "Electric", label: "Elettrico" },{ value: "Hybrid", label: "Ibrido" }];
+const TRANSMISSIONS_DEFAULT = ["Automatic", "Manual"];
+
+function useVehicleOptions() {
+  const { data: catData   = [] } = useQuery({ queryKey: ["vehicle_options", "category"],     queryFn: () => vehicleOptionsService.list("category"),     staleTime: 60_000 });
+  const { data: fuelData  = [] } = useQuery({ queryKey: ["vehicle_options", "fuel"],         queryFn: () => vehicleOptionsService.list("fuel"),         staleTime: 60_000 });
+  const { data: transData = [] } = useQuery({ queryKey: ["vehicle_options", "transmission"], queryFn: () => vehicleOptionsService.list("transmission"), staleTime: 60_000 });
+
+  const CATEGORIES    = catData.length   ? catData.map(o => o.value)                        : CATEGORIES_DEFAULT;
+  const FUEL_TYPES    = fuelData.length  ? fuelData.map(o => ({ value: o.value, label: o.label ?? o.value })) : FUEL_TYPES_DEFAULT;
+  const TRANSMISSIONS = transData.length ? transData.map(o => o.value)                      : TRANSMISSIONS_DEFAULT;
+
+  return { CATEGORIES, FUEL_TYPES, TRANSMISSIONS };
+}
 
 const SEGMENTS_OPTIONS = [
   { value: "P.IVA",    label: "Business / P.IVA",      color: "bg-blue-100 text-blue-700 border-blue-200" },
@@ -262,6 +261,8 @@ function GalleryImagesInput({ images, onChange, make, model }) {
 
 // ── Editor configurazioni prezzi ──────────────────────────────────────────────
 
+const VAT = 0.22;
+
 function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOptions = KM_OPTIONS }) {
   const addRow = () => {
     onChange([...rows, { ...EMPTY_PRICE_ROW, _key: nextKey(), segment: defaultSegment }]);
@@ -275,20 +276,39 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
     onChange(rows.filter(r => r._key !== key));
   };
 
+  const duplicateRow = (row) => {
+    let newSegment = row.segment;
+    let newRent = Number(row.monthly_rent) || 0;
+
+    if (row.segment === "P.IVA") {
+      newSegment = "Privati";
+      newRent = Math.round(newRent * (1 + VAT));
+    } else if (row.segment === "Privati") {
+      newSegment = "P.IVA";
+      // prezzo rimane netto, nessuna modifica
+    }
+
+    const newRow = { ...row, _key: nextKey(), segment: newSegment, monthly_rent: newRent };
+    const idx = rows.findIndex(r => r._key === row._key);
+    const updated = [...rows];
+    updated.splice(idx + 1, 0, newRow);
+    onChange(updated);
+  };
+
   return (
     <div className="space-y-3">
       {rows.length > 0 && (
         <div className="space-y-2">
           {/* Header */}
-          <div className="grid grid-cols-[1fr_90px_110px_130px_110px_32px] gap-2 px-1">
-            {["Segmento", "Durata", "KM/anno", "Anticipo", "Canone €/mese", ""].map(h => (
-              <p key={h} className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{h}</p>
+          <div className="grid grid-cols-[1fr_90px_110px_130px_110px_32px_32px] gap-2 px-1">
+            {["Segmento", "Durata", "KM/anno", "Anticipo", "Canone €/mese", "", ""].map((h, i) => (
+              <p key={i} className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{h}</p>
             ))}
           </div>
 
           {/* Righe */}
           {rows.map(row => (
-            <div key={row._key} className="grid grid-cols-[1fr_90px_110px_130px_110px_32px] gap-2 items-start bg-muted/30 rounded-xl px-3 py-2 border border-border/50">
+            <div key={row._key} className="grid grid-cols-[1fr_90px_110px_130px_110px_32px_32px] gap-2 items-start bg-muted/30 rounded-xl px-3 py-2 border border-border/50">
 
               {/* Segmento */}
               <Select value={row.segment} onValueChange={v => updateRow(row._key, "segment", v)}>
@@ -352,6 +372,16 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
                   className="h-8 text-xs pl-6"
                 />
               </div>
+
+              {/* Duplica riga */}
+              <button
+                type="button"
+                onClick={() => duplicateRow(row)}
+                title={row.segment === "P.IVA" ? "Duplica come Privati (+IVA 22%)" : row.segment === "Privati" ? "Duplica come P.IVA (-IVA 22%)" : "Duplica riga"}
+                className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-blue-50 text-muted-foreground hover:text-blue-600 transition-colors cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" />
+              </button>
 
               {/* Elimina riga */}
               <button
@@ -647,10 +677,10 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
               onChange={handlePricingChange}
               defaultSegment={
                 form.category === "Commercial Van" ? "Veicoli Commerciali" :
-                form.category === "Moto e Scooter" ? "Moto" :
+                isMotoCategory(form.category) ? "Moto" :
                 "P.IVA"
               }
-              kmOptions={form.category === "Moto e Scooter" ? KM_OPTIONS_MOTO : KM_OPTIONS}
+              kmOptions={isMotoCategory(form.category) ? KM_OPTIONS_MOTO : KM_OPTIONS}
             />
           </div>
 
@@ -724,6 +754,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving }) {
 export default function CmsVehicles() {
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { CATEGORIES, FUEL_TYPES, TRANSMISSIONS } = useVehicleOptions();
   const [modal, setModal]           = useState(null);
   const [search, setSearch]         = useState("");
   const [delConfirm, setDelConfirm] = useState(null);

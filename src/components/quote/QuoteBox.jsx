@@ -11,6 +11,7 @@ import {
   formatDisplayedRent,
   isVatIncludedForDisplay,
   resolvePricingSegment,
+  isMotoCategory,
 } from "@/lib/vehiclePricing";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -104,7 +105,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
     () => vehicles.find(v => v.make === selectedMake && v.model === selectedModel),
     [vehicles, selectedMake, selectedModel],
   );
-  const isMotoVehicle  = currentVehicle?.category === "Moto e Scooter";
+  const isMotoVehicle  = isMotoCategory(currentVehicle?.category);
   const kmOptions = isMotoVehicle ? MOTO_KM : ALL_KM;
   const availableSegments = useMemo(() => {
     const segs = currentVehicle?.segments || [];
@@ -133,7 +134,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
     if (!selectedMake || !selectedModel) return [];
     const vehicle = currentVehicle;
     const isCommercial = vehicle?.category === "Commercial Van";
-    const isMoto = vehicle?.category === "Moto e Scooter";
+    const isMoto = isMotoCategory(vehicle?.category);
     const effectiveSegment = isCommercial ? "Veicoli Commerciali" : isMoto ? "Moto" : activeSegment;
     return allConfigs.filter(
       c =>
