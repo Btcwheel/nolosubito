@@ -8,9 +8,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { Plus, Trash2, Pencil, Check, X, Loader2 } from "lucide-react";
 
 const TYPES = [
-  { id: "category",     label: "Categorie",       hint: "es. SUV, Berlina, Moto, Scooter" },
-  { id: "fuel",         label: "Carburanti",       hint: "es. Diesel, Petrol, Electric" },
-  { id: "transmission", label: "Tipi di cambio",   hint: "es. Automatic, Manual" },
+  { id: "category",     label: "Categorie",         hint: "es. SUV, Berlina, Moto, Scooter" },
+  { id: "fuel",         label: "Carburanti",         hint: "es. Diesel, Petrol, Electric" },
+  { id: "transmission", label: "Tipi di cambio",     hint: "es. Automatic, Manual" },
+  { id: "advance",      label: "Tagli di anticipo",  hint: "Valori numerici in €, es. 0, 1500, 5000" },
 ];
 
 function OptionRow({ item, onSave, onDelete }) {
@@ -65,7 +66,8 @@ function OptionSection({ type, label, hint }) {
   const { toast } = useToast();
   const [newValue, setNewValue] = useState("");
   const [newLabel, setNewLabel] = useState("");
-  const needsLabel = type === "fuel";
+  const needsLabel  = type === "fuel";
+  const isNumeric   = type === "advance";
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ["vehicle_options", type],
@@ -134,7 +136,9 @@ function OptionSection({ type, label, hint }) {
           value={newValue}
           onChange={e => setNewValue(e.target.value)}
           onKeyDown={e => e.key === "Enter" && canAdd && create.mutate()}
-          placeholder={needsLabel ? "Valore (es. Electric)" : "Nuovo valore"}
+          placeholder={isNumeric ? "Importo €, es. 2500" : needsLabel ? "Valore (es. Electric)" : "Nuovo valore"}
+          type={isNumeric ? "number" : "text"}
+          min={isNumeric ? "0" : undefined}
           className="h-8 text-sm"
         />
         {needsLabel && (

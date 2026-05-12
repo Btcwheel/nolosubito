@@ -1,7 +1,7 @@
 -- Tabella opzioni veicoli: categorie, carburanti, tipi di cambio
 create table if not exists vehicle_options (
   id          uuid primary key default gen_random_uuid(),
-  type        text not null check (type in ('category', 'fuel', 'transmission')),
+  type        text not null check (type in ('category', 'fuel', 'transmission', 'advance', 'duration', 'mileage')),
   value       text not null,
   label       text,          -- etichetta visibile (usata per carburanti, es. "Benzina" per value "Petrol")
   sort_order  int  not null default 0,
@@ -38,5 +38,12 @@ insert into vehicle_options (type, value, label, sort_order) values
   ('fuel', 'Hybrid',   'Ibrido',     3),
 
   ('transmission', 'Automatic', 'Automatic', 0),
-  ('transmission', 'Manual',    'Manual',    1)
+  ('transmission', 'Manual',    'Manual',    1),
+
+  ('advance', '0',     '€0',      0),
+  ('advance', '1500',  '€1.500',  1),
+  ('advance', '2000',  '€2.000',  2),
+  ('advance', '5000',  '€5.000',  3),
+  ('advance', '7500',  '€7.500',  4),
+  ('advance', '10000', '€10.000', 5)
 on conflict do nothing;

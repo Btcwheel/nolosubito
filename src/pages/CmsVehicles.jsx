@@ -15,24 +15,27 @@ import {
   Loader2, ToggleLeft, ToggleRight, ChevronDown, ChevronUp, Wand2, Copy,
 } from "lucide-react";
 import { normalizeVehicleDescription } from "@/lib/vehicleText";
-import { ADVANCE_BRACKETS, formatAdvanceAmount, isMotoCategory } from "@/lib/vehiclePricing";
+import { formatAdvanceAmount, isMotoCategory } from "@/lib/vehiclePricing";
 
 // ── Costanti (fallback — rimpiazzate dal DB via useVehicleOptions) ─────────────
 
 const CATEGORIES_DEFAULT    = ["Berlina","Station","SUV","CityCar","Quadricicli","Moto","Scooter","Commercial Van","Touring"];
 const FUEL_TYPES_DEFAULT    = [{ value: "Diesel", label: "Diesel" },{ value: "Petrol", label: "Benzina" },{ value: "Electric", label: "Elettrico" },{ value: "Hybrid", label: "Ibrido" }];
 const TRANSMISSIONS_DEFAULT = ["Automatic", "Manual"];
+const ADVANCE_BRACKETS_DEFAULT = [0, 1500, 2000, 5000, 7500, 10000];
 
 function useVehicleOptions() {
-  const { data: catData   = [] } = useQuery({ queryKey: ["vehicle_options", "category"],     queryFn: () => vehicleOptionsService.list("category"),     staleTime: 60_000 });
-  const { data: fuelData  = [] } = useQuery({ queryKey: ["vehicle_options", "fuel"],         queryFn: () => vehicleOptionsService.list("fuel"),         staleTime: 60_000 });
-  const { data: transData = [] } = useQuery({ queryKey: ["vehicle_options", "transmission"], queryFn: () => vehicleOptionsService.list("transmission"), staleTime: 60_000 });
+  const { data: catData     = [] } = useQuery({ queryKey: ["vehicle_options", "category"],     queryFn: () => vehicleOptionsService.list("category"),     staleTime: 60_000 });
+  const { data: fuelData    = [] } = useQuery({ queryKey: ["vehicle_options", "fuel"],         queryFn: () => vehicleOptionsService.list("fuel"),         staleTime: 60_000 });
+  const { data: transData   = [] } = useQuery({ queryKey: ["vehicle_options", "transmission"], queryFn: () => vehicleOptionsService.list("transmission"), staleTime: 60_000 });
+  const { data: advanceData = [] } = useQuery({ queryKey: ["vehicle_options", "advance"],      queryFn: () => vehicleOptionsService.list("advance"),      staleTime: 60_000 });
 
-  const CATEGORIES    = catData.length   ? catData.map(o => o.value)                        : CATEGORIES_DEFAULT;
-  const FUEL_TYPES    = fuelData.length  ? fuelData.map(o => ({ value: o.value, label: o.label ?? o.value })) : FUEL_TYPES_DEFAULT;
-  const TRANSMISSIONS = transData.length ? transData.map(o => o.value)                      : TRANSMISSIONS_DEFAULT;
+  const CATEGORIES       = catData.length     ? catData.map(o => o.value)                                          : CATEGORIES_DEFAULT;
+  const FUEL_TYPES       = fuelData.length    ? fuelData.map(o => ({ value: o.value, label: o.label ?? o.value })) : FUEL_TYPES_DEFAULT;
+  const TRANSMISSIONS    = transData.length   ? transData.map(o => o.value)                                        : TRANSMISSIONS_DEFAULT;
+  const ADVANCE_BRACKETS = advanceData.length ? advanceData.map(o => Number(o.value))                              : ADVANCE_BRACKETS_DEFAULT;
 
-  return { CATEGORIES, FUEL_TYPES, TRANSMISSIONS };
+  return { CATEGORIES, FUEL_TYPES, TRANSMISSIONS, ADVANCE_BRACKETS };
 }
 
 const SEGMENTS_OPTIONS = [
@@ -263,7 +266,7 @@ function GalleryImagesInput({ images, onChange, make, model }) {
 
 const VAT = 0.22;
 
-function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOptions = KM_OPTIONS }) {
+function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOptions = KM_OPTIONS, advanceBrackets = ADVANCE_BRACKETS_DEFAULT }) {
   const addRow = () => {
     onChange([...rows, { ...EMPTY_PRICE_ROW, _key: nextKey(), segment: defaultSegment }]);
   };
@@ -329,36 +332,17 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
               </Select>
 
               {/* Anticipo */}
-              <div className="space-y-1">
-                <div className="relative">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="100"
-                    value={row.advance_payment}
-                    onChange={e => updateRow(row._key, "advance_payment", e.target.value)}
-                    placeholder="0"
-                    className="h-8 text-xs pl-6"
-                  />
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {ADVANCE_BRACKETS.map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => updateRow(row._key, "advance_payment", preset)}
-                      className={`px-2 py-1 rounded-full text-[10px] font-semibold border transition-colors ${
-                        Number(row.advance_payment || 0) === preset
-                          ? "style={{backgroundColor:'#71BAED'}}/10 style={{borderColor:'#71BAED'}}/30 style={{color:'#71BAED'}}"
-                          : "bg-background border-border text-muted-foreground hover:style={{borderColor:'#71BAED'}}/40 hover:style={{color:'#71BAED'}}"
-                      }`}
-                    >
-                      {formatAdvanceAmount(preset)}
-                    </button>
+              <Select
+                value={String(Number(row.advance_payment ?? 0))}
+                onValueChange={v => updateRow(row._key, "advance_payment", Number(v))}
+              >
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {advanceBrackets.map(preset => (
+                    <SelectItem key={preset} value={String(preset)}>{formatAdvanceAmount(preset)}</SelectItem>
                   ))}
-                </div>
-              </div>
+                </SelectContent>
+              </Select>
 
               {/* Canone */}
               <div className="relative">
@@ -476,7 +460,7 @@ function SeoSection({ form, set }) {
 
 // ── Modal form veicolo ────────────────────────────────────────────────────────
 
-function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYPES, TRANSMISSIONS }) {
+function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYPES, TRANSMISSIONS, ADVANCE_BRACKETS }) {
   const [form, setForm] = useState({ ...EMPTY_VEHICLE, ...initial });
   const [pricingRows, setPricingRows] = useState([]);
   const [deletedConfigIds, setDeletedConfigIds] = useState([]);
@@ -681,6 +665,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
                 "P.IVA"
               }
               kmOptions={isMotoCategory(form.category) ? KM_OPTIONS_MOTO : KM_OPTIONS}
+              advanceBrackets={ADVANCE_BRACKETS}
             />
           </div>
 
@@ -754,7 +739,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
 export default function CmsVehicles() {
   const { toast } = useToast();
   const qc = useQueryClient();
-  const { CATEGORIES, FUEL_TYPES, TRANSMISSIONS } = useVehicleOptions();
+  const { CATEGORIES, FUEL_TYPES, TRANSMISSIONS, ADVANCE_BRACKETS } = useVehicleOptions();
   const [modal, setModal]           = useState(null);
   const [search, setSearch]         = useState("");
   const [delConfirm, setDelConfirm] = useState(null);
@@ -953,6 +938,7 @@ export default function CmsVehicles() {
           CATEGORIES={CATEGORIES}
           FUEL_TYPES={FUEL_TYPES}
           TRANSMISSIONS={TRANSMISSIONS}
+          ADVANCE_BRACKETS={ADVANCE_BRACKETS}
         />
       )}
 
