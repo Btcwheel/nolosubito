@@ -87,9 +87,12 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: allConfigs = [], isLoading: configsLoading } = useQuery({
-    queryKey: ["offer-configs-all"],
-    queryFn: offersService.getAllConfigs,
+  const { data: vehicleConfigs = [], isLoading: configsLoading } = useQuery({
+    queryKey: ["offer-configs", selectedMake, selectedModel],
+    queryFn: () => selectedMake && selectedModel 
+      ? offersService.getConfigs(selectedMake, selectedModel) 
+      : Promise.resolve([]),
+    enabled: !!selectedMake && !!selectedModel,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -130,34 +133,33 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
 
   const activeSegment = segment || selectedSegment;
 
-  const vehicleConfigs = useMemo(() => {
-    if (!selectedMake || !selectedModel) return [];
-    const vehicle = currentVehicle;
-    const isCommercial = vehicle?.category === "Commercial Van";
-    const isMoto = isMotoCategory(vehicle?.category);
+  // vehicleConfigs is now directly fetched for the current vehicle
+  const activeConfigs = useMemo(() => {
+    const isCommercial = currentVehicle?.category === "Commercial Van";
+    const isMoto = isMotoCategory(currentVehicle?.category);
     const effectiveSegment = isCommercial ? "Veicoli Commerciali" : isMoto ? "Moto" : activeSegment;
-    return allConfigs.filter(
-      c =>
-        c.make === selectedMake &&
-        c.model === selectedModel &&
-        c.is_active &&
-        (!effectiveSegment || effectiveSegment === "all" || c.segment === effectiveSegment),
-    );
-  }, [allConfigs, selectedMake, selectedModel, activeSegment, currentVehicle]);
+
+    const base = vehicleConfigs.filter(c => c.is_active);
+    
+    if (!effectiveSegment || effectiveSegment === "all") return base;
+    const filtered = base.filter(c => c.segment === effectiveSegment);
+    // Fallback: se il segmento risolto non ha config, mostra tutte le config attive del veicolo
+    return filtered.length > 0 ? filtered : base;
+  }, [vehicleConfigs, activeSegment, currentVehicle]);
 
   const availableDurations = useMemo(
-    () => new Set(vehicleConfigs.map(c => c.duration_months)),
-    [vehicleConfigs],
+    () => new Set(activeConfigs.map(c => c.duration_months)),
+    [activeConfigs],
   );
 
   const availableKm = useMemo(
-    () => new Set(vehicleConfigs.filter(c => c.duration_months === duration).map(c => c.annual_km)),
-    [vehicleConfigs, duration],
+    () => new Set(activeConfigs.filter(c => c.duration_months === duration).map(c => c.annual_km)),
+    [activeConfigs, duration],
   );
 
   const exactConfig = useMemo(
-    () => vehicleConfigs.find(c => c.duration_months === duration && c.annual_km === annualKm) ?? null,
-    [vehicleConfigs, duration, annualKm],
+    () => activeConfigs.find(c => c.duration_months === duration && c.annual_km === annualKm) ?? null,
+    [activeConfigs, duration, annualKm],
   );
 
   const computedRent = useMemo(() => {

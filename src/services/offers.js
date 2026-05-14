@@ -174,7 +174,8 @@ export const offersService = {
     let configQuery = supabase
       .from('offer_configs')
       .select('make,model,monthly_rent,segment')
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .limit(5000);
 
     if (segment) configQuery = configQuery.eq('segment', segment);
 
