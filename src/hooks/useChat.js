@@ -14,7 +14,7 @@ function typingDelay(text) {
   return Math.min(Math.max(base + jitter, 3500), 8000);
 }
 
-const BETWEEN_MSG_PAUSE = () => 1200 + Math.random() * 800;
+const BETWEEN_MSG_PAUSE = () => 1800 + Math.random() * 1200;
 const READ_DELAY = () => 2000 + Math.random() * 2000;
 
 export default function useChat() {
