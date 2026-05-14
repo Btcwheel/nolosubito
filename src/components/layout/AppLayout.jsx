@@ -4,7 +4,7 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import ScrollToTop from "./ScrollToTop";
 
-const AIChatWidget = lazy(() => import("@/components/AIChatWidget"));
+const ChatWidget = lazy(() => import("@/components/Chat/ChatWidget"));
 const CookieBanner = lazy(() => import("@/components/CookieBanner"));
 
 export default function AppLayout() {
@@ -17,7 +17,7 @@ export default function AppLayout() {
       </main>
       <Footer />
       <Suspense fallback={null}>
-        <AIChatWidget />
+        <ChatWidget />
         <CookieBanner />
       </Suspense>
     </div>
