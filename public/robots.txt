@@ -5,4 +5,4 @@ Disallow: /cms
 Disallow: /backoffice
 Disallow: /agente
 
-Sitemap: https://nolosubito.quixel.it/sitemap.xml
+Sitemap: https://nolosubito.it/sitemap.xml
