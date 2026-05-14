@@ -122,8 +122,10 @@ export default function FeaturedVehicles() {
       })
       .filter(v => {
         if (!quickFilter) return true;
-        if (quickFilter === "Moto")    return v.category === "Moto";
-        if (quickFilter === "Scooter") return v.category === "Scooter";
+        // Moto → matcha "Moto", "Moto e Scooter"
+        if (quickFilter === "Moto")    return ["Moto", "Moto e Scooter"].includes(v.category);
+        // Scooter → matcha "Scooter", "Moto e Scooter"
+        if (quickFilter === "Scooter") return ["Scooter", "Moto e Scooter"].includes(v.category);
         if (quickFilter === "SUV" || quickFilter === "Berlina") return v.category === quickFilter;
         if (quickFilter === "Ibride")     return v.fuel_type === "Hybrid";
         if (quickFilter === "Elettriche") return v.fuel_type === "Electric";
