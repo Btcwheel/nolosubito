@@ -1,12 +1,21 @@
-import { supabase } from '@/lib/supabase';
+const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-ai`;
 
 export const chatService = {
   async send(messages) {
-    const { data, error } = await supabase.functions.invoke('chat-ai', {
-      body: { messages },
+    const res = await fetch(EDGE_FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      },
+      body: JSON.stringify({ messages }),
     });
 
-    if (error) throw error;
-    return data;
+    if (!res.ok) {
+      const err = await res.text().catch(() => 'Unknown error');
+      throw new Error(`Edge Function error ${res.status}: ${err}`);
+    }
+
+    return res.json();
   },
 };
