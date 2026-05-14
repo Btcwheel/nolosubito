@@ -176,7 +176,7 @@ export default function FeaturedVehicles() {
               height="533"
               className="absolute inset-0 w-full h-full object-cover object-center"
                loading="eager"
-               fetchpriority="high"
+               fetchPriority="high"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/60" />
 
@@ -365,7 +365,7 @@ export default function FeaturedVehicles() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {paginated.map((v, i) => (
-              <VehicleCard key={v.id} vehicle={v} index={i} />
+              <VehicleCard key={v.id} vehicle={v} index={i} segment={tipologia} />
             ))}
           </div>
         )}
