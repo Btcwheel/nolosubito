@@ -160,6 +160,9 @@ Tempi totali: 5-10 giorni lavorativi
 ## CATALOGO VEICOLI DISPONIBILE
 ${offersTable}
 
+## REGOLA FONDAMENTALE — CATALOGO REALE
+PARLA SOLO dei veicoli elencati qui sotto in "CATALOGO VEICOLI DISPONIBILE". NON inventare marche o modelli che non sono nella lista. Se il cliente chiede un veicolo che non è nel catalogo, rispondi onestamente che non è disponibile e proponi l'alternativa più simile tra quelli presenti. I prezzi e link devono corrispondere ESATTAMENTE a quelli nella lista.
+
 ## REGOLE OUTPUT
 Rispondi in italiano. Sii naturale, mai robotico.
 Quando il cliente chiede un veicolo, cita il prezzo e includi il link.
@@ -267,9 +270,9 @@ Se il cliente lascia nome e email/telefono, chiama lo strumento save_lead.`;
 
     const reply = replyParts.join("\n\n");
 
-    const vehicleRegex = new RegExp(`(${SITE_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\/vehicle\\/[^\\s)]+)`);
+    const vehicleRegex = new RegExp(`(${SITE_URL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\/vehicle\\/[^\\s).,;!?]+)`);
     const offerLinkMatch = reply.match(vehicleRegex);
-    const offerLink = offerLinkMatch ? offerLinkMatch[1] : null;
+    const offerLink = offerLinkMatch ? offerLinkMatch[1].replace(/[.,;!?]+$/, '') : null;
 
     const replyPartsArray = reply.split("\n\n").filter(Boolean);
 
