@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
 
 const LucaAvatar = ({ size = 'sm' }) => (
@@ -10,12 +11,29 @@ function linkify(text) {
   const urlRegex = /(https?:\/\/[^\s)]+)/g;
   return text.split(urlRegex).map((part, i) => {
     if (part.match(urlRegex)) {
+      const isInternal = part.includes('nolosubito.it') || part.includes('quixel.it') || part.startsWith('http://localhost');
+      const isVehicle = part.includes('/vehicle/');
+      
+      if (isInternal) {
+        // Estrae il path relativo
+        const url = new URL(part);
+        const to = url.pathname + url.search;
+        
+        return (
+          <Link
+            key={i}
+            to={to}
+            className="text-electric underline underline-offset-2 hover:text-electric/80 font-bold"
+          >
+            {isVehicle ? "Vedi l'offerta" : part.replace(/https?:\/\//, '')}
+          </Link>
+        );
+      }
+
       return (
         <a
           key={i}
           href={part}
-          target="_blank"
-          rel="noopener noreferrer"
           className="text-electric underline underline-offset-2 hover:text-electric/80 font-medium"
         >
           {part.replace(/https?:\/\//, '')}
