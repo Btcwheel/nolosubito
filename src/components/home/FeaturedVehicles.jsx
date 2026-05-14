@@ -14,6 +14,7 @@ const TIPOLOGIA_OPTIONS = [
   { value: "all",     label: "Tutti" },
   { value: "P.IVA",   label: "Business / P.IVA" },
   { value: "Privati", label: "Privati" },
+  { value: "Moto",    label: "Moto & Scooter" },
 ];
 
 const BUDGET_OPTIONS = [
@@ -24,7 +25,7 @@ const BUDGET_OPTIONS = [
   { value: "600+",    label: "Oltre €600/mese" },
 ];
 
-const QUICK_FILTERS = ["SUV", "Berlina", "Elettriche", "Ibride"];
+const QUICK_FILTERS = ["SUV", "Berlina", "Moto", "Scooter", "Elettriche", "Ibride"];
 
 // ── Filter dropdown ───────────────────────────────────────────────────────────
 function FilterSelect({ label, value, options, onChange }) {
@@ -95,8 +96,19 @@ export default function FeaturedVehicles() {
     [vehicles],
   );
 
+  const MOTO_CATS = ["Moto", "Scooter", "Moto e Scooter"];
+
   const filtered = useMemo(() => {
     return vehicles
+      .filter(v => {
+        // Filtro tipologia (segmento)
+        if (tipologia === "all") return true;
+        if (tipologia === "Moto") return MOTO_CATS.includes(v.category);
+        // P.IVA e Privati: escludi moto, filtra per segmento
+        if (MOTO_CATS.includes(v.category)) return false;
+        if (!v.segments || !Array.isArray(v.segments)) return tipologia === "P.IVA"; // default
+        return v.segments.includes(tipologia);
+      })
       .filter(v => makeFilter === "all" || v.make === makeFilter)
       .filter(v => categoryFilter === "all" || v.category === categoryFilter)
       .filter(v => {
@@ -110,8 +122,10 @@ export default function FeaturedVehicles() {
       })
       .filter(v => {
         if (!quickFilter) return true;
+        if (quickFilter === "Moto")    return v.category === "Moto";
+        if (quickFilter === "Scooter") return v.category === "Scooter";
         if (quickFilter === "SUV" || quickFilter === "Berlina") return v.category === quickFilter;
-        if (quickFilter === "Ibride")    return v.fuel_type === "Hybrid";
+        if (quickFilter === "Ibride")     return v.fuel_type === "Hybrid";
         if (quickFilter === "Elettriche") return v.fuel_type === "Electric";
         return true;
       })
@@ -225,7 +239,7 @@ export default function FeaturedVehicles() {
                     label="Categoria"
                     value={categoryFilter}
                     options={[
-                      { value: "all", label: "Tutte le auto" },
+                      { value: "all", label: "Tutti i veicoli" },
                       ...categories.map(c => ({ value: c, label: c })),
                     ]}
                     onChange={handleCategory}
