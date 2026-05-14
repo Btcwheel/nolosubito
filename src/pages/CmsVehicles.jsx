@@ -288,10 +288,10 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
       newRent = Math.round(newRent * (1 + VAT));
     } else if (row.segment === "Privati") {
       newSegment = "P.IVA";
-      // prezzo rimane netto, nessuna modifica
+      newRent = Math.round(newRent / (1 + VAT));
     }
 
-    const newRow = { ...row, _key: nextKey(), segment: newSegment, monthly_rent: newRent };
+    const newRow = { ...row, _key: nextKey(), id: null, segment: newSegment, monthly_rent: newRent };
     const idx = rows.findIndex(r => r._key === row._key);
     const updated = [...rows];
     updated.splice(idx + 1, 0, newRow);
@@ -809,7 +809,14 @@ export default function CmsVehicles() {
       setModal(null);
     },
     onError: (err) => {
-      toast({ title: "Errore", description: err.message, variant: "destructive" });
+      const isDuplicate = err.message?.includes("offers_make_model_key") || err.code === "23505";
+      toast({
+        title: isDuplicate ? "Veicolo già esistente" : "Errore",
+        description: isDuplicate
+          ? "Esiste già un veicolo con questa marca e modello. Modifica il veicolo esistente invece di crearne uno nuovo."
+          : err.message,
+        variant: "destructive",
+      });
     },
   });
 

@@ -194,12 +194,16 @@ export const offersService = {
       }
     });
 
-    // Restituisce solo i veicoli che hanno almeno una config per il segmento richiesto
+    // Mostra i veicoli che hanno il segmento nel flag segments OPPURE hanno una config prezzo per quel segmento
     return offersRes.data
-      ?.filter(o => minPriceMap[`${o.make}|${o.model}`] != null)
+      ?.filter(o => {
+        const hasSegmentFlag = !segment || (Array.isArray(o.segments) && o.segments.includes(segment));
+        const hasConfig = minPriceMap[`${o.make}|${o.model}`] != null;
+        return hasSegmentFlag || hasConfig;
+      })
       .map(o => ({
         ...o,
-        monthly_rent: minPriceMap[`${o.make}|${o.model}`],
+        monthly_rent: minPriceMap[`${o.make}|${o.model}`] ?? null,
       })) ?? [];
   },
 };

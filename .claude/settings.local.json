@@ -25,7 +25,12 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://www.google.com\" 2>&1 | head -5)",
       "Bash(curl -L -s -o /dev/null -w \"clearbit bmw: %{http_code}\\\\n\" \"https://logo.clearbit.com/bmw.com\"; curl -L -s -o /dev/null -w \"wikimedia bmw: %{http_code}\\\\n\" \"https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/BMW.svg/200px-BMW.svg.png\"; curl -L -s -o /dev/null -w \"wikimedia audi: %{http_code}\\\\n\" \"https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Audi-Logo_2016.svg/200px-Audi-Logo_2016.svg.png\")",
       "Bash(ls \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\\\\public\\\\\"*.png 2>/dev/null || ls \"C:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\\\\public\\\\\" | grep -i mercedes)",
-      "Bash(ls \"C:/Users/Quixel/Downloads/fleet-flow-nolo/\"*.env* 2>/dev/null; ls \"C:/Users/Quixel/Downloads/fleet-flow-nolo/.env\"* 2>/dev/null)"
+      "Bash(ls \"C:/Users/Quixel/Downloads/fleet-flow-nolo/\"*.env* 2>/dev/null; ls \"C:/Users/Quixel/Downloads/fleet-flow-nolo/.env\"* 2>/dev/null)",
+      "Bash(npm run *)",
+      "WebFetch(domain:www.nolosubito.it)",
+      "WebSearch",
+      "WebFetch(domain:docs.perplexity.ai)",
+      "Bash(npx supabase *)"
     ]
   }
 }

@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { postsService } from "@/services/posts";
+import { newsDraftsService } from "@/services/newsDrafts";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
@@ -29,6 +32,154 @@ function slugify(str) {
     .replace(/(^-|-$)/g,'');
 }
 
+// ── Sezione Bozze AI ─────────────────────────────────────────────────────────
+
+function AiDraftCard({ draft, onAccept, onReject, onEdit }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="bg-gradient-to-br from-violet-50 to-blue-50 border border-violet-200 rounded-xl p-4 space-y-3">
+      <div className="flex items-start gap-3">
+        {draft.cover_image_url && (
+          <img src={draft.cover_image_url} alt="" className="w-28 h-20 object-cover object-center rounded-lg shrink-0" onError={e => e.target.style.display='none'} />
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <Badge className="bg-violet-100 text-violet-700 border-violet-200 text-xs">{draft.category}</Badge>
+            {draft.source_title && (
+              <a href={draft.source_url} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <ExternalLink className="w-3 h-3" /> {draft.source_title}
+              </a>
+            )}
+          </div>
+          <p className="font-semibold text-sm text-foreground leading-snug">{draft.title}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{draft.summary}</p>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="bg-white rounded-lg border border-violet-100 p-4 text-sm max-h-72 overflow-y-auto prose prose-sm max-w-none">
+          <ReactMarkdown>{draft.content}</ReactMarkdown>
+        </div>
+      )}
+
+      <div className="flex items-center gap-2 flex-wrap">
+        <button onClick={() => setExpanded(e => !e)} className="text-xs text-violet-600 hover:text-violet-800 underline underline-offset-2">
+          {expanded ? "Nascondi anteprima" : "Leggi anteprima"}
+        </button>
+        <div className="ml-auto flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => onEdit(draft)} className="h-7 text-xs gap-1">
+            <Pencil className="w-3 h-3" /> Modifica
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => onReject(draft.id)} className="h-7 text-xs gap-1 border-red-200 text-red-600 hover:bg-red-50">
+            <XCircle className="w-3 h-3" /> Scarta
+          </Button>
+          <Button size="sm" onClick={() => onAccept(draft)} className="h-7 text-xs gap-1 bg-green-600 hover:bg-green-700 text-white">
+            <CheckCircle2 className="w-3 h-3" /> Pubblica
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AiDraftsSection({ onEditDraft }) {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const [generating, setGenerating] = useState(false);
+
+  const { data: drafts = [], isLoading } = useQuery({
+    queryKey: ["news-drafts-pending"],
+    queryFn: () => newsDraftsService.listPending(),
+    refetchInterval: 30_000,
+  });
+
+  const acceptMutation = useMutation({
+    mutationFn: (draft) => newsDraftsService.accept(draft),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["news-drafts-pending"] });
+      qc.invalidateQueries({ queryKey: ["cms-posts"] });
+      toast({ title: "Articolo pubblicato" });
+    },
+    onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: (id) => newsDraftsService.reject(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["news-drafts-pending"] });
+      toast({ title: "Bozza scartata" });
+    },
+  });
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-news-drafts`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        }
+      );
+      const json = await res.json();
+      if (json.ok) {
+        qc.invalidateQueries({ queryKey: ["news-drafts-pending"] });
+        toast({ title: `${json.generated} bozze generate`, description: "Controlla qui sotto." });
+      } else {
+        toast({ title: "Errore generazione", description: json.error, variant: "destructive" });
+      }
+    } catch (e) {
+      toast({ title: "Errore", description: e.message, variant: "destructive" });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  if (isLoading) return null;
+
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-violet-500" />
+          <h3 className="font-semibold text-sm text-foreground">Bozze AI</h3>
+          {drafts.length > 0 && (
+            <Badge className="bg-violet-500 text-white text-xs">{drafts.length}</Badge>
+          )}
+        </div>
+        <Button size="sm" variant="outline" onClick={handleGenerate} disabled={generating} className="h-7 text-xs gap-1.5 border-violet-200 text-violet-700 hover:bg-violet-50">
+          <RefreshCw className={`w-3 h-3 ${generating ? "animate-spin" : ""}`} />
+          {generating ? "Generazione…" : "Genera ora"}
+        </Button>
+      </div>
+
+      {drafts.length === 0 ? (
+        <div className="bg-muted/30 border border-dashed border-border rounded-xl py-6 text-center text-sm text-muted-foreground">
+          Nessuna bozza in attesa. Clicca "Genera ora" o attendi il cron delle 08:00.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {drafts.map(d => (
+            <AiDraftCard
+              key={d.id}
+              draft={d}
+              onAccept={(draft) => acceptMutation.mutate(draft)}
+              onReject={(id) => rejectMutation.mutate(id)}
+              onEdit={onEditDraft}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CmsNews() {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -42,11 +193,19 @@ export default function CmsNews() {
   });
 
   const saveMutation = useMutation({
-    mutationFn: (data) => editing === "new"
-      ? postsService.create(data)
-      : postsService.update(editing.id, data),
+    mutationFn: async (data) => {
+      const { _draft_id, ...postData } = data;
+      if (editing === "new") {
+        await postsService.create(postData);
+        // Se viene da una bozza AI, segnala come accettata
+        if (_draft_id) await newsDraftsService.reject(_draft_id); // usa reject per rimuoverla dalla coda
+      } else {
+        await postsService.update(editing.id, postData);
+      }
+    },
     onSuccess: () => {
-      qc.invalidateQueries(["cms-posts"]);
+      qc.invalidateQueries({ queryKey: ["cms-posts"] });
+      qc.invalidateQueries({ queryKey: ["news-drafts-pending"] });
       toast({ title: editing === "new" ? "Articolo creato" : "Articolo aggiornato" });
       setEditing(null);
     },
@@ -77,6 +236,23 @@ export default function CmsNews() {
     setEditing(p);
   };
 
+  // Modifica bozza AI: apre il form precompilato come nuovo post
+  const openDraftEdit = (draft) => {
+    setForm({
+      title: draft.title,
+      slug: draft.slug,
+      summary: draft.summary,
+      content: draft.content,
+      cover_image_url: draft.cover_image_url || "",
+      category: draft.category || "Notizie",
+      published_date: new Date().toISOString().slice(0, 16),
+      is_published: true,
+      _draft_id: draft.id,
+    });
+    setPreviewMode(false);
+    setEditing("new");
+  };
+
   const set = (field, val) => setForm(prev => ({ ...prev, [field]: val }));
 
   const handleTitleChange = (val) => {
@@ -99,6 +275,8 @@ export default function CmsNews() {
           <Plus className="w-4 h-4" /> Nuovo Articolo
         </Button>
       </div>
+
+      <AiDraftsSection onEditDraft={openDraftEdit} />
 
       {editing && (
         <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
