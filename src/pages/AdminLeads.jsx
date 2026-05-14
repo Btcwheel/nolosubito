@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { Search, Plus, ArrowRight, X, Loader2, Mail, Phone, User } from "lucide-react";
+import { Search, Plus, ArrowRight, X, Loader2, Mail, Phone, User, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 
@@ -143,6 +143,18 @@ export default function AdminLeads() {
     onError: () => toast({ title: "Errore aggiornamento", variant: "destructive" }),
   });
 
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
+  const deleteAllMutation = useMutation({
+    mutationFn: () => leadsService.deleteAll(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-leads"] });
+      toast({ title: "Tutti i lead eliminati" });
+      setConfirmDelete(null);
+    },
+    onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
   const filtered = leads.filter(l => {
     const q = search.toLowerCase();
     const matchSearch = !search ||
@@ -166,6 +178,20 @@ export default function AdminLeads() {
           <h1 className="font-heading font-bold text-3xl text-foreground">Lead</h1>
           <p className="text-muted-foreground mt-1 text-sm">Richieste di preventivo dal sito — {leads.length} totali</p>
         </div>
+
+        {/* Actions */}
+        {leads.length > 0 && (
+          <div className="mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setConfirmDelete("all")}
+              className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Elimina tutti i lead
+            </Button>
+          </div>
+        )}
 
         {/* Stats bar */}
         <div className="flex flex-wrap gap-3 mb-6">
@@ -271,6 +297,31 @@ export default function AdminLeads() {
           onClose={() => setConvert(null)}
           onConverted={() => qc.invalidateQueries({ queryKey: ["admin-leads"] })}
         />
+      )}
+
+      {confirmDelete === "all" && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4 mx-auto">
+              <Trash2 className="w-5 h-5 text-destructive" />
+            </div>
+            <h3 className="font-heading font-semibold text-lg text-center mb-2">Elimina tutti i lead</h3>
+            <p className="text-sm text-muted-foreground text-center mb-6">
+              Stai per eliminare {leads.length} lead. Questa azione non può essere annullata.
+            </p>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setConfirmDelete(null)} className="flex-1">Annulla</Button>
+              <Button
+                onClick={() => deleteAllMutation.mutate()}
+                disabled={deleteAllMutation.isPending}
+                className="flex-1 bg-destructive hover:bg-destructive/90 text-white gap-2"
+              >
+                {deleteAllMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                Elimina tutto
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -20,14 +20,13 @@ export const leadsService = {
     return data;
   },
 
-  async updateStatus(id, status) {
-    const { data, error } = await supabase
-      .from('leads')
-      .update({ status })
-      .eq('id', id)
-      .select()
-      .single();
+  async delete(id) {
+    const { error } = await supabase.from('leads').delete().eq('id', id);
     if (error) throw error;
-    return data;
+  },
+
+  async deleteAll() {
+    const { error } = await supabase.from('leads').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    if (error) throw error;
   },
 };

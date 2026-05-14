@@ -205,4 +205,13 @@ export const praticheService = {
     if (error) throw error;
     return data;
   },
+
+  async deleteAll() {
+    const { error: docsError } = await supabase.from('pratica_documenti').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    if (docsError) throw docsError;
+    const { error: noteError } = await supabase.from('pratica_note').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    if (noteError) throw noteError;
+    const { error } = await supabase.from('pratiche').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    if (error) throw error;
+  },
 };

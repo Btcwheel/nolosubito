@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Search, Eye, ClipboardList, Car, TrendingUp,
   CheckCircle2, Clock, AlertCircle, Zap, Layers,
-  BarChart2, ArrowUpRight, ChevronRight, Circle
+  BarChart2, ArrowUpRight, ChevronRight, Circle, Trash2, Loader2
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -81,6 +81,18 @@ export default function AdminDashboard() {
     offers.filter(o => !searchAuto || `${o.make} ${o.model}`.toLowerCase().includes(searchAuto.toLowerCase())),
     [offers, searchAuto]
   );
+
+  const deleteAllPraticheMutation = useMutation({
+    mutationFn: () => praticheService.deleteAll(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pratiche-admin"] });
+      toast({ title: "Tutte le richieste di preventivi eliminate" });
+      setConfirmDeletePratiche(null);
+    },
+    onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  const [confirmDeletePratiche, setConfirmDeletePratiche] = useState(null);
 
   const hora = new Date().getHours();
   const greeting = hora < 12 ? "Buongiorno" : hora < 18 ? "Buon pomeriggio" : "Buonasera";
@@ -217,6 +229,16 @@ export default function AdminDashboard() {
                   ))}
                 </SelectContent>
               </Select>
+              {filteredPratiche.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setConfirmDeletePratiche(true)}
+                  className="h-11 gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive rounded-xl"
+                >
+                  <Trash2 className="w-4 h-4" /> Elimina tutto
+                </Button>
+              )}
             </div>
 
             {/* Table */}
@@ -420,6 +442,32 @@ export default function AdminDashboard() {
         )}
 
       </div>
+
+      {confirmDeletePratiche && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4 mx-auto">
+              <Trash2 className="w-5 h-5 text-destructive" />
+            </div>
+            <h3 className="font-heading font-semibold text-lg text-center mb-2">Elimina tutte le richieste</h3>
+            <p className="text-sm text-muted-foreground text-center mb-6">
+              Stai per eliminare {pratiche.length} richiesta{pratiche.length !== 1 ? "e" : ""} di preventivo. Questa azione non può essere annullata.
+            </p>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setConfirmDeletePratiche(null)} className="flex-1">Annulla</Button>
+              <Button
+                onClick={() => deleteAllPraticheMutation.mutate()}
+                disabled={deleteAllPraticheMutation.isPending}
+                className="flex-1 bg-destructive hover:bg-destructive/90 text-white gap-2"
+              >
+                {deleteAllPraticheMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                Elimina tutto
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
