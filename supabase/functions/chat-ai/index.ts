@@ -263,9 +263,17 @@ Se il cliente lascia nome e email/telefono, chiama lo strumento save_lead.`;
           replyParts = ["Grazie! Un consulente Nolosubito la contatterà entro 24 ore."];
         }
       }
-    } else {
-      const content = choice?.message?.content || "Mi dispiace, riprova.";
-      replyParts = content.split("||").map(s => s.trim()).filter(Boolean);
+    }
+    const content = choice?.message?.content || "";
+    // Rimuove eventuali tag <function=...>... </function> che il modello potrebbe aver scritto nel testo
+    const cleanContent = content.replace(/<function=[^>]+>.*?<\/function>/gs, "").trim();
+    
+    replyParts = cleanContent ? cleanContent.split("||").map(s => s.trim()).filter(Boolean) : [];
+    
+    // Se non c'è testo ma c'è un tool_call, la risposta testuale verrà generata dal follow-up
+    // Se non c'è né testo né tool_call, mostra un messaggio di fallback
+    if (replyParts.length === 0 && !leadSaved) {
+      replyParts = ["Mi dispiace, riprova."];
     }
 
     const reply = replyParts.join("\n\n");

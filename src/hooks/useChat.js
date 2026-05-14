@@ -7,13 +7,15 @@ const WELCOME = {
 };
 
 function typingDelay(text) {
-  const base = text.length * 72;
-  const jitter = Math.random() * 600 - 300;
-  return Math.min(Math.max(base + jitter, 2800), 5500);
+  // Un umano medio scrive a circa 40-50 parole al minuto.
+  // Calcoliamo circa 150-200ms per carattere per simulare una scrittura naturale
+  const base = text.length * 110; 
+  const jitter = Math.random() * 800 - 400;
+  return Math.min(Math.max(base + jitter, 3500), 8000);
 }
 
 const BETWEEN_MSG_PAUSE = () => 1200 + Math.random() * 800;
-const READ_DELAY = () => 1500 + Math.random() * 1500;
+const READ_DELAY = () => 2000 + Math.random() * 2000;
 
 export default function useChat() {
   const [messages, setMessages] = useState([WELCOME]);
