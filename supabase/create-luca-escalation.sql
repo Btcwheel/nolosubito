@@ -54,6 +54,7 @@ create table if not exists escalated_sessions (
 create index if not exists idx_escalated_sessions_status     on escalated_sessions(status);
 create index if not exists idx_escalated_sessions_session_id on escalated_sessions(session_id);
 create index if not exists idx_knowledge_chunks_document_id  on knowledge_chunks(document_id);
+create index if not exists idx_knowledge_chunks_fts          on knowledge_chunks using gin(to_tsvector('italian', content));
 
 -- ── RLS ──────────────────────────────────────────────────────
 alter table knowledge_documents  enable row level security;

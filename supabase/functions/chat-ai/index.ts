@@ -30,24 +30,23 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const lastUserMessage = messages[messages.length - 1]?.content ?? "";
+    const lastUserMessage = (messages[messages.length - 1]?.content ?? "").slice(0, 200);
 
     const [offersRes, configsRes, kbRes] = await Promise.all([
       supabase.from("offers").select("make, model, category, fuel_type, segments").eq("is_active", true),
       supabase.from("offer_configs").select("make, model, segment, monthly_rent").eq("is_active", true),
-      supabase.from("knowledge_chunks").select("content").order("created_at", { ascending: false }).limit(200),
+      lastUserMessage.length > 3
+        ? supabase.from("knowledge_chunks")
+            .select("content")
+            .textSearch("content", lastUserMessage.split(/\s+/).filter((w: string) => w.length > 3).slice(0, 5).join(" | "), { type: "plain" })
+            .limit(5)
+        : Promise.resolve({ data: [] }),
     ]);
 
     if (offersRes.error) throw new Error("offers: " + offersRes.error.message);
     if (configsRes.error) throw new Error("configs: " + configsRes.error.message);
 
-    // Knowledge base: filtra chunk rilevanti con ricerca testuale semplice
-    const kbChunks = (kbRes.data ?? []);
-    const query = lastUserMessage.toLowerCase();
-    const relevantChunks = kbChunks
-      .filter(c => query.split(/\s+/).some(word => word.length > 3 && c.content.toLowerCase().includes(word)))
-      .slice(0, 5)
-      .map(c => c.content);
+    const relevantChunks = (kbRes.data ?? []).map((c: { content: string }) => c.content);
     const knowledgeSection = relevantChunks.length > 0
       ? `\n\n## DOCUMENTI INTERNI — usa queste info se pertinenti\n${relevantChunks.join("\n---\n")}`
       : "";
