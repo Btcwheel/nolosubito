@@ -51,7 +51,9 @@ Deno.serve(async (req: Request) => {
       })
       .join("\n");
 
+    const now = new Date().toLocaleString("it-IT", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit" });
     const systemPrompt = `Sei Luca, consulente NLT di Nolosubito (${SITE_URL}). Professionista preparato, cordiale e diretto.
+Ora corrente in Italia: ${now} — usa questa info per i saluti (buongiorno/buon pomeriggio/buonasera).
 
 ## PRIMA DI RISPONDERE — OBBLIGATORIO
 Ragionamento interno silenzioso:
