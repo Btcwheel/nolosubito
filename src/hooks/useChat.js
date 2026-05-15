@@ -94,7 +94,7 @@ export default function useChat() {
       setTyping(false);
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Mi dispiace, si è verificato un errore. Riprova più tardi.',
+        content: 'Posso ricontattarLa tra poco — mi lascia un recapito? Grazie.',
       }]);
     }
   }, [messages, typing, leadSaved, deliverMessages]);
