@@ -20,7 +20,8 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: CORS });
 
   try {
-    const { messages } = await req.json();
+    const { messages, session_id } = await req.json();
+    const sessionId: string = session_id || crypto.randomUUID();
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "messages array required" }), {
         status: 400, headers: { ...CORS, "Content-Type": "application/json" },
@@ -29,13 +30,27 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const [offersRes, configsRes] = await Promise.all([
+    const lastUserMessage = messages[messages.length - 1]?.content ?? "";
+
+    const [offersRes, configsRes, kbRes] = await Promise.all([
       supabase.from("offers").select("make, model, category, fuel_type, segments").eq("is_active", true),
       supabase.from("offer_configs").select("make, model, segment, monthly_rent").eq("is_active", true),
+      supabase.from("knowledge_chunks").select("content").order("created_at", { ascending: false }).limit(200),
     ]);
 
     if (offersRes.error) throw new Error("offers: " + offersRes.error.message);
     if (configsRes.error) throw new Error("configs: " + configsRes.error.message);
+
+    // Knowledge base: filtra chunk rilevanti con ricerca testuale semplice
+    const kbChunks = (kbRes.data ?? []);
+    const query = lastUserMessage.toLowerCase();
+    const relevantChunks = kbChunks
+      .filter(c => query.split(/\s+/).some(word => word.length > 3 && c.content.toLowerCase().includes(word)))
+      .slice(0, 5)
+      .map(c => c.content);
+    const knowledgeSection = relevantChunks.length > 0
+      ? `\n\n## DOCUMENTI INTERNI — usa queste info se pertinenti\n${relevantChunks.join("\n---\n")}`
+      : "";
 
     const minPriceMap: Record<string, number> = {};
     for (const c of configsRes.data || []) {
@@ -96,10 +111,28 @@ ${offersTable}
 
 Parla SOLO dei veicoli in lista. Includi sempre link completo e prezzo.
 
+${knowledgeSection}
+
+## QUANDO NON SAI RISPONDERE
+Se la domanda riguarda argomenti non coperti dalla tua conoscenza (clausole contrattuali specifiche, condizioni particolari, situazioni fuori dal normale, ecc.), chiama IMMEDIATAMENTE escalate_to_operator.
+NON inventare risposte. NON fare supposizioni. Chiama il tool e basta — il messaggio al cliente viene gestito automaticamente.
+
 ## FORMATO
 - 2-3 messaggi separati da ||
 - Ogni segmento: 1-2 frasi, naturale
 - NON scrivere note o istruzioni tra parentesi`;
+
+    const ESCALATE_TOOL = {
+      name: "escalate_to_operator",
+      description: "Chiama questo tool quando non conosci la risposta a una domanda specifica del cliente. Salva la sessione e avvisa un operatore umano.",
+      input_schema: {
+        type: "object",
+        properties: {
+          question: { type: "string", description: "La domanda del cliente a cui non sai rispondere" },
+        },
+        required: ["question"],
+      },
+    };
 
     const SAVE_LEAD_TOOL = {
       name: "save_lead",
@@ -142,7 +175,7 @@ Parla SOLO dei veicoli in lista. Includi sempre link completo e prezzo.
         max_tokens: 600,
         system: systemPrompt,
         messages: cleanMessages,
-        tools: [SAVE_LEAD_TOOL],
+        tools: [SAVE_LEAD_TOOL, ESCALATE_TOOL],
       }),
     });
 
@@ -156,9 +189,26 @@ Parla SOLO dei veicoli in lista. Includi sempre link completo e prezzo.
 
     let replyParts: string[] = [];
     let leadSaved = false;
+    let escalated = false;
+
+    // Gestisci escalate_to_operator
+    const escalateTool = content.find(b => b.type === "tool_use" && b.name === "escalate_to_operator");
+    if (escalateTool?.input) {
+      const question = (escalateTool.input as { question: string }).question;
+      try {
+        await supabase.from("escalated_sessions").insert({
+          session_id: sessionId,
+          user_question: question,
+          chat_history: messages,
+          status: "waiting",
+        });
+      } catch (_) { /* ignora errore insert */ }
+      escalated = true;
+      replyParts = ["Se mi dà un minuto le trovo le informazioni che cerca."];
+    }
 
     // Gestisci tool_use (save_lead)
-    const toolUse = content.find(b => b.type === "tool_use" && b.name === "save_lead");
+    const toolUse = escalated ? undefined : content.find(b => b.type === "tool_use" && b.name === "save_lead");
     if (toolUse?.input) {
       const args = toolUse.input;
       if (args.nome && (args.email || args.telefono)) {
@@ -221,7 +271,7 @@ Parla SOLO dei veicoli in lista. Includi sempre link completo e prezzo.
     const vehicleRegex = new RegExp(`(${SITE_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\/vehicle\\/[^\\s).,;!?]+)`);
     const offerLink = reply.match(vehicleRegex)?.[1]?.replace(/[.,;!?]+$/, "") || null;
 
-    return new Response(JSON.stringify({ reply: replyParts, offerLink, leadSaved }), {
+    return new Response(JSON.stringify({ reply: replyParts, offerLink, leadSaved, escalated, session_id: sessionId }), {
       status: 200, headers: { ...CORS, "Content-Type": "application/json" },
     });
 

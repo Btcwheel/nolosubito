@@ -11,11 +11,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import {
   Search, Eye, ClipboardList, Clock, CheckCircle2,
-  AlertCircle, FileCheck, FileX, ChevronRight, Users,
+  AlertCircle, FileCheck, FileX, ChevronRight, Users, MessageSquareWarning, BookOpen,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { PRATICA_STATUS_COLORS, DEFAULT_STATUS_COLOR } from "@/lib/praticaStatus";
+import EscalationPanel from "@/components/backoffice/EscalationPanel";
+import KnowledgePanel from "@/components/backoffice/KnowledgePanel";
 
 const ALL_STATUSES = [
   "Nuova", "In Lavorazione", "Documenti Richiesti", "Documenti Caricati",
@@ -24,8 +26,10 @@ const ALL_STATUSES = [
 ];
 
 const TABS = [
-  { id: "pratiche",  label: "Tutte le Pratiche",       icon: ClipboardList },
-  { id: "documenti", label: "Documenti da Verificare",  icon: FileCheck },
+  { id: "pratiche",    label: "Tutte le Pratiche",       icon: ClipboardList },
+  { id: "documenti",   label: "Documenti da Verificare",  icon: FileCheck },
+  { id: "escalation",  label: "Chat Luca",                icon: MessageSquareWarning },
+  { id: "knowledge",   label: "Knowledge Base",           icon: BookOpen },
 ];
 
 function StatCard({ label, value, icon: Icon, colorClass }) {
@@ -85,6 +89,14 @@ export default function BackofficeDashboard() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [activeTab, setActiveTab] = useState("pratiche");
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  // Recupera l'utente loggato
+  React.useEffect(() => {
+    import('@/lib/supabase').then(({ supabase }) => {
+      supabase.auth.getUser().then(({ data }) => setCurrentUserId(data?.user?.id ?? null));
+    });
+  }, []);
   const [search, setSearch]       = useState("");
   const [filterStatus, setFilterStatus] = useState("tutti");
 
@@ -283,6 +295,16 @@ export default function BackofficeDashboard() {
               </div>
             )}
           </div>
+        )}
+
+        {/* ── TAB CHAT LUCA (ESCALATION) ── */}
+        {activeTab === "escalation" && (
+          <EscalationPanel currentUserId={currentUserId} />
+        )}
+
+        {/* ── TAB KNOWLEDGE BASE ── */}
+        {activeTab === "knowledge" && (
+          <KnowledgePanel currentUserId={currentUserId} />
         )}
 
       </div>

@@ -4,6 +4,69 @@ import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 import useChat from '@/hooks/useChat';
 
+function EscalationChoiceButtons({ onChoice }) {
+  return (
+    <div className="flex gap-2 mt-1 flex-wrap">
+      <button
+        onClick={() => onChoice('wait')}
+        className="px-3 py-1.5 text-xs rounded-xl border border-electric/40 text-electric hover:bg-electric/10 transition-colors cursor-pointer"
+      >
+        Aspetto ancora
+      </button>
+      <button
+        onClick={() => onChoice('contact')}
+        className="px-3 py-1.5 text-xs rounded-xl bg-electric text-white hover:bg-electric/90 transition-colors cursor-pointer"
+      >
+        Lascio un recapito
+      </button>
+    </div>
+  );
+}
+
+function ContactForm({ onSubmit }) {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name.trim() || (!phone.trim() && !email.trim())) return;
+    onSubmit({ name, phone, email });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 mt-2">
+      <input
+        value={name}
+        onChange={e => setName(e.target.value)}
+        placeholder="Nome e cognome *"
+        className="bg-muted/40 border border-border/50 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric/50"
+        required
+      />
+      <input
+        value={phone}
+        onChange={e => setPhone(e.target.value)}
+        placeholder="Telefono"
+        className="bg-muted/40 border border-border/50 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric/50"
+      />
+      <input
+        value={email}
+        onChange={e => setEmail(e.target.value)}
+        placeholder="Email"
+        type="email"
+        className="bg-muted/40 border border-border/50 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric/50"
+      />
+      <button
+        type="submit"
+        disabled={!name.trim() || (!phone.trim() && !email.trim())}
+        className="py-2 rounded-xl bg-electric text-white text-sm font-medium hover:bg-electric/90 disabled:bg-muted disabled:text-muted-foreground transition-colors cursor-pointer disabled:cursor-not-allowed"
+      >
+        Invia recapito
+      </button>
+    </form>
+  );
+}
+
 function TypingIndicator() {
   return (
     <div className="flex gap-2.5 items-end">
@@ -28,7 +91,8 @@ function TypingIndicator() {
 
 export default function ChatWidget() {
   const {
-    messages, input, setInput, typing, leadSaved, bottomRef, sendMessage,
+    messages, input, setInput, typing, leadSaved, escalated, escalationPhase,
+    bottomRef, sendMessage, handleEscalationChoice, saveContact,
   } = useChat();
 
   const [open, setOpen] = useState(false);
@@ -57,9 +121,9 @@ export default function ChatWidget() {
   }, []);
 
   const handleSend = useCallback(() => {
-    if (!input.trim() || typing) return;
+    if (!input.trim() || typing || escalated) return;
     sendMessage(input);
-  }, [input, typing, sendMessage]);
+  }, [input, typing, escalated, sendMessage]);
 
   const handleKey = useCallback((e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -111,6 +175,12 @@ export default function ChatWidget() {
 
               {typing && <TypingIndicator />}
 
+              {escalationPhase === 'ask_wait' && !typing && (
+                <EscalationChoiceButtons onChoice={handleEscalationChoice} />
+              )}
+              {escalationPhase === 'ask_contact' && !typing && (
+                <ContactForm onSubmit={saveContact} />
+              )}
 
               <div ref={bottomRef} />
             </div>
@@ -129,7 +199,7 @@ export default function ChatWidget() {
                 />
                 <button
                   onClick={handleSend}
-                  disabled={!input.trim() || typing}
+                  disabled={!input.trim() || typing || escalated}
                   className="w-10 h-10 rounded-xl bg-electric disabled:bg-muted flex items-center justify-center text-white transition-all hover:bg-electric/90 active:scale-95 cursor-pointer disabled:cursor-not-allowed shrink-0"
                 >
                   {typing
