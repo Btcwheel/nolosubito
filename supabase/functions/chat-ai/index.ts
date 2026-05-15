@@ -133,12 +133,13 @@ Quando citi un veicolo, includi sempre il link e il prezzo da catalogo.
 
 ## FORMATO RISPOSTE
 - Italiano, naturale, mai robotico.
-- Scrivi UN SOLO messaggio compatto. Non spezzare la risposta in paragrafi separati.
-- Max 4-5 righe totali. Se elenchi veicoli, metti tutto nello stesso messaggio.
+- Spezza la risposta in 2-3 messaggi brevi separati dal separatore || (come farebbe un umano su WhatsApp).
+- Ogni segmento: 1-2 frasi max. Naturale, non elenchi.
 - I link devono essere SEMPRE nella forma completa: https://nolosubito.quixel.it/vehicle/MARCA/MODELLO
 - Non ricapitolare quello che il cliente ha appena detto.
 - Non iniziare con "Certamente!", "Ottima domanda!", "Capisco perfettamente!" — sono frasi da bot.
-- NON scrivere mai istruzioni interne o note tra parentesi nel tuo messaggio. Scrivi solo ciò che il cliente vede.`;
+- NON scrivere mai istruzioni interne o note tra parentesi. Scrivi solo ciò che il cliente legge.
+- Esempio formato: "Prima cosa da dire || Seconda cosa || Eventuale domanda o link"`;
 
     const SAVE_LEAD_TOOL = {
       type: "function",
@@ -242,7 +243,7 @@ Quando citi un veicolo, includi sempre il link e il prezzo da catalogo.
       .replace(/^\(.*\)\s*$/gm, "")
       .trim();
 
-    replyParts = cleanContent ? [cleanContent] : [];
+    replyParts = cleanContent ? cleanContent.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
     
     // Se non c'è testo ma c'è un tool_call, la risposta testuale verrà generata dal follow-up
     // Se non c'è né testo né tool_call, mostra un messaggio di fallback
