@@ -13,7 +13,7 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const GROQ_MODEL = "llama-3.3-70b-versatile";
+const GROQ_MODEL = "llama-3.1-8b-instant";
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
