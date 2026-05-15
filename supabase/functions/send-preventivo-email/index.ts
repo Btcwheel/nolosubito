@@ -13,7 +13,7 @@
  *   SMTP_FROM        = Nolosubito <preventivi@nolosubito.it>
  *   SMTP_SECURE      = false
  *   BACKOFFICE_EMAIL = info@nolosubito.it
- *   SITE_URL         = https://nolosubito.quixel.it
+ *   SITE_URL         = https://nolosubito.it
  */
 
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
@@ -30,7 +30,7 @@ const BACKOFFICE_EMAIL = Deno.env.get("BACKOFFICE_EMAIL") ?? "info@nolosubito.it
 
 const SUPABASE_URL         = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const SITE_URL             = Deno.env.get("SITE_URL") ?? "https://nolosubito.quixel.it";
+const SITE_URL             = Deno.env.get("SITE_URL") ?? "https://nolosubito.it";
 
 serve(async (req: Request) => {
   if (req.method !== "POST") {
