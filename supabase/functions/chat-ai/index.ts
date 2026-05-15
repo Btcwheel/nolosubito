@@ -133,9 +133,12 @@ Quando citi un veicolo, includi sempre il link e il prezzo da catalogo.
 
 ## FORMATO RISPOSTE
 - Italiano, naturale, mai robotico.
-- Max 3-4 frasi. Se devi elencare opzioni, max 3 bullet.
+- Scrivi UN SOLO messaggio compatto. Non spezzare la risposta in paragrafi separati.
+- Max 4-5 righe totali. Se elenchi veicoli, metti tutto nello stesso messaggio.
+- I link devono essere SEMPRE nella forma completa: https://nolosubito.quixel.it/vehicle/MARCA/MODELLO
 - Non ricapitolare quello che il cliente ha appena detto.
-- Non iniziare con "Certamente!", "Ottima domanda!", "Capisco perfettamente!" — sono frasi da bot.`;
+- Non iniziare con "Certamente!", "Ottima domanda!", "Capisco perfettamente!" — sono frasi da bot.
+- NON scrivere mai istruzioni interne o note tra parentesi nel tuo messaggio. Scrivi solo ciò che il cliente vede.`;
 
     const SAVE_LEAD_TOOL = {
       type: "function",
@@ -233,10 +236,13 @@ Quando citi un veicolo, includi sempre il link e il prezzo da catalogo.
       }
     }
     const content = choice?.message?.content || "";
-    // Rimuove eventuali tag <function=...>... </function> che il modello potrebbe aver scritto nel testo
-    const cleanContent = content.replace(/<function=[^>]+>.*?<\/function>/gs, "").trim();
-    
-    replyParts = cleanContent ? cleanContent.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
+    const cleanContent = content
+      .replace(/<function=[^>]+>.*?<\/function>/gs, "")
+      // Rimuove righe che sembrano istruzioni interne trapelate dal prompt
+      .replace(/^\(.*\)\s*$/gm, "")
+      .trim();
+
+    replyParts = cleanContent ? [cleanContent] : [];
     
     // Se non c'è testo ma c'è un tool_call, la risposta testuale verrà generata dal follow-up
     // Se non c'è né testo né tool_call, mostra un messaggio di fallback

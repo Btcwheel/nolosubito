@@ -8,39 +8,19 @@ const LucaAvatar = ({ size = 'sm' }) => (
 );
 
 function linkify(text) {
-  const urlRegex = /(https?:\/\/[^\s)]+)/g;
+  // Riconosce URL del sito con o senza protocollo
+  const urlRegex = /((?:https?:\/\/)?(?:nolosubito\.it|nolosubito\.quixel\.it|localhost(?::\d+)?)\/[^\s),;]+)/g;
   return text.split(urlRegex).map((part, i) => {
-    if (part.match(urlRegex)) {
-      const isInternal = part.includes('nolosubito.it') || part.includes('quixel.it') || part.startsWith('http://localhost');
-      const isVehicle = part.includes('/vehicle/');
-      
-      if (isInternal) {
-        // Estrae il path relativo
-        const url = new URL(part);
-        const to = url.pathname + url.search;
-        
-        return (
-          <Link
-            key={i}
-            to={to}
-            className="text-electric underline underline-offset-2 hover:text-electric/80 font-bold"
-          >
-            {isVehicle ? "Vedi l'offerta" : part.replace(/https?:\/\//, '')}
-          </Link>
-        );
-      }
-
-      return (
-        <a
-          key={i}
-          href={part}
-          className="text-electric underline underline-offset-2 hover:text-electric/80 font-medium"
-        >
-          {part.replace(/https?:\/\//, '')}
-        </a>
-      );
-    }
-    return part;
+    if (!part.match(urlRegex)) return part;
+    const full = part.startsWith('http') ? part : `https://${part}`;
+    const isVehicle = part.includes('/vehicle/');
+    const url = new URL(full);
+    const to = url.pathname + url.search;
+    return (
+      <Link key={i} to={to} className="text-electric underline underline-offset-2 hover:text-electric/80 font-bold">
+        {isVehicle ? "Vedi l'offerta" : url.hostname}
+      </Link>
+    );
   });
 }
 
