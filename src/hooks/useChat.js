@@ -3,7 +3,7 @@ import { chatService } from '@/services/chat';
 
 const WELCOME = {
   role: 'assistant',
-  content: 'Salve! Sono Luca, consulente NLT di Nolosubito. Sono qui per aiutarti a trovare il veicolo giusto per te. Hai già in mente qualcosa o preferisci farmi qualche domanda sul noleggio a lungo termine?',
+  content: 'Salve! Sono Luca, consulente NLT di Nolosubito. Sono a Sua disposizione per aiutarLa a trovare il veicolo più adatto alle Sue esigenze. Ha già qualcosa in mente, o preferisce che Le illustri come funziona il noleggio a lungo termine?',
 };
 
 function typingDelay(text) {
