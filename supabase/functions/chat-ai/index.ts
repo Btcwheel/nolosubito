@@ -168,11 +168,19 @@ Quando citi un veicolo, includi sempre il link e il prezzo da catalogo.
       },
     };
 
+    const FALLBACK_REPLY = { reply: ["Posso ricontattarLa tra poco — mi lascia un recapito? Grazie."], offerLink: null, leadSaved: false };
+    const FALLBACK_RES = new Response(JSON.stringify(FALLBACK_REPLY), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
+
+    // Rimuovi messaggi di errore dall'history prima di inviarli a Groq
+    const cleanMessages = messages.filter((m: { role: string; content: string }) =>
+      !(m.role === "assistant" && m.content?.startsWith("Posso ricontattarLa"))
+    );
+
     const groqBody = {
       model: GROQ_MODEL,
       messages: [
         { role: "system", content: systemPrompt },
-        ...messages,
+        ...cleanMessages,
       ],
       tools: [SAVE_LEAD_TOOL],
       tool_choice: "auto",
@@ -190,8 +198,8 @@ Quando citi un veicolo, includi sempre il link e il prezzo da catalogo.
     });
 
     if (!groqRes.ok) {
-      const errText = await groqRes.text();
-      throw new Error(`Groq error ${groqRes.status}: ${errText}`);
+      console.error("Groq error:", groqRes.status, await groqRes.text().catch(() => ""));
+      return FALLBACK_RES;
     }
 
     const groqData = await groqRes.json();
