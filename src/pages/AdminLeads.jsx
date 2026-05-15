@@ -131,6 +131,8 @@ export default function AdminLeads() {
   const [search, setSearch]         = useState("");
   const [filterStatus, setFilter]   = useState("tutti");
   const [convertLead, setConvert]   = useState(null);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [confirmDelete, setConfirmDelete] = useState(null); // "all" | "selected"
 
   const { data: leads = [], isLoading } = useQuery({
     queryKey: ["admin-leads"],
@@ -143,14 +145,24 @@ export default function AdminLeads() {
     onError: () => toast({ title: "Errore aggiornamento", variant: "destructive" }),
   });
 
-  const [confirmDelete, setConfirmDelete] = useState(null);
-
   const deleteAllMutation = useMutation({
     mutationFn: () => leadsService.deleteAll(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-leads"] });
       toast({ title: "Tutti i lead eliminati" });
       setConfirmDelete(null);
+      setSelectedIds(new Set());
+    },
+    onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  const deleteSelectedMutation = useMutation({
+    mutationFn: () => leadsService.deleteSelected([...selectedIds]),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-leads"] });
+      toast({ title: `${selectedIds.size} lead eliminati` });
+      setConfirmDelete(null);
+      setSelectedIds(new Set());
     },
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
@@ -181,7 +193,17 @@ export default function AdminLeads() {
 
         {/* Actions */}
         {leads.length > 0 && (
-          <div className="mb-4">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            {selectedIds.size > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmDelete("selected")}
+                className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+              >
+                <Trash2 className="w-3.5 h-3.5" /> Elimina selezionati ({selectedIds.size})
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -227,9 +249,36 @@ export default function AdminLeads() {
           ) : filtered.length === 0 ? (
             <div className="py-16 text-center text-muted-foreground text-sm">Nessun lead trovato.</div>
           ) : (
+            <>
+              {/* Header seleziona tutti */}
+              <div className="flex items-center gap-3 px-5 py-2.5 border-b border-border/30 bg-muted/10">
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 rounded border-border cursor-pointer"
+                  checked={filtered.length > 0 && filtered.every(l => selectedIds.has(l.id))}
+                  onChange={e => {
+                    if (e.target.checked) setSelectedIds(new Set(filtered.map(l => l.id)));
+                    else setSelectedIds(new Set());
+                  }}
+                />
+                <span className="text-xs text-muted-foreground">
+                  {selectedIds.size > 0 ? `${selectedIds.size} selezionati` : "Seleziona tutto"}
+                </span>
+              </div>
             <div className="divide-y divide-border/30">
               {filtered.map(lead => (
-                <div key={lead.id} className="flex items-center gap-4 px-5 py-4 hover:bg-muted/20 transition-colors">
+                <div key={lead.id} className={`flex items-center gap-4 px-5 py-4 hover:bg-muted/20 transition-colors ${selectedIds.has(lead.id) ? "bg-destructive/5" : ""}`}>
+                  {/* Checkbox */}
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-border cursor-pointer shrink-0"
+                    checked={selectedIds.has(lead.id)}
+                    onChange={e => {
+                      const next = new Set(selectedIds);
+                      if (e.target.checked) next.add(lead.id); else next.delete(lead.id);
+                      setSelectedIds(next);
+                    }}
+                  />
                   {/* Avatar */}
                   <div className="w-9 h-9 rounded-full bg-navy/10 flex items-center justify-center shrink-0">
                     <User className="w-4 h-4 text-navy" />
@@ -286,6 +335,7 @@ export default function AdminLeads() {
                 </div>
               ))}
             </div>
+            </>
           )}
         </div>
 
@@ -299,25 +349,29 @@ export default function AdminLeads() {
         />
       )}
 
-      {confirmDelete === "all" && (
+      {(confirmDelete === "all" || confirmDelete === "selected") && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6">
             <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4 mx-auto">
               <Trash2 className="w-5 h-5 text-destructive" />
             </div>
-            <h3 className="font-heading font-semibold text-lg text-center mb-2">Elimina tutti i lead</h3>
+            <h3 className="font-heading font-semibold text-lg text-center mb-2">
+              {confirmDelete === "selected" ? `Elimina ${selectedIds.size} lead` : "Elimina tutti i lead"}
+            </h3>
             <p className="text-sm text-muted-foreground text-center mb-6">
-              Stai per eliminare {leads.length} lead. Questa azione non può essere annullata.
+              {confirmDelete === "selected"
+                ? `Stai per eliminare ${selectedIds.size} lead selezionati. Questa azione non può essere annullata.`
+                : `Stai per eliminare ${leads.length} lead. Questa azione non può essere annullata.`}
             </p>
             <div className="flex gap-3">
               <Button variant="outline" onClick={() => setConfirmDelete(null)} className="flex-1">Annulla</Button>
               <Button
-                onClick={() => deleteAllMutation.mutate()}
-                disabled={deleteAllMutation.isPending}
+                onClick={() => confirmDelete === "selected" ? deleteSelectedMutation.mutate() : deleteAllMutation.mutate()}
+                disabled={deleteAllMutation.isPending || deleteSelectedMutation.isPending}
                 className="flex-1 bg-destructive hover:bg-destructive/90 text-white gap-2"
               >
-                {deleteAllMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-                Elimina tutto
+                {(deleteAllMutation.isPending || deleteSelectedMutation.isPending) && <Loader2 className="w-4 h-4 animate-spin" />}
+                {confirmDelete === "selected" ? "Elimina selezionati" : "Elimina tutto"}
               </Button>
             </div>
           </div>

@@ -47,11 +47,12 @@ export default function VehicleDetail() {
   const decodedModel = decodeURIComponent(model);
   const segmentFromState = location.state?.segment;
 
-  const [quoteConfig,   setQuoteConfig]   = useState(null);
-  const [showForm,      setShowForm]      = useState(false);
-  const [currentIndex,  setCurrentIndex]  = useState(0);
-  const [imgKey,        setImgKey]        = useState(0);
-  const [showAllDesc,   setShowAllDesc]   = useState(false);
+  const [quoteConfig,    setQuoteConfig]    = useState(null);
+  const [showForm,       setShowForm]       = useState(false);
+  const [currentIndex,   setCurrentIndex]   = useState(0);
+  const [imgKey,         setImgKey]         = useState(0);
+  const [showAllDesc,    setShowAllDesc]    = useState(false);
+  const [activeSegment,  setActiveSegment]  = useState(null); // controllato da tab header + QuoteBox
 
   useEffect(() => { window.scrollTo(0, 0); }, [make, model]);
 
@@ -81,14 +82,29 @@ export default function VehicleDetail() {
     });
   }, [vehicle, segmentFromState]);
 
+  // Inizializza activeSegment una sola volta quando preferredSegment è disponibile
+  useEffect(() => {
+    if (preferredSegment && !activeSegment) setActiveSegment(preferredSegment);
+  }, [preferredSegment]);
+
+  // Segmenti disponibili (P.IVA e/o Privati) per mostrare i tab
+  const availableSegments = useMemo(() => {
+    const segs = vehicle?.segments || [];
+    return ["P.IVA", "Privati"].filter(s => segs.includes(s));
+  }, [vehicle]);
+
+  const currentSegment = activeSegment || preferredSegment;
+
   const bestOffer = useMemo(() => {
     if (!vehicle) return null;
-    const filtered = preferredSegment
-      ? configs.filter(c => c.segment === preferredSegment)
-      : configs;
+    const filtered = currentSegment
+      ? configs.filter(c => c.segment === currentSegment && c.is_active !== false)
+      : configs.filter(c => c.is_active !== false);
+    // Preferisci il canone vetrina, fallback al minimo
+    const featured = filtered.find(c => c.is_featured);
     const minPrice = filtered.length ? Math.min(...filtered.map(c => Number(c.monthly_rent))) : null;
-    return { ...vehicle, monthly_rent: minPrice };
-  }, [vehicle, configs, preferredSegment]);
+    return { ...vehicle, monthly_rent: featured ? Number(featured.monthly_rent) : minPrice };
+  }, [vehicle, configs, currentSegment]);
 
   const similarVehicles = useMemo(() => {
     if (!bestOffer) return [];
@@ -169,7 +185,7 @@ export default function VehicleDetail() {
 
   const displayPrice = bestOffer.monthly_rent
     ? formatDisplayedRent(bestOffer.monthly_rent, {
-        segment: preferredSegment,
+        segment: currentSegment,
         vehicleCategory: bestOffer.category,
         vehicleSegments: bestOffer.segments || [],
       })
@@ -212,6 +228,26 @@ export default function VehicleDetail() {
                       </span>
                     )}
                   </p>
+
+                  {/* Tab segmento P.IVA / Privati */}
+                  {availableSegments.length > 1 && (
+                    <div className="flex items-center gap-1 mt-3">
+                      {availableSegments.map(seg => (
+                        <button
+                          key={seg}
+                          type="button"
+                          onClick={() => setActiveSegment(seg)}
+                          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                            currentSegment === seg
+                              ? "bg-navy text-white border-navy"
+                              : "bg-white text-gray-500 border-gray-200 hover:border-navy hover:text-navy"
+                          }`}
+                        >
+                          {seg === "P.IVA" ? "Business / P.IVA" : "Privati"}
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Quick-info pills */}
                   <div className="flex flex-wrap gap-2 mt-4">
@@ -448,7 +484,8 @@ export default function VehicleDetail() {
               <QuoteBox
                 fixedMake={decodedMake}
                 fixedModel={decodedModel}
-                segment={segmentFromState}
+                segment={currentSegment}
+                onSegmentChange={setActiveSegment}
                 onRequestQuote={handleRequestQuote}
               />
             </motion.div>

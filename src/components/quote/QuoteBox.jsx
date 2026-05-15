@@ -72,13 +72,14 @@ function OptionButton({ selected, available = true, onClick, children }) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
-export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuote }) {
+export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChange, onRequestQuote }) {
   const [selectedMake, setSelectedMake] = useState(fixedMake || "");
   const [selectedModel, setSelectedModel] = useState(fixedModel || "");
   const [duration, setDuration] = useState(36);
   const [annualKm, setAnnualKm] = useState(15000);
   const [advance, setAdvance] = useState(3000);
   const [selectedSegment, setSelectedSegment] = useState(segment || null);
+  const featuredInitialized = React.useRef(false);
 
   // ── Data ──────────────────────────────────────────────────────────────────
   const { data: vehicles = [] } = useQuery({
@@ -114,7 +115,8 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
     const segs = currentVehicle?.segments || [];
     return segs.filter(s => ["P.IVA", "Privati"].includes(s));
   }, [currentVehicle]);
-  const canChooseSegment = !segment && availableSegments.length > 1;
+  // Con segment controllato dall'esterno il QuoteBox mostra sempre il toggle per confrontare i prezzi
+  const canChooseSegment = availableSegments.length > 1;
 
   useEffect(() => {
     if (segment) {
@@ -131,7 +133,13 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
     if (resolved) setSelectedSegment(resolved);
   }, [segment, currentVehicle?.category, currentVehicle?.segments]);
 
-  const activeSegment = segment || selectedSegment;
+  const activeSegment = selectedSegment;
+
+  const handleSegmentChange = useCallback((seg) => {
+    setSelectedSegment(seg);
+    onSegmentChange?.(seg);
+    featuredInitialized.current = false; // permetti re-init del featured per nuovo segmento
+  }, [onSegmentChange]);
 
   // vehicleConfigs is now directly fetched for the current vehicle
   const activeConfigs = useMemo(() => {
@@ -193,6 +201,18 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
 
   useEffect(() => { if (fixedMake) setSelectedMake(fixedMake); }, [fixedMake]);
   useEffect(() => { if (fixedModel) setSelectedModel(fixedModel); }, [fixedModel]);
+
+  // Pre-seleziona durata e km del canone vetrina quando cambia segmento o si caricano i configs
+  useEffect(() => {
+    if (featuredInitialized.current) return;
+    const featured = activeConfigs.find(c => c.is_featured);
+    if (featured) {
+      setDuration(featured.duration_months);
+      setAnnualKm(featured.annual_km);
+      setAdvance(Number(featured.advance_payment ?? 0));
+      featuredInitialized.current = true;
+    }
+  }, [activeConfigs]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleMakeChange = useCallback(e => {
@@ -265,20 +285,20 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onRequestQuot
 
         {canChooseSegment && (
           <div>
-            <p className="text-xs font-semibold text-foreground mb-2">Segmento prezzo</p>
+            <p className="text-xs font-semibold text-foreground mb-2">Sei un privato o un'azienda?</p>
             <div className="grid grid-cols-2 gap-2">
               {availableSegments.map(s => (
                 <OptionButton
                   key={s}
                   selected={activeSegment === s}
-                  onClick={() => setSelectedSegment(s)}
+                  onClick={() => handleSegmentChange(s)}
                 >
-                  {s}
+                  {s === "P.IVA" ? "Azienda / P.IVA" : "Privato"}
                 </OptionButton>
               ))}
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              Seleziona il canone corretto per {availableSegments.join(" e ")}.
+              {activeSegment === "P.IVA" ? "Prezzi IVA esclusa (22%)" : "Prezzi IVA inclusa"}
             </p>
           </div>
         )}

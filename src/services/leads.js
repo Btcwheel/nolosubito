@@ -29,4 +29,10 @@ export const leadsService = {
     const { error } = await supabase.from('leads').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     if (error) throw error;
   },
+
+  async deleteSelected(ids) {
+    if (!ids.length) return;
+    const { error } = await supabase.from('leads').delete().in('id', ids);
+    if (error) throw error;
+  },
 };

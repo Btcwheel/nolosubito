@@ -512,6 +512,10 @@ alter table offer_configs
   add constraint offer_configs_segment_check
   check (segment in ('P.IVA','Fleet','Privati','Moto','Green'));
 
+-- Canone "vetrina": uno per segmento per veicolo, mostrato come prezzo di default
+alter table offer_configs
+  add column if not exists is_featured boolean default false;
+
 
 
 -- preventivi table (see CREATE TABLE above for fresh installs)

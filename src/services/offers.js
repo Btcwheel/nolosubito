@@ -169,11 +169,12 @@ export const offersService = {
     if (error) throw error;
   },
 
-  // Veicoli con prezzo minimo per le pagine listing
+  // Veicoli con prezzo per le pagine listing.
+  // Usa il canone "vetrina" (is_featured) se disponibile per il segmento; fallback al minimo.
   async listWithMinPrice(segment) {
     let configQuery = supabase
       .from('offer_configs')
-      .select('make,model,monthly_rent,segment')
+      .select('make,model,monthly_rent,segment,is_featured')
       .eq('is_active', true)
       .limit(5000);
 
@@ -187,24 +188,28 @@ export const offersService = {
     if (offersRes.error) throw offersRes.error;
     if (configsRes.error) throw configsRes.error;
 
-    const minPriceMap = {};
+    // Mappa: key → { featured: rent | null, min: rent }
+    const priceMap = {};
     configsRes.data?.forEach(c => {
       const key = `${c.make}|${c.model}`;
-      if (!minPriceMap[key] || c.monthly_rent < minPriceMap[key]) {
-        minPriceMap[key] = c.monthly_rent;
-      }
+      if (!priceMap[key]) priceMap[key] = { featured: null, min: null };
+      const rent = Number(c.monthly_rent);
+      if (c.is_featured) priceMap[key].featured = rent;
+      if (priceMap[key].min === null || rent < priceMap[key].min) priceMap[key].min = rent;
     });
 
-    // Mostra i veicoli che hanno il segmento nel flag segments OPPURE hanno una config prezzo per quel segmento
     return offersRes.data
       ?.filter(o => {
         const hasSegmentFlag = !segment || (Array.isArray(o.segments) && o.segments.includes(segment));
-        const hasConfig = minPriceMap[`${o.make}|${o.model}`] != null;
+        const hasConfig = priceMap[`${o.make}|${o.model}`] != null;
         return hasSegmentFlag || hasConfig;
       })
-      .map(o => ({
-        ...o,
-        monthly_rent: minPriceMap[`${o.make}|${o.model}`] ?? null,
-      })) ?? [];
+      .map(o => {
+        const p = priceMap[`${o.make}|${o.model}`];
+        return {
+          ...o,
+          monthly_rent: p ? (p.featured ?? p.min) : null,
+        };
+      }) ?? [];
   },
 };

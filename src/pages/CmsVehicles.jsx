@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Plus, Pencil, Trash2, X, Check, ImageIcon,
-  Loader2, ToggleLeft, ToggleRight, ChevronDown, ChevronUp, Wand2, Copy,
+  Loader2, ToggleLeft, ToggleRight, ChevronDown, ChevronUp, Wand2, Copy, Star,
 } from "lucide-react";
 import { normalizeVehicleDescription } from "@/lib/vehicleText";
 import { formatAdvanceAmount, isMotoCategory } from "@/lib/vehiclePricing";
@@ -61,6 +61,7 @@ const EMPTY_PRICE_ROW = {
   advance_payment: 0,
   monthly_rent: "",
   is_active: true,
+  is_featured: false,
 };
 
 const EMPTY_VEHICLE = {
@@ -279,6 +280,20 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
     onChange(rows.filter(r => r._key !== key));
   };
 
+  const toggleFeatured = (key) => {
+    const row = rows.find(r => r._key === key);
+    if (!row) return;
+    // Se già featured, togli. Altrimenti, imposta come featured e rimuovi dagli altri dello stesso segmento.
+    if (row.is_featured) {
+      onChange(rows.map(r => r._key === key ? { ...r, is_featured: false } : r));
+    } else {
+      onChange(rows.map(r => ({
+        ...r,
+        is_featured: r._key === key ? true : r.segment === row.segment ? false : r.is_featured,
+      })));
+    }
+  };
+
   const duplicateRow = (row) => {
     let newSegment = row.segment;
     let newRent = Number(row.monthly_rent) || 0;
@@ -291,27 +306,68 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
       newRent = Math.round(newRent / (1 + VAT));
     }
 
-    const newRow = { ...row, _key: nextKey(), id: null, segment: newSegment, monthly_rent: newRent };
+    const newRow = { ...row, _key: nextKey(), id: null, segment: newSegment, monthly_rent: newRent, is_featured: false };
     const idx = rows.findIndex(r => r._key === row._key);
     const updated = [...rows];
     updated.splice(idx + 1, 0, newRow);
     onChange(updated);
   };
 
+  // Segmenti che hanno almeno una riga, per mostrare la legenda
+  const segmentsInUse = [...new Set(rows.map(r => r.segment))];
+
   return (
     <div className="space-y-3">
       {rows.length > 0 && (
         <div className="space-y-2">
+          {/* Legenda vetrina */}
+          {segmentsInUse.length > 0 && (
+            <div className="flex flex-wrap gap-2 px-1 mb-1">
+              {segmentsInUse.map(seg => {
+                const featured = rows.find(r => r.segment === seg && r.is_featured);
+                return (
+                  <span key={seg} className="text-[10px] text-muted-foreground">
+                    <span className="font-semibold">{seg}:</span>{" "}
+                    {featured
+                      ? <span className="text-amber-600">★ vetrina {featured.duration_months}m / {(featured.annual_km / 1000).toFixed(0)}k km</span>
+                      : <span className="text-muted-foreground/50">nessuna vetrina</span>
+                    }
+                  </span>
+                );
+              })}
+            </div>
+          )}
+
           {/* Header */}
-          <div className="grid grid-cols-[1fr_90px_110px_130px_110px_32px_32px] gap-2 px-1">
-            {["Segmento", "Durata", "KM/anno", "Anticipo", "Canone €/mese", "", ""].map((h, i) => (
+          <div className="grid grid-cols-[28px_1fr_90px_110px_130px_110px_32px_32px] gap-2 px-1">
+            {["★", "Segmento", "Durata", "KM/anno", "Anticipo", "Canone €/mese", "", ""].map((h, i) => (
               <p key={i} className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{h}</p>
             ))}
           </div>
 
           {/* Righe */}
           {rows.map(row => (
-            <div key={row._key} className="grid grid-cols-[1fr_90px_110px_130px_110px_32px_32px] gap-2 items-start bg-muted/30 rounded-xl px-3 py-2 border border-border/50">
+            <div
+              key={row._key}
+              className={`grid grid-cols-[28px_1fr_90px_110px_130px_110px_32px_32px] gap-2 items-start rounded-xl px-3 py-2 border transition-colors ${
+                row.is_featured
+                  ? "bg-amber-50 border-amber-300"
+                  : "bg-muted/30 border-border/50"
+              }`}
+            >
+              {/* Stella vetrina */}
+              <button
+                type="button"
+                onClick={() => toggleFeatured(row._key)}
+                title={row.is_featured ? "Rimuovi da vetrina" : "Imposta come canone vetrina per questo segmento"}
+                className={`h-7 w-7 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                  row.is_featured
+                    ? "text-amber-500 hover:text-amber-700"
+                    : "text-muted-foreground/30 hover:text-amber-400"
+                }`}
+              >
+                <Star className="w-3.5 h-3.5" fill={row.is_featured ? "currentColor" : "none"} />
+              </button>
 
               {/* Segmento */}
               <Select value={row.segment} onValueChange={v => updateRow(row._key, "segment", v)}>
@@ -789,6 +845,7 @@ export default function CmsVehicles() {
           advance_payment: Number(row.advance_payment ?? 0),
           monthly_rent:    Number(row.monthly_rent),
           is_active:       row.is_active ?? true,
+          is_featured:     row.is_featured ?? false,
           ...(row.id ? { id: row.id } : {}),
         };
         await offersService.upsertConfig(configPayload);

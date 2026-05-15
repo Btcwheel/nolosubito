@@ -214,4 +214,11 @@ export const praticheService = {
     const { error } = await supabase.from('pratiche').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     if (error) throw error;
   },
+
+  async deleteSelected(ids) {
+    if (!ids.length) return;
+    // Le foreign key con ON DELETE CASCADE eliminano documenti e note automaticamente
+    const { error } = await supabase.from('pratiche').delete().in('id', ids);
+    if (error) throw error;
+  },
 };

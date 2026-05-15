@@ -35,10 +35,12 @@ const TABS = [
 ];
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab]       = useState("pratiche");
-  const [search, setSearch]             = useState("");
-  const [filterStatus, setFilterStatus] = useState("tutti");
-  const [searchAuto, setSearchAuto]     = useState("");
+  const [activeTab, setActiveTab]           = useState("pratiche");
+  const [search, setSearch]                 = useState("");
+  const [filterStatus, setFilterStatus]     = useState("tutti");
+  const [searchAuto, setSearchAuto]         = useState("");
+  const [selectedPraticheIds, setSelectedPraticheIds] = useState(new Set());
+  const [confirmDeletePraticheMode, setConfirmDeletePraticheMode] = useState(null); // "all" | "selected"
   const qc = useQueryClient();
   const { toast } = useToast();
   const { profile } = useAuth();
@@ -86,8 +88,20 @@ export default function AdminDashboard() {
     mutationFn: () => praticheService.deleteAll(),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["pratiche-admin"] });
-      toast({ title: "Tutte le richieste di preventivi eliminate" });
-      setConfirmDeletePratiche(null);
+      toast({ title: "Tutte le pratiche eliminate" });
+      setConfirmDeletePraticheMode(null);
+      setSelectedPraticheIds(new Set());
+    },
+    onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
+  });
+
+  const deleteSelectedPraticheMutation = useMutation({
+    mutationFn: () => praticheService.deleteSelected([...selectedPraticheIds]),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pratiche-admin"] });
+      toast({ title: `${selectedPraticheIds.size} pratiche eliminate` });
+      setConfirmDeletePraticheMode(null);
+      setSelectedPraticheIds(new Set());
     },
     onError: (e) => toast({ title: "Errore", description: e.message, variant: "destructive" }),
   });
@@ -229,11 +243,21 @@ export default function AdminDashboard() {
                   ))}
                 </SelectContent>
               </Select>
+              {selectedPraticheIds.size > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setConfirmDeletePraticheMode("selected")}
+                  className="h-11 gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive rounded-xl"
+                >
+                  <Trash2 className="w-4 h-4" /> Elimina selezionati ({selectedPraticheIds.size})
+                </Button>
+              )}
               {filteredPratiche.length > 0 && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setConfirmDeletePratiche(true)}
+                  onClick={() => setConfirmDeletePraticheMode("all")}
                   className="h-11 gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive rounded-xl"
                 >
                   <Trash2 className="w-4 h-4" /> Elimina tutto
@@ -257,6 +281,17 @@ export default function AdminDashboard() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border/40 bg-muted/20">
+                        <th className="px-4 py-3 w-10">
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-border cursor-pointer"
+                            checked={filteredPratiche.length > 0 && filteredPratiche.every(p => selectedPraticheIds.has(p.id))}
+                            onChange={e => {
+                              if (e.target.checked) setSelectedPraticheIds(new Set(filteredPratiche.map(p => p.id)));
+                              else setSelectedPraticheIds(new Set());
+                            }}
+                          />
+                        </th>
                         {["Codice", "Cliente", "Veicolo", "Stato", "Agente", "Data", ""].map((h, i) => (
                           <th key={i} className={`text-left px-4 py-3 text-[11px] font-bold text-muted-foreground uppercase tracking-wider ${
                             i === 2 ? "hidden md:table-cell" :
@@ -275,8 +310,21 @@ export default function AdminDashboard() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: idx * 0.02 }}
-                            className="hover:bg-muted/30 transition-colors group"
+                            className={`hover:bg-muted/30 transition-colors group ${selectedPraticheIds.has(p.id) ? "bg-destructive/5" : ""}`}
                           >
+                            {/* Checkbox */}
+                            <td className="px-4 py-3.5 w-10">
+                              <input
+                                type="checkbox"
+                                className="w-4 h-4 rounded border-border cursor-pointer"
+                                checked={selectedPraticheIds.has(p.id)}
+                                onChange={e => {
+                                  const next = new Set(selectedPraticheIds);
+                                  if (e.target.checked) next.add(p.id); else next.delete(p.id);
+                                  setSelectedPraticheIds(next);
+                                }}
+                              />
+                            </td>
                             {/* Codice */}
                             <td className="px-4 py-3.5">
                               <span className="font-mono text-xs font-bold text-electric tracking-wide">
@@ -443,25 +491,31 @@ export default function AdminDashboard() {
 
       </div>
 
-      {confirmDeletePratiche && (
+      {(confirmDeletePraticheMode || confirmDeletePratiche) && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6">
             <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4 mx-auto">
               <Trash2 className="w-5 h-5 text-destructive" />
             </div>
-            <h3 className="font-heading font-semibold text-lg text-center mb-2">Elimina tutte le richieste</h3>
+            <h3 className="font-heading font-semibold text-lg text-center mb-2">
+              {confirmDeletePraticheMode === "selected"
+                ? `Elimina ${selectedPraticheIds.size} pratiche`
+                : "Elimina tutte le pratiche"}
+            </h3>
             <p className="text-sm text-muted-foreground text-center mb-6">
-              Stai per eliminare {pratiche.length} richiesta{pratiche.length !== 1 ? "e" : ""} di preventivo. Questa azione non può essere annullata.
+              {confirmDeletePraticheMode === "selected"
+                ? `Stai per eliminare ${selectedPraticheIds.size} pratiche selezionate. Questa azione non può essere annullata.`
+                : `Stai per eliminare ${pratiche.length} pratiche. Questa azione non può essere annullata.`}
             </p>
             <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setConfirmDeletePratiche(null)} className="flex-1">Annulla</Button>
+              <Button variant="outline" onClick={() => { setConfirmDeletePraticheMode(null); setConfirmDeletePratiche(null); }} className="flex-1">Annulla</Button>
               <Button
-                onClick={() => deleteAllPraticheMutation.mutate()}
-                disabled={deleteAllPraticheMutation.isPending}
+                onClick={() => confirmDeletePraticheMode === "selected" ? deleteSelectedPraticheMutation.mutate() : deleteAllPraticheMutation.mutate()}
+                disabled={deleteAllPraticheMutation.isPending || deleteSelectedPraticheMutation.isPending}
                 className="flex-1 bg-destructive hover:bg-destructive/90 text-white gap-2"
               >
-                {deleteAllPraticheMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
-                Elimina tutto
+                {(deleteAllPraticheMutation.isPending || deleteSelectedPraticheMutation.isPending) && <Loader2 className="w-4 h-4 animate-spin" />}
+                {confirmDeletePraticheMode === "selected" ? "Elimina selezionati" : "Elimina tutto"}
               </Button>
             </div>
           </div>
