@@ -197,88 +197,124 @@ export default function VehicleDetail() {
 
       <div className="bg-surface min-h-screen">
 
-        {/* ── Header: breadcrumb + title ─────────────────────────── */}
-        <div className="bg-white border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-6">
+        {/* ── Header ─────────────────────────────────────────────── */}
+        <div className="relative bg-white overflow-hidden" style={{ borderBottom: "1px solid #f0f0f0" }}>
+          {/* Sottile accent bar in cima */}
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, #71BAED 40%, #2D2E82 70%, transparent)" }} />
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+
             {/* Breadcrumb */}
-            <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-5">
-              <Link to="/" className="hover:text-navy transition-colors">Nolosubito</Link>
-              <ChevronRight className="w-3 h-3" />
-              <Link to="/offers" className="hover:text-navy transition-colors">Offerte Noleggio</Link>
-              <ChevronRight className="w-3 h-3" />
-              <span className="text-gray-600 font-medium">{decodedMake} {decodedModel}</span>
+            <nav className="flex items-center gap-1.5 text-[11px] text-gray-400 mb-7 tracking-wide">
+              <Link to="/" className="hover:text-navy transition-colors duration-200">Nolosubito</Link>
+              <ChevronRight className="w-3 h-3 opacity-40" />
+              <Link to="/offers" className="hover:text-navy transition-colors duration-200">Offerte Noleggio</Link>
+              <ChevronRight className="w-3 h-3 opacity-40" />
+              <span className="text-gray-500">{decodedMake} {decodedModel}</span>
             </nav>
 
-            {/* Title row */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-bold text-electric uppercase tracking-widest mb-1">{decodedMake}</p>
-                  <h1 className="font-heading font-bold text-3xl sm:text-4xl text-navy leading-tight">
-                    {decodedModel}
-                    {bestOffer.version && (
-                      <span className="block text-lg font-medium text-gray-400 mt-1">{bestOffer.version}</span>
-                    )}
-                  </h1>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Noleggio a Lungo Termine
-                    {displayPrice && (
-                      <span className="ml-2 font-extrabold text-navy text-base">
-                        · da €{displayPrice.toLocaleString("it-IT")}/mese
-                      </span>
-                    )}
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+
+                {/* ── Left: brand / model / specs ── */}
+                <div className="space-y-4">
+                  {/* Marca */}
+                  <p
+                    className="text-[11px] font-bold uppercase tracking-[0.2em]"
+                    style={{ color: "#71BAED" }}
+                  >
+                    {decodedMake}
                   </p>
 
-                  {/* Tab segmento P.IVA / Privati */}
+                  {/* Modello + versione */}
+                  <div>
+                    <h1
+                      className="font-heading font-bold leading-none tracking-tight"
+                      style={{ fontSize: "clamp(2.2rem, 5vw, 3.5rem)", color: "#2D2E82" }}
+                    >
+                      {decodedModel}
+                    </h1>
+                    {bestOffer.version && (
+                      <p className="mt-2 text-sm font-medium text-gray-400 tracking-wide">
+                        {bestOffer.version}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Spec pills */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {[
+                      bestOffer.category,
+                      bestOffer.fuel_type ? FUEL_IT[bestOffer.fuel_type] || bestOffer.fuel_type : null,
+                      bestOffer.power_hp ? `${bestOffer.power_hp} CV` : null,
+                      bestOffer.transmission,
+                      bestOffer.year,
+                    ].filter(Boolean).map((spec, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold tracking-wide uppercase"
+                        style={{ color: "#2D2E82" }}
+                      >
+                        {i > 0 && <span className="w-1 h-1 rounded-full bg-gray-300 mx-0.5" />}
+                        {spec}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── Right: prezzo + toggle segmento ── */}
+                <div className="flex flex-col items-start lg:items-end gap-3 shrink-0">
+
+                  {/* Toggle P.IVA / Privati */}
                   {availableSegments.length > 1 && (
-                    <div className="flex items-center gap-1 mt-3">
+                    <div
+                      className="flex items-center p-1 rounded-xl gap-1"
+                      style={{ backgroundColor: "#f4f4f6" }}
+                    >
                       {availableSegments.map(seg => (
                         <button
                           key={seg}
                           type="button"
                           onClick={() => setActiveSegment(seg)}
-                          className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
-                            currentSegment === seg
-                              ? "bg-navy text-white border-navy"
-                              : "bg-white text-gray-500 border-gray-200 hover:border-navy hover:text-navy"
-                          }`}
+                          className="relative px-4 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer"
+                          style={currentSegment === seg
+                            ? { backgroundColor: "#2D2E82", color: "#fff", boxShadow: "0 2px 8px rgba(45,46,130,0.25)" }
+                            : { color: "#888", backgroundColor: "transparent" }
+                          }
                         >
-                          {seg === "P.IVA" ? "Business / P.IVA" : "Privati"}
+                          {seg === "P.IVA" ? "Azienda / P.IVA" : "Privati"}
                         </button>
                       ))}
                     </div>
                   )}
 
-                  {/* Quick-info pills */}
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    {bestOffer.category && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-spec text-navy text-xs font-semibold">
-                        {bestOffer.category}
-                      </span>
-                    )}
-                    {bestOffer.fuel_type && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-spec text-navy text-xs font-semibold">
-                        <Fuel className="w-3.5 h-3.5 opacity-70" />
-                        {FUEL_IT[bestOffer.fuel_type] || bestOffer.fuel_type}
-                      </span>
-                    )}
-                    {bestOffer.power_hp && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-spec text-navy text-xs font-semibold">
-                        <Gauge className="w-3.5 h-3.5 opacity-70" />
-                        {bestOffer.power_hp} CV
-                      </span>
-                    )}
-                    {bestOffer.transmission && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-spec text-navy text-xs font-semibold">
-                        {bestOffer.transmission}
-                      </span>
-                    )}
-                    {bestOffer.year && (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-spec text-navy text-xs font-semibold">
-                        {bestOffer.year}
-                      </span>
-                    )}
-                  </div>
+                  {/* Prezzo */}
+                  {displayPrice && (
+                    <div className="text-right">
+                      <p className="text-[11px] text-gray-400 uppercase tracking-widest mb-0.5">
+                        Noleggio a lungo termine · da
+                      </p>
+                      <div className="flex items-baseline gap-1">
+                        <span
+                          className="font-heading font-bold tracking-tight leading-none"
+                          style={{ fontSize: "clamp(2rem, 4vw, 2.8rem)", color: "#2D2E82" }}
+                        >
+                          €{displayPrice.toLocaleString("it-IT")}
+                        </span>
+                        <span className="text-sm font-medium text-gray-400">/mese</span>
+                      </div>
+                      {currentSegment === "P.IVA" && (
+                        <p className="text-[10px] text-gray-400 mt-0.5">+ IVA 22%</p>
+                      )}
+                      {currentSegment === "Privati" && (
+                        <p className="text-[10px] text-gray-400 mt-0.5">IVA inclusa</p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
               </div>
