@@ -1,10 +1,34 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { chatService } from '@/services/chat';
+
+const STORAGE_KEY = 'nolosubito_chat';
+const STORAGE_TTL = 24 * 60 * 60 * 1000; // 24 ore
 
 const WELCOME = {
   role: 'assistant',
   content: 'Salve! Sono Luca, consulente NLT di Nolosubito. Sono a Sua disposizione per aiutarLa a trovare il veicolo più adatto alle Sue esigenze. Ha già qualcosa in mente, o preferisce che Le illustri come funziona il noleggio a lungo termine?',
 };
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const { messages, leadSaved, savedAt } = JSON.parse(raw);
+    if (Date.now() - savedAt > STORAGE_TTL) {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return { messages, leadSaved };
+  } catch {
+    return null;
+  }
+}
+
+function saveToStorage(messages, leadSaved) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ messages, leadSaved, savedAt: Date.now() }));
+  } catch {}
+}
 
 function typingDelay(text) {
   const base = text.length * 130;
@@ -16,11 +40,17 @@ const BETWEEN_MSG_PAUSE = () => 2500 + Math.random() * 2000;
 const READ_DELAY = () => 2500 + Math.random() * 2500;
 
 export default function useChat() {
-  const [messages, setMessages] = useState([WELCOME]);
+  const stored = loadFromStorage();
+  const [messages, setMessages] = useState(stored?.messages ?? [WELCOME]);
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
-  const [leadSaved, setLeadSaved] = useState(false);
+  const [leadSaved, setLeadSaved] = useState(stored?.leadSaved ?? false);
   const bottomRef = useRef(null);
+
+  // Persisti ogni volta che messages o leadSaved cambiano
+  useEffect(() => {
+    saveToStorage(messages, leadSaved);
+  }, [messages, leadSaved]);
 
   const deliverMessages = useCallback(async (parts) => {
     for (let idx = 0; idx < parts.length; idx++) {
@@ -70,6 +100,7 @@ export default function useChat() {
   }, [messages, typing, leadSaved, deliverMessages]);
 
   const reset = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
     setMessages([WELCOME]);
     setInput('');
     setTyping(false);
