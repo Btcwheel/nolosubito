@@ -16,7 +16,15 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
 
-// ── Image Picker (archivio locale /gigi/uploads) ──────────────────────────────
+// Converte path locale → URL Supabase Storage
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+function toStorageUrl(gigiPath) {
+  // /gigi/uploads/2026/03/rombo.png → .../gigi-images/uploads/2026/03/rombo.webp
+  const rel = gigiPath.replace('/gigi/', '').replace(/\.[^.]+$/, '.webp');
+  return `${SUPABASE_URL}/storage/v1/object/public/gigi-images/${rel}`;
+}
+
+// ── Image Picker (archivio Supabase Storage, già migrate) ─────────────────────
 function GigiImagePicker({ onSelect, onClose }) {
   const [search, setSearch] = useState("");
   const [images, setImages] = useState([]);
@@ -25,7 +33,14 @@ function GigiImagePicker({ onSelect, onClose }) {
   React.useEffect(() => {
     fetch("/gigi-images.json")
       .then(r => r.json())
-      .then(data => { setImages(data); setLoading(false); })
+      .then(data => {
+        // Solo immagini datate (2015-2026), ordine decrescente = già migrate prima
+        const dated = data
+          .filter(p => /\/uploads\/20\d{2}\/\d{2}\//.test(p))
+          .sort((a, b) => b.localeCompare(a));
+        setImages(dated);
+        setLoading(false);
+      })
       .catch(() => setLoading(false));
   }, []);
 
@@ -47,7 +62,7 @@ function GigiImagePicker({ onSelect, onClose }) {
               autoFocus
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Cerca per nome file…"
+              placeholder="Cerca per nome file… (es: noleggio, auto, manutenzione)"
               className="w-full pl-8 pr-3 py-1.5 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-electric"
             />
           </div>
@@ -62,16 +77,19 @@ function GigiImagePicker({ onSelect, onClose }) {
             <div className="text-center py-12 text-muted-foreground text-sm">Nessuna immagine trovata.</div>
           ) : (
             <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-              {visible.map(src => (
-                <button
-                  key={src}
-                  onClick={() => { onSelect(src); onClose(); }}
-                  className="aspect-square rounded-lg overflow-hidden border border-border hover:border-electric hover:scale-105 transition-all duration-150 bg-muted"
-                  title={src.split('/').pop()}
-                >
-                  <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" onError={e => { e.target.style.display='none'; }} />
-                </button>
-              ))}
+              {visible.map(src => {
+                const storageUrl = toStorageUrl(src);
+                return (
+                  <button
+                    key={src}
+                    onClick={() => { onSelect(storageUrl); onClose(); }}
+                    className="aspect-square rounded-lg overflow-hidden border border-border hover:border-electric hover:scale-105 transition-all duration-150 bg-muted"
+                    title={src.split('/').pop()}
+                  >
+                    <img src={storageUrl} alt="" className="w-full h-full object-cover" loading="lazy" onError={e => { e.target.style.display='none'; }} />
+                  </button>
+                );
+              })}
             </div>
           )}
           {filtered.length > 120 && (

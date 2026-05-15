@@ -12,6 +12,15 @@
 const fs   = require('fs');
 const path = require('path');
 
+// Carica .env.local se presente (uso locale senza dover esportare le var)
+const envFile = path.join(__dirname, '..', '.env.local');
+if (fs.existsSync(envFile)) {
+  fs.readFileSync(envFile, 'utf8').split('\n').forEach(line => {
+    const m = line.match(/^([^#=\s]+)\s*=\s*(.*)$/);
+    if (m) process.env[m[1]] = m[2].trim();
+  });
+}
+
 const BUCKET      = 'gigi-images';
 const BATCH_SIZE  = parseInt(process.argv[3] || '10', 10);
 const IMAGES_JSON = path.join(__dirname, '..', 'public', 'gigi-images.json');
@@ -19,7 +28,8 @@ const PUBLIC_DIR  = path.join(__dirname, '..', 'public');
 const STATE_KEY   = 'gigi_migration_offset';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const SERVICE_KEY  = process.env.SUPABASE_SERVICE_KEY;
+const SERVICE_KEY  = process.env.SUPABASE_SERVICE_KEY
+                  || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
 if (!SUPABASE_URL || !SERVICE_KEY) {
   console.error('Mancano SUPABASE_URL e/o SUPABASE_SERVICE_KEY');
