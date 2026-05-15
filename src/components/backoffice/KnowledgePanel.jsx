@@ -1,10 +1,232 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { BookOpen, Plus, Trash2, CheckCircle2, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { BookOpen, Plus, Trash2, CheckCircle2, FileText, ChevronDown, ChevronUp, Send, ThumbsUp, ThumbsDown, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
+
+const CHAT_AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-ai`;
+const TRAINING_SESSION_ID = 'training_backoffice';
+
+function TypingDots() {
+  return (
+    <div className="flex gap-1 items-center px-3 py-2">
+      {[0, 1, 2].map(i => (
+        <span
+          key={i}
+          className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce"
+          style={{ animationDelay: `${i * 0.15}s` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function TrainingChat({ currentUserId, onKbUpdated }) {
+  const [messages, setMessages] = useState([
+    { role: 'assistant', content: 'Ciao! Sono Luca. Fammi delle domande sulla contrattualistica per verificare cosa so — se sbaglio, correggimi e imparo subito.', feedback: null }
+  ]);
+  const [input, setInput] = useState('');
+  const [typing, setTyping] = useState(false);
+  const [correcting, setCorrecting] = useState(null); // indice messaggio in correzione
+  const [correction, setCorrection] = useState('');
+  const [saving, setSaving] = useState(false);
+  const bottomRef = useRef(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, typing, correcting]);
+
+  async function sendMessage() {
+    if (!input.trim() || typing) return;
+    const text = input.trim();
+    setInput('');
+
+    const userMsg = { role: 'user', content: text, feedback: null };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setTyping(true);
+
+    try {
+      const apiMessages = newMessages.map(m => ({ role: m.role, content: m.content })).slice(1);
+      const res = await fetch(CHAT_AI_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ messages: apiMessages, session_id: TRAINING_SESSION_ID }),
+      });
+      const data = await res.json();
+      const reply = Array.isArray(data.reply) ? data.reply.join('\n\n') : (data.reply || '...');
+      setMessages(prev => [...prev, { role: 'assistant', content: reply, feedback: null }]);
+    } catch {
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Errore nella risposta.', feedback: null }]);
+    } finally {
+      setTyping(false);
+    }
+  }
+
+  function markCorrect(idx) {
+    setMessages(prev => prev.map((m, i) => i === idx ? { ...m, feedback: 'correct' } : m));
+    setCorrecting(null);
+  }
+
+  function startCorrect(idx) {
+    setCorrecting(idx);
+    setCorrection('');
+  }
+
+  async function saveCorrection(idx) {
+    if (!correction.trim()) return;
+    setSaving(true);
+
+    const question = messages[idx - 1]?.content ?? '';
+    const wrongAnswer = messages[idx]?.content ?? '';
+    const docContent = `Domanda: ${question}\n\nRisposta corretta: ${correction.trim()}\n\nRisposta precedente di Luca (errata): ${wrongAnswer}`;
+
+    const { data: doc } = await supabase.from('knowledge_documents').insert({
+      title: `Correzione: ${question.slice(0, 60)}`,
+      content: docContent,
+      source: 'operator_answer',
+      created_by: currentUserId,
+    }).select().single();
+
+    if (doc) {
+      await supabase.from('knowledge_chunks').insert({
+        document_id: doc.id,
+        content: docContent,
+        metadata: { type: 'correction' },
+      });
+    }
+
+    setMessages(prev => prev.map((m, i) => i === idx ? { ...m, feedback: 'corrected', correctedTo: correction.trim() } : m));
+    setCorrecting(null);
+    setCorrection('');
+    setSaving(false);
+    toast({ title: 'Correzione salvata. Luca imparerà per la prossima volta.' });
+    onKbUpdated?.();
+  }
+
+  function reset() {
+    setMessages([{
+      role: 'assistant',
+      content: 'Ciao! Sono Luca. Fammi delle domande sulla contrattualistica per verificare cosa so — se sbaglio, correggimi e imparo subito.',
+      feedback: null,
+    }]);
+    setCorrecting(null);
+    setCorrection('');
+  }
+
+  return (
+    <div className="bg-card border border-border/50 rounded-xl overflow-hidden flex flex-col" style={{ height: '480px' }}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border/30 bg-muted/20 shrink-0">
+        <div>
+          <p className="text-sm font-semibold text-foreground">Chat di addestramento con Luca</p>
+          <p className="text-xs text-muted-foreground">Testa le risposte e correggi gli errori — ogni correzione viene salvata in KB</p>
+        </div>
+        <button onClick={reset} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors" title="Ricomincia">
+          <RotateCcw className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Messaggi */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+        {messages.map((msg, i) => (
+          <div key={i} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+            <div className={`rounded-xl px-3 py-2 text-sm max-w-[80%] leading-relaxed ${
+              msg.role === 'user'
+                ? 'bg-electric/10 text-foreground'
+                : msg.feedback === 'corrected'
+                  ? 'bg-red-50 border border-red-200 text-foreground'
+                  : msg.feedback === 'correct'
+                    ? 'bg-green-50 border border-green-200 text-foreground'
+                    : 'bg-muted/60 text-foreground'
+            }`}>
+              {msg.content}
+              {msg.feedback === 'corrected' && (
+                <p className="text-xs text-green-700 mt-1.5 pt-1.5 border-t border-green-200">
+                  ✓ Corretto a: {msg.correctedTo}
+                </p>
+              )}
+            </div>
+
+            {/* Pulsanti feedback solo su risposte di Luca senza feedback ancora */}
+            {msg.role === 'assistant' && i > 0 && msg.feedback === null && correcting !== i && (
+              <div className="flex gap-1.5 mt-1">
+                <button
+                  onClick={() => markCorrect(i)}
+                  className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg text-green-600 hover:bg-green-50 border border-green-200 transition-colors"
+                >
+                  <ThumbsUp className="w-3 h-3" /> Corretto
+                </button>
+                <button
+                  onClick={() => startCorrect(i)}
+                  className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg text-red-600 hover:bg-red-50 border border-red-200 transition-colors"
+                >
+                  <ThumbsDown className="w-3 h-3" /> Correggi
+                </button>
+              </div>
+            )}
+
+            {/* Form correzione */}
+            {correcting === i && (
+              <div className="mt-2 w-full max-w-[90%] space-y-2">
+                <Textarea
+                  value={correction}
+                  onChange={e => setCorrection(e.target.value)}
+                  placeholder="Scrivi la risposta corretta che Luca avrebbe dovuto dare..."
+                  rows={3}
+                  className="text-sm resize-none"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={() => saveCorrection(i)} disabled={!correction.trim() || saving} className="flex-1">
+                    {saving ? 'Salvataggio...' : 'Salva correzione'}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setCorrecting(null)}>Annulla</Button>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {typing && (
+          <div className="flex items-start">
+            <div className="bg-muted/60 rounded-xl">
+              <TypingDots />
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* Input */}
+      <div className="px-3 py-3 border-t border-border/30 shrink-0">
+        <div className="flex gap-2">
+          <input
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendMessage())}
+            placeholder="Es: Come funziona il recesso anticipato?"
+            disabled={typing}
+            className="flex-1 bg-muted/40 border border-border/50 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric/50 disabled:opacity-50"
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!input.trim() || typing}
+            className="w-9 h-9 rounded-xl bg-electric disabled:bg-muted flex items-center justify-center text-white transition-colors hover:bg-electric/90 disabled:cursor-not-allowed shrink-0"
+          >
+            <Send className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function chunkText(text, maxChars = 800) {
   const paragraphs = text.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
@@ -61,7 +283,7 @@ function DocumentCard({ doc, onDelete }) {
   );
 }
 
-export default function KnowledgePanel({ currentUserId }) {
+export default function KnowledgePanel({ currentUserId, onKbUpdated }) {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -130,7 +352,12 @@ export default function KnowledgePanel({ currentUserId }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+
+      {/* Chat di addestramento */}
+      <TrainingChat currentUserId={currentUserId} onKbUpdated={fetchDocs} />
+
+      {/* Documenti KB */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Knowledge Base di Luca</h2>
