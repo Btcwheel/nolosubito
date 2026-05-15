@@ -203,60 +203,63 @@ Quando citi un veicolo, includi sempre il link e il prezzo da catalogo.
     if (choice?.finish_reason === "tool_calls" && choice.message?.tool_calls) {
       const toolCall = choice.message.tool_calls[0];
       if (toolCall.function.name === "save_lead") {
-        const args = JSON.parse(toolCall.function.arguments);
-        await supabase.from("leads").insert({
-          nome: args.nome,
-          email: args.email || null,
-          telefono: args.telefono || null,
-          tipo_cliente: args.tipo_cliente || null,
-          interesse: args.interesse,
-          chat_history: messages,
-          source: "chat-ai",
-          status: "Nuovo",
-        });
-        leadSaved = true;
+        try {
+          const args = JSON.parse(toolCall.function.arguments);
+          // Salva solo se ha almeno nome e (email o telefono)
+          if (args.nome && (args.email || args.telefono)) {
+            await supabase.from("leads").insert({
+              nome: args.nome,
+              email: args.email || null,
+              telefono: args.telefono || null,
+              tipo_cliente: args.tipo_cliente || null,
+              interesse: args.interesse,
+              chat_history: messages,
+              source: "chat-ai",
+              status: "Nuovo",
+            });
+            leadSaved = true;
+          }
+        } catch (_) { /* argomenti malformati — ignora */ }
 
-        const followUpRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${GROQ_API_KEY}`,
-          },
-          body: JSON.stringify({
-            model: GROQ_MODEL,
-            messages: [
-              { role: "system", content: systemPrompt },
-              ...messages,
-              choice.message,
-              { role: "tool", tool_call_id: toolCall.id, content: "Lead salvato con successo. Ora ringrazia il cliente e conferma che un consulente lo contatterà entro 24 ore. Sii cordiale e professionale." },
-            ],
-            temperature: 0.7,
-            max_tokens: 512,
-          }),
-        });
-
-        if (followUpRes.ok) {
-          const followUpData = await followUpRes.json();
-          const content = followUpData.choices?.[0]?.message?.content || "Grazie! Un consulente la contatterà presto.";
-          replyParts = content.split("||").map((s: string) => s.trim()).filter(Boolean);
-        } else {
-          replyParts = ["Grazie! Un consulente Nolosubito la contatterà entro 24 ore."];
+        if (leadSaved) {
+          const followUpRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${GROQ_API_KEY}` },
+            body: JSON.stringify({
+              model: GROQ_MODEL,
+              messages: [
+                { role: "system", content: systemPrompt },
+                ...messages,
+                choice.message,
+                { role: "tool", tool_call_id: toolCall.id, content: "Lead salvato. Ringrazia il cliente e conferma che un consulente lo contatterà entro 24 ore." },
+              ],
+              temperature: 0.7,
+              max_tokens: 300,
+            }),
+          });
+          if (followUpRes.ok) {
+            const followUpData = await followUpRes.json();
+            const txt = followUpData.choices?.[0]?.message?.content || "Grazie! Un consulente la contatterà presto.";
+            replyParts = txt.split("||").map((s: string) => s.trim()).filter(Boolean);
+          } else {
+            replyParts = ["Grazie! Un consulente Nolosubito la contatterà entro 24 ore."];
+          }
         }
       }
     }
-    const content = choice?.message?.content || "";
-    const cleanContent = content
-      .replace(/<function=[^>]+>.*?<\/function>/gs, "")
-      // Rimuove righe che sembrano istruzioni interne trapelate dal prompt
-      .replace(/^\(.*\)\s*$/gm, "")
-      .trim();
 
-    replyParts = cleanContent ? cleanContent.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
-    
-    // Se non c'è testo ma c'è un tool_call, la risposta testuale verrà generata dal follow-up
-    // Se non c'è né testo né tool_call, mostra un messaggio di fallback
-    if (replyParts.length === 0 && !leadSaved) {
-      replyParts = ["Mi dispiace, riprova."];
+    // Risposta testuale normale (non sovrascrivere se leadSaved ha già impostato replyParts)
+    if (!leadSaved) {
+      const content = choice?.message?.content || "";
+      const cleanContent = content
+        .replace(/<function=[^>]+>.*?<\/function>/gs, "")
+        .replace(/^\(.*\)\s*$/gm, "")
+        .trim();
+      replyParts = cleanContent ? cleanContent.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
+    }
+
+    if (replyParts.length === 0) {
+      replyParts = ["Ho ricevuto la sua richiesta, un attimo."];
     }
 
     const reply = replyParts.join("\n\n");
