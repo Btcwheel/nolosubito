@@ -111,14 +111,6 @@ export default function ChatWidget() {
 
               {typing && <TypingIndicator />}
 
-              {leadSaved && (
-                <div className="mx-auto text-center">
-                  <span className="inline-flex items-center gap-1.5 text-xs text-green-600 bg-green-50 border border-green-100 rounded-full px-3 py-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                    Dati salvati — un consulente ti contatterà presto
-                  </span>
-                </div>
-              )}
 
               <div ref={bottomRef} />
             </div>
