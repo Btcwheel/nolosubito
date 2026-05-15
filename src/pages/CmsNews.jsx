@@ -11,10 +11,77 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink, FolderOpen, Search } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
+
+// ── Image Picker (archivio locale /gigi/uploads) ──────────────────────────────
+function GigiImagePicker({ onSelect, onClose }) {
+  const [search, setSearch] = useState("");
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    fetch("/gigi-images.json")
+      .then(r => r.json())
+      .then(data => { setImages(data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const filtered = search.trim()
+    ? images.filter(p => p.toLowerCase().includes(search.toLowerCase()))
+    : images;
+
+  const visible = filtered.slice(0, 120);
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4">
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center gap-3 p-4 border-b border-border">
+          <FolderOpen className="w-4 h-4 text-violet-500" />
+          <h3 className="font-semibold text-sm">Archivio immagini Gigi</h3>
+          <div className="flex-1 relative">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <input
+              autoFocus
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Cerca per nome file…"
+              className="w-full pl-8 pr-3 py-1.5 text-sm border border-border rounded-lg bg-background focus:outline-none focus:ring-1 focus:ring-electric"
+            />
+          </div>
+          <span className="text-xs text-muted-foreground shrink-0">{filtered.length} risultati</span>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted"><X className="w-4 h-4" /></button>
+        </div>
+
+        <div className="overflow-y-auto flex-1 p-4">
+          {loading ? (
+            <div className="text-center py-12 text-muted-foreground text-sm">Caricamento…</div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground text-sm">Nessuna immagine trovata.</div>
+          ) : (
+            <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+              {visible.map(src => (
+                <button
+                  key={src}
+                  onClick={() => { onSelect(src); onClose(); }}
+                  className="aspect-square rounded-lg overflow-hidden border border-border hover:border-electric hover:scale-105 transition-all duration-150 bg-muted"
+                  title={src.split('/').pop()}
+                >
+                  <img src={src} alt="" className="w-full h-full object-cover" loading="lazy" onError={e => { e.target.style.display='none'; }} />
+                </button>
+              ))}
+            </div>
+          )}
+          {filtered.length > 120 && (
+            <p className="text-center text-xs text-muted-foreground mt-4">Mostrate 120 di {filtered.length}. Affina la ricerca.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const CATEGORIES = ["Notizie","Approfondimenti","Offerte","Green Mobility","Azienda"];
 
@@ -186,6 +253,7 @@ export default function CmsNews() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_POST);
   const [previewMode, setPreviewMode] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["cms-posts"],
@@ -318,7 +386,12 @@ export default function CmsNews() {
                 </div>
                 <div>
                   <Label className="text-xs">URL Immagine Copertina *</Label>
-                  <Input value={form.cover_image_url} onChange={e => set("cover_image_url", e.target.value)} className="mt-1" placeholder="https://images.unsplash.com/..." />
+                  <div className="flex gap-2 mt-1">
+                    <Input value={form.cover_image_url} onChange={e => set("cover_image_url", e.target.value)} placeholder="https://… oppure /gigi/uploads/…" />
+                    <Button type="button" size="sm" variant="outline" onClick={() => setShowPicker(true)} className="shrink-0 gap-1.5 text-xs">
+                      <FolderOpen className="w-3.5 h-3.5" /> Archivio
+                    </Button>
+                  </div>
                   {form.cover_image_url && <img src={form.cover_image_url} alt="" className="mt-2 h-28 object-cover rounded-xl border border-border w-full" onError={e => e.target.style.display='none'} />}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -349,6 +422,13 @@ export default function CmsNews() {
             </div>
           </div>
         </div>
+      )}
+
+      {showPicker && (
+        <GigiImagePicker
+          onSelect={(src) => set("cover_image_url", src)}
+          onClose={() => setShowPicker(false)}
+        />
       )}
 
       <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
