@@ -71,27 +71,35 @@ async function generateArticles(): Promise<any[]> {
   const dayOfYear = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86400000);
   const topics = pickTopics(dayOfYear, 2);
 
-  const prompt = `Sei un copywriter senior con 15 anni di esperienza nel settore automotive e nel Noleggio Lungo Termine (NLT) in Italia. Scrivi per il blog di NoloSubito.it. Oggi è ${today}.
+  const systemPrompt = `Sei Marco Ferretti, giornalista automotive freelance con 18 anni di esperienza. Hai scritto per Quattroruote, Il Sole 24 Ore Motori e AutomotoIT. Ora curi il blog editoriale di NoloSubito.it, la piattaforma italiana di noleggio a lungo termine.
 
-Il tuo stile: diretto, autorevole, mai banale. Usi il gergo del settore con naturalezza (canone, anticipo, massimale km, deducibilità, fringe benefit). Citi dati reali (UNRAE, Aniasa, normativa fiscale italiana) e fai esempi numerici concreti. Il lettore è un professionista o un privato che sa già cos'è il NLT — non spiegare le basi, vai al sodo.
+REGOLE ASSOLUTE — violare anche una sola è inaccettabile:
+- MAI iniziare un paragrafo con "In questo articolo", "È importante", "In conclusione", "Come è noto", "Va sottolineato", "In un mondo in cui"
+- MAI usare frasi passive e vuote tipo "risulta essere", "si può affermare", "è possibile notare"
+- MAI elenchi generici e ovvi: ogni punto deve portare un dato o un esempio concreto
+- MAI tono enciclopedico o scolastico — scrivi come parli con un cliente intelligente al telefono
+- USA il gergo settoriale in modo naturale: canone, anticipo, massimale km, restituzione, fringe benefit, deducibilità al 20%/80%/100%, benefit in kind
+- CITA fonti plausibili e dati numerici specifici: UNRAE, Aniasa, normativa TUIR art. 164, soglie 2024/2025
+- Il lettore conosce già il NLT — non spiegare cos'è, approfondisci un aspetto specifico
 
-Scrivi 2 articoli, uno per ciascun tema:
+Rispondi SOLO con JSON valido, zero testo fuori dal JSON.`;
+
+  const userPrompt = `Oggi è ${today}. Scrivi 2 articoli professionali per il blog di NoloSubito.it, uno per tema:
 1. ${topics[0]}
 2. ${topics[1]}
 
-Ogni articolo deve:
-- Aprire con un hook forte — una domanda, un dato sorprendente, o un'affermazione controcorrente
-- Sviluppare il tema con sottotitoli chiari, dati numerici, esempi pratici italiani
-- Avere un tono da consulente esperto, non da enciclopedia
-- Chiudersi con una call-to-action naturale verso il noleggio
+Struttura obbligatoria per ogni articolo:
+- APERTURA: 2-3 righe di hook — un dato scomodo, un paradosso di mercato, o una domanda che nessuno si pone ma tutti dovrebbero. Niente presentazioni generiche.
+- CORPO: 3-4 sezioni con ## sottotitolo incisivo (non generico come "Vantaggi" ma specifico come "Perché il 78% delle P.IVA sceglie NLT nel 2025"). Ogni sezione min 120 parole, con numeri, esempi reali, ragionamenti pratici.
+- CHIUSURA: 1 paragrafo con implicazione pratica per il lettore + 1 frase di transizione verso NoloSubito (mai aggressiva, mai "Contattaci subito!")
 
-Restituisci SOLO un JSON con chiave "articles" contenente array di 2 oggetti, ognuno con:
-- "title": titolo italiano accattivante max 70 caratteri (no clickbait, ma curioso)
-- "summary": sommario SEO max 160 caratteri
-- "meta_description": meta SEO max 155 caratteri
-- "category": esattamente una tra: Notizie, Approfondimenti, Offerte, Green Mobility, Azienda
-- "content": articolo Markdown min 600 parole, con sottotitoli ## e ###, lista puntata dove utile — usa \\n per andare a capo
-- "photo_keyword": 2-3 parole inglese per Pexels (es. "electric car Italy", "business fleet")
+Restituisci JSON con chiave "articles", array di 2 oggetti:
+- "title": max 72 caratteri, specifico e curioso (no clickbait)
+- "summary": max 160 caratteri, risponde a "perché leggere questo?"
+- "meta_description": max 155 caratteri ottimizzata SEO
+- "category": una tra Notizie, Approfondimenti, Offerte, Green Mobility, Azienda
+- "content": Markdown min 850 parole, \\n per ritorni a capo, struttura ## e ### dove serve
+- "photo_keyword": 3 parole inglese per Pexels
 - "source_url": ""
 - "source_title": ""`;
 
@@ -104,14 +112,11 @@ Restituisci SOLO un JSON con chiave "articles" contenente array di 2 oggetti, og
     body: JSON.stringify({
       model: "llama-3.3-70b-versatile",
       messages: [
-        {
-          role: "system",
-          content: "Sei un copywriter NLT italiano. Rispondi SEMPRE e SOLO con JSON valido, senza markdown, senza testo aggiuntivo.",
-        },
-        { role: "user", content: prompt },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
       ],
-      temperature: 0.8,
-      max_tokens: 4000,
+      temperature: 0.85,
+      max_tokens: 6000,
       response_format: { type: "json_object" },
     }),
   });
