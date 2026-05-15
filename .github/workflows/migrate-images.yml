@@ -2,7 +2,6 @@ name: Migrazione immagini gigi → Supabase
 
 on:
   schedule:
-    # Ogni giorno alle 07:00 UTC (09:00 ora italiana)
     - cron: '0 7 * * *'
   workflow_dispatch:
     inputs:
@@ -14,13 +13,9 @@ on:
 jobs:
   migrate:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: actions/setup-node@v4
         with:
@@ -30,15 +25,6 @@ jobs:
       - name: Installa dipendenze
         run: npm ci
 
-      # Ripristina lo stato di migrazione dal cache (persiste tra i run)
-      - name: Ripristina stato migrazione
-        uses: actions/cache@v4
-        with:
-          path: scripts/migration-state.json
-          key: migration-state-${{ github.run_id }}
-          restore-keys: |
-            migration-state-
-
       - name: Esegui migrazione
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -46,12 +32,3 @@ jobs:
         run: |
           BATCH=${{ github.event.inputs.batch || '10' }}
           node scripts/migrate-images.cjs --batch $BATCH
-
-      # Commita migration-state.json aggiornato nel repo
-      - name: Aggiorna stato nel repo
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add scripts/migration-state.json
-          git diff --staged --quiet || git commit -m "chore: aggiorna migration-state.json [skip ci]"
-          git push
