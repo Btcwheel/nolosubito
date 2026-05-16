@@ -1,17 +1,19 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import {
   Upload, FileText, Loader2, Sparkles, Download, Mail,
-  CheckCircle2, RotateCcw, X, Plus, Trash2,
+  CheckCircle2, RotateCcw, X, Plus, Clock, User, History,
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
 
 const ANALYZE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-preventivo`;
-const OCR_URL     = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-document`;
-const EMAIL_URL   = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-preventivo-email`;
+const EMAIL_URL   = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-preventivo-custom`;
 
 const ACCEPTED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
@@ -255,17 +257,128 @@ function Field({ label, children }) {
   );
 }
 
+// ── Storico ───────────────────────────────────────────────────────────────────
+
+function StoricoPanel() {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from('preventivi_log')
+      .select('*, operator:operator_id(full_name, email)')
+      .order('created_at', { ascending: false })
+      .limit(50)
+      .then(({ data }) => { if (data) setLogs(data); setLoading(false); });
+  }, []);
+
+  if (loading) return <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-16 bg-muted/40 rounded-xl animate-pulse" />)}</div>;
+  if (!logs.length) return (
+    <div className="text-center py-12 text-muted-foreground">
+      <History className="w-8 h-8 mx-auto mb-2 opacity-30" />
+      <p className="text-sm">Nessun preventivo generato ancora</p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-muted-foreground">{logs.length} preventiv{logs.length === 1 ? 'o' : 'i'} elaborat{logs.length === 1 ? 'o' : 'i'}</p>
+      {logs.map(log => (
+        <div key={log.id} className="bg-card border border-border/50 rounded-xl p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-medium text-sm text-foreground">
+                  {[log.veicolo_marca, log.veicolo_modello, log.veicolo_allestimento].filter(Boolean).join(' ') || 'Veicolo non specificato'}
+                </p>
+                {log.canone_mensile && (
+                  <span className="text-xs font-bold text-electric">€{Number(log.canone_mensile).toLocaleString('it-IT')}/mese</span>
+                )}
+              </div>
+              <div className="flex items-center gap-3 mt-1 flex-wrap">
+                {log.cliente_nome && (
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <User className="w-3 h-3" /> {log.cliente_nome}
+                    {log.cliente_email && <span className="text-muted-foreground/60">· {log.cliente_email}</span>}
+                  </span>
+                )}
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Clock className="w-3 h-3" />
+                  {format(new Date(log.created_at), "d MMM yyyy 'alle' HH:mm", { locale: it })}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-1.5 shrink-0">
+              <span className="text-xs font-semibold text-foreground bg-muted/60 rounded-md px-2 py-0.5">
+                {log.operator?.full_name || log.operator?.email || 'Operatore'}
+              </span>
+              <div className="flex gap-1.5">
+                {log.analisi_completata_at && (
+                  <span title="AI analisi completata" className="w-5 h-5 rounded-full bg-blue-500/15 flex items-center justify-center">
+                    <Sparkles className="w-2.5 h-2.5 text-blue-500" />
+                  </span>
+                )}
+                {log.pdf_scaricato_at && (
+                  <span title={`PDF scaricato ${format(new Date(log.pdf_scaricato_at), "HH:mm")}`} className="w-5 h-5 rounded-full bg-green-500/15 flex items-center justify-center">
+                    <Download className="w-2.5 h-2.5 text-green-500" />
+                  </span>
+                )}
+                {log.email_inviata_at && (
+                  <span title={`Email inviata ${format(new Date(log.email_inviata_at), "HH:mm")}`} className="w-5 h-5 rounded-full bg-orange-500/15 flex items-center justify-center">
+                    <Mail className="w-2.5 h-2.5 text-orange-500" />
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ── Componente principale ─────────────────────────────────────────────────────
 
-export default function PreventivoScanner() {
+export default function PreventivoScanner({ currentUserId }) {
+  const [activeView, setActiveView] = useState('nuovo'); // nuovo | storico
   const [step, setStep] = useState('upload'); // upload | review | done
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(EMPTY_DATA);
+  const [logId, setLogId] = useState(null); // ID del record preventivi_log corrente
   const [clienteNome, setClienteNome] = useState('');
   const [clienteEmail, setClienteEmail] = useState('');
   const [newServizio, setNewServizio] = useState('');
   const [sendingEmail, setSendingEmail] = useState(false);
   const { toast } = useToast();
+
+  async function createLogEntry(file, extracted) {
+    const { data: row } = await supabase
+      .from('preventivi_log')
+      .insert({
+        operator_id: currentUserId,
+        veicolo_marca: extracted.veicolo_marca || null,
+        veicolo_modello: extracted.veicolo_modello || null,
+        veicolo_allestimento: extracted.veicolo_allestimento || null,
+        alimentazione: extracted.alimentazione || null,
+        durata_mesi: extracted.durata_mesi || null,
+        km_annui: extracted.km_annui || null,
+        anticipo: extracted.anticipo || null,
+        deposito_cauzionale: extracted.deposito_cauzionale || null,
+        canone_mensile: extracted.canone_mensile || null,
+        servizi: Array.isArray(extracted.servizi) ? extracted.servizi : [],
+        fonte_filename: file.name,
+        fonte_tipo: file.type === 'application/pdf' ? 'pdf' : 'image',
+        analisi_completata_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
+    return row?.id ?? null;
+  }
+
+  async function updateLog(patch) {
+    if (!logId) return;
+    await supabase.from('preventivi_log').update(patch).eq('id', logId);
+  }
 
   async function handleFile(file) {
     if (!ACCEPTED.includes(file.type)) {
@@ -281,7 +394,6 @@ export default function PreventivoScanner() {
       let text = null;
 
       if (file.type === 'application/pdf') {
-        // Estrai testo dal PDF lato client
         const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist');
         GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).href;
         const buffer = await file.arrayBuffer();
@@ -294,7 +406,6 @@ export default function PreventivoScanner() {
         }
         text = rawText.trim();
       } else {
-        // Immagine → base64
         base64 = await new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = e => resolve(e.target.result.split(',')[1]);
@@ -315,11 +426,13 @@ export default function PreventivoScanner() {
       const { data: extracted, error } = await res.json();
       if (error) throw new Error(error);
 
-      setData({
-        ...EMPTY_DATA,
-        ...extracted,
-        servizi: Array.isArray(extracted.servizi) ? extracted.servizi : [],
-      });
+      const newData = { ...EMPTY_DATA, ...extracted, servizi: Array.isArray(extracted.servizi) ? extracted.servizi : [] };
+      setData(newData);
+
+      // Traccia l'operazione nel log
+      const id = await createLogEntry(file, extracted);
+      setLogId(id);
+
       setStep('review');
       toast({ title: 'Dati estratti. Controlla e correggi prima di generare il PDF.' });
     } catch (err) {
@@ -344,10 +457,29 @@ export default function PreventivoScanner() {
     setData(prev => ({ ...prev, servizi: prev.servizi.filter((_, idx) => idx !== i) }));
   }
 
-  function handleDownload() {
+  async function handleDownload() {
     const pdf = generatePDF(data, clienteNome, clienteEmail);
     const veicolo = [data.veicolo_marca, data.veicolo_modello].filter(Boolean).join('_') || 'preventivo';
     pdf.save(`Nolosubito_${veicolo}.pdf`);
+
+    // Aggiorna log: PDF scaricato + dati cliente definitivi
+    await updateLog({
+      pdf_scaricato_at: new Date().toISOString(),
+      cliente_nome: clienteNome || null,
+      cliente_email: clienteEmail || null,
+      // Dati eventualmemte corretti dal form
+      veicolo_marca: data.veicolo_marca || null,
+      veicolo_modello: data.veicolo_modello || null,
+      veicolo_allestimento: data.veicolo_allestimento || null,
+      alimentazione: data.alimentazione || null,
+      durata_mesi: data.durata_mesi || null,
+      km_annui: data.km_annui || null,
+      anticipo: data.anticipo || null,
+      deposito_cauzionale: data.deposito_cauzionale || null,
+      canone_mensile: data.canone_mensile || null,
+      servizi: data.servizi,
+    });
+
     setStep('done');
     toast({ title: 'PDF scaricato.' });
   }
@@ -362,7 +494,7 @@ export default function PreventivoScanner() {
       const pdf = generatePDF(data, clienteNome, clienteEmail);
       const pdfBase64 = pdf.output('datauristring').split(',')[1];
 
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-preventivo-custom`, {
+      const res = await fetch(EMAIL_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -378,6 +510,14 @@ export default function PreventivoScanner() {
       });
 
       if (!res.ok) throw new Error(await res.text());
+
+      // Aggiorna log: email inviata
+      await updateLog({
+        email_inviata_at: new Date().toISOString(),
+        cliente_nome: clienteNome || null,
+        cliente_email: clienteEmail || null,
+      });
+
       setStep('done');
       toast({ title: `Email inviata a ${clienteEmail}.` });
     } catch (err) {
@@ -392,18 +532,44 @@ export default function PreventivoScanner() {
     setData(EMPTY_DATA);
     setClienteNome('');
     setClienteEmail('');
+    setLogId(null);
+  }
+
+  // ── Header comune ──
+  const header = (
+    <div className="flex items-center justify-between mb-6">
+      <div>
+        <h2 className="text-lg font-semibold text-foreground">Genera preventivo Nolosubito</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Carica il preventivo del concorrente — l'AI estrae i dati e genera un PDF brandizzato.
+        </p>
+      </div>
+      <div className="flex gap-1 bg-muted/50 rounded-lg p-1">
+        <button
+          onClick={() => setActiveView('nuovo')}
+          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${activeView === 'nuovo' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+        >
+          Nuovo
+        </button>
+        <button
+          onClick={() => setActiveView('storico')}
+          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5 ${activeView === 'storico' ? 'bg-background shadow text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+        >
+          <History className="w-3 h-3" /> Storico
+        </button>
+      </div>
+    </div>
+  );
+
+  if (activeView === 'storico') {
+    return <div className="space-y-4">{header}<StoricoPanel /></div>;
   }
 
   // ── STEP: UPLOAD ──
   if (step === 'upload') {
     return (
       <div className="max-w-2xl mx-auto space-y-4">
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Genera preventivo Nolosubito</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Carica il preventivo del concorrente — l'AI estrae i dati e genera un PDF brandizzato Nolosubito.
-          </p>
-        </div>
+        {header}
         <DropZone onFile={handleFile} loading={loading} />
         <p className="text-xs text-center text-muted-foreground">
           I dati del fornitore originale vengono rimossi automaticamente dal documento generato.

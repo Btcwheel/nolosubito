@@ -311,7 +311,7 @@ export default function BackofficeDashboard() {
 
         {/* ── TAB GENERA PREVENTIVO ── */}
         {activeTab === "preventivi" && (
-          <PreventivoScanner />
+          <PreventivoScanner currentUserId={currentUserId} />
         )}
 
       </div>
