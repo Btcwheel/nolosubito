@@ -11,13 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import {
   Search, Eye, ClipboardList, Clock, CheckCircle2,
-  AlertCircle, FileCheck, FileX, ChevronRight, Users, MessageSquareWarning, BookOpen,
+  AlertCircle, FileCheck, FileX, ChevronRight, Users, MessageSquareWarning, BookOpen, FileSpreadsheet,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { PRATICA_STATUS_COLORS, DEFAULT_STATUS_COLOR } from "@/lib/praticaStatus";
 import EscalationPanel from "@/components/backoffice/EscalationPanel";
 import KnowledgePanel from "@/components/backoffice/KnowledgePanel";
+import PreventivoScanner from "@/components/backoffice/PreventivoScanner";
 
 const ALL_STATUSES = [
   "Nuova", "In Lavorazione", "Documenti Richiesti", "Documenti Caricati",
@@ -30,6 +31,7 @@ const TABS = [
   { id: "documenti",   label: "Documenti da Verificare",  icon: FileCheck },
   { id: "escalation",  label: "Chat Luca",                icon: MessageSquareWarning },
   { id: "knowledge",   label: "Knowledge Base",           icon: BookOpen },
+  { id: "preventivi",  label: "Genera Preventivo",        icon: FileSpreadsheet },
 ];
 
 function StatCard({ label, value, icon: Icon, colorClass }) {
@@ -305,6 +307,11 @@ export default function BackofficeDashboard() {
         {/* ── TAB KNOWLEDGE BASE ── */}
         {activeTab === "knowledge" && (
           <KnowledgePanel currentUserId={currentUserId} />
+        )}
+
+        {/* ── TAB GENERA PREVENTIVO ── */}
+        {activeTab === "preventivi" && (
+          <PreventivoScanner />
         )}
 
       </div>
