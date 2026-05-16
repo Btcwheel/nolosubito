@@ -1,13 +1,53 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { BookOpen, Plus, Trash2, CheckCircle2, FileText, ChevronDown, ChevronUp, Send, ThumbsUp, ThumbsDown, RotateCcw } from 'lucide-react';
+import { BookOpen, Plus, Trash2, CheckCircle2, FileText, ChevronDown, ChevronUp, Send, ThumbsUp, ThumbsDown, RotateCcw, Paperclip, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 
 const CHAT_AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-ai`;
+const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-document`;
 const TRAINING_SESSION_ID = 'training_backoffice';
+
+const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+
+async function extractTextFromFile(file, toast) {
+  if (file.type === 'application/pdf') {
+    const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist');
+    GlobalWorkerOptions.workerSrc = new URL(
+      'pdfjs-dist/build/pdf.worker.mjs',
+      import.meta.url
+    ).href;
+    const buffer = await file.arrayBuffer();
+    const pdf = await getDocument({ data: buffer }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(item => item.str).join(' ') + '\n\n';
+    }
+    return text.trim();
+  }
+
+  // Image → Claude Vision via edge function
+  const base64 = await new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result.split(',')[1]);
+    reader.readAsDataURL(file);
+  });
+  const res = await fetch(OCR_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({ base64, mediaType: file.type }),
+  });
+  const { text, error } = await res.json();
+  if (error) throw new Error(error);
+  return text;
+}
 
 function TypingDots() {
   return (
@@ -290,7 +330,32 @@ export default function KnowledgePanel({ currentUserId, onKbUpdated }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [saving, setSaving] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const fileInputRef = useRef(null);
   const { toast } = useToast();
+
+  async function handleFileUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast({ title: 'Formato non supportato. Usa PDF, JPG, PNG o WEBP.', variant: 'destructive' });
+      return;
+    }
+    setUploadedFile(file);
+    if (!title) setTitle(file.name.replace(/\.[^.]+$/, ''));
+    setExtracting(true);
+    try {
+      const text = await extractTextFromFile(file, toast);
+      setContent(text);
+      toast({ title: 'Testo estratto dal file.' });
+    } catch (err) {
+      toast({ title: 'Errore nell\'estrazione del testo.', description: String(err), variant: 'destructive' });
+    } finally {
+      setExtracting(false);
+      e.target.value = '';
+    }
+  }
 
   async function fetchDocs() {
     const { data } = await supabase
@@ -371,7 +436,39 @@ export default function KnowledgePanel({ currentUserId, onKbUpdated }) {
 
       {showForm && (
         <div className="bg-card border border-electric/30 rounded-xl p-4 space-y-3">
-          <p className="text-sm font-medium text-foreground">Nuovo documento</p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-foreground">Nuovo documento</p>
+            <div className="flex items-center gap-2">
+              {uploadedFile && (
+                <span className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 rounded-md px-2 py-1">
+                  <FileText className="w-3 h-3" />
+                  {uploadedFile.name}
+                  <button onClick={() => { setUploadedFile(null); setContent(''); }} className="ml-1 hover:text-destructive">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={extracting}
+              >
+                {extracting ? (
+                  <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Estrazione...</>
+                ) : (
+                  <><Paperclip className="w-3.5 h-3.5 mr-1.5" />Carica PDF / immagine</>
+                )}
+              </Button>
+            </div>
+          </div>
           <Input
             value={title}
             onChange={e => setTitle(e.target.value)}
@@ -380,18 +477,19 @@ export default function KnowledgePanel({ currentUserId, onKbUpdated }) {
           <Textarea
             value={content}
             onChange={e => setContent(e.target.value)}
-            placeholder="Incolla qui il testo del documento. Usa righe vuote per separare i paragrafi — verranno usati come chunk separati."
+            placeholder="Incolla qui il testo del documento oppure carica un PDF o un'immagine. Usa righe vuote per separare i paragrafi."
             rows={10}
             className="text-sm resize-none font-mono"
           />
           <p className="text-xs text-muted-foreground">
             Il testo verrà suddiviso automaticamente in paragrafi di ~800 caratteri.
+            {uploadedFile && ' Puoi modificare il testo estratto prima di salvare.'}
           </p>
           <div className="flex gap-2">
-            <Button onClick={handleSave} disabled={!title.trim() || !content.trim() || saving} className="flex-1">
+            <Button onClick={handleSave} disabled={!title.trim() || !content.trim() || saving || extracting} className="flex-1">
               {saving ? 'Salvataggio...' : 'Salva e indicizza'}
             </Button>
-            <Button variant="outline" onClick={() => setShowForm(false)}>Annulla</Button>
+            <Button variant="outline" onClick={() => { setShowForm(false); setUploadedFile(null); }}>Annulla</Button>
           </div>
         </div>
       )}
