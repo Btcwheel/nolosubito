@@ -17,7 +17,7 @@ export const leadsService = {
       .from('leads')
       .select(`
         *,
-        agente:agente_id(id, nome, cognome)
+        agente:agente_id(id, full_name)
       `)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -29,7 +29,7 @@ export const leadsService = {
       .from('leads')
       .select(`
         *,
-        agente:agente_id(id, nome, cognome)
+        agente:agente_id(id, full_name)
       `)
       .eq('id', id)
       .single();
@@ -177,7 +177,7 @@ export const leadsService = {
   async listFiltered({ status, marca, carburante, search, agenteId, soloFollowUp } = {}) {
     let q = supabase
       .from('leads')
-      .select(`*, agente:agente_id(id, nome, cognome)`)
+      .select(`*, agente:agente_id(id, full_name)`)
       .order('created_at', { ascending: false });
 
     if (status && status !== 'tutti')       q = q.eq('status', status);
