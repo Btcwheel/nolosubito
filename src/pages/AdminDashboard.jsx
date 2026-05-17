@@ -11,13 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Search, Eye, ClipboardList, Car, TrendingUp,
   CheckCircle2, Clock, AlertCircle, Zap, Layers,
-  BarChart2, ArrowUpRight, ChevronRight, Circle, Trash2, Loader2
+  BarChart2, ArrowUpRight, ChevronRight, Circle, Trash2, Loader2, Users,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { motion } from "framer-motion";
 import { useToast } from "@/components/ui/use-toast";
 import AdminOverviewCharts from "@/components/admin/AdminOverviewCharts";
+import AdminTeam from "@/components/admin/AdminTeam";
 import { PRATICA_STATUS_COLORS, DEFAULT_STATUS_COLOR } from "@/lib/praticaStatus";
 
 const FUEL_LABELS = { Electric: "Elettrico", Hybrid: "Ibrido", Diesel: "Diesel", Petrol: "Benzina" };
@@ -32,6 +33,7 @@ const TABS = [
   { id: "pratiche",   label: "Pratiche",    icon: ClipboardList },
   { id: "catalogo",   label: "Catalogo",    icon: Car },
   { id: "analytics",  label: "Statistiche", icon: BarChart2 },
+  { id: "team",       label: "Team",        icon: Users },
 ];
 
 export default function AdminDashboard() {
@@ -476,6 +478,12 @@ export default function AdminDashboard() {
         )}
 
         {/* ── TAB: STATISTICHE ── */}
+        {activeTab === "team" && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+            <AdminTeam />
+          </motion.div>
+        )}
+
         {activeTab === "analytics" && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             {loadingPratiche ? (

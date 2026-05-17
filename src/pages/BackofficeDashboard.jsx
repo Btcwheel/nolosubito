@@ -2,6 +2,8 @@ import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { praticheService } from "@/services/pratiche";
 import { profilesService } from "@/services/profiles";
+import { useAuth } from "@/lib/AuthContext";
+import { canAccess } from "@/lib/permissions";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,11 +27,11 @@ const ALL_STATUSES = [
   "Stipula Contratto", "Attesa Consegna", "Approvata", "Consegnata", "Chiusa",
 ];
 
-const TABS = [
-  { id: "pratiche",    label: "Tutte le Pratiche",       icon: ClipboardList },
-  { id: "documenti",   label: "Documenti da Verificare",  icon: FileCheck },
-  { id: "escalation",  label: "Chat Luca",                icon: MessageSquareWarning },
-  { id: "knowledge",   label: "Knowledge Base",           icon: BookOpen },
+const ALL_TABS = [
+  { id: "pratiche",    label: "Tutte le Pratiche",       icon: ClipboardList, modulo: 'pratiche' },
+  { id: "documenti",   label: "Documenti da Verificare",  icon: FileCheck,     modulo: 'pratiche' },
+  { id: "escalation",  label: "Chat Luca",                icon: MessageSquareWarning, modulo: 'escalation' },
+  { id: "knowledge",   label: "Knowledge Base",           icon: BookOpen,      modulo: 'knowledge_base' },
 ];
 
 function StatCard({ label, value, icon: Icon, colorClass }) {
@@ -111,15 +113,12 @@ function PraticaRow({ p, basePath }) {
 export default function BackofficeDashboard() {
   const { toast } = useToast();
   const qc = useQueryClient();
-  const [activeTab, setActiveTab] = useState("pratiche");
-  const [currentUserId, setCurrentUserId] = useState(null);
+  const { profile } = useAuth();
+  const currentUserId = profile?.id ?? null;
 
-  // Recupera l'utente loggato
-  React.useEffect(() => {
-    import('@/lib/supabase').then(({ supabase }) => {
-      supabase.auth.getUser().then(({ data }) => setCurrentUserId(data?.user?.id ?? null));
-    });
-  }, []);
+  // Filtra i tab in base ai permessi del profilo loggato
+  const TABS = ALL_TABS.filter(t => canAccess(profile, t.modulo));
+  const [activeTab, setActiveTab] = useState("pratiche");
   const [search, setSearch]       = useState("");
   const [filterStatus, setFilterStatus] = useState("tutti");
 
