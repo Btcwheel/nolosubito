@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { preventiviService } from "@/services/preventivi";
 import { Button } from "@/components/ui/button";
@@ -10,11 +10,14 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import {
-  Plus, Send, Trash2, CheckCircle2, XCircle, Clock,
-  Car, ChevronDown, ChevronUp, Loader2, RotateCcw,
+  Plus, Send, Trash2, CheckCircle2, XCircle,
+  Car, ChevronUp, Loader2, RotateCcw, Sparkles, Paperclip,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
+
+const ANALYZE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-preventivo`;
+const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -189,7 +192,87 @@ export default function PreventiviSection({ praticaId }) {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(BLANK_FORM);
+  const [extracting, setExtracting] = useState(false);
+  const fileInputRef = useRef(null);
   const set = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
+
+  async function handleBrokerFile(e) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast({ title: 'Formato non supportato. Usa PDF, JPG o PNG.', variant: 'destructive' });
+      return;
+    }
+
+    setExtracting(true);
+    if (!showForm) setShowForm(true);
+
+    try {
+      let base64 = null, mediaType = null, text = null;
+
+      if (file.type === 'application/pdf') {
+        const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist');
+        GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).href;
+        const buffer = await file.arrayBuffer();
+        const pdf = await getDocument({ data: buffer }).promise;
+        let raw = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          raw += content.items.map(item => item.str).join(' ') + '\n\n';
+        }
+        text = raw.trim();
+      } else {
+        base64 = await new Promise(resolve => {
+          const reader = new FileReader();
+          reader.onload = ev => resolve(ev.target.result.split(',')[1]);
+          reader.readAsDataURL(file);
+        });
+        mediaType = file.type;
+      }
+
+      const res = await fetch(ANALYZE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ base64, mediaType, text }),
+      });
+
+      const { data: extracted, error } = await res.json();
+      if (error) throw new Error(error);
+
+      // Mappa i campi estratti sul form esistente
+      const kmValue = extracted.km_annui
+        ? KM_OPTIONS.find(k => Math.abs(k.value - Number(extracted.km_annui)) < 2500)?.value ?? extracted.km_annui
+        : '';
+      const durataValue = extracted.durata_mesi
+        ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
+        : '';
+
+      setForm(prev => ({
+        ...prev,
+        veicolo_marca:   extracted.veicolo_marca  || prev.veicolo_marca,
+        veicolo_modello: [extracted.veicolo_modello, extracted.veicolo_allestimento].filter(Boolean).join(' ') || prev.veicolo_modello,
+        alimentazione:   extracted.alimentazione  || prev.alimentazione,
+        durata_mesi:     durataValue ? String(durataValue) : prev.durata_mesi,
+        km_annui:        kmValue     ? String(kmValue)     : prev.km_annui,
+        anticipo:        extracted.anticipo        ? String(extracted.anticipo)        : prev.anticipo,
+        canone_mensile:  extracted.canone_mensile  ? String(extracted.canone_mensile)  : prev.canone_mensile,
+        note_operative:  extracted.servizi?.length
+          ? `Servizi inclusi: ${extracted.servizi.join(', ')}${extracted.note_aggiuntive ? '\n' + extracted.note_aggiuntive : ''}`
+          : prev.note_operative,
+      }));
+
+      toast({ title: `Preventivo broker caricato — controlla e aggiusta i campi.` });
+    } catch (err) {
+      toast({ title: "Errore nell'analisi del documento", description: String(err), variant: 'destructive' });
+    } finally {
+      setExtracting(false);
+    }
+  }
 
   const { data: preventivi = [], isLoading } = useQuery({
     queryKey: ["preventivi", praticaId],
@@ -275,18 +358,40 @@ export default function PreventiviSection({ praticaId }) {
             </span>
           )}
         </div>
-        <Button
-          size="sm"
-          variant={showForm ? "outline" : "default"}
-          onClick={() => setShowForm((v) => !v)}
-          className={showForm ? "" : "style={{backgroundColor:'#71BAED'}} hover:style={{backgroundColor:'#71BAED'}}/90 text-white gap-1.5"}
-        >
-          {showForm ? (
-            <><ChevronUp className="w-3.5 h-3.5" /> Annulla</>
-          ) : (
-            <><Plus className="w-3.5 h-3.5" /> Nuovo Preventivo</>
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={handleBrokerFile}
+          />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={extracting}
+            className="gap-1.5 text-xs"
+          >
+            {extracting ? (
+              <><Sparkles className="w-3.5 h-3.5 animate-pulse text-electric" />Analisi AI...</>
+            ) : (
+              <><Paperclip className="w-3.5 h-3.5" />Carica preventivo broker</>
+            )}
+          </Button>
+          <Button
+            size="sm"
+            variant={showForm ? "outline" : "default"}
+            onClick={() => setShowForm((v) => !v)}
+            className={showForm ? "" : "gap-1.5"}
+          >
+            {showForm ? (
+              <><ChevronUp className="w-3.5 h-3.5" /> Annulla</>
+            ) : (
+              <><Plus className="w-3.5 h-3.5" /> Nuovo</>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* ── New preventivo form ── */}
