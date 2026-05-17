@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import {
   Search, Eye, ClipboardList, Clock, CheckCircle2,
-  AlertCircle, FileCheck, FileX, ChevronRight, Users, MessageSquareWarning, BookOpen,
+  AlertCircle, FileCheck, FileX, ChevronRight, Users, MessageSquareWarning, BookOpen, EyeOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -49,6 +49,11 @@ function PraticaRow({ p, basePath }) {
   const docDaVerificare = (p.pratica_documenti || [])
     .filter(d => d.stato_verifica === "In attesa").length;
 
+  // Preventivo in attesa di risposta: inviato ma non ancora letto
+  const prevInviati = (p.preventivi || []).filter(pr => pr.status === 'Inviato');
+  const prevLetti   = prevInviati.filter(pr => pr.letto_at);
+  const prevNonLetti = prevInviati.filter(pr => !pr.letto_at);
+
   return (
     <tr className="border-b border-border/30 hover:bg-muted/20 transition-colors">
       <td className="px-4 py-3">
@@ -66,10 +71,28 @@ function PraticaRow({ p, basePath }) {
         <Badge variant="outline" className={`text-xs ${sc.badge}`}>{p.status}</Badge>
       </td>
       <td className="px-4 py-3">
-        {docDaVerificare > 0
-          ? <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">{docDaVerificare} da verificare</span>
-          : <span className="text-xs text-muted-foreground/50">—</span>
-        }
+        <div className="flex flex-col gap-1">
+          {docDaVerificare > 0 && (
+            <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full w-fit">
+              {docDaVerificare} doc da verificare
+            </span>
+          )}
+          {prevNonLetti.length > 0 && (
+            <span className="flex items-center gap-1 text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full w-fit">
+              <EyeOff className="w-3 h-3" />
+              Preventivo non aperto
+            </span>
+          )}
+          {prevLetti.length > 0 && prevNonLetti.length === 0 && (
+            <span className="flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full w-fit">
+              <Eye className="w-3 h-3" />
+              Preventivo letto
+            </span>
+          )}
+          {docDaVerificare === 0 && prevInviati.length === 0 && (
+            <span className="text-xs text-muted-foreground/50">—</span>
+          )}
+        </div>
       </td>
       <td className="px-4 py-3 text-sm text-muted-foreground">
         {p.agente_nome || <span className="italic text-muted-foreground/40">Non assegnata</span>}

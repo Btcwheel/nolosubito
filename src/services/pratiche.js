@@ -7,7 +7,7 @@ export const praticheService = {
   async list({ agenteId, clienteEmail } = {}) {
     let query = supabase
       .from('pratiche')
-      .select(`*, pratica_documenti(*), pratica_note(*)`)
+      .select(`*, pratica_documenti(*), pratica_note(*), preventivi(id, status, letto_at, inviato_at)`)
       .order('created_at', { ascending: false });
 
     if (agenteId) query = query.eq('agente_id', agenteId);
