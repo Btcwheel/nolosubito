@@ -11,7 +11,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import {
   Plus, Send, Trash2, CheckCircle2, XCircle,
-  Car, ChevronUp, Loader2, RotateCcw, Sparkles, Paperclip,
+  Car, ChevronUp, Loader2, RotateCcw, Sparkles, Paperclip, Eye, EyeOff,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -80,9 +80,24 @@ function PreventivoCard({ prev, onInvia, onReinvia, onDelete, isLoading }) {
             <p className="text-xs text-muted-foreground mt-0.5">{prev.alimentazione}</p>
           )}
         </div>
-        <span className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.cls}`}>
-          {cfg.label}
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          {prev.status === 'Inviato' && (
+            prev.letto_at ? (
+              <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+                <Eye className="w-3.5 h-3.5" />
+                Letto {format(new Date(prev.letto_at), "d MMM HH:mm", { locale: it })}
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground/60">
+                <EyeOff className="w-3.5 h-3.5" />
+                Non ancora aperto
+              </span>
+            )
+          )}
+          <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.cls}`}>
+            {cfg.label}
+          </span>
+        </div>
       </div>
 
       {/* Config */}

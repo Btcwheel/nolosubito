@@ -287,6 +287,8 @@ function PreventiviCliente({ praticaId, clienteNome }) {
   const { data: preventivi = [], isLoading } = useQuery({
     queryKey: ["preventivi-cliente", praticaId],
     queryFn: () => preventiviService.list(praticaId),
+    // Segna come letti i preventivi non ancora aperti
+    onSuccess: () => preventiviService.segnaLetti(praticaId),
   });
 
   const invalidate = () => {

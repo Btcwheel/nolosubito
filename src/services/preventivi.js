@@ -93,4 +93,14 @@ export const preventiviService = {
     if (error) throw error;
     return data;
   },
+
+  // Segna come letti tutti i preventivi Inviato non ancora letti della pratica
+  async segnaLetti(praticaId) {
+    await supabase
+      .from('preventivi')
+      .update({ letto_at: new Date().toISOString() })
+      .eq('pratica_id', praticaId)
+      .eq('status', 'Inviato')
+      .is('letto_at', null);
+  },
 };
