@@ -1,0 +1,119 @@
+{
+  "alfa-romeo": {
+    "giulia": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/alfa-romeo/giulia.jpg",
+    "junior": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/alfa-romeo/junior.jpg",
+    "stelvio": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/alfa-romeo/stelvio.jpg",
+    "tonale": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/alfa-romeo/tonale.jpg"
+  },
+  "audi": {
+    "a5": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/audi/a5.png",
+    "a6": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/audi/a6.png",
+    "q2": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/audi/q2.jpg",
+    "q3": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/audi/q3.jpg",
+    "q4": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/audi/q4.jpg",
+    "q5": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/audi/q5.png"
+  },
+  "bmw": {
+    "serie": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/bmw/serie.jpg",
+    "x1": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/bmw/x1.jpg",
+    "x3": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/bmw/x3.png",
+    "x5": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/bmw/x5.png",
+    "x6": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/bmw/x6.jpg"
+  },
+  "citroen": {
+    "c3": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/citroen/c3.jpg",
+    "c5": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/citroen/c5.jpg"
+  },
+  "dacia": {
+    "duster": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/dacia/duster.jpg"
+  },
+  "fiat": {
+    "500": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/fiat/500.jpg",
+    "600": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/fiat/600.png",
+    "600e": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/fiat/600e.png",
+    "grande": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/fiat/grande.png"
+  },
+  "ford": {
+    "puma": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/ford/puma.png"
+  },
+  "honda": {
+    "prelude": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/honda/prelude.jpg",
+    "zr-v": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/honda/zr-v.png"
+  },
+  "hyundai": {
+    "tucson": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/hyundai/tucson.jpg"
+  },
+  "jeep": {
+    "avenger": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/jeep/avenger.jpg",
+    "compass": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/jeep/compass.png"
+  },
+  "kia": {
+    "ev3": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/kia/ev3.png",
+    "sportage": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/kia/sportage.jpg"
+  },
+  "mazda": {
+    "cx-30": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/mazda/cx-30.jpg",
+    "cx-5": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/mazda/cx-5.jpg"
+  },
+  "mercedes-benz": {
+    "a": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/mercedes-benz/a.jpg",
+    "cla": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/mercedes-benz/cla.jpg",
+    "e": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/mercedes-benz/e.jpg",
+    "gla": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/mercedes-benz/gla.jpg",
+    "glc": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/mercedes-benz/glc.jpg"
+  },
+  "nissan": {
+    "juke": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/nissan/juke.jpg",
+    "micra": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/nissan/micra.jpg",
+    "qashqai": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/nissan/qashqai.png"
+  },
+  "opel": {
+    "astra": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/opel/astra.jpg",
+    "corsa": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/opel/corsa.jpg",
+    "frontera": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/opel/frontera.png",
+    "grandland": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/opel/grandland.png",
+    "mokka": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/opel/mokka.jpg"
+  },
+  "peugeot": {
+    "308": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/peugeot/308.jpg",
+    "2008": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/peugeot/2008.jpg",
+    "3008": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/peugeot/3008.jpg",
+    "5008": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/peugeot/5008.png",
+    "e-2008": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/peugeot/e-2008.jpg"
+  },
+  "renault": {
+    "5": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/renault/5.png",
+    "austral": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/renault/austral.jpg",
+    "captur": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/renault/captur.png",
+    "clio": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/renault/clio.jpg",
+    "rafale": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/renault/rafale.jpg",
+    "scenic": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/renault/scenic.jpg",
+    "symbioz": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/renault/symbioz.png"
+  },
+  "seat": {
+    "arona": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/seat/arona.png"
+  },
+  "skoda": {
+    "kamiq": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/skoda/kamiq.jpg",
+    "kodiaq": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/skoda/kodiaq.jpg",
+    "octavia": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/skoda/octavia.jpg"
+  },
+  "tesla": {
+    "model": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/tesla/model.jpg"
+  },
+  "toyota": {
+    "aygo": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/toyota/aygo.jpg",
+    "c-hr": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/toyota/c-hr.jpg"
+  },
+  "volkswagen": {
+    "golf": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/volkswagen/golf.png",
+    "polo": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/volkswagen/polo.jpg",
+    "t-cross": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/volkswagen/t-cross.jpg",
+    "t-roc": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/volkswagen/t-roc.jpg",
+    "tayron": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/volkswagen/tayron.png",
+    "tiguan": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/volkswagen/tiguan.jpg"
+  },
+  "volvo": {
+    "xc60": "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images/volvo/xc60.jpg"
+  }
+}

@@ -16,6 +16,20 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
     .then(b => b ? new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(b); }) : null)
     .catch(() => null);
 
+  // Lookup immagine veicolo dal catalogo finrent
+  const brandKey = (prev.veicolo_marca ?? '').toLowerCase().replace(/\s+/g, '-');
+  const modelKey = (prev.veicolo_modello ?? '').split(/\s+/)[0].toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const catalog  = await fetch('/vehicle-catalog.json').then(r => r.ok ? r.json() : {}).catch(() => ({}));
+  const vehicleImageUrl = catalog[brandKey]?.[modelKey] ?? null;
+
+  // Converti immagine veicolo in base64 per embedding nel PDF (evita CORS nella finestra di stampa)
+  const vehicleImgB64 = vehicleImageUrl
+    ? await fetch(vehicleImageUrl)
+        .then(r => r.ok ? r.blob() : null)
+        .then(b => b ? new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(b); }) : null)
+        .catch(() => null)
+    : null;
+
   const logoContent = logoB64
     ? `<img src="${logoB64}" alt="Nolosubito" style="height:32px;width:auto;display:block;filter:brightness(0) invert(1);"/>`
     : `<span style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-.02em;">nolosubito</span>`;
@@ -558,7 +572,9 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
       </div>
     </div>
     <div class="vh-right">
-      ${carSvg}
+      ${vehicleImgB64
+        ? `<img src="${vehicleImgB64}" alt="${prev.veicolo_marca} ${prev.veicolo_modello}" style="width:100%;height:100%;object-fit:contain;display:block;"/>`
+        : carSvg}
     </div>
   </div>
 
