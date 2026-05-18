@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink, FolderOpen, Search } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink, FolderOpen, Search, Upload, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
@@ -272,6 +272,44 @@ export default function CmsNews() {
   const [form, setForm] = useState(EMPTY_POST);
   const [previewMode, setPreviewMode] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = React.useRef(null);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast({ title: "Formato non valido", description: "Carica un'immagine (jpg, png, webp…)", variant: "destructive" });
+      return;
+    }
+    setUploading(true);
+    try {
+      const webpBlob = await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          canvas.getContext("2d").drawImage(img, 0, 0);
+          canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Conversione WebP fallita")), "image/webp", 0.85);
+        };
+        img.onerror = reject;
+        img.src = URL.createObjectURL(file);
+      });
+
+      const path = `news/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
+      const { error } = await supabase.storage.from('news-images').upload(path, webpBlob, { contentType: "image/webp", upsert: false });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from('news-images').getPublicUrl(path);
+      set("cover_image_url", publicUrl);
+      toast({ title: "Immagine caricata" });
+    } catch (err) {
+      toast({ title: "Errore upload", description: err.message, variant: "destructive" });
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["cms-posts"],
@@ -403,9 +441,13 @@ export default function CmsNews() {
                   <Textarea value={form.content} onChange={e => set("content", e.target.value)} className="mt-1 h-56 font-mono text-xs" placeholder="## Titolo sezione&#10;Testo del corpo..." />
                 </div>
                 <div>
-                  <Label className="text-xs">URL Immagine Copertina *</Label>
+                  <Label className="text-xs">Immagine Copertina</Label>
                   <div className="flex gap-2 mt-1">
-                    <Input value={form.cover_image_url} onChange={e => set("cover_image_url", e.target.value)} placeholder="https://… oppure /gigi/uploads/…" />
+                    <Input value={form.cover_image_url} onChange={e => set("cover_image_url", e.target.value)} placeholder="https://… oppure carica un file" />
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                    <Button type="button" size="sm" variant="outline" className="shrink-0 gap-1.5 text-xs" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+                      {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}{uploading ? "Upload…" : "Carica"}
+                    </Button>
                     <Button type="button" size="sm" variant="outline" onClick={() => setShowPicker(true)} className="shrink-0 gap-1.5 text-xs">
                       <FolderOpen className="w-3.5 h-3.5" /> Archivio
                     </Button>
