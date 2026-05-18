@@ -21,11 +21,11 @@ const S = StyleSheet.create({
 
   /* header */
   hdr:          { backgroundColor: NAVY, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'stretch', borderRadius: '4 4 0 0' },
-  hdrLeft:      { flexDirection: 'row', alignItems: 'center', gap: 10, padding: '10 14' },
+  hdrLeft:      { flexDirection: 'row', alignItems: 'center', gap: 10, padding: '10 14', flex: 1 },
   hdrSep:       { width: 1, backgroundColor: 'rgba(255,255,255,0.25)', marginVertical: 8 },
-  hdrTag:       { fontSize: 7, letterSpacing: 1.2, color: 'rgba(255,255,255,0.6)', fontWeight: 'bold' },
+  hdrTag:       { fontSize: 7, color: 'rgba(255,255,255,0.6)', fontWeight: 'bold' },
   hdrRight:     { alignItems: 'flex-end', justifyContent: 'center', padding: '8 12', borderLeftWidth: 3, borderLeftColor: ORANGE },
-  hdrLabel:     { fontSize: 6.5, letterSpacing: 1, color: 'rgba(255,255,255,0.55)', fontWeight: 'bold' },
+  hdrLabel:     { fontSize: 6.5, color: 'rgba(255,255,255,0.55)', fontWeight: 'bold' },
   hdrNum:       { fontSize: 15, fontWeight: 'bold', color: '#fff', lineHeight: 1.1, marginTop: 1 },
   hdrDate:      { fontSize: 7.5, color: 'rgba(255,255,255,0.6)', marginTop: 1 },
   hdrValid:     { marginTop: 3, backgroundColor: ORANGE, borderRadius: 999, paddingVertical: 2, paddingHorizontal: 7 },
@@ -33,7 +33,7 @@ const S = StyleSheet.create({
 
   /* body */
   body:         { padding: '12 14', flex: 1 },
-  eyebrow:      { fontSize: 7, letterSpacing: 1, fontWeight: 'bold', color: NAVY, backgroundColor: '#EAECF8', paddingVertical: 3, paddingHorizontal: 7, borderRadius: 3, alignSelf: 'flex-start', marginBottom: 7 },
+  eyebrow:      { fontSize: 7, fontWeight: 'bold', color: NAVY, backgroundColor: '#EAECF8', paddingVertical: 3, paddingHorizontal: 7, borderRadius: 3, alignSelf: 'flex-start', marginBottom: 7 },
   h1:           { fontSize: 20, fontWeight: 'bold', lineHeight: 1.15, color: DARK, marginBottom: 5 },
   h1navy:       { color: NAVY },
   intro:        { fontSize: 9, lineHeight: 1.6, color: TEXT, marginBottom: 11 },
@@ -42,27 +42,27 @@ const S = StyleSheet.create({
   /* client cards */
   clientGrid:   { flexDirection: 'row', gap: 8, marginBottom: 11 },
   clientCard:   { flex: 1, borderWidth: 1, borderColor: BORDER, borderRadius: 6, padding: '9 11' },
-  ccLabel:      { fontSize: 6.5, letterSpacing: 1, fontWeight: 'bold', color: MUTED, marginBottom: 5 },
+  ccLabel:      { fontSize: 6.5, fontWeight: 'bold', color: MUTED, marginBottom: 5 },
   ccName:       { fontSize: 11, fontWeight: 'bold', color: DARK, marginBottom: 3 },
   ccRow:        { fontSize: 8.5, color: TEXT, marginTop: 2 },
 
   /* vehicle */
   vehicle:      { backgroundColor: NAVY, borderRadius: 6, padding: '13 14', marginBottom: 11 },
-  vLabel:       { fontSize: 6.5, letterSpacing: 1.2, fontWeight: 'bold', color: 'rgba(255,255,255,0.55)', marginBottom: 4 },
+  vLabel:       { fontSize: 6.5, fontWeight: 'bold', color: 'rgba(255,255,255,0.55)', marginBottom: 4 },
   vName:        { fontSize: 17, fontWeight: 'bold', color: '#fff', lineHeight: 1.1, marginBottom: 2 },
   vVer:         { fontSize: 9, color: 'rgba(255,255,255,0.7)', marginBottom: 9 },
   vChips:       { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
   chipHot:      { backgroundColor: ORANGE, borderRadius: 999, paddingVertical: 3, paddingHorizontal: 9 },
   chipHotTxt:   { fontSize: 8, fontWeight: 'bold', color: '#fff' },
   chip:         { borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)', borderRadius: 999, paddingVertical: 3, paddingHorizontal: 9 },
-  chipTxt:      { fontSize: 8, fontWeight: 'bold', color: 'rgba(255,255,255,0.9)' },
+  chipTxt: { fontSize: 8, color: 'rgba(255,255,255,0.9)' },
 
   /* canone */
   canoneRow:    { flexDirection: 'row', gap: 9, marginBottom: 11 },
   ctWrap:       { flex: 1.6 },
-  ctLabel:      { fontSize: 7, letterSpacing: 0.8, fontWeight: 'bold', color: MUTED, marginBottom: 5 },
+  ctLabel:      { fontSize: 7, fontWeight: 'bold', color: MUTED, marginBottom: 5 },
   ctHead:       { flexDirection: 'row', backgroundColor: NAVY, paddingVertical: 5, paddingHorizontal: 7, borderRadius: '4 4 0 0' },
-  ctHCell:      { fontSize: 7, fontWeight: 'bold', color: '#fff', letterSpacing: 0.5 },
+  ctHCell:      { fontSize: 7, fontWeight: 'bold', color: '#fff', },
   ctRow:        { flexDirection: 'row', paddingVertical: 5, paddingHorizontal: 7, borderBottomWidth: 1, borderBottomColor: BORDER },
   ctRowAlt:     { backgroundColor: LGRAY },
   ctRowTot:     { backgroundColor: '#EAECF8', borderTopWidth: 1.5, borderTopColor: '#D0D4EF' },
@@ -70,7 +70,7 @@ const S = StyleSheet.create({
   ctCellBold:   { fontSize: 9, fontWeight: 'bold', color: NAVY },
   cboxWrap:     { flex: 1, borderWidth: 1, borderColor: BORDER, borderRadius: 6, overflow: 'hidden' },
   cboxHdr:      { backgroundColor: NAVY, padding: '6 10' },
-  cboxHdrTxt:   { fontSize: 6.5, fontWeight: 'bold', letterSpacing: 0.8, color: '#fff' },
+  cboxHdrTxt:   { fontSize: 6.5, fontWeight: 'bold', color: '#fff' },
   cboxBody:     { padding: '9 10' },
   cboxPrice:    { flexDirection: 'row', alignItems: 'flex-end', gap: 2, marginBottom: 3 },
   cboxCur:      { fontSize: 13, fontWeight: 'bold', color: ORANGE, lineHeight: 1.4 },
@@ -83,7 +83,7 @@ const S = StyleSheet.create({
 
   /* services */
   svcsHdr:      { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 7 },
-  svcsTitle:    { fontSize: 7, letterSpacing: 0.8, fontWeight: 'bold', color: MUTED },
+  svcsTitle:    { fontSize: 7, fontWeight: 'bold', color: MUTED },
   svcsRule:     { flex: 1, height: 1, backgroundColor: BORDER },
   svcsBadge:    { fontSize: 7, fontWeight: 'bold', color: NAVY, backgroundColor: '#EAECF8', paddingVertical: 2, paddingHorizontal: 5, borderRadius: 3 },
   svcsGrid:     { flexDirection: 'row', gap: 10 },
@@ -99,7 +99,7 @@ const S = StyleSheet.create({
 
   /* page 2 */
   p2body:       { padding: '12 14', flex: 1 },
-  secTitle:     { fontSize: 7, letterSpacing: 0.9, fontWeight: 'bold', color: MUTED, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: BORDER, marginBottom: 10 },
+  secTitle:     { fontSize: 7, fontWeight: 'bold', color: MUTED, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: BORDER, marginBottom: 10 },
   specs2col:    { flexDirection: 'row', gap: 28, marginBottom: 14 },
   specCol:      { flex: 1 },
   specRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: '#F1F3F9' },
@@ -107,10 +107,10 @@ const S = StyleSheet.create({
   specV:        { fontSize: 9, fontWeight: 'bold', color: DARK, textAlign: 'right', maxWidth: '55%' },
   valoreGrid:   { flexDirection: 'row', gap: 7, marginBottom: 14 },
   vbox:         { flex: 1, borderWidth: 1, borderColor: BORDER, borderRadius: 5, padding: '7 9' },
-  vboxL:        { fontSize: 6.5, letterSpacing: 0.8, fontWeight: 'bold', color: MUTED, marginBottom: 3 },
+  vboxL:        { fontSize: 6.5, fontWeight: 'bold', color: MUTED, marginBottom: 3 },
   vboxV:        { fontSize: 13, fontWeight: 'bold', color: DARK },
   vboxTot:      { flex: 1.1, backgroundColor: NAVY, borderRadius: 5, padding: '7 10', justifyContent: 'center' },
-  vboxTotL:     { fontSize: 6.5, letterSpacing: 0.8, fontWeight: 'bold', color: 'rgba(255,255,255,0.6)', marginBottom: 3 },
+  vboxTotL:     { fontSize: 6.5, fontWeight: 'bold', color: 'rgba(255,255,255,0.6)', marginBottom: 3 },
   vboxTotV:     { fontSize: 13, fontWeight: 'bold', color: '#fff' },
   whyGrid:      { flexDirection: 'row', gap: 7, marginBottom: 13 },
   whyCard:      { flex: 1, borderWidth: 1, borderColor: BORDER, borderRadius: 7, padding: '9 8', backgroundColor: '#FAFBFD' },
@@ -121,18 +121,32 @@ const S = StyleSheet.create({
   ctaTitle:     { fontSize: 11, fontWeight: 'bold', color: '#fff', marginBottom: 2 },
   ctaSub:       { fontSize: 8, color: 'rgba(255,255,255,0.85)' },
   ctaBtn:       { backgroundColor: NAVY, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12 },
-  ctaBtnTxt:    { fontSize: 7.5, fontWeight: 'bold', color: '#fff', letterSpacing: 0.8 },
+  ctaBtnTxt:    { fontSize: 7.5, fontWeight: 'bold', color: '#fff', },
   signGrid:     { flexDirection: 'row', gap: 28, marginBottom: 13 },
   signBl:       { flex: 1, borderTopWidth: 1.5, borderTopColor: DARK, paddingTop: 5 },
-  signLbl:      { fontSize: 7, letterSpacing: 1.2, fontWeight: 'bold', color: MUTED },
+  signLbl:      { fontSize: 7, fontWeight: 'bold', color: MUTED },
   signNm:       { fontSize: 9, color: TEXT, marginTop: 2 },
   legal:        { fontSize: 7, lineHeight: 1.55, color: MUTED },
-  legalH:       { fontSize: 7, letterSpacing: 0.7, fontWeight: 'bold', color: NAVY, marginTop: 7, marginBottom: 3 },
+  legalH:       { fontSize: 7, fontWeight: 'bold', color: NAVY, marginTop: 7, marginBottom: 3 },
   legalP:       { marginBottom: 3 },
   nref:         { color: NAVY, fontWeight: 'bold' },
 });
 
 /* Componenti helper */
+const WIcon = ({ type }) => {
+  const icons = {
+    shield: <Path d="M6 1L1 3.5v3C1 9.7 3.2 12.5 6 13c2.8-.5 5-3.3 5-6.5v-3L6 1z" stroke={NAVY} strokeWidth="1" fill={NAVY} fillOpacity="0.15"/>,
+    clock:  <><Circle cx="6" cy="6" r="5" stroke={NAVY} strokeWidth="1" fill="none"/><Path d="M6 3v3l2 1.5" stroke={NAVY} strokeWidth="1" strokeLinecap="round"/></>,
+    check:  <><Circle cx="6" cy="6" r="5" stroke={NAVY} strokeWidth="1" fill={NAVY} fillOpacity="0.15"/><Path d="M3.5 6l1.8 1.8L8.5 4" stroke={NAVY} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></>,
+    chat:   <><Path d="M1 2a1 1 0 011-1h9a1 1 0 011 1v6a1 1 0 01-1 1H4L1 11V2z" stroke={NAVY} strokeWidth="1" fill={NAVY} fillOpacity="0.15"/><Path d="M3.5 5h5M3.5 7h3" stroke={NAVY} strokeWidth="1" strokeLinecap="round"/></>,
+  };
+  return (
+    <Svg width={18} height={18} viewBox="0 0 12 12">
+      {icons[type]}
+    </Svg>
+  );
+};
+
 const CheckCircle = () => (
   <Svg width={12} height={12} viewBox="0 0 12 12">
     <Circle cx="6" cy="6" r="6" fill="#16A34A"/>
@@ -175,7 +189,7 @@ const Header = ({ rif, oggi, scadenza, logoB64, showValid = true }) => (
   <View style={S.hdr}>
     <View style={S.hdrLeft}>
       {logoB64
-        ? <Image src={logoB64} style={{ height: 26, width: 'auto' }}/>
+        ? <Image src={logoB64} style={{ height: 24, width: 110, objectFit: 'contain' }}/>
         : <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#fff' }}>nolosubito</Text>
       }
       <View style={S.hdrSep}/>
@@ -418,13 +432,13 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
             <Text style={S.secTitle}>PERCHÉ SCEGLIERE NOLOSUBITO</Text>
             <View style={S.whyGrid}>
               {[
-                ['🛡️', 'Canone tutto incluso',   'Un solo importo fisso al mese, costi pianificabili senza sorprese.'],
-                ['⏱️', '15+ anni di esperienza', 'Sedi a Roma, Napoli, Avellino e Salerno con rete su tutta Italia.'],
-                ['✅',  'Burocrazia zero',         'Immatricolazione, bollo, assicurazione: gestiamo tutto noi.'],
-                ['💬', 'Customer Care H24',       'Assistenza stradale e consulenti dedicati per tutta la durata.'],
-              ].map(([ic, h, p]) => (
+                { ic: <WIcon type="shield"/>, h: 'Canone tutto incluso',   p: 'Un solo importo fisso al mese, costi pianificabili senza sorprese.' },
+                { ic: <WIcon type="clock"/>,  h: '15+ anni di esperienza', p: 'Sedi a Roma, Napoli, Avellino e Salerno con rete su tutta Italia.' },
+                { ic: <WIcon type="check"/>,  h: 'Burocrazia zero',         p: 'Immatricolazione, bollo, assicurazione: gestiamo tutto noi.' },
+                { ic: <WIcon type="chat"/>,   h: 'Customer Care H24',       p: 'Assistenza stradale e consulenti dedicati per tutta la durata.' },
+              ].map(({ ic, h, p }) => (
                 <View key={h} style={S.whyCard}>
-                  <Text style={S.whyIc}>{ic}</Text>
+                  <View style={{ marginBottom: 5 }}>{ic}</View>
                   <Text style={S.whyH}>{h}</Text>
                   <Text style={S.whyP}>{p}</Text>
                 </View>
@@ -436,7 +450,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
                 <Text style={S.ctaTitle}>Accettando l'offerta, attiviamo subito la pratica.</Text>
                 <Text style={S.ctaSub}>Pronta consegna · Procedura digitale · Risposta in 24h</Text>
               </View>
-              <View style={S.ctaBtn}><Text style={S.ctaBtnTxt}>ACCETTA OFFERTA →</Text></View>
+              <View style={S.ctaBtn}><Text style={S.ctaBtnTxt}>ACCETTA OFFERTA</Text></View>
             </View>
 
             <View style={S.signGrid}>
