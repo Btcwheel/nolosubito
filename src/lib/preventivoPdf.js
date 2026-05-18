@@ -11,15 +11,14 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
   const scadenza = new Date(Date.now() + 15 * 86400000).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
   const mesAnno  = new Date().toLocaleDateString('it-IT', { month: '2-digit', year: 'numeric' });
 
-  // Carica logo blu SVG (visibile su sfondo chiaro e scuro)
   const logoB64 = await fetch('/logo-blu.svg')
     .then(r => r.ok ? r.blob() : null)
     .then(b => b ? new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(b); }) : null)
     .catch(() => null);
 
   const logoContent = logoB64
-    ? `<img src="${logoB64}" alt="Nolosubito" style="height:32px;width:auto;display:block;"/>`
-    : `<span style="font-size:16px;font-weight:800;color:${NAVY};letter-spacing:-.01em;">nolosubito</span>`;
+    ? `<img src="${logoB64}" alt="Nolosubito" style="height:32px;width:auto;display:block;filter:brightness(0) invert(1);"/>`
+    : `<span style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-.02em;">nolosubito</span>`;
 
   const canone        = Number(prev.canone_finale ?? prev.canone_mensile);
   const canoneNetto   = canone / 1.22;
@@ -32,523 +31,707 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
 
   const NAVY   = '#2D2E82';
   const ORANGE = '#F96209';
+  const DARK   = '#0E1A2E';
 
   const SERVIZI = [
-    ['R.C.A. Responsabilità Civile',  'Massimale max 25 milioni'],
-    ['Copertura Danni Kasko',          'Penale 500 € per sinistro'],
-    ['Incendio e Furto',               'Penale 10% sul valore'],
-    ['Manutenzione Ordinaria',         'Tagliandi periodici programmati'],
-    ['Manutenzione Straordinaria',     'Riparazioni per usura'],
-    ['Tassa di Possesso',              'Bollo auto gestito da Nolosubito'],
-    ['Immatricolazione',               'Messa su strada inclusa'],
-    ['Cambio Pneumatici',              'Stagionali (estivi/invernali)'],
-    ['Assistenza Stradale H24',        "Soccorso 365 giorni l'anno"],
-    ['Consegna del Veicolo',           'Presso sede o domicilio'],
-    ['Gestione Multe',                 'Rinotifica al conducente'],
-    ['Customer Care Dedicato',         'Numero verde + e-mail'],
+    { nome: 'R.C.A. Responsabilità Civile',  nota: 'Massimale max 25 milioni' },
+    { nome: 'Copertura Danni Kasko',          nota: 'Penale 500 € per sinistro' },
+    { nome: 'Incendio e Furto',               nota: 'Penale 10% sul valore' },
+    { nome: 'Manutenzione Ordinaria',         nota: 'Tagliandi periodici programmati' },
+    { nome: 'Manutenzione Straordinaria',     nota: 'Riparazioni per usura' },
+    { nome: 'Tassa di Possesso',              nota: 'Bollo auto gestito da Nolosubito' },
+    { nome: 'Immatricolazione',               nota: 'Messa su strada inclusa' },
+    { nome: 'Cambio Pneumatici',              nota: 'Stagionali (estivi/invernali)' },
+    { nome: 'Assistenza Stradale H24',        nota: "Soccorso 365 giorni l'anno" },
+    { nome: 'Consegna del Veicolo',           nota: 'Presso sede o domicilio' },
+    { nome: 'Gestione Multe',                 nota: 'Rinotifica al conducente' },
+    { nome: 'Customer Care Dedicato',         nota: 'Numero verde + e-mail' },
   ];
 
-  const serviziHTML = SERVIZI.map(([n, m]) => `
+  const checkSvg = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="#16A34A"/><path d="M4 7l2 2 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+  const serviziHTML = SERVIZI.map(s => `
     <div class="service">
-      <span class="check">✓</span>
+      <span class="check">${checkSvg}</span>
       <div>
-        <strong>${n}</strong>
-        <span class="meta">${m}</span>
+        <span class="sname">${s.nome}</span>
+        <span class="smeta">${s.nota}</span>
       </div>
     </div>`).join('');
 
   const noteExtra = prev.note_cliente?.trim()
     ? `<div class="note-box">${prev.note_cliente.trim()}</div>` : '';
 
+  /* ── SVG AUTO (prospettiva 3/4 frontale-laterale) ── */
+  const carSvg = `<svg viewBox="0 0 480 220" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D0DBF0"/>
+      <stop offset="60%" stop-color="#B8C8E8"/>
+      <stop offset="100%" stop-color="#9AAED4"/>
+    </linearGradient>
+    <linearGradient id="roofGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E8EFF8"/>
+      <stop offset="100%" stop-color="#C4D2E8"/>
+    </linearGradient>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6080C0" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#3050A0" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="wheelGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2A2A3A"/>
+      <stop offset="100%" stop-color="#151520"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(0,0,50,0.18)"/>
+    </filter>
+    <radialGradient id="groundShadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="rgba(0,0,40,0.22)"/>
+      <stop offset="100%" stop-color="rgba(0,0,40,0)"/>
+    </radialGradient>
+  </defs>
+
+  <!-- ground shadow -->
+  <ellipse cx="240" cy="206" rx="190" ry="12" fill="url(#groundShadow)"/>
+
+  <!-- ── BODY ── -->
+  <g filter="url(#shadow)">
+    <!-- lower body / sill -->
+    <path d="M68 148 Q68 158 78 160 L400 160 Q412 158 414 148 L414 138 L68 138 Z" fill="#8A9EC0"/>
+    <!-- main body -->
+    <path d="M68 138 L78 90 Q82 76 96 68 L170 46 Q210 34 248 33 Q288 32 320 42 L378 62 Q400 70 410 86 L414 138 Z" fill="url(#bodyGrad)"/>
+    <!-- body highlight stripe -->
+    <path d="M100 132 L106 92 Q109 82 118 76 L175 56 Q212 46 248 45 Q282 44 310 52 L360 68 Q376 74 382 86 L386 132 Z" fill="rgba(255,255,255,0.12)"/>
+    <!-- lower accent line -->
+    <path d="M72 142 L410 142" stroke="#7A90B4" stroke-width="1.5"/>
+    <!-- body crease line -->
+    <path d="M85 115 Q200 108 380 118" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" fill="none"/>
+  </g>
+
+  <!-- ── ROOF ── -->
+  <path d="M170 46 Q210 34 248 33 Q288 32 320 42 L300 44 Q270 36 248 37 Q218 38 186 48 Z" fill="url(#roofGrad)" opacity="0.9"/>
+
+  <!-- ── WINDSHIELD (front) ── -->
+  <path d="M100 68 L96 68 L78 90 L78 114 L164 114 L178 46 Q140 50 100 68 Z" fill="url(#glassGrad)"/>
+  <!-- windshield glare -->
+  <path d="M96 76 L90 90 L96 90 L106 75 Z" fill="rgba(255,255,255,0.18)"/>
+  <path d="M100 68 L152 48 L148 56 L98 76 Z" fill="rgba(255,255,255,0.22)"/>
+
+  <!-- ── REAR WINDOW ── -->
+  <path d="M320 42 L378 62 L382 114 L300 114 L288 33 Q305 37 320 42 Z" fill="url(#glassGrad)"/>
+  <!-- rear glass glare -->
+  <path d="M322 48 L372 66 L368 72 L318 54 Z" fill="rgba(255,255,255,0.15)"/>
+
+  <!-- ── A-PILLAR ── -->
+  <path d="M178 46 L164 114" stroke="#7088B8" stroke-width="3" stroke-linecap="round"/>
+  <!-- B-PILLAR -->
+  <path d="M240 38 L242 114" stroke="#7088B8" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- C-PILLAR -->
+  <path d="M298 34 L300 114" stroke="#7088B8" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- ── DOOR HANDLES ── -->
+  <rect x="188" y="108" width="28" height="6" rx="3" fill="#A0B4D0" stroke="#8AA0C0" stroke-width="0.8"/>
+  <rect x="265" y="108" width="28" height="6" rx="3" fill="#A0B4D0" stroke="#8AA0C0" stroke-width="0.8"/>
+
+  <!-- ── MIRROR (driver side) ── -->
+  <path d="M84 84 L68 80 L66 92 L84 94 Z" fill="#B0C0D8" stroke="#96AACA" stroke-width="0.8"/>
+
+  <!-- ── FRONT END ── -->
+  <path d="M68 138 Q54 140 48 148 L46 162 Q48 172 58 174 L80 174 L80 162 L68 162 Z" fill="#9AAED0"/>
+  <!-- front grille -->
+  <rect x="50" y="148" width="24" height="18" rx="3" fill="#1A2840"/>
+  <line x1="50" y1="153" x2="74" y2="153" stroke="#2A3850" stroke-width="1"/>
+  <line x1="50" y1="158" x2="74" y2="158" stroke="#2A3850" stroke-width="1"/>
+  <line x1="50" y1="163" x2="74" y2="163" stroke="#2A3850" stroke-width="1"/>
+  <!-- front headlight -->
+  <path d="M56 136 L80 138 L80 148 L54 146 Z" fill="#F0F4FF" stroke="#C0CCDE" stroke-width="0.8"/>
+  <path d="M58 138 L78 140 L78 146 L56 144 Z" fill="#FFE87A" opacity="0.8"/>
+  <!-- daytime running light -->
+  <path d="M56 132 L80 134 L80 137 L56 135 Z" fill="${ORANGE}" opacity="0.9"/>
+
+  <!-- ── REAR END ── -->
+  <path d="M414 138 Q426 140 430 148 L432 162 Q430 172 420 174 L400 174 L400 162 L414 162 Z" fill="#8898C0"/>
+  <!-- rear light -->
+  <rect x="406" y="132" width="22" height="22" rx="3" fill="#CC2020"/>
+  <rect x="406" y="132" width="22" height="10" rx="3" fill="#FF5050" opacity="0.7"/>
+  <line x1="406" y1="142" x2="428" y2="142" stroke="#AA1818" stroke-width="1"/>
+  <!-- rear reflector -->
+  <rect x="408" y="155" width="18" height="5" rx="2" fill="#FFA040" opacity="0.8"/>
+
+  <!-- ── WHEELS ── -->
+  <!-- Rear wheel -->
+  <circle cx="126" cy="174" r="36" fill="url(#wheelGrad)"/>
+  <circle cx="126" cy="174" r="27" fill="#1E2A3E"/>
+  <circle cx="126" cy="174" r="18" fill="#263044"/>
+  <!-- rear spokes -->
+  <g stroke="#7890B0" stroke-width="3" stroke-linecap="round">
+    <line x1="126" y1="156" x2="126" y2="163"/>
+    <line x1="126" y1="185" x2="126" y2="192"/>
+    <line x1="108" y1="174" x2="115" y2="174"/>
+    <line x1="137" y1="174" x2="144" y2="174"/>
+    <line x1="113" y1="161" x2="118" y2="166"/>
+    <line x1="134" y1="182" x2="139" y2="187"/>
+    <line x1="139" y1="161" x2="134" y2="166"/>
+    <line x1="118" y1="182" x2="113" y2="187"/>
+  </g>
+  <circle cx="126" cy="174" r="7" fill="#8090B0"/>
+  <circle cx="126" cy="174" r="3.5" fill="#C0CCD8"/>
+  <circle cx="126" cy="174" r="36" fill="none" stroke="${ORANGE}" stroke-width="2" opacity="0.6"/>
+  <!-- wheel arch -->
+  <path d="M90 174 Q126 142 162 174" fill="none" stroke="#8898C0" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- Front wheel -->
+  <circle cx="356" cy="174" r="36" fill="url(#wheelGrad)"/>
+  <circle cx="356" cy="174" r="27" fill="#1E2A3E"/>
+  <circle cx="356" cy="174" r="18" fill="#263044"/>
+  <g stroke="#7890B0" stroke-width="3" stroke-linecap="round">
+    <line x1="356" y1="156" x2="356" y2="163"/>
+    <line x1="356" y1="185" x2="356" y2="192"/>
+    <line x1="338" y1="174" x2="345" y2="174"/>
+    <line x1="367" y1="174" x2="374" y2="174"/>
+    <line x1="343" y1="161" x2="348" y2="166"/>
+    <line x1="364" y1="182" x2="369" y2="187"/>
+    <line x1="369" y1="161" x2="364" y2="166"/>
+    <line x1="348" y1="182" x2="343" y2="187"/>
+  </g>
+  <circle cx="356" cy="174" r="7" fill="#8090B0"/>
+  <circle cx="356" cy="174" r="3.5" fill="#C0CCD8"/>
+  <circle cx="356" cy="174" r="36" fill="none" stroke="${ORANGE}" stroke-width="2" opacity="0.6"/>
+  <path d="M320 174 Q356 142 392 174" fill="none" stroke="#8898C0" stroke-width="5" stroke-linecap="round"/>
+</svg>`;
+
   const html = `<!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8"/>
-<title>Preventivo ${rif} - Nolosubito</title>
+<title>Preventivo ${rif} — Nolosubito</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
-    color: #0E1A2E;
+    font-family: 'Inter', -apple-system, 'Segoe UI', Arial, sans-serif;
+    color: ${DARK};
     background: #fff;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  @page {
-    size: A4;
-    margin: 0;
-  }
+  @page { size: A4; margin: 0; }
 
   .page {
     width: 210mm;
     min-height: 297mm;
-    padding: 0;
     background: #fff;
     page-break-after: always;
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
   .page:last-child { page-break-after: auto; }
 
-  /* ── TOP BAR ── */
-  .topbar {
-    height: 10px;
-    background: linear-gradient(90deg, ${NAVY} 65%, ${ORANGE} 65%);
-  }
-
   /* ── HEADER ── */
   .header {
-    padding: 14px 20px 12px;
+    background: ${NAVY};
+    padding: 16px 24px;
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    border-bottom: 1px solid #e5e7eb;
+    align-items: center;
+    flex-shrink: 0;
   }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-box {
-    display: flex; align-items: center; justify-content: center;
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .header-logo { display: flex; align-items: center; }
+  .header-divider { width: 1px; height: 32px; background: rgba(255,255,255,0.25); }
+  .header-tagline {
+    font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+    color: rgba(255,255,255,.65); font-weight: 600;
   }
-  .logo-box img { height: 32px; width: auto; display: block; }
-  .logo-name { font-size: 18px; font-weight: 800; color: ${NAVY}; }
-  .logo-tag { font-size: 7px; letter-spacing: .04em; text-transform: uppercase; color: #8693AB; font-weight: 600; margin-top: 1px; }
-  .header-meta { text-align: right; }
-  .header-meta .lbl { font-size: 7px; letter-spacing: .05em; text-transform: uppercase; color: #8693AB; font-weight: 600; }
-  .header-meta .num { font-size: 14px; font-weight: 700; color: #0E1A2E; margin: 2px 0; }
-  .header-meta .dt { font-size: 9px; color: #6b7280; }
-  .header-meta .valid {
-    display: inline-block;
-    background: #FFF4D6; color: #7A5400;
-    padding: 3px 8px; border-radius: 999px;
-    font-size: 8.5px; font-weight: 700; margin-top: 3px;
+  .header-right { text-align: right; }
+  .header-right .offer-label {
+    font-size: 8px; letter-spacing: .1em; text-transform: uppercase;
+    color: rgba(255,255,255,.55); font-weight: 600; margin-bottom: 2px;
+  }
+  .header-right .offer-num {
+    font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -.01em;
+    line-height: 1;
+  }
+  .header-right .offer-date { font-size: 9px; color: rgba(255,255,255,.6); margin-top: 3px; }
+  .header-right .offer-valid {
+    display: inline-block; margin-top: 4px;
+    background: ${ORANGE}; color: #fff;
+    padding: 3px 10px; border-radius: 999px;
+    font-size: 8px; font-weight: 700; letter-spacing: .03em;
   }
 
-  /* ── TITLE ── */
-  .titleblock { padding: 14px 20px 10px; }
+  /* ── TITLE BAND ── */
+  .title-band {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #E8ECF4;
+  }
   .eyebrow {
-    display: inline-block;
-    font-size: 8px; letter-spacing: .06em; text-transform: uppercase;
-    color: ${NAVY}; font-weight: 700;
-    padding: 3px 7px; background: #E8EEF8; border-radius: 4px;
-    margin-bottom: 7px;
+    font-size: 8.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: ${NAVY}; font-weight: 700; margin-bottom: 8px;
   }
-  .titleblock h1 {
-    font-size: 24px; font-weight: 800; letter-spacing: -.02em;
-    line-height: 1.15; color: ${NAVY}; margin-bottom: 7px;
+  .title-band h1 {
+    font-size: 26px; font-weight: 900; letter-spacing: -.03em;
+    line-height: 1.1; color: ${DARK}; margin-bottom: 8px;
   }
-  .titleblock h1 em { font-style: normal; color: #1e2250; font-weight: 700; }
-  .titleblock p { font-size: 11px; line-height: 1.6; color: #374151; }
-  .titleblock p strong { color: ${NAVY}; font-weight: 700; }
+  .title-band h1 span { color: ${NAVY}; }
+  .title-band p {
+    font-size: 10.5px; line-height: 1.6; color: #4B5563;
+    max-width: 520px;
+  }
+  .title-band p strong { color: ${DARK}; font-weight: 700; }
 
-  /* ── PAIR ── */
-  .pair {
+  /* ── CLIENTE / CONSULENTE ── */
+  .info-strip {
+    display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr;
+    background: #F6F8FC;
+    border-bottom: 1px solid #E8ECF4;
+    padding: 0;
+  }
+  .info-cell { padding: 12px 20px; }
+  .info-sep { background: #E8ECF4; }
+  .info-cell .ic-label {
+    font-size: 8px; letter-spacing: .08em; text-transform: uppercase;
+    color: #9CA3AF; font-weight: 700; margin-bottom: 4px;
+  }
+  .info-cell .ic-name { font-size: 12px; font-weight: 700; color: ${DARK}; }
+  .info-cell .ic-sub { font-size: 9.5px; color: #6B7280; margin-top: 2px; }
+
+  /* ── VEHICLE HERO ── */
+  .vehicle-hero {
     display: grid; grid-template-columns: 1fr 1fr;
-    gap: 10px; padding: 0 20px 10px;
+    border-bottom: 1px solid #E8ECF4;
   }
-  .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 11px 14px; }
-  .card .ch {
-    font-size: 7.5px; letter-spacing: .05em; text-transform: uppercase;
-    color: #6b7280; font-weight: 700; margin-bottom: 5px;
+  .vh-left {
+    padding: 20px 24px;
+    display: flex; flex-direction: column; justify-content: center;
   }
-  .card .name { font-size: 13px; font-weight: 700; color: #0E1A2E; margin-bottom: 4px; }
-  .card .row { font-size: 9.5px; color: #374151; margin-top: 2px; }
-
-  /* ── VEHICLE ── */
-  .vehicle {
-    margin: 0 20px 10px;
-    border-radius: 10px; overflow: hidden;
-    display: grid; grid-template-columns: 1.1fr 1fr;
-    border: 1px solid #e5e7eb;
+  .vh-label {
+    font-size: 8px; letter-spacing: .1em; text-transform: uppercase;
+    color: #9CA3AF; font-weight: 700; margin-bottom: 8px;
   }
-  .vehicle-info {
-    padding: 14px 16px;
-    background: linear-gradient(135deg, ${NAVY} 0%, #143C76 100%);
-    color: #fff;
+  .vh-model {
+    font-size: 22px; font-weight: 900; color: ${DARK};
+    letter-spacing: -.02em; line-height: 1.1; margin-bottom: 4px;
   }
-  .vehicle-info .btag {
-    font-size: 8px; letter-spacing: .06em; text-transform: uppercase;
-    color: rgba(255,255,255,.6); font-weight: 600; margin-bottom: 4px;
+  .vh-version { font-size: 12px; color: #4B5563; margin-bottom: 14px; font-weight: 500; }
+  .vh-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .vh-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 11px; border-radius: 999px;
+    font-size: 9.5px; font-weight: 600;
+    background: #EEF2FB; color: ${NAVY};
+    border: 1px solid #D4DCEF;
   }
-  .vehicle-info h2 { font-size: 15px; font-weight: 800; line-height: 1.2; margin-bottom: 3px; }
-  .vehicle-info .sub { font-size: 10px; color: rgba(255,255,255,.75); margin-bottom: 10px; }
-  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
-  .chip {
-    display: inline-flex; align-items: center; gap: 3px;
-    padding: 3px 8px; border-radius: 999px;
-    font-size: 8px; font-weight: 600;
-    border: 1px solid rgba(255,255,255,.2);
-    background: rgba(255,255,255,.12); color: #fff;
+  .vh-chip.hot {
+    background: ${ORANGE}; color: #fff; border-color: transparent;
   }
-  .chip.acc { background: ${ORANGE}; color: #3A2700; border-color: transparent; font-weight: 700; }
-  .vehicle-right {
-    background: #EEF1F8;
+  .vh-right {
+    background: #F0F3FA;
     display: flex; align-items: center; justify-content: center;
-    padding: 10px;
+    padding: 16px 12px;
+    min-height: 160px;
   }
-  .vehicle-right svg { width: 100%; height: 160px; }
 
-  /* ── CANONE ── */
-  .canone-wrap {
-    padding: 0 20px 10px;
-    display: grid; grid-template-columns: 1.55fr 1fr; gap: 10px;
+  /* ── CANONE HERO ── */
+  .canone-hero {
+    background: linear-gradient(105deg, ${NAVY} 0%, #1C2878 55%, #12205E 100%);
+    padding: 20px 24px;
+    display: flex; align-items: center; justify-content: space-between;
   }
-  .ctable { border: 1px solid #e5e7eb; border-radius: 10px; overflow: hidden; }
-  .ct-head {
-    display: grid; grid-template-columns: 1.6fr 1fr 1fr;
-    padding: 8px 12px;
-    background: #F4F6FB; border-bottom: 1px solid #e5e7eb;
-    font-size: 7.5px; letter-spacing: .04em; text-transform: uppercase;
-    color: #6b7280; font-weight: 700;
+  .ch-left { flex: 1; }
+  .ch-label {
+    font-size: 8.5px; letter-spacing: .1em; text-transform: uppercase;
+    color: rgba(255,255,255,.6); font-weight: 700; margin-bottom: 6px;
   }
-  .ct-head div:not(:first-child) { text-align: right; }
-  .ct-row {
-    display: grid; grid-template-columns: 1.6fr 1fr 1fr;
-    padding: 8px 12px; border-bottom: 1px solid #f3f4f6;
-    font-size: 10px;
+  .ch-amount { display: flex; align-items: baseline; gap: 4px; line-height: 1; }
+  .ch-cur { font-size: 20px; font-weight: 700; color: ${ORANGE}; }
+  .ch-num { font-size: 48px; font-weight: 900; color: #fff; letter-spacing: -.04em; }
+  .ch-per { font-size: 14px; font-weight: 600; color: rgba(255,255,255,.6); }
+  .ch-sub { font-size: 10px; color: rgba(255,255,255,.55); margin-top: 6px; }
+  .ch-divider { width: 1px; height: 60px; background: rgba(255,255,255,.2); margin: 0 24px; }
+  .ch-right { }
+  .ch-ant-label { font-size: 9px; color: rgba(255,255,255,.55); margin-bottom: 4px; }
+  .ch-ant-val {
+    font-size: 22px; font-weight: 800; color: ${ORANGE};
+    letter-spacing: -.02em; line-height: 1;
   }
-  .ct-row .lb { color: #374151; }
-  .ct-row .vl { text-align: right; font-weight: 500; }
-  .ct-row.tot { background: #E8EEF8; font-weight: 700; }
-  .ct-row.tot .lb { color: ${NAVY}; }
-  .ct-row.tot .vl { color: ${NAVY}; }
-  .chero {
-    background: ${NAVY}; border-radius: 10px;
-    padding: 14px; display: flex; flex-direction: column; justify-content: center;
-    color: #fff;
+  .ch-ant-net { font-size: 9px; color: rgba(255,255,255,.45); margin-top: 2px; }
+
+  /* ── CANONE TABLE ── */
+  .ctable-wrap { padding: 16px 24px 0; }
+  .ctable-title {
+    font-size: 9px; letter-spacing: .08em; text-transform: uppercase;
+    color: #9CA3AF; font-weight: 700; margin-bottom: 8px;
   }
-  .chero .chl {
-    font-size: 7px; letter-spacing: .05em; text-transform: uppercase;
-    color: rgba(255,255,255,.7); font-weight: 700; margin-bottom: 4px;
+  table.ct {
+    width: 100%; border-collapse: collapse;
+    font-size: 10.5px;
   }
-  .chero .cha { display: flex; align-items: baseline; gap: 2px; line-height: 1; }
-  .chero .cur { font-size: 16px; font-weight: 700; color: ${ORANGE}; }
-  .chero .amount { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -.03em; }
-  .chero .per { font-size: 11px; font-weight: 600; color: rgba(255,255,255,.7); margin-left: 2px; }
-  .chero .sub { font-size: 8.5px; color: rgba(255,255,255,.7); margin-top: 5px; line-height: 1.4; }
-  .chero .ant {
-    margin-top: 10px; padding-top: 10px;
-    border-top: 1px dashed rgba(255,255,255,.25);
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 9px;
+  table.ct thead tr {
+    background: ${NAVY}; color: #fff;
   }
-  .chero .ant .al { color: rgba(255,255,255,.75); }
-  .chero .ant .av {
-    color: ${ORANGE}; font-weight: 700; font-size: 11px;
-    background: rgba(249,98,9,.15); padding: 2px 7px; border-radius: 999px;
+  table.ct thead th {
+    padding: 8px 12px; font-weight: 700; font-size: 9px;
+    letter-spacing: .06em; text-transform: uppercase;
+  }
+  table.ct thead th:not(:first-child) { text-align: right; }
+  table.ct tbody tr:nth-child(odd) { background: #F6F8FC; }
+  table.ct tbody tr:nth-child(even) { background: #fff; }
+  table.ct tbody tr.total-row { background: #EEF2FB; }
+  table.ct tbody td { padding: 8px 12px; }
+  table.ct tbody td:not(:first-child) { text-align: right; font-weight: 500; }
+  table.ct tbody tr.total-row td {
+    font-weight: 800; color: ${NAVY}; font-size: 11px;
+    border-top: 2px solid #D4DCEF;
   }
 
   /* ── SERVIZI ── */
-  .svcs { padding: 0 20px 10px; }
-  .stitle {
-    display: flex; align-items: center; gap: 7px; margin-bottom: 8px;
+  .svcs-wrap { padding: 14px 24px 0; flex: 1; }
+  .svcs-header {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
   }
-  .stitle h3 {
-    font-size: 9.5px; font-weight: 700; letter-spacing: .05em;
-    text-transform: uppercase; color: ${NAVY};
+  .svcs-header h3 {
+    font-size: 9px; letter-spacing: .08em; text-transform: uppercase;
+    color: #9CA3AF; font-weight: 700; white-space: nowrap;
   }
-  .stitle .rule { flex: 1; height: 1px; background: #e5e7eb; }
-  .stitle .badge {
-    background: #E8EEF8; color: ${NAVY};
-    font-size: 8px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+  .svcs-rule { flex: 1; height: 1px; background: #E8ECF4; }
+  .svcs-badge {
+    background: #EEF2FB; color: ${NAVY};
+    font-size: 8.5px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
   }
-  .note-box {
-    font-size: 9.5px; color: #6b7280;
-    padding: 8px 12px; background: #F4F6FB;
-    border-radius: 7px; margin-bottom: 8px; line-height: 1.5;
-    font-style: italic;
-  }
-  .sgrid { display: grid; grid-template-columns: repeat(3,1fr); gap: 0 12px; }
+  .svcs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
   .service {
-    display: flex; gap: 6px; align-items: flex-start;
-    padding: 5px 0; border-bottom: 1px solid #f3f4f6;
-    font-size: 9px; line-height: 1.3;
+    display: flex; gap: 8px; align-items: flex-start;
+    padding: 6px 0; border-bottom: 1px solid #F0F2F8;
   }
-  .service .check {
-    width: 14px; height: 14px; border-radius: 4px;
-    background: #E8F4EE; color: #15803d;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; font-size: 8px; font-weight: 700;
+  .check { flex-shrink: 0; margin-top: 1px; }
+  .sname { display: block; font-size: 10.5px; font-weight: 600; color: ${DARK}; }
+  .smeta { display: block; font-size: 9px; color: #9CA3AF; margin-top: 1px; }
+  .note-box {
+    font-size: 10px; color: #4B5563;
+    padding: 10px 14px; background: #F6F8FC;
+    border-left: 3px solid ${NAVY};
+    border-radius: 0 6px 6px 0; margin-bottom: 10px;
+    line-height: 1.5; font-style: italic;
   }
-  .service strong { display: block; font-weight: 600; color: #0E1A2E; font-size: 10px; }
-  .service .meta { display: block; color: #6b7280; font-size: 9px; }
 
   /* ── FOOTER ── */
   .foot {
-    padding: 8px 20px;
-    border-top: 1px solid #e5e7eb;
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 8px; color: #6b7280;
-    background: #FAFBFD;
     margin-top: auto;
+    padding: 10px 24px;
+    background: ${NAVY};
+    display: flex; justify-content: space-between; align-items: center;
   }
-  .foot .dot { width: 5px; height: 5px; border-radius: 50%; background: ${ORANGE}; display: inline-block; margin-right: 5px; }
+  .foot-left { font-size: 8.5px; color: rgba(255,255,255,.7); }
+  .foot-left strong { color: #fff; }
+  .foot-right { font-size: 8.5px; color: rgba(255,255,255,.5); }
 
-  /* ── PAG 2 ── */
-  .specs { padding: 0 20px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 30px; }
+  /* ── PAGINA 2 ── */
+  .p2-content { padding: 24px 24px 0; flex: 1; }
+  .section-title {
+    font-size: 9px; letter-spacing: .08em; text-transform: uppercase;
+    color: #9CA3AF; font-weight: 700; margin-bottom: 14px;
+    padding-bottom: 8px; border-bottom: 1px solid #E8ECF4;
+  }
+  .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; margin-bottom: 24px; }
   .spec-row {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 6px 0; border-bottom: 1px solid #f3f4f6; font-size: 10px;
+    padding: 8px 0; border-bottom: 1px solid #F0F2F8; font-size: 11px;
   }
-  .spec-row .k { color: #6b7280; }
-  .spec-row .v { font-weight: 600; color: #0E1A2E; text-align: right; max-width: 55%; }
-  .why { padding: 0 20px 14px; }
-  .why-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
-  .why-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; }
-  .why-card .ic { font-size: 16px; margin-bottom: 6px; }
-  .why-card h4 { font-size: 9.5px; font-weight: 700; color: #0E1A2E; margin-bottom: 3px; }
-  .why-card p { font-size: 8.5px; color: #6b7280; line-height: 1.4; }
-  .cta {
-    margin: 0 20px 14px;
-    background: linear-gradient(135deg, ${ORANGE} 0%, #E05500 100%);
-    border-radius: 10px; padding: 13px 16px;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  .cta .ct { font-weight: 800; font-size: 12px; color: #3A2700; }
-  .cta .cs { font-size: 9px; color: #5A3A00; margin-top: 2px; }
-  .cta .btn {
-    background: ${NAVY}; color: #fff;
-    padding: 7px 14px; border-radius: 999px;
-    font-size: 9px; font-weight: 700; letter-spacing: .04em;
-    text-transform: uppercase; text-decoration: none;
-    white-space: nowrap;
-  }
-  .sign { padding: 0 20px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-  .sign-line { border-top: 1.5px solid #0E1A2E; padding-top: 4px; }
-  .sign-line .slbl { font-size: 7.5px; letter-spacing: .14em; text-transform: uppercase; color: #6b7280; font-weight: 600; }
-  .sign-line .snm { font-size: 9.5px; color: #374151; margin-top: 2px; }
-  .legal { padding: 0 20px 10px; font-size: 7.5px; line-height: 1.55; color: #6b7280; }
-  .legal h4 { font-size: 8px; letter-spacing: .04em; text-transform: uppercase; color: ${NAVY}; font-weight: 700; margin: 10px 0 4px; }
-  .legal p { margin-bottom: 4px; }
-  .nref { color: ${NAVY}; font-weight: 700; }
+  .spec-row .sk { color: #6B7280; }
+  .spec-row .sv { font-weight: 700; color: ${DARK}; text-align: right; }
 
-  hr.divider { border: none; border-top: 1px solid #e5e7eb; margin: 0 20px 10px; }
+  .why-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 24px; }
+  .why-card {
+    border: 1px solid #E8ECF4; border-radius: 10px; padding: 14px 12px;
+    background: #FAFBFD;
+  }
+  .why-icon { font-size: 20px; margin-bottom: 8px; }
+  .why-card h4 { font-size: 10px; font-weight: 700; color: ${DARK}; margin-bottom: 4px; }
+  .why-card p { font-size: 9px; color: #6B7280; line-height: 1.5; }
+
+  .cta-band {
+    background: linear-gradient(105deg, ${ORANGE} 0%, #E05500 100%);
+    border-radius: 12px; padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .cta-band .cta-title { font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 3px; }
+  .cta-band .cta-sub { font-size: 9.5px; color: rgba(255,255,255,.8); }
+  .cta-btn {
+    background: #fff; color: ${ORANGE};
+    padding: 9px 18px; border-radius: 999px;
+    font-size: 9.5px; font-weight: 800; letter-spacing: .06em;
+    text-transform: uppercase; text-decoration: none;
+    white-space: nowrap; display: inline-block;
+  }
+
+  .sign-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 24px; }
+  .sign-block { border-top: 2px solid ${DARK}; padding-top: 6px; }
+  .sign-label {
+    font-size: 8px; letter-spacing: .12em; text-transform: uppercase;
+    color: #9CA3AF; font-weight: 700;
+  }
+  .sign-name { font-size: 10.5px; color: #4B5563; margin-top: 3px; }
+
+  .legal {
+    font-size: 8px; line-height: 1.6; color: #9CA3AF;
+    padding-bottom: 10px;
+  }
+  .legal h5 {
+    font-size: 8px; letter-spacing: .06em; text-transform: uppercase;
+    color: ${NAVY}; font-weight: 700; margin: 10px 0 4px;
+  }
+  .legal p { margin-bottom: 3px; }
+  .nref { color: ${NAVY}; font-weight: 700; }
 
   @media print {
     body { background: #fff; }
     .page { page-break-after: always; }
     .page:last-child { page-break-after: auto; }
-    .no-print { display: none !important; }
   }
 </style>
 </head>
 <body>
 
-<!-- ══ PAGINA 1 ══ -->
+<!-- ══════════════════ PAGINA 1 ══════════════════ -->
 <div class="page">
-  <div class="topbar"></div>
 
+  <!-- Header navy full-bleed -->
   <div class="header">
-    <div class="logo">
-      <div class="logo-box">${logoContent}</div>
-      <div>
-        <div class="logo-name">nolosubito</div>
-        <div class="logo-tag">Noleggio a Lungo Termine</div>
-      </div>
+    <div class="header-left">
+      <div class="header-logo">${logoContent}</div>
+      <div class="header-divider"></div>
+      <div class="header-tagline">Noleggio a Lungo Termine</div>
     </div>
-    <div class="header-meta">
-      <div class="lbl">Offerta N.</div>
-      <div class="num">${rif}</div>
-      <div class="dt">Emessa il ${oggi}</div>
-      <div class="valid">● Valida fino al ${scadenza}</div>
+    <div class="header-right">
+      <div class="offer-label">Offerta N.</div>
+      <div class="offer-num">${rif}</div>
+      <div class="offer-date">Emessa il ${oggi}</div>
+      <div class="offer-valid">Valida fino al ${scadenza}</div>
     </div>
   </div>
 
-  <div class="titleblock">
+  <!-- Titolo + intro -->
+  <div class="title-band">
     <div class="eyebrow">Proposta personalizzata</div>
-    <h1>Proposta di noleggio <em>a lungo termine</em><br>di veicolo in locazione</h1>
+    <h1>Proposta di noleggio<br><span>a lungo termine</span></h1>
     <p>Gentile <strong>${clienteNome || 'Cliente'}</strong>, abbiamo il piacere di trasmetterle l'offerta a Lei dedicata<span class="nref">(1)</span>. La ringraziamo per la preferenza accordataci e restiamo a Sua disposizione per qualsiasi chiarimento. Tutti i servizi inclusi nel canone mensile sono pensati per garantirLe una mobilità completa, sicura e senza pensieri.</p>
   </div>
 
-  <div class="pair">
-    <div class="card">
-      <div class="ch">Cliente</div>
-      <div class="name">${clienteNome || 'Cliente'}</div>
+  <!-- Info strip -->
+  <div class="info-strip">
+    <div class="info-cell">
+      <div class="ic-label">Cliente</div>
+      <div class="ic-name">${clienteNome || 'Cliente'}</div>
     </div>
-    <div class="card">
-      <div class="ch">Consulente di vendita</div>
-      <div class="name">Nolosubito S.r.l.</div>
-      <div class="row">+39 06 400 49490</div>
-      <div class="row">info@nolosubito.it · nolosubito.it</div>
+    <div class="info-sep"></div>
+    <div class="info-cell">
+      <div class="ic-label">Consulente di vendita</div>
+      <div class="ic-name">Nolosubito S.r.l.</div>
+      <div class="ic-sub">+39 06 400 49490 · info@nolosubito.it</div>
     </div>
-  </div>
-
-  <div class="vehicle">
-    <div class="vehicle-info">
-      <div class="btag">Veicolo proposto</div>
-      <h2>${prev.veicolo_marca} ${prev.veicolo_modello}</h2>
-      <div class="sub">${prev.veicolo_versione || prev.alimentazione || ''}</div>
-      <div class="chips">
-        <span class="chip acc">✓ Pronta consegna</span>
-        ${prev.alimentazione ? `<span class="chip">${prev.alimentazione}</span>` : ''}
-        <span class="chip">${prev.durata_mesi} mesi</span>
-        <span class="chip">${fmtN(prev.km_annui)} km/anno</span>
-      </div>
-    </div>
-    <div class="vehicle-right">
-      <svg viewBox="0 0 360 160" xmlns="http://www.w3.org/2000/svg">
-        <rect width="360" height="160" fill="#EEF1F8"/>
-        <path d="M38 110 C44 82,88 58,138 52 L175 40 C212 33,252 36,282 52 L312 66 C332 74,344 88,345 108 L345 128 C345 134,341 138,333 138 L52 138 C44 138,40 134,40 128 Z" fill="#C8D4E8" stroke="#9FB1CE" stroke-width="1"/>
-        <path d="M128 60 C152 52,200 50,240 58 L268 72 L268 86 L90 86 L97 80 C104 72,116 64,128 60 Z" fill="${NAVY}" opacity=".85"/>
-        <rect x="179" y="52" width="3" height="34" fill="${NAVY}" opacity=".5"/>
-        <ellipse cx="336" cy="96" rx="10" ry="5" fill="#FFE57A"/>
-        <ellipse cx="336" cy="96" rx="6" ry="3" fill="#FFF9E6"/>
-        <rect x="44" y="90" width="10" height="8" rx="2" fill="#C8412B" opacity=".8"/>
-        <circle cx="106" cy="138" r="22" fill="#1F2B42"/>
-        <circle cx="106" cy="138" r="13" fill="#2D3D5A"/>
-        <circle cx="106" cy="138" r="5"  fill="#5E6B82"/>
-        <circle cx="106" cy="138" r="22" fill="none" stroke="${ORANGE}" stroke-width="1.5" opacity=".6"/>
-        <circle cx="272" cy="138" r="22" fill="#1F2B42"/>
-        <circle cx="272" cy="138" r="13" fill="#2D3D5A"/>
-        <circle cx="272" cy="138" r="5"  fill="#5E6B82"/>
-        <circle cx="272" cy="138" r="22" fill="none" stroke="${ORANGE}" stroke-width="1.5" opacity=".6"/>
-        <ellipse cx="190" cy="152" rx="148" ry="5" fill="#00000018"/>
-      </svg>
+    <div class="info-sep"></div>
+    <div class="info-cell">
+      <div class="ic-label">Validità offerta</div>
+      <div class="ic-name">${scadenza}</div>
+      <div class="ic-sub">Emessa il ${oggi}</div>
     </div>
   </div>
 
-  <div class="canone-wrap">
-    <div class="ctable">
-      <div class="ct-head">
-        <div>Composizione del canone</div><div>IVA esclusa</div><div>IVA inclusa</div>
+  <!-- Veicolo hero -->
+  <div class="vehicle-hero">
+    <div class="vh-left">
+      <div class="vh-label">Veicolo proposto</div>
+      <div class="vh-model">${prev.veicolo_marca} ${prev.veicolo_modello}</div>
+      <div class="vh-version">${prev.veicolo_versione || prev.alimentazione || ''}</div>
+      <div class="vh-chips">
+        <span class="vh-chip hot">✓ Pronta consegna</span>
+        ${prev.alimentazione ? `<span class="vh-chip">${prev.alimentazione}</span>` : ''}
+        <span class="vh-chip">${prev.durata_mesi} mesi</span>
+        <span class="vh-chip">${fmtN(prev.km_annui)} km/anno</span>
       </div>
-      <div class="ct-row"><div class="lb">Quota Canone Veicolo</div><div class="vl">€ ${fmt(qVN)}</div><div class="vl">€ ${fmt(qVL)}</div></div>
-      <div class="ct-row"><div class="lb">Quota Canone Servizi</div><div class="vl">€ ${fmt(qSN)}</div><div class="vl">€ ${fmt(qSL)}</div></div>
-      <div class="ct-row"><div class="lb">Anticipo</div><div class="vl">€ ${fmt(anticipoNetto)}</div><div class="vl">€ ${fmt(anticipo)}</div></div>
-      <div class="ct-row tot"><div class="lb">Canone Mensile Totale</div><div class="vl">€ ${fmt(canoneNetto)}</div><div class="vl">€ ${fmt(canone)}</div></div>
     </div>
-    <div class="chero">
-      <div class="chl">Canone mensile · IVA inclusa</div>
-      <div class="cha">
-        <span class="cur">€</span>
-        <span class="amount">${fmt(canone)}</span>
-        <span class="per">/mese</span>
-      </div>
-      <div class="sub">Per ${prev.durata_mesi} mesi · ${fmtN(prev.km_annui)} km/anno<br>${fmtN(kmTotali)} km totali</div>
-      <div class="ant">
-        <span class="al">Anticipo</span>
-        <span class="av">€ ${fmt(anticipo)}</span>
-      </div>
+    <div class="vh-right">
+      ${carSvg}
     </div>
   </div>
 
-  <div class="svcs">
-    <div class="stitle">
+  <!-- Canone hero -->
+  <div class="canone-hero">
+    <div class="ch-left">
+      <div class="ch-label">Canone mensile · IVA inclusa</div>
+      <div class="ch-amount">
+        <span class="ch-cur">€</span>
+        <span class="ch-num">${fmt(canone)}</span>
+        <span class="ch-per">/mese</span>
+      </div>
+      <div class="ch-sub">Per ${prev.durata_mesi} mesi · ${fmtN(prev.km_annui)} km/anno · ${fmtN(kmTotali)} km totali</div>
+    </div>
+    <div class="ch-divider"></div>
+    <div class="ch-right">
+      <div class="ch-ant-label">Anticipo</div>
+      <div class="ch-ant-val">€ ${fmt(anticipo)}</div>
+      <div class="ch-ant-net">IVA esclusa: € ${fmt(anticipoNetto)}</div>
+    </div>
+  </div>
+
+  <!-- Tabella composizione canone -->
+  <div class="ctable-wrap">
+    <div class="ctable-title">Composizione del canone mensile</div>
+    <table class="ct">
+      <thead>
+        <tr>
+          <th style="text-align:left;">Voce</th>
+          <th>IVA esclusa</th>
+          <th>IVA inclusa (22%)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Quota Canone Veicolo</td><td>€ ${fmt(qVN)}</td><td>€ ${fmt(qVL)}</td></tr>
+        <tr><td>Quota Canone Servizi</td><td>€ ${fmt(qSN)}</td><td>€ ${fmt(qSL)}</td></tr>
+        <tr><td>Anticipo</td><td>€ ${fmt(anticipoNetto)}</td><td>€ ${fmt(anticipo)}</td></tr>
+        <tr class="total-row"><td>Canone Mensile Totale</td><td>€ ${fmt(canoneNetto)}</td><td>€ ${fmt(canone)}</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Servizi inclusi -->
+  <div class="svcs-wrap">
+    <div class="svcs-header">
       <h3>Servizi inclusi nel canone</h3>
-      <span class="badge">${SERVIZI.length} servizi</span>
-      <span class="rule"></span>
+      <span class="svcs-rule"></span>
+      <span class="svcs-badge">${SERVIZI.length} servizi</span>
     </div>
     ${noteExtra}
-    <div class="sgrid">${serviziHTML}</div>
+    <div class="svcs-grid">${serviziHTML}</div>
   </div>
 
+  <!-- Footer -->
   <div class="foot">
-    <div><span class="dot"></span><strong style="color:#0E1A2E;">Nolosubito S.r.l.</strong> · info@nolosubito.it · nolosubito.it · +39 06 400 49490</div>
-    <div>Pagina 1 di 2</div>
+    <div class="foot-left"><strong>Nolosubito S.r.l.</strong> · info@nolosubito.it · nolosubito.it · +39 06 400 49490</div>
+    <div class="foot-right">Pagina 1 di 2</div>
   </div>
+
 </div>
 
-<!-- ══ PAGINA 2 ══ -->
+<!-- ══════════════════ PAGINA 2 ══════════════════ -->
 <div class="page">
-  <div class="topbar"></div>
 
+  <!-- Header identico -->
   <div class="header">
-    <div class="logo">
-      <div class="logo-box">${logoContent}</div>
+    <div class="header-left">
+      <div class="header-logo">${logoContent}</div>
+      <div class="header-divider"></div>
+      <div class="header-tagline">Noleggio a Lungo Termine</div>
+    </div>
+    <div class="header-right">
+      <div class="offer-label">Offerta N.</div>
+      <div class="offer-num">${rif}</div>
+      <div class="offer-date">Emessa il ${oggi}</div>
+    </div>
+  </div>
+
+  <div class="p2-content">
+
+    <!-- Dettagli veicolo -->
+    <div class="section-title">Caratteristiche del veicolo — ${prev.veicolo_marca} ${prev.veicolo_modello}${prev.veicolo_versione ? ' ' + prev.veicolo_versione : ''}</div>
+    <div class="specs-grid">
       <div>
-        <div class="logo-name">nolosubito</div>
-        <div class="logo-tag">Noleggio a Lungo Termine</div>
+        ${[
+          ['Marca', prev.veicolo_marca || '—'],
+          ['Modello', prev.veicolo_modello || '—'],
+          ...(prev.veicolo_versione ? [['Versione', prev.veicolo_versione]] : []),
+          ...(prev.alimentazione ? [['Alimentazione', prev.alimentazione]] : []),
+          ['Durata contratto', `${prev.durata_mesi} mesi`],
+        ].map(([k,v]) => `<div class="spec-row"><span class="sk">${k}</span><span class="sv">${v}</span></div>`).join('')}
+      </div>
+      <div>
+        ${[
+          ['Km annui', `${fmtN(prev.km_annui)} km`],
+          ['Km totali', `${fmtN(kmTotali)} km`],
+          ['Anticipo', `€ ${fmt(anticipo)}`],
+          ['Canone IVA esclusa', `€ ${fmt(canoneNetto)}/mese`],
+          ['Canone IVA inclusa', `€ ${fmt(canone)}/mese`],
+        ].map(([k,v]) => `<div class="spec-row"><span class="sk">${k}</span><span class="sv">${v}</span></div>`).join('')}
       </div>
     </div>
-    <div class="header-meta">
-      <div class="lbl">Offerta N.</div>
-      <div class="num">${rif}</div>
-      <div class="dt">Emessa il ${oggi}</div>
-    </div>
-  </div>
 
-  <div class="titleblock" style="padding-bottom:10px;">
-    <div class="eyebrow">Dettagli tecnici</div>
-    <h1 style="font-size:18px;">Caratteristiche del veicolo<br><em style="font-size:16px;">${prev.veicolo_marca} ${prev.veicolo_modello}${prev.veicolo_versione ? ' ' + prev.veicolo_versione : ''}</em></h1>
-  </div>
-
-  <div class="specs">
-    <div>
-      ${[
-        ['Marca', prev.veicolo_marca || '—'],
-        ['Modello', prev.veicolo_modello || '—'],
-        ...(prev.veicolo_versione ? [['Versione', prev.veicolo_versione]] : []),
-        ...(prev.alimentazione ? [['Alimentazione', prev.alimentazione]] : []),
-        ['Durata contratto', `${prev.durata_mesi} mesi`],
-        ['Km annui', `${fmtN(prev.km_annui)} km`],
-      ].map(([k,v]) => `<div class="spec-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
-    </div>
-    <div>
-      ${[
-        ['Km totali', `${fmtN(kmTotali)} km`],
-        ['Anticipo', `€ ${fmt(anticipo)}`],
-        ['Canone IVA esclusa', `€ ${fmt(canoneNetto)}/mese`],
-        ['Canone IVA inclusa', `€ ${fmt(canone)}/mese`],
-      ].map(([k,v]) => `<div class="spec-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
-    </div>
-  </div>
-
-  <hr class="divider"/>
-
-  <div class="why">
-    <div class="stitle" style="margin-bottom:10px;">
-      <h3>Perché scegliere Nolosubito</h3>
-      <span class="rule"></span>
-    </div>
+    <!-- Perché Nolosubito -->
+    <div class="section-title">Perché scegliere Nolosubito</div>
     <div class="why-grid">
-      <div class="why-card"><div class="ic">🛡</div><h4>Canone tutto incluso</h4><p>Un solo importo fisso al mese, costi pianificabili senza sorprese.</p></div>
-      <div class="why-card"><div class="ic">⏱</div><h4>15+ anni di esperienza</h4><p>Sedi a Roma, Napoli, Avellino e Salerno con rete su tutta Italia.</p></div>
-      <div class="why-card"><div class="ic">✅</div><h4>Burocrazia zero</h4><p>Immatricolazione, bollo, assicurazione: gestiamo tutto noi.</p></div>
-      <div class="why-card"><div class="ic">💬</div><h4>Customer Care H24</h4><p>Assistenza stradale e consulenti dedicati per tutta la durata.</p></div>
+      <div class="why-card">
+        <div class="why-icon">🛡️</div>
+        <h4>Canone tutto incluso</h4>
+        <p>Un solo importo fisso al mese, costi pianificabili senza sorprese.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">⏱️</div>
+        <h4>15+ anni di esperienza</h4>
+        <p>Sedi a Roma, Napoli, Avellino e Salerno con rete su tutta Italia.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">✅</div>
+        <h4>Burocrazia zero</h4>
+        <p>Immatricolazione, bollo, assicurazione: gestiamo tutto noi.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-icon">💬</div>
+        <h4>Customer Care H24</h4>
+        <p>Assistenza stradale e consulenti dedicati per tutta la durata.</p>
+      </div>
     </div>
+
+    <!-- CTA -->
+    <div class="cta-band">
+      <div>
+        <div class="cta-title">Accettando l'offerta, attiviamo subito la pratica.</div>
+        <div class="cta-sub">Pronta consegna · Procedura digitale · Risposta in 24h</div>
+      </div>
+      <a class="cta-btn" href="mailto:info@nolosubito.it?subject=Accettazione%20offerta%20${rif}">Accetta offerta →</a>
+    </div>
+
+    <!-- Firma -->
+    <div class="sign-grid">
+      <div class="sign-block">
+        <div class="sign-label">Per il Cliente</div>
+        <div class="sign-name">${clienteNome || 'Cliente'} · firma per accettazione</div>
+      </div>
+      <div class="sign-block">
+        <div class="sign-label">Per Nolosubito S.r.l.</div>
+        <div class="sign-name">Il consulente di vendita</div>
+      </div>
+    </div>
+
+    <!-- Legal -->
+    <div class="legal">
+      <h5>Note e condizioni</h5>
+      <p><span class="nref">(1)</span> Il presente documento non costituisce offerta contrattuale ed è comunque soggetto alla successiva valutazione della nostra Società. I canoni sono stati formulati in base ai listini delle Case Costruttrici attualmente in vigore e potrebbero essere suscettibili di variazioni. Tutti gli importi, salvo ove espressamente indicato, si intendono al netto dell'IVA. L'imposta da applicare è pari al 22%, salvo differenti disposizioni di legge.</p>
+      <p><span class="nref">(2)</span> Le dotazioni del veicolo saranno quelle previste dalla Casa Costruttrice al momento della produzione. Nolosubito non risponde della correttezza dei medesimi così come di eventuali variazioni comunicate successivamente all'offerta.</p>
+      <p>R.C.A.: Responsabilità Civile Auto, prevede un massimale e/o una penale. Manutenzione ordinaria: controlli obbligatori periodici (tagliandi). Copertura Danni: garanzia per i danni subiti dal veicolo indipendentemente dalla responsabilità del conducente, salvo dolo o colpa grave.</p>
+      <h5>Informativa Privacy</h5>
+      <p>Il titolare del trattamento è Nolosubito S.r.l., Via degli Archivi di Stato 15, Roma. Dati trattati per fornirLe il preventivo richiesto, art. 6 par. 1 lett. b) GDPR. Per esercitare i Suoi diritti: info@nolosubito.it.</p>
+    </div>
+
   </div>
 
-  <div class="cta">
-    <div>
-      <div class="ct">Accettando l'offerta, attiviamo subito la pratica.</div>
-      <div class="cs">Pronta consegna · Procedura digitale · Risposta in 24h</div>
-    </div>
-    <a class="btn" href="mailto:info@nolosubito.it?subject=Accettazione%20offerta%20${rif}">Accetta offerta →</a>
-  </div>
-
-  <div class="sign">
-    <div class="sign-line">
-      <div class="slbl">Per il Cliente</div>
-      <div class="snm">${clienteNome || 'Cliente'} · firma per accettazione</div>
-    </div>
-    <div class="sign-line">
-      <div class="slbl">Per Nolosubito S.r.l.</div>
-      <div class="snm">Il consulente di vendita</div>
-    </div>
-  </div>
-
-  <hr class="divider"/>
-
-  <div class="legal">
-    <h4>Note e condizioni</h4>
-    <p><span class="nref">(1)</span> Il presente documento non costituisce offerta contrattuale ed è comunque soggetto alla successiva valutazione della nostra Società. I canoni sono stati formulati in base ai listini delle Case Costruttrici attualmente in vigore e potrebbero essere suscettibili di variazioni. Tutti gli importi, salvo ove espressamente indicato, si intendono al netto dell'IVA. L'imposta da applicare è pari al 22%, salvo differenti disposizioni di legge.</p>
-    <p><span class="nref">(2)</span> Le dotazioni del veicolo saranno quelle previste dalla Casa Costruttrice al momento della produzione. Nolosubito non risponde della correttezza dei medesimi così come di eventuali variazioni comunicate successivamente all'offerta.</p>
-    <p>R.C.A.: Responsabilità Civile Auto, prevede un massimale e/o una penale. Manutenzione ordinaria: controlli obbligatori periodici (tagliandi). Copertura Danni: garanzia per i danni subiti dal veicolo indipendentemente dalla responsabilità del conducente, salvo dolo o colpa grave.</p>
-    <h4>Informativa Privacy</h4>
-    <p>Il titolare del trattamento è Nolosubito S.r.l., Via degli Archivi di Stato 15, Roma. Dati trattati per fornirLe il preventivo richiesto, art. 6 par. 1 lett. b) GDPR. Per esercitare i Suoi diritti: info@nolosubito.it.</p>
-  </div>
-
+  <!-- Footer -->
   <div class="foot">
-    <div><span class="dot"></span><strong style="color:#0E1A2E;">Nolosubito S.r.l.</strong> · Via degli Archivi di Stato 15, Roma · info@nolosubito.it · +39 06 400 49490</div>
-    <div>Pagina 2 di 2 · Ed. 1 — ${mesAnno}</div>
+    <div class="foot-left"><strong>Nolosubito S.r.l.</strong> · Via degli Archivi di Stato 15, Roma · info@nolosubito.it · +39 06 400 49490</div>
+    <div class="foot-right">Pagina 2 di 2 · Ed. 1 — ${mesAnno}</div>
   </div>
+
 </div>
 
 </body>
 </html>`;
 
-  // Apri finestra di stampa
-  const win = window.open('', '_blank', 'width=900,height=700');
+  const win = window.open('', '_blank', 'width=960,height=750');
   if (!win) {
     alert('Abilita i popup per generare il PDF');
     return;
@@ -556,11 +739,10 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
   win.document.write(html);
   win.document.close();
 
-  // Attendi font e poi stampa
   win.onload = () => {
     setTimeout(() => {
       win.focus();
       win.print();
-    }, 1200);
+    }, 2000);
   };
 }
