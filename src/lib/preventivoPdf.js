@@ -11,6 +11,16 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
   const scadenza = new Date(Date.now() + 15 * 86400000).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
   const mesAnno  = new Date().toLocaleDateString('it-IT', { month: '2-digit', year: 'numeric' });
 
+  // Carica logo come base64 (stesso origine, nessun CORS)
+  const logoB64 = await fetch('/logo-bianco.png')
+    .then(r => r.ok ? r.blob() : null)
+    .then(b => b ? new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(b); }) : null)
+    .catch(() => null);
+
+  const logoContent = logoB64
+    ? `<img src="${logoB64}" alt="Nolosubito" style="height:30px;width:auto;display:block;"/>`
+    : `<span style="font-size:16px;font-weight:800;color:#fff;letter-spacing:-.01em;">nolosubito</span>`;
+
   const canone        = Number(prev.canone_finale ?? prev.canone_mensile);
   const canoneNetto   = canone / 1.22;
   const anticipo      = Number(prev.anticipo) || 0;
@@ -56,12 +66,10 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
 <meta charset="UTF-8"/>
 <title>Preventivo ${rif} - Nolosubito</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   body {
-    font-family: 'Manrope', Arial, sans-serif;
+    font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
     color: #0E1A2E;
     background: #fff;
     -webkit-print-color-adjust: exact;
@@ -107,9 +115,9 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
   }
   .logo-box img { width: 24px; height: 24px; object-fit: contain; }
   .logo-name { font-size: 18px; font-weight: 800; color: ${NAVY}; }
-  .logo-tag { font-size: 7px; letter-spacing: .12em; text-transform: uppercase; color: #8693AB; font-weight: 600; margin-top: 1px; }
+  .logo-tag { font-size: 7px; letter-spacing: .04em; text-transform: uppercase; color: #8693AB; font-weight: 600; margin-top: 1px; }
   .header-meta { text-align: right; }
-  .header-meta .lbl { font-size: 7px; letter-spacing: .16em; text-transform: uppercase; color: #8693AB; font-weight: 600; }
+  .header-meta .lbl { font-size: 7px; letter-spacing: .05em; text-transform: uppercase; color: #8693AB; font-weight: 600; }
   .header-meta .num { font-size: 14px; font-weight: 700; color: #0E1A2E; margin: 2px 0; }
   .header-meta .dt { font-size: 9px; color: #6b7280; }
   .header-meta .valid {
@@ -123,17 +131,17 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
   .titleblock { padding: 14px 20px 10px; }
   .eyebrow {
     display: inline-block;
-    font-size: 8px; letter-spacing: .18em; text-transform: uppercase;
+    font-size: 8px; letter-spacing: .06em; text-transform: uppercase;
     color: ${NAVY}; font-weight: 700;
     padding: 3px 7px; background: #E8EEF8; border-radius: 4px;
     margin-bottom: 7px;
   }
   .titleblock h1 {
-    font-size: 20px; font-weight: 800; letter-spacing: -.025em;
+    font-size: 24px; font-weight: 800; letter-spacing: -.02em;
     line-height: 1.15; color: ${NAVY}; margin-bottom: 7px;
   }
   .titleblock h1 em { font-style: normal; color: #1e2250; font-weight: 700; }
-  .titleblock p { font-size: 10px; line-height: 1.6; color: #374151; }
+  .titleblock p { font-size: 11px; line-height: 1.6; color: #374151; }
   .titleblock p strong { color: ${NAVY}; font-weight: 700; }
 
   /* ── PAIR ── */
@@ -143,7 +151,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
   }
   .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 11px 14px; }
   .card .ch {
-    font-size: 7.5px; letter-spacing: .16em; text-transform: uppercase;
+    font-size: 7.5px; letter-spacing: .05em; text-transform: uppercase;
     color: #6b7280; font-weight: 700; margin-bottom: 5px;
   }
   .card .name { font-size: 13px; font-weight: 700; color: #0E1A2E; margin-bottom: 4px; }
@@ -162,7 +170,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
     color: #fff;
   }
   .vehicle-info .btag {
-    font-size: 8px; letter-spacing: .18em; text-transform: uppercase;
+    font-size: 8px; letter-spacing: .06em; text-transform: uppercase;
     color: rgba(255,255,255,.6); font-weight: 600; margin-bottom: 4px;
   }
   .vehicle-info h2 { font-size: 15px; font-weight: 800; line-height: 1.2; margin-bottom: 3px; }
@@ -193,7 +201,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
     display: grid; grid-template-columns: 1.6fr 1fr 1fr;
     padding: 8px 12px;
     background: #F4F6FB; border-bottom: 1px solid #e5e7eb;
-    font-size: 7.5px; letter-spacing: .12em; text-transform: uppercase;
+    font-size: 7.5px; letter-spacing: .04em; text-transform: uppercase;
     color: #6b7280; font-weight: 700;
   }
   .ct-head div:not(:first-child) { text-align: right; }
@@ -213,7 +221,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
     color: #fff;
   }
   .chero .chl {
-    font-size: 7px; letter-spacing: .16em; text-transform: uppercase;
+    font-size: 7px; letter-spacing: .05em; text-transform: uppercase;
     color: rgba(255,255,255,.7); font-weight: 700; margin-bottom: 4px;
   }
   .chero .cha { display: flex; align-items: baseline; gap: 2px; line-height: 1; }
@@ -265,8 +273,8 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0; font-size: 8px; font-weight: 700;
   }
-  .service strong { display: block; font-weight: 600; color: #0E1A2E; }
-  .service .meta { display: block; color: #6b7280; font-size: 8px; }
+  .service strong { display: block; font-weight: 600; color: #0E1A2E; font-size: 10px; }
+  .service .meta { display: block; color: #6b7280; font-size: 9px; }
 
   /* ── FOOTER ── */
   .foot {
@@ -313,7 +321,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
   .sign-line .slbl { font-size: 7.5px; letter-spacing: .14em; text-transform: uppercase; color: #6b7280; font-weight: 600; }
   .sign-line .snm { font-size: 9.5px; color: #374151; margin-top: 2px; }
   .legal { padding: 0 20px 10px; font-size: 7.5px; line-height: 1.55; color: #6b7280; }
-  .legal h4 { font-size: 8px; letter-spacing: .12em; text-transform: uppercase; color: ${NAVY}; font-weight: 700; margin: 10px 0 4px; }
+  .legal h4 { font-size: 8px; letter-spacing: .04em; text-transform: uppercase; color: ${NAVY}; font-weight: 700; margin: 10px 0 4px; }
   .legal p { margin-bottom: 4px; }
   .nref { color: ${NAVY}; font-weight: 700; }
 
@@ -335,13 +343,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
 
   <div class="header">
     <div class="logo">
-      <div class="logo-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#F96209" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;">
-          <circle cx="12" cy="12" r="8"/>
-          <circle cx="12" cy="12" r="2.5" fill="#F96209" stroke="none"/>
-          <path d="M12 4v3M12 17v3M4 12h3M17 12h3"/>
-        </svg>
-      </div>
+      <div class="logo-box">${logoContent}</div>
       <div>
         <div class="logo-name">nolosubito</div>
         <div class="logo-tag">Noleggio a Lungo Termine</div>
@@ -455,13 +457,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
 
   <div class="header">
     <div class="logo">
-      <div class="logo-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#F96209" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;">
-          <circle cx="12" cy="12" r="8"/>
-          <circle cx="12" cy="12" r="2.5" fill="#F96209" stroke="none"/>
-          <path d="M12 4v3M12 17v3M4 12h3M17 12h3"/>
-        </svg>
-      </div>
+      <div class="logo-box">${logoContent}</div>
       <div>
         <div class="logo-name">nolosubito</div>
         <div class="logo-tag">Noleggio a Lungo Termine</div>
@@ -568,6 +564,6 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
     setTimeout(() => {
       win.focus();
       win.print();
-    }, 800);
+    }, 1200);
   };
 }
