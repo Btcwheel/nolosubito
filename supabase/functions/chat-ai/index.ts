@@ -20,7 +20,7 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: CORS });
 
   try {
-    const { messages, session_id } = await req.json();
+    const { messages, session_id } = await req.json() as any;
     const sessionId: string = session_id || crypto.randomUUID();
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "messages array required" }), {

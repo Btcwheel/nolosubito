@@ -8,7 +8,7 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
@@ -70,7 +70,7 @@ Regole:
       }),
     });
 
-    const data = await response.json();
+    const data = await response.json() as any;
     const raw = data.content?.[0]?.text ?? "{}";
 
     // Estrai il JSON dalla risposta (Claude potrebbe aggiungere testo intorno)

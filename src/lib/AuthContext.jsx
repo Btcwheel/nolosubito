@@ -51,9 +51,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signInWithMagicLink = async (email) => {
+    const siteUrl = import.meta.env.VITE_SITE_URL ?? "https://nolosubito.it";
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/mia-pratica` },
+      options: { emailRedirectTo: `${siteUrl}/mia-pratica` },
     });
     if (error) throw error;
   };

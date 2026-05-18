@@ -3,8 +3,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')!
 
-Deno.serve(async (req) => {
-  const { to, subject, html } = await req.json()
+Deno.serve(async (req: Request) => {
+  const { to, subject, html } = await req.json() as any;
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {

@@ -149,7 +149,7 @@ Restituisci JSON con chiave "articles", array di 2 oggetti:
   throw new Error("Formato risposta Groq non riconosciuto: " + text.slice(0, 200));
 }
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: CORS });
   }

@@ -15,7 +15,7 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  const { clienteNome, clienteEmail, pdfBase64, veicolo, canone } = await req.json();
+  const { clienteNome, clienteEmail, pdfBase64, veicolo, canone } = await req.json() as any;
 
   if (!clienteEmail || !pdfBase64) {
     return new Response(JSON.stringify({ error: "clienteEmail e pdfBase64 sono obbligatori" }), {

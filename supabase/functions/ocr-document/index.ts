@@ -8,7 +8,7 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-Deno.serve(async (req) => {
+Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
       }),
     });
 
-    const data = await response.json();
+    const data = await response.json() as any;
     const text = data.content?.[0]?.text ?? "";
 
     return new Response(JSON.stringify({ text }), {
