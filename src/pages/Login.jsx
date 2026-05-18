@@ -62,7 +62,7 @@ export default function Login({ context = "internal" }) {
   const [showPw, setShowPw]           = useState(false);
   const [loading, setLoading]         = useState(false);
   const [otpSent, setOtpSent]         = useState(false);
-  const [otpDigits, setOtpDigits]     = useState(["", "", "", "", "", ""]);
+  const [otpDigits, setOtpDigits]     = useState(["", "", "", "", "", "", "", ""]);
   const [focused, setFocused]         = useState(null);
   const otpRefs                        = useRef([]);
 
@@ -92,12 +92,12 @@ export default function Login({ context = "internal" }) {
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     const token = otpDigits.join("");
-    if (token.length < 6) return;
+    if (token.length < 8) return;
     setLoading(true);
     try { await verifyOtp(email, token); }
     catch (err) {
       toast({ title: "Codice non valido", description: "Controlla il codice e riprova.", variant: "destructive" });
-      setOtpDigits(["", "", "", "", "", ""]);
+      setOtpDigits(["", "", "", "", "", "", "", ""]);
       otpRefs.current[0]?.focus();
     }
     finally { setLoading(false); }
@@ -108,7 +108,7 @@ export default function Login({ context = "internal" }) {
     const next = [...otpDigits];
     next[i] = digit;
     setOtpDigits(next);
-    if (digit && i < 5) otpRefs.current[i + 1]?.focus();
+    if (digit && i < 7) otpRefs.current[i + 1]?.focus();
   };
 
   const handleOtpKeyDown = (i, e) => {
@@ -124,7 +124,7 @@ export default function Login({ context = "internal" }) {
     const next = [...otpDigits];
     text.split("").forEach((d, idx) => { next[idx] = d; });
     setOtpDigits(next);
-    otpRefs.current[Math.min(text.length, 5)]?.focus();
+    otpRefs.current[Math.min(text.length, 7)]?.focus();
   };
 
   return (
@@ -390,7 +390,7 @@ export default function Login({ context = "internal" }) {
 
                 <Button
                   type="submit"
-                  disabled={loading || otpDigits.join("").length < 6}
+                  disabled={loading || otpDigits.join("").length < 8}
                   className="w-full h-13 bg-navy hover:bg-navy-light text-white font-semibold rounded-xl cursor-pointer transition-all duration-200 shadow-lg shadow-navy/20 py-3.5"
                 >
                   {loading
