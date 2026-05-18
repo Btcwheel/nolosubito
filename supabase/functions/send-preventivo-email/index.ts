@@ -37,13 +37,17 @@ serve(async (req: Request) => {
     return new Response("Method Not Allowed", { status: 405 });
   }
 
+  console.log("[send-preventivo-email] avviata");
+
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-    console.warn("Configurazione SMTP mancante — email non inviata");
+    console.warn("[send-preventivo-email] SMTP non configurato — skipped");
     return new Response(JSON.stringify({ ok: true, skipped: true, reason: "SMTP not configured" }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   }
+
+  console.log("[send-preventivo-email] SMTP configurato:", SMTP_HOST, SMTP_PORT);
 
   let preventivoId: string, praticaId: string;
   try {
@@ -51,6 +55,8 @@ serve(async (req: Request) => {
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400 });
   }
+
+  console.log("[send-preventivo-email] preventivoId:", preventivoId, "praticaId:", praticaId);
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -61,8 +67,11 @@ serve(async (req: Request) => {
     .single();
 
   if (pe || !pratica) {
+    console.error("[send-preventivo-email] Pratica non trovata:", pe?.message);
     return new Response(JSON.stringify({ error: "Pratica not found" }), { status: 404 });
   }
+
+  console.log("[send-preventivo-email] pratica trovata:", pratica.codice);
 
   const { data: prev, error: ve } = await supabase
     .from("preventivi")
@@ -71,8 +80,11 @@ serve(async (req: Request) => {
     .single();
 
   if (ve || !prev) {
+    console.error("[send-preventivo-email] Preventivo non trovato:", ve?.message);
     return new Response(JSON.stringify({ error: "Preventivo not found" }), { status: 404 });
   }
+
+  console.log("[send-preventivo-email] preventivo trovato, invio email a:", pratica.cliente_email);
 
   const areaLink = `${SITE_URL}/mia-pratica?email=${encodeURIComponent(pratica.cliente_email)}`;
 
@@ -123,10 +135,11 @@ serve(async (req: Request) => {
       }),
     });
   } catch (err) {
-    console.error("Errore SMTP:", err);
+    console.error("[send-preventivo-email] Errore SMTP:", String(err));
     return new Response(JSON.stringify({ error: String(err) }), { status: 500 });
   }
 
+  console.log("[send-preventivo-email] email inviate con successo");
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
     headers: { "Content-Type": "application/json" },
