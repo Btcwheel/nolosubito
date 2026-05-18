@@ -115,12 +115,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
         // Logo testuale col colore brand
         {
           stack: [
-            {
-              text: [
-                { text: 'nolo', color: NAVY, bold: true, fontSize: 18 },
-                { text: 'subito', color: ORANGE, bold: true, fontSize: 18 },
-              ],
-            },
+            { text: 'nolosubito', color: NAVY, bold: true, fontSize: 18 },
             { text: 'NOLEGGIO A LUNGO TERMINE', fontSize: 6.5, color: MUTED, characterSpacing: 1.2, margin: [0, 1, 0, 0] },
           ],
           width: '*',
