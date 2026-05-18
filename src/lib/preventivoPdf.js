@@ -134,7 +134,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
 
   rows.forEach((row, i) => {
     const rowY = y + i * rowH;
-    doc.setFillColor(i % 2 === 0 ? 255 : ...GRAY1);
+    if (i % 2 === 0) doc.setFillColor(255, 255, 255); else doc.setFillColor(...GRAY1);
     doc.rect(ML, rowY, CW, rowH, 'F');
     doc.setDrawColor(...BORDER);
     doc.setLineWidth(0.2);
@@ -177,7 +177,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
   ];
 
   canoneRows.forEach((row, i) => {
-    doc.setFillColor(i % 2 === 0 ? 255 : ...GRAY1);
+    if (i % 2 === 0) doc.setFillColor(255, 255, 255); else doc.setFillColor(...GRAY1);
     doc.rect(ML, y, CW, rowH, 'F');
     doc.setDrawColor(...BORDER);
     doc.rect(ML, y, CW, rowH, 'S');
