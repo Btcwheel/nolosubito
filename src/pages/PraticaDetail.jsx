@@ -232,7 +232,7 @@ export default function PraticaDetail() {
 
         {/* Preventivi */}
         <div className="mb-6">
-          <PreventiviSection praticaId={id} />
+          <PreventiviSection praticaId={id} clienteNome={pratica.cliente_nome} />
         </div>
 
         {/* Documenti */}

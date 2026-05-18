@@ -11,12 +11,102 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import {
   Plus, Send, Trash2, CheckCircle2, XCircle,
-  Car, ChevronUp, Loader2, RotateCcw, Sparkles, Paperclip, Eye, EyeOff,
+  Car, ChevronUp, Loader2, RotateCcw, Sparkles, Paperclip, Eye, EyeOff, Download,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 
 const ANALYZE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-preventivo`;
+
+async function scaricaPreventivoPDF(prev, clienteNome) {
+  const { jsPDF } = await import('jspdf');
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const W = 210, margin = 18;
+  const fmt = (n) => n?.toLocaleString("it-IT") ?? "—";
+
+  doc.setFillColor(47, 53, 137);
+  doc.rect(0, 0, W, 42, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(22);
+  doc.text('Nolosubito', margin, 18);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(180, 190, 220);
+  doc.text('Noleggio a Lungo Termine', margin, 25);
+  const oggi = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
+  doc.setFontSize(9);
+  doc.text(`Data: ${oggi}`, W - margin, 18, { align: 'right' });
+  doc.text(`Rif. NS-${prev.id.slice(-6).toUpperCase()}`, W - margin, 24, { align: 'right' });
+
+  let y = 54;
+  doc.setTextColor(30, 34, 80);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.text('Preventivo Noleggio a Lungo Termine', margin, y);
+  y += 8;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(107, 114, 128);
+  if (clienteNome) { doc.text(`Cliente: ${clienteNome}`, margin, y); y += 6; }
+
+  y += 4;
+  doc.setFillColor(248, 249, 252);
+  doc.roundedRect(margin, y, W - margin * 2, 12, 3, 3, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(30, 34, 80);
+  doc.text(`${prev.veicolo_marca} ${prev.veicolo_modello}`, margin + 4, y + 8);
+  if (prev.alimentazione) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(107, 114, 128);
+    doc.text(prev.alimentazione, W - margin - 4, y + 8, { align: 'right' });
+  }
+  y += 18;
+
+  const cols = [
+    { label: 'Durata', value: `${prev.durata_mesi} mesi` },
+    { label: 'Km/anno', value: fmt(prev.km_annui) },
+    { label: 'Anticipo', value: prev.anticipo > 0 ? `€${fmt(prev.anticipo)}` : 'Senza anticipo' },
+    { label: 'Canone mensile', value: `€${fmt(prev.canone_finale ?? prev.canone_mensile)}/mese` },
+  ];
+  const colW = (W - margin * 2) / cols.length;
+  cols.forEach((col, i) => {
+    const x = margin + i * colW;
+    doc.setFillColor(i === 3 ? 249 : 255, i === 3 ? 247 : 255, i === 3 ? 237 : 255);
+    doc.roundedRect(x, y, colW - 2, 20, 2, 2, 'F');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(107, 114, 128);
+    doc.text(col.label, x + colW / 2 - 1, y + 6, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(i === 3 ? 11 : 10);
+    doc.setTextColor(i === 3 ? 249 : 30, i === 3 ? 98 : 34, i === 3 ? 9 : 80);
+    doc.text(col.value, x + colW / 2 - 1, y + 14, { align: 'center' });
+  });
+  y += 26;
+
+  if (prev.note_cliente) {
+    doc.setFillColor(255, 247, 237);
+    doc.roundedRect(margin, y, W - margin * 2, 20, 3, 3, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(249, 98, 9);
+    doc.text('Note', margin + 4, y + 6);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(55, 65, 81);
+    const lines = doc.splitTextToSize(prev.note_cliente, W - margin * 2 - 8);
+    doc.text(lines.slice(0, 2), margin + 4, y + 12);
+    y += 26;
+  }
+
+  doc.setFontSize(8);
+  doc.setTextColor(156, 163, 175);
+  doc.text('Nolosubito · info@nolosubito.it · nolosubito.it', W / 2, 287, { align: 'center' });
+
+  doc.save(`Preventivo_${prev.veicolo_marca}_${prev.veicolo_modello}_NS-${prev.id.slice(-6).toUpperCase()}.pdf`);
+}
 const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -65,7 +155,14 @@ function FieldGroup({ label, required, children }) {
   );
 }
 
-function PreventivoCard({ prev, onInvia, onReinvia, onDelete, isLoading }) {
+function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoading }) {
+  const [downloading, setDownloading] = React.useState(false);
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try { await scaricaPreventivoPDF(prev, clienteNome); }
+    finally { setDownloading(false); }
+  };
   const cfg = STATUS_CFG[prev.status] ?? STATUS_CFG.Bozza;
 
   return (
@@ -151,6 +248,16 @@ function PreventivoCard({ prev, onInvia, onReinvia, onDelete, isLoading }) {
 
       {/* Actions */}
       <div className="flex items-center gap-2 pt-1 border-t border-border/30">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleDownload}
+          disabled={downloading}
+          className="gap-1.5 text-muted-foreground"
+        >
+          {downloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+          PDF
+        </Button>
         {prev.status === "Bozza" && (
           <>
             <Button
@@ -202,7 +309,7 @@ function PreventivoCard({ prev, onInvia, onReinvia, onDelete, isLoading }) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function PreventiviSection({ praticaId }) {
+export default function PreventiviSection({ praticaId, clienteNome }) {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
@@ -555,6 +662,7 @@ export default function PreventiviSection({ praticaId }) {
             <PreventivoCard
               key={p.id}
               prev={p}
+              clienteNome={clienteNome}
               onInvia={(id) => inviaMut.mutate(id)}
               onReinvia={(id) => reinviaMut.mutate(id)}
               onDelete={(id) => deleteMut.mutate(id)}
