@@ -60,10 +60,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const sendOtp = async (email) => {
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { shouldCreateUser: false },
-    });
+    const { error } = await supabase.auth.signInWithOtp({ email });
     if (error) throw error;
   };
 
