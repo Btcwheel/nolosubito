@@ -11,15 +11,15 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
   const scadenza = new Date(Date.now() + 15 * 86400000).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
   const mesAnno  = new Date().toLocaleDateString('it-IT', { month: '2-digit', year: 'numeric' });
 
-  // Carica logo come base64 (stesso origine, nessun CORS)
-  const logoB64 = await fetch('/logo-bianco.png')
+  // Carica logo blu SVG (visibile su sfondo chiaro e scuro)
+  const logoB64 = await fetch('/logo-blu.svg')
     .then(r => r.ok ? r.blob() : null)
     .then(b => b ? new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(b); }) : null)
     .catch(() => null);
 
   const logoContent = logoB64
-    ? `<img src="${logoB64}" alt="Nolosubito" style="height:30px;width:auto;display:block;"/>`
-    : `<span style="font-size:16px;font-weight:800;color:#fff;letter-spacing:-.01em;">nolosubito</span>`;
+    ? `<img src="${logoB64}" alt="Nolosubito" style="height:32px;width:auto;display:block;"/>`
+    : `<span style="font-size:16px;font-weight:800;color:${NAVY};letter-spacing:-.01em;">nolosubito</span>`;
 
   const canone        = Number(prev.canone_finale ?? prev.canone_mensile);
   const canoneNetto   = canone / 1.22;
@@ -108,12 +108,9 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
   }
   .logo { display: flex; align-items: center; gap: 10px; }
   .logo-box {
-    width: 38px; height: 38px;
-    background: ${NAVY};
-    border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
   }
-  .logo-box img { width: 24px; height: 24px; object-fit: contain; }
+  .logo-box img { height: 32px; width: auto; display: block; }
   .logo-name { font-size: 18px; font-weight: 800; color: ${NAVY}; }
   .logo-tag { font-size: 7px; letter-spacing: .04em; text-transform: uppercase; color: #8693AB; font-weight: 600; margin-top: 1px; }
   .header-meta { text-align: right; }
