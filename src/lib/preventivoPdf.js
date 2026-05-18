@@ -393,7 +393,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
   const specsBlock = {
     columns: [
       { stack: [makeSpecTable(specsRows)], width: '48%' },
-      { width: 10 },
+      { text: '', width: 10 },
       { stack: [makeSpecTable(specsRows2)], width: '*' },
     ],
     margin: [0, 0, 0, 16],
@@ -480,7 +480,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
         ],
         width: '48%',
       },
-      { width: 14 },
+      { text: '', width: 14 },
       {
         stack: [
           hr(DARK, 0),
