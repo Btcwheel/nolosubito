@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
+import { supabase } from "@/lib/supabase";
 import { praticheService } from "@/services/pratiche";
 import { preventiviService } from "@/services/preventivi";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,94 @@ import { motion, AnimatePresence } from "framer-motion";
 import StatusTimeline from "@/components/pratiche/StatusTimeline";
 import { PRATICA_STATUS_COLORS, DEFAULT_STATUS_COLOR } from "@/lib/praticaStatus";
 import { useToast } from "@/components/ui/use-toast";
+import { KeyRound, Eye, EyeOff } from "lucide-react";
+
+// ─── Set Password Dialog ──────────────────────────────────────────────────────
+
+function SetPasswordDialog({ open, onClose }) {
+  const { toast } = useToast();
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [show, setShow] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (password.length < 8) {
+      toast({ title: "Password troppo corta", description: "Minimo 8 caratteri.", variant: "destructive" });
+      return;
+    }
+    if (password !== confirm) {
+      toast({ title: "Le password non coincidono", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    const { error } = await supabase.auth.updateUser({
+      password,
+      data: { has_password: true },
+    });
+    setSaving(false);
+    if (error) {
+      toast({ title: "Errore", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Password impostata!", description: "Potrai usarla per i prossimi accessi." });
+      onClose();
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <KeyRound className="w-5 h-5 text-electric" />
+            Imposta la tua password
+          </DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-muted-foreground mb-4">
+          Scegli una password per accedere direttamente la prossima volta, senza bisogno del link via email.
+        </p>
+        <div className="space-y-3">
+          <div className="relative">
+            <Input
+              type={show ? "text" : "password"}
+              placeholder="Password (min. 8 caratteri)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShow((s) => !s)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            >
+              {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          <Input
+            type={show ? "text" : "password"}
+            placeholder="Conferma password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
+          <Button
+            className="w-full bg-electric hover:bg-electric/90 text-white"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            Salva password
+          </Button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full text-xs text-muted-foreground hover:text-foreground text-center py-1"
+          >
+            Salta per ora
+          </button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // ─── PDF preventivo cliente ───────────────────────────────────────────────────
 
@@ -489,6 +578,15 @@ export default function MiaPratica() {
   const [email, setEmail] = useState(emailFromUrl);
   const [searchEmail, setSearchEmail] = useState(emailFromUrl);
   const [submitted, setSubmitted] = useState(!!emailFromUrl);
+  const [showSetPassword, setShowSetPassword] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user && !user.user_metadata?.has_password) {
+        setShowSetPassword(true);
+      }
+    });
+  }, []);
 
   const { data: pratiche = [], isLoading } = useQuery({
     queryKey: ["mia-pratica", searchEmail],
@@ -509,6 +607,7 @@ export default function MiaPratica() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SetPasswordDialog open={showSetPassword} onClose={() => setShowSetPassword(false)} />
       {/* Hero */}
       <div className="bg-navy pt-28 pb-20 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(37,99,235,0.25)_0%,_transparent_60%)]" />

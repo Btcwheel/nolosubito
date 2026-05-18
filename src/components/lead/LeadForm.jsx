@@ -126,6 +126,7 @@ const FUEL_TYPE_MAP = {
 
 export default function LeadForm({ prefilledConfig }) {
   const { toast } = useToast();
+  const { signInWithMagicLink } = useAuth();
   const [submitted, setSubmitted]         = useState(false);
   const [sending, setSending]             = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
@@ -202,7 +203,10 @@ export default function LeadForm({ prefilledConfig }) {
         note_cliente:             f.note.trim() || null,
       });
 
-      setSubmittedEmail(f.email.trim().toLowerCase());
+      const email = f.email.trim().toLowerCase();
+      // Invia magic link — non blocca il flusso se fallisce
+      signInWithMagicLink(email).catch(() => {});
+      setSubmittedEmail(email);
       setSubmitted(true);
     } catch (err) {
       console.error("LeadForm error:", err);
@@ -226,25 +230,17 @@ export default function LeadForm({ prefilledConfig }) {
         className="py-8 px-2"
       >
         <div className="w-16 h-16 rounded-2xl bg-fuel-ev/10 flex items-center justify-center mx-auto mb-5">
-          <CheckCircle2 className="w-8 h-8 text-fuel-ev" />
+          <Mail className="w-8 h-8 text-fuel-ev" />
         </div>
         <h3 className="font-heading font-bold text-xl text-foreground text-center mb-2">
-          Richiesta ricevuta!
+          Controlla la tua email!
         </h3>
-        <p className="text-sm text-muted-foreground text-center mb-6 max-w-xs mx-auto leading-relaxed">
-          Il nostro team elaborerà il preventivo e ti contatterà entro 24 ore.
-          Puoi intanto seguire la tua pratica dalla tua area personale.
+        <p className="text-sm text-muted-foreground text-center mb-4 max-w-xs mx-auto leading-relaxed">
+          Abbiamo inviato un link di accesso a<br/>
+          <span className="font-semibold text-foreground">{submittedEmail}</span>
         </p>
-        <Link to={`/mia-pratica?email=${encodeURIComponent(submittedEmail)}`}>
-          <Button className="w-full h-12 bg-electric hover:bg-electric/90 text-white font-semibold rounded-xl text-sm cursor-pointer">
-            Accedi alla Tua Area Pratica
-            <ExternalLink className="w-4 h-4 ml-2" />
-          </Button>
-        </Link>
-        <p className="text-center text-xs text-muted-foreground mt-4">
-          Usa la tua email{" "}
-          <span className="font-medium text-foreground">{submittedEmail}</span>{" "}
-          per accedere
+        <p className="text-sm text-muted-foreground text-center max-w-xs mx-auto leading-relaxed">
+          Cliccalo per accedere alla tua area pratica. Il link è valido per 24 ore.
         </p>
       </motion.div>
     );
