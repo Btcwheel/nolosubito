@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, ClipboardList, Layers, FileText,
   LogOut, Menu, X, ChevronRight, ExternalLink,
@@ -159,38 +158,24 @@ export default function DashboardLayout() {
         <SidebarContent {...sidebarProps} />
       </aside>
 
-      {/* ── Mobile sidebar (drawer) ── */}
-      <AnimatePresence>
-        {sidebarOpen && (
-          <>
-            <motion.div
-              key="overlay"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/55 z-40 lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            />
-            <motion.aside
-              key="drawer"
-              initial={{ x: -240 }}
-              animate={{ x: 0 }}
-              exit={{ x: -240 }}
-              transition={{ type: "spring", damping: 28, stiffness: 280 }}
-              className="fixed inset-y-0 left-0 w-60 z-50 lg:hidden border-r border-white/6"
-            >
-              <SidebarContent {...sidebarProps} />
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="absolute top-4 right-3 p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
+      {/* ── Mobile sidebar (drawer) — CSS transition ── */}
+      {/* Overlay */}
+      <div
+        className={`fixed inset-0 bg-black/55 z-40 lg:hidden transition-opacity duration-200 ${sidebarOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+        onClick={() => setSidebarOpen(false)}
+      />
+      {/* Drawer */}
+      <aside
+        className={`fixed inset-y-0 left-0 w-60 z-50 lg:hidden border-r border-white/6 transition-transform duration-250 ease-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+      >
+        <SidebarContent {...sidebarProps} />
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="absolute top-4 right-3 p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </aside>
 
       {/* ── Main content ── */}
       <div className="flex-1 lg:pl-60 flex flex-col min-h-screen">

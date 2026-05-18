@@ -60,6 +60,7 @@ export default defineConfig({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
           motion: ['framer-motion'],
+          charts: ['recharts'],
           ui: ['lucide-react', 'clsx', 'tailwind-merge'],
         }
       }
