@@ -185,16 +185,24 @@ const SpecRow = ({ k, v }) => (
   </View>
 );
 
-const Header = ({ rif, oggi, scadenza, logoB64, showValid = true }) => (
+/* Logo circolare N — replica il brand mark Nolosubito */
+const NCircle = () => (
+  <Svg width="34" height="34" viewBox="0 0 34 34">
+    <Circle cx="17" cy="17" r="16" fill="rgba(255,255,255,0.18)" stroke="rgba(255,255,255,0.5)" strokeWidth="1.2"/>
+    <Path d="M11 10 L11 24 L14 24 L14 16 L20 24 L23 24 L23 10 L20 10 L20 18 L14 10 Z" fill="white"/>
+  </Svg>
+);
+
+const Header = ({ rif, oggi, scadenza, showValid = true }) => (
   <View style={S.hdr}>
     <View style={S.hdrLeft}>
-      {logoB64
-        ? <Image src={logoB64} style={{ height: 24, width: 110, objectFit: 'contain' }}/>
-        : <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#fff' }}>nolosubito</Text>
-      }
-      <View style={S.hdrSep}/>
-      <Text style={S.hdrTag}>NOLEGGIO A LUNGO TERMINE</Text>
+      <NCircle/>
+      <View style={{ marginLeft: 6 }}>
+        <Text style={{ fontSize: 13, fontWeight: 'bold', color: '#fff' }}>Nolosubito</Text>
+        <Text style={{ fontSize: 6.5, color: 'rgba(255,255,255,0.6)', marginTop: 1 }}>NOLEGGIO A LUNGO TERMINE</Text>
+      </View>
     </View>
+    <View style={S.hdrSep}/>
     <View style={S.hdrRight}>
       <Text style={S.hdrLabel}>OFFERTA N.</Text>
       <Text style={S.hdrNum}>{rif}</Text>
@@ -309,9 +317,9 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
       <Page size="A4" style={S.page}>
         <TopStripe/>
         <PageMeta showValid/>
-        <View style={[S.card, { margin: '0 11mm 9mm' }]}>
+        <View wrap={false} style={[S.card, { margin: '0 11mm 9mm' }]}>
 
-          <Header rif={rif} oggi={oggi} scadenza={scadenza} logoB64={logoB64} showValid/>
+          <Header rif={rif} oggi={oggi} scadenza={scadenza} showValid/>
 
           <View style={S.body}>
 
@@ -423,9 +431,9 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
       <Page size="A4" style={S.page}>
         <TopStripe/>
         <PageMeta showValid={false}/>
-        <View style={[S.card, { margin: '0 11mm 9mm' }]}>
+        <View wrap={false} style={[S.card, { margin: '0 11mm 9mm' }]}>
 
-          <Header rif={rif} oggi={oggi} scadenza={scadenza} logoB64={logoB64} showValid={false}/>
+          <Header rif={rif} oggi={oggi} scadenza={scadenza} showValid={false}/>
 
           <View style={S.p2body}>
 
