@@ -58,11 +58,13 @@ export const preventiviService = {
 
     // Trigger email (best-effort: non blocca se l'Edge Function non è configurata)
     try {
-      await supabase.functions.invoke('send-preventivo-email', {
+      console.log('[preventivi] invocazione send-preventivo-email', { preventivoId: id, praticaId: data.pratica_id });
+      const { data: fnData, error: fnError } = await supabase.functions.invoke('send-preventivo-email', {
         body: { preventivoId: id, praticaId: data.pratica_id },
       });
+      console.log('[preventivi] risposta send-preventivo-email', { fnData, fnError });
     } catch (e) {
-      console.warn('Email Edge Function non disponibile:', e.message);
+      console.warn('[preventivi] Email Edge Function errore:', e.message);
     }
 
     return data;
