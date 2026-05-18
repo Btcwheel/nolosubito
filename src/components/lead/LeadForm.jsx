@@ -15,10 +15,11 @@ import { praticheService } from "@/services/pratiche";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/AuthContext";
 import {
-  ArrowRight, Loader2, CheckCircle2, Mail,
+  ArrowRight, Loader2, CheckCircle2, Mail, ExternalLink,
   User, Briefcase, Building,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 // ─── Static data ────────────────────────────────────────────────────────────
 
