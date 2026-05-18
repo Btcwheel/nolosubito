@@ -32,9 +32,17 @@ const SUPABASE_URL         = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SITE_URL             = Deno.env.get("SITE_URL") ?? "https://nolosubito.it";
 
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
 serve(async (req: Request) => {
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: CORS });
+  }
   if (req.method !== "POST") {
-    return new Response("Method Not Allowed", { status: 405 });
+    return new Response("Method Not Allowed", { status: 405, headers: CORS });
   }
 
   console.log("[send-preventivo-email] avviata");
@@ -43,7 +51,7 @@ serve(async (req: Request) => {
     console.warn("[send-preventivo-email] SMTP non configurato — skipped");
     return new Response(JSON.stringify({ ok: true, skipped: true, reason: "SMTP not configured" }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
 
@@ -53,7 +61,7 @@ serve(async (req: Request) => {
   try {
     ({ preventivoId, praticaId } = await req.json());
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400 });
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: CORS });
   }
 
   console.log("[send-preventivo-email] preventivoId:", preventivoId, "praticaId:", praticaId);
@@ -68,7 +76,7 @@ serve(async (req: Request) => {
 
   if (pe || !pratica) {
     console.error("[send-preventivo-email] Pratica non trovata:", pe?.message);
-    return new Response(JSON.stringify({ error: "Pratica not found" }), { status: 404 });
+    return new Response(JSON.stringify({ error: "Pratica not found" }), { status: 404, headers: CORS });
   }
 
   console.log("[send-preventivo-email] pratica trovata:", pratica.codice);
@@ -81,7 +89,7 @@ serve(async (req: Request) => {
 
   if (ve || !prev) {
     console.error("[send-preventivo-email] Preventivo non trovato:", ve?.message);
-    return new Response(JSON.stringify({ error: "Preventivo not found" }), { status: 404 });
+    return new Response(JSON.stringify({ error: "Preventivo not found" }), { status: 404, headers: CORS });
   }
 
   console.log("[send-preventivo-email] preventivo trovato, invio email a:", pratica.cliente_email);
@@ -136,13 +144,13 @@ serve(async (req: Request) => {
     });
   } catch (err) {
     console.error("[send-preventivo-email] Errore SMTP:", String(err));
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500 });
+    return new Response(JSON.stringify({ error: String(err) }), { status: 500, headers: CORS });
   }
 
   console.log("[send-preventivo-email] email inviate con successo");
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
-    headers: { "Content-Type": "application/json" },
+    headers: { ...CORS, "Content-Type": "application/json" },
   });
 });
 
