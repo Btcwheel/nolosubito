@@ -1,19 +1,7 @@
 import {
-  Document, Page, View, Text, Image, Font, StyleSheet, Svg,
-  Circle, Path, Rect, Line, Defs, LinearGradient, Stop,
+  Document, Page, View, Text, Image, StyleSheet, Svg,
+  Circle, Path,
 } from '@react-pdf/renderer';
-
-/* ── Font ──────────────────────────────────────────────────────────────── */
-Font.register({
-  family: 'Inter',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiJ-Ek-_EeA.woff2', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiJ-Ek-_EeA.woff2', fontWeight: 600 },
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiJ-Ek-_EeA.woff2', fontWeight: 700 },
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuDyYAZ9hiJ-Ek-_EeA.woff2', fontWeight: 800 },
-    { src: 'https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuBXYAZ9hiJ-Ek-_EeA.woff2', fontWeight: 900 },
-  ],
-});
 
 const NAVY   = '#2D2E82';
 const ORANGE = '#F96209';
@@ -28,120 +16,120 @@ const fmt  = (n) => n != null ? Number(n).toLocaleString('it-IT', { minimumFract
 const fmtN = (n) => n != null ? Number(n).toLocaleString('it-IT') : '—';
 
 const S = StyleSheet.create({
-  page:         { backgroundColor: GRAY, fontFamily: 'Inter', fontSize: 9, color: DARK },
+  page:         { backgroundColor: GRAY, fontFamily: 'Helvetica', fontSize: 9, color: DARK },
   card:         { backgroundColor: '#fff', margin: '9mm 11mm', flex: 1, borderRadius: 4 },
 
   /* header */
   hdr:          { backgroundColor: NAVY, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'stretch', borderRadius: '4 4 0 0' },
   hdrLeft:      { flexDirection: 'row', alignItems: 'center', gap: 10, padding: '10 14' },
   hdrSep:       { width: 1, backgroundColor: 'rgba(255,255,255,0.25)', marginVertical: 8 },
-  hdrTag:       { fontSize: 7, letterSpacing: 1.2, color: 'rgba(255,255,255,0.6)', fontWeight: 600 },
+  hdrTag:       { fontSize: 7, letterSpacing: 1.2, color: 'rgba(255,255,255,0.6)', fontWeight: 'bold' },
   hdrRight:     { alignItems: 'flex-end', justifyContent: 'center', padding: '8 12', borderLeftWidth: 3, borderLeftColor: ORANGE },
-  hdrLabel:     { fontSize: 6.5, letterSpacing: 1, color: 'rgba(255,255,255,0.55)', fontWeight: 600 },
-  hdrNum:       { fontSize: 15, fontWeight: 800, color: '#fff', lineHeight: 1.1, marginTop: 1 },
+  hdrLabel:     { fontSize: 6.5, letterSpacing: 1, color: 'rgba(255,255,255,0.55)', fontWeight: 'bold' },
+  hdrNum:       { fontSize: 15, fontWeight: 'bold', color: '#fff', lineHeight: 1.1, marginTop: 1 },
   hdrDate:      { fontSize: 7.5, color: 'rgba(255,255,255,0.6)', marginTop: 1 },
   hdrValid:     { marginTop: 3, backgroundColor: ORANGE, borderRadius: 999, paddingVertical: 2, paddingHorizontal: 7 },
-  hdrValidTxt:  { fontSize: 7, fontWeight: 700, color: '#fff' },
+  hdrValidTxt:  { fontSize: 7, fontWeight: 'bold', color: '#fff' },
 
   /* body */
   body:         { padding: '12 14', flex: 1 },
-  eyebrow:      { fontSize: 7, letterSpacing: 1, fontWeight: 700, color: NAVY, backgroundColor: '#EAECF8', paddingVertical: 3, paddingHorizontal: 7, borderRadius: 3, alignSelf: 'flex-start', marginBottom: 7 },
-  h1:           { fontSize: 20, fontWeight: 900, lineHeight: 1.15, color: DARK, marginBottom: 5 },
+  eyebrow:      { fontSize: 7, letterSpacing: 1, fontWeight: 'bold', color: NAVY, backgroundColor: '#EAECF8', paddingVertical: 3, paddingHorizontal: 7, borderRadius: 3, alignSelf: 'flex-start', marginBottom: 7 },
+  h1:           { fontSize: 20, fontWeight: 'bold', lineHeight: 1.15, color: DARK, marginBottom: 5 },
   h1navy:       { color: NAVY },
   intro:        { fontSize: 9, lineHeight: 1.6, color: TEXT, marginBottom: 11 },
-  bold:         { fontWeight: 700, color: DARK },
+  bold:         { fontWeight: 'bold', color: DARK },
 
   /* client cards */
   clientGrid:   { flexDirection: 'row', gap: 8, marginBottom: 11 },
   clientCard:   { flex: 1, borderWidth: 1, borderColor: BORDER, borderRadius: 6, padding: '9 11' },
-  ccLabel:      { fontSize: 6.5, letterSpacing: 1, fontWeight: 700, color: MUTED, marginBottom: 5 },
-  ccName:       { fontSize: 11, fontWeight: 700, color: DARK, marginBottom: 3 },
+  ccLabel:      { fontSize: 6.5, letterSpacing: 1, fontWeight: 'bold', color: MUTED, marginBottom: 5 },
+  ccName:       { fontSize: 11, fontWeight: 'bold', color: DARK, marginBottom: 3 },
   ccRow:        { fontSize: 8.5, color: TEXT, marginTop: 2 },
 
   /* vehicle */
   vehicle:      { backgroundColor: NAVY, borderRadius: 6, padding: '13 14', marginBottom: 11 },
-  vLabel:       { fontSize: 6.5, letterSpacing: 1.2, fontWeight: 700, color: 'rgba(255,255,255,0.55)', marginBottom: 4 },
-  vName:        { fontSize: 17, fontWeight: 900, color: '#fff', lineHeight: 1.1, marginBottom: 2 },
+  vLabel:       { fontSize: 6.5, letterSpacing: 1.2, fontWeight: 'bold', color: 'rgba(255,255,255,0.55)', marginBottom: 4 },
+  vName:        { fontSize: 17, fontWeight: 'bold', color: '#fff', lineHeight: 1.1, marginBottom: 2 },
   vVer:         { fontSize: 9, color: 'rgba(255,255,255,0.7)', marginBottom: 9 },
   vChips:       { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
   chipHot:      { backgroundColor: ORANGE, borderRadius: 999, paddingVertical: 3, paddingHorizontal: 9 },
-  chipHotTxt:   { fontSize: 8, fontWeight: 700, color: '#fff' },
+  chipHotTxt:   { fontSize: 8, fontWeight: 'bold', color: '#fff' },
   chip:         { borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)', borderRadius: 999, paddingVertical: 3, paddingHorizontal: 9 },
-  chipTxt:      { fontSize: 8, fontWeight: 600, color: 'rgba(255,255,255,0.9)' },
+  chipTxt:      { fontSize: 8, fontWeight: 'bold', color: 'rgba(255,255,255,0.9)' },
 
   /* canone */
   canoneRow:    { flexDirection: 'row', gap: 9, marginBottom: 11 },
   ctWrap:       { flex: 1.6 },
-  ctLabel:      { fontSize: 7, letterSpacing: 0.8, fontWeight: 700, color: MUTED, marginBottom: 5 },
+  ctLabel:      { fontSize: 7, letterSpacing: 0.8, fontWeight: 'bold', color: MUTED, marginBottom: 5 },
   ctHead:       { flexDirection: 'row', backgroundColor: NAVY, paddingVertical: 5, paddingHorizontal: 7, borderRadius: '4 4 0 0' },
-  ctHCell:      { fontSize: 7, fontWeight: 700, color: '#fff', letterSpacing: 0.5 },
+  ctHCell:      { fontSize: 7, fontWeight: 'bold', color: '#fff', letterSpacing: 0.5 },
   ctRow:        { flexDirection: 'row', paddingVertical: 5, paddingHorizontal: 7, borderBottomWidth: 1, borderBottomColor: BORDER },
   ctRowAlt:     { backgroundColor: LGRAY },
   ctRowTot:     { backgroundColor: '#EAECF8', borderTopWidth: 1.5, borderTopColor: '#D0D4EF' },
   ctCell:       { fontSize: 8.5, color: DARK },
-  ctCellBold:   { fontSize: 9, fontWeight: 800, color: NAVY },
+  ctCellBold:   { fontSize: 9, fontWeight: 'bold', color: NAVY },
   cboxWrap:     { flex: 1, borderWidth: 1, borderColor: BORDER, borderRadius: 6, overflow: 'hidden' },
   cboxHdr:      { backgroundColor: NAVY, padding: '6 10' },
-  cboxHdrTxt:   { fontSize: 6.5, fontWeight: 700, letterSpacing: 0.8, color: '#fff' },
+  cboxHdrTxt:   { fontSize: 6.5, fontWeight: 'bold', letterSpacing: 0.8, color: '#fff' },
   cboxBody:     { padding: '9 10' },
   cboxPrice:    { flexDirection: 'row', alignItems: 'flex-end', gap: 2, marginBottom: 3 },
-  cboxCur:      { fontSize: 13, fontWeight: 700, color: ORANGE, lineHeight: 1.4 },
-  cboxNum:      { fontSize: 30, fontWeight: 900, color: ORANGE, lineHeight: 1 },
-  cboxPer:      { fontSize: 9.5, fontWeight: 600, color: MUTED, lineHeight: 1.6 },
+  cboxCur:      { fontSize: 13, fontWeight: 'bold', color: ORANGE, lineHeight: 1.4 },
+  cboxNum:      { fontSize: 30, fontWeight: 'bold', color: ORANGE, lineHeight: 1 },
+  cboxPer:      { fontSize: 9.5, fontWeight: 'bold', color: MUTED, lineHeight: 1.6 },
   cboxSub:      { fontSize: 7.5, color: MUTED, lineHeight: 1.5, marginBottom: 7 },
   cboxAnt:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 7, borderTopWidth: 1, borderTopColor: BORDER, borderTopStyle: 'dashed' },
   cboxAntL:     { fontSize: 8, color: TEXT },
-  cboxAntV:     { fontSize: 11, fontWeight: 800, color: NAVY },
+  cboxAntV:     { fontSize: 11, fontWeight: 'bold', color: NAVY },
 
   /* services */
   svcsHdr:      { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 7 },
-  svcsTitle:    { fontSize: 7, letterSpacing: 0.8, fontWeight: 700, color: MUTED },
+  svcsTitle:    { fontSize: 7, letterSpacing: 0.8, fontWeight: 'bold', color: MUTED },
   svcsRule:     { flex: 1, height: 1, backgroundColor: BORDER },
-  svcsBadge:    { fontSize: 7, fontWeight: 700, color: NAVY, backgroundColor: '#EAECF8', paddingVertical: 2, paddingHorizontal: 5, borderRadius: 3 },
+  svcsBadge:    { fontSize: 7, fontWeight: 'bold', color: NAVY, backgroundColor: '#EAECF8', paddingVertical: 2, paddingHorizontal: 5, borderRadius: 3 },
   svcsGrid:     { flexDirection: 'row', gap: 10 },
   svcsCol:      { flex: 1 },
   svcItem:      { flexDirection: 'row', gap: 5, alignItems: 'flex-start', paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: '#F1F3F9' },
-  svcName:      { fontSize: 9, fontWeight: 600, color: DARK },
+  svcName:      { fontSize: 9, fontWeight: 'bold', color: DARK },
   svcMeta:      { fontSize: 8, color: MUTED, marginTop: 1 },
 
   /* footer */
   foot:         { backgroundColor: NAVY, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: '7 14', borderRadius: '0 0 4 4' },
   footTxt:      { fontSize: 7.5, color: 'rgba(255,255,255,0.65)' },
-  footBold:     { fontWeight: 700, color: '#fff' },
+  footBold:     { fontWeight: 'bold', color: '#fff' },
 
   /* page 2 */
   p2body:       { padding: '12 14', flex: 1 },
-  secTitle:     { fontSize: 7, letterSpacing: 0.9, fontWeight: 700, color: MUTED, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: BORDER, marginBottom: 10 },
+  secTitle:     { fontSize: 7, letterSpacing: 0.9, fontWeight: 'bold', color: MUTED, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: BORDER, marginBottom: 10 },
   specs2col:    { flexDirection: 'row', gap: 28, marginBottom: 14 },
   specCol:      { flex: 1 },
   specRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingVertical: 5, borderBottomWidth: 1, borderBottomColor: '#F1F3F9' },
   specK:        { fontSize: 9, color: TEXT },
-  specV:        { fontSize: 9, fontWeight: 600, color: DARK, textAlign: 'right', maxWidth: '55%' },
+  specV:        { fontSize: 9, fontWeight: 'bold', color: DARK, textAlign: 'right', maxWidth: '55%' },
   valoreGrid:   { flexDirection: 'row', gap: 7, marginBottom: 14 },
   vbox:         { flex: 1, borderWidth: 1, borderColor: BORDER, borderRadius: 5, padding: '7 9' },
-  vboxL:        { fontSize: 6.5, letterSpacing: 0.8, fontWeight: 700, color: MUTED, marginBottom: 3 },
-  vboxV:        { fontSize: 13, fontWeight: 800, color: DARK },
+  vboxL:        { fontSize: 6.5, letterSpacing: 0.8, fontWeight: 'bold', color: MUTED, marginBottom: 3 },
+  vboxV:        { fontSize: 13, fontWeight: 'bold', color: DARK },
   vboxTot:      { flex: 1.1, backgroundColor: NAVY, borderRadius: 5, padding: '7 10', justifyContent: 'center' },
-  vboxTotL:     { fontSize: 6.5, letterSpacing: 0.8, fontWeight: 700, color: 'rgba(255,255,255,0.6)', marginBottom: 3 },
-  vboxTotV:     { fontSize: 13, fontWeight: 800, color: '#fff' },
+  vboxTotL:     { fontSize: 6.5, letterSpacing: 0.8, fontWeight: 'bold', color: 'rgba(255,255,255,0.6)', marginBottom: 3 },
+  vboxTotV:     { fontSize: 13, fontWeight: 'bold', color: '#fff' },
   whyGrid:      { flexDirection: 'row', gap: 7, marginBottom: 13 },
   whyCard:      { flex: 1, borderWidth: 1, borderColor: BORDER, borderRadius: 7, padding: '9 8', backgroundColor: '#FAFBFD' },
   whyIc:        { fontSize: 16, marginBottom: 4 },
-  whyH:         { fontSize: 8.5, fontWeight: 700, color: DARK, marginBottom: 3 },
+  whyH:         { fontSize: 8.5, fontWeight: 'bold', color: DARK, marginBottom: 3 },
   whyP:         { fontSize: 7.5, color: MUTED, lineHeight: 1.4 },
   cta:          { backgroundColor: ORANGE, borderRadius: 8, padding: '12 14', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 13 },
-  ctaTitle:     { fontSize: 11, fontWeight: 800, color: '#fff', marginBottom: 2 },
+  ctaTitle:     { fontSize: 11, fontWeight: 'bold', color: '#fff', marginBottom: 2 },
   ctaSub:       { fontSize: 8, color: 'rgba(255,255,255,0.85)' },
   ctaBtn:       { backgroundColor: NAVY, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12 },
-  ctaBtnTxt:    { fontSize: 7.5, fontWeight: 800, color: '#fff', letterSpacing: 0.8 },
+  ctaBtnTxt:    { fontSize: 7.5, fontWeight: 'bold', color: '#fff', letterSpacing: 0.8 },
   signGrid:     { flexDirection: 'row', gap: 28, marginBottom: 13 },
   signBl:       { flex: 1, borderTopWidth: 1.5, borderTopColor: DARK, paddingTop: 5 },
-  signLbl:      { fontSize: 7, letterSpacing: 1.2, fontWeight: 700, color: MUTED },
+  signLbl:      { fontSize: 7, letterSpacing: 1.2, fontWeight: 'bold', color: MUTED },
   signNm:       { fontSize: 9, color: TEXT, marginTop: 2 },
   legal:        { fontSize: 7, lineHeight: 1.55, color: MUTED },
-  legalH:       { fontSize: 7, letterSpacing: 0.7, fontWeight: 700, color: NAVY, marginTop: 7, marginBottom: 3 },
+  legalH:       { fontSize: 7, letterSpacing: 0.7, fontWeight: 'bold', color: NAVY, marginTop: 7, marginBottom: 3 },
   legalP:       { marginBottom: 3 },
-  nref:         { color: NAVY, fontWeight: 700 },
+  nref:         { color: NAVY, fontWeight: 'bold' },
 });
 
 /* Componenti helper */
@@ -188,7 +176,7 @@ const Header = ({ rif, oggi, scadenza, logoB64, showValid = true }) => (
     <View style={S.hdrLeft}>
       {logoB64
         ? <Image src={logoB64} style={{ height: 26, width: 'auto' }}/>
-        : <Text style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>nolosubito</Text>
+        : <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#fff' }}>nolosubito</Text>
       }
       <View style={S.hdrSep}/>
       <Text style={S.hdrTag}>NOLEGGIO A LUNGO TERMINE</Text>
@@ -409,7 +397,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
 
             <Text style={S.eyebrow}>DETTAGLI TECNICI</Text>
             <Text style={[S.h1, { fontSize: 16, marginBottom: 2 }]}>Caratteristiche del veicolo</Text>
-            <Text style={[S.h1navy, { fontSize: 13, fontWeight: 700, marginBottom: 11 }]}>
+            <Text style={[S.h1navy, { fontSize: 13, fontWeight: 'bold', marginBottom: 11 }]}>
               {prev.veicolo_marca} {prev.veicolo_modello}{prev.veicolo_versione ? ' ' + prev.veicolo_versione : ''}
             </Text>
 
