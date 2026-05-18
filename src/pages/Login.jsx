@@ -118,7 +118,7 @@ export default function Login({ context = "internal" }) {
   };
 
   const handleOtpPaste = (e) => {
-    const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 8);
     if (!text) return;
     e.preventDefault();
     const next = [...otpDigits];
