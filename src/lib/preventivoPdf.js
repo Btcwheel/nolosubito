@@ -124,7 +124,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
         {
           stack: [
             { text: 'OFFERTA N.', fontSize: 7, color: MUTED, bold: true, characterSpacing: 1.2 },
-            { text: rif, fontSize: 14, bold: true, color: DARK, font: 'Courier', margin: [0, 1, 0, 1] },
+            { text: rif, fontSize: 14, bold: true, color: DARK, margin: [0, 1, 0, 1] },
             { text: `Emessa il ${oggi}`, fontSize: 9, color: MUTED },
             ...(page1 ? [{
               text: `● Valida fino al ${scadenza}`,
