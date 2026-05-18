@@ -60,7 +60,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const sendOtp = async (email) => {
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    const siteUrl = import.meta.env.VITE_SITE_URL ?? "https://nolosubito.it";
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${siteUrl}/mia-pratica` },
+    });
     if (error) throw error;
   };
 
