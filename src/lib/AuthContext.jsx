@@ -59,6 +59,24 @@ export const AuthProvider = ({ children }) => {
     if (error) throw error;
   };
 
+  const sendOtp = async (email) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false },
+    });
+    if (error) throw error;
+  };
+
+  const verifyOtp = async (email, token) => {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
+    });
+    if (error) throw error;
+    return data;
+  };
+
   const logout = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -85,6 +103,8 @@ export const AuthProvider = ({ children }) => {
       isStaff,
       signIn,
       signInWithMagicLink,
+      sendOtp,
+      verifyOtp,
       logout,
     }}>
       {children}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,7 @@ const CONTEXT_CONFIG = {
 
 export default function Login({ context = "internal" }) {
   const cfg = CONTEXT_CONFIG[context] ?? CONTEXT_CONFIG.internal;
-  const { signIn, signInWithMagicLink, profile, isAuthenticated } = useAuth();
+  const { signIn, sendOtp, verifyOtp, profile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -61,8 +61,10 @@ export default function Login({ context = "internal" }) {
   const [password, setPassword]       = useState("");
   const [showPw, setShowPw]           = useState(false);
   const [loading, setLoading]         = useState(false);
-  const [magicSent, setMagicSent]     = useState(false);
+  const [otpSent, setOtpSent]         = useState(false);
+  const [otpDigits, setOtpDigits]     = useState(["", "", "", "", "", ""]);
   const [focused, setFocused]         = useState(null);
+  const otpRefs                        = useRef([]);
 
   React.useEffect(() => {
     if (isAuthenticated && profile) {
@@ -79,12 +81,50 @@ export default function Login({ context = "internal" }) {
     finally { setLoading(false); }
   };
 
-  const handleMagicLink = async (e) => {
+  const handleSendOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try { await signInWithMagicLink(email); setMagicSent(true); }
+    try { await sendOtp(email); setOtpSent(true); }
     catch (err) { toast({ title: "Errore", description: err.message, variant: "destructive" }); }
     finally { setLoading(false); }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    const token = otpDigits.join("");
+    if (token.length < 6) return;
+    setLoading(true);
+    try { await verifyOtp(email, token); }
+    catch (err) {
+      toast({ title: "Codice non valido", description: "Controlla il codice e riprova.", variant: "destructive" });
+      setOtpDigits(["", "", "", "", "", ""]);
+      otpRefs.current[0]?.focus();
+    }
+    finally { setLoading(false); }
+  };
+
+  const handleOtpInput = (i, value) => {
+    const digit = value.replace(/\D/g, "").slice(-1);
+    const next = [...otpDigits];
+    next[i] = digit;
+    setOtpDigits(next);
+    if (digit && i < 5) otpRefs.current[i + 1]?.focus();
+  };
+
+  const handleOtpKeyDown = (i, e) => {
+    if (e.key === "Backspace" && !otpDigits[i] && i > 0) {
+      otpRefs.current[i - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!text) return;
+    e.preventDefault();
+    const next = [...otpDigits];
+    text.split("").forEach((d, idx) => { next[idx] = d; });
+    setOtpDigits(next);
+    otpRefs.current[Math.min(text.length, 5)]?.focus();
   };
 
   return (
@@ -212,10 +252,10 @@ export default function Login({ context = "internal" }) {
                 transition: "left 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
               }}
             />
-            {[{ id: "password", label: "Password" }, { id: "magic", label: "Magic Link" }].map(({ id, label }) => (
+            {[{ id: "password", label: "Password" }, { id: "otp", label: "Codice OTP" }].map(({ id, label }) => (
               <button
                 key={id}
-                onClick={() => { setMode(id); setMagicSent(false); }}
+                onClick={() => { setMode(id); setOtpSent(false); setOtpDigits(["", "", "", "", "", ""]); }}
                 className={`relative z-10 flex-1 py-2.5 text-sm font-semibold transition-colors duration-200 cursor-pointer rounded-[10px] ${
                   mode === id ? "text-foreground" : "text-muted-foreground hover:text-foreground/70"
                 }`}
@@ -310,65 +350,95 @@ export default function Login({ context = "internal" }) {
                 </Button>
               </motion.form>
 
-            ) : magicSent ? (
-              <motion.div
-                key="sent"
-                initial={{ opacity: 0, scale: 0.92 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-8"
-              >
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 20 }}
-                  className="w-16 h-16 rounded-full bg-electric/10 flex items-center justify-center mx-auto mb-5"
-                >
-                  <CheckCircle2 className="w-8 h-8 text-electric" />
-                </motion.div>
-                <p className="font-heading font-bold text-xl text-foreground">Controlla la mail</p>
-                <p className="text-sm text-muted-foreground mt-2 leading-relaxed px-4">
-                  Abbiamo inviato un link sicuro a<br />
-                  <span className="font-semibold text-foreground">{email}</span>
-                </p>
-                <button
-                  onClick={() => setMagicSent(false)}
-                  className="text-xs text-electric hover:underline mt-5 cursor-pointer"
-                >
-                  Usa un'altra email
-                </button>
-              </motion.div>
-
-            ) : (
+            ) : otpSent ? (
               <motion.form
-                key="magic"
+                key="otp-verify"
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.18 }}
-                onSubmit={handleMagicLink}
+                onSubmit={handleVerifyOtp}
+                className="space-y-5"
+              >
+                <div className="text-center">
+                  <p className="font-heading font-bold text-lg text-foreground">Inserisci il codice</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Codice inviato a <span className="font-semibold text-foreground">{email}</span>
+                  </p>
+                </div>
+
+                {/* 6 digit boxes */}
+                <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
+                  {otpDigits.map((d, i) => (
+                    <input
+                      key={i}
+                      ref={(el) => (otpRefs.current[i] = el)}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={d}
+                      onChange={(e) => handleOtpInput(i, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                      className={`w-11 h-14 text-center text-xl font-bold rounded-xl border bg-muted/40 outline-none transition-all duration-150 ${
+                        d ? "border-electric/60 ring-1 ring-electric/20 text-foreground" : "border-border/60 text-foreground"
+                      } focus:border-electric/60 focus:ring-1 focus:ring-electric/20`}
+                      autoComplete="one-time-code"
+                      autoFocus={i === 0}
+                    />
+                  ))}
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading || otpDigits.join("").length < 6}
+                  className="w-full h-13 bg-navy hover:bg-navy-light text-white font-semibold rounded-xl cursor-pointer transition-all duration-200 shadow-lg shadow-navy/20 py-3.5"
+                >
+                  {loading
+                    ? <Loader2 className="w-4 h-4 animate-spin" />
+                    : <span className="flex items-center gap-2"><LogIn className="w-4 h-4" /> Verifica e accedi</span>
+                  }
+                </Button>
+
+                <button
+                  type="button"
+                  onClick={() => { setOtpSent(false); setOtpDigits(["", "", "", "", "", ""]); }}
+                  className="w-full text-xs text-electric hover:underline cursor-pointer"
+                >
+                  Cambia email o reinvia il codice
+                </button>
+              </motion.form>
+
+            ) : (
+              <motion.form
+                key="otp-email"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.18 }}
+                onSubmit={handleSendOtp}
                 className="space-y-4"
               >
                 <div className="relative">
                   <label
-                    htmlFor="magic-email"
+                    htmlFor="otp-email"
                     className={`absolute left-4 transition-all duration-200 pointer-events-none z-10 ${
-                      focused === "magic" || email
-                        ? "top-2 text-[10px] font-semibold style={{color:'#71BAED'}}"
+                      focused === "otp" || email
+                        ? "top-2 text-[10px] font-semibold"
                         : "top-1/2 -translate-y-1/2 text-sm text-muted-foreground"
                     }`}
                   >
                     Email
                   </label>
                   <Input
-                    id="magic-email"
+                    id="otp-email"
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    onFocus={() => setFocused("magic")}
+                    onFocus={() => setFocused("otp")}
                     onBlur={() => setFocused(null)}
                     className={`h-14 pt-5 pb-1 bg-muted/40 border transition-all duration-200 rounded-xl ${
-                      focused === "magic" ? "border-electric/60 ring-1 ring-electric/20 bg-electric/[0.03]" : "border-border/60"
+                      focused === "otp" ? "border-electric/60 ring-1 ring-electric/20 bg-electric/[0.03]" : "border-border/60"
                     }`}
                     autoComplete="email"
                   />
@@ -377,7 +447,7 @@ export default function Login({ context = "internal" }) {
                 <div className="flex items-start gap-2.5 bg-electric/5 border border-electric/15 rounded-xl px-4 py-3">
                   <Zap className="w-3.5 h-3.5 text-electric shrink-0 mt-0.5" />
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Ricevi un link sicuro via email — nessuna password necessaria.
+                    Ricevi un codice a 6 cifre via email — funziona su qualsiasi browser, anche in azienda.
                   </p>
                 </div>
 
@@ -388,7 +458,7 @@ export default function Login({ context = "internal" }) {
                 >
                   {loading
                     ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <span className="flex items-center gap-2"><Mail className="w-4 h-4" /> Invia Magic Link</span>
+                    : <span className="flex items-center gap-2"><Mail className="w-4 h-4" /> Invia codice OTP</span>
                   }
                 </Button>
               </motion.form>
