@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { scaricaPreventivoPDF } from "@/lib/preventivoPdf";
 import { praticheService } from "@/services/pratiche";
 import { preventiviService } from "@/services/preventivi";
 import { Button } from "@/components/ui/button";
@@ -112,120 +113,6 @@ function SetPasswordDialog({ open, onClose }) {
       </DialogContent>
     </Dialog>
   );
-}
-
-// ─── PDF preventivo cliente ───────────────────────────────────────────────────
-
-async function scaricaPreventivoPDF(prev, clienteNome) {
-  const { jsPDF } = await import('jspdf');
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const W = 210, margin = 18;
-
-  doc.setFillColor(47, 53, 137);
-  doc.rect(0, 0, W, 42, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(22);
-  doc.text('Nolosubito', margin, 18);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(180, 190, 220);
-  doc.text('Noleggio a Lungo Termine', margin, 25);
-  const oggi = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
-  doc.setFontSize(9);
-  doc.text(`Data: ${oggi}`, W - margin, 18, { align: 'right' });
-  doc.text(`Rif. NS-${prev.id.slice(-6).toUpperCase()}`, W - margin, 24, { align: 'right' });
-
-  let y = 54;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(16);
-  doc.setTextColor(30, 34, 80);
-  doc.text('PREVENTIVO DI NOLEGGIO', margin, y);
-  y += 8;
-  if (clienteNome) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(100, 110, 130);
-    doc.text(`Per: ${clienteNome}`, margin, y);
-    y += 6;
-  }
-  y += 4;
-
-  doc.setFillColor(248, 249, 252);
-  doc.roundedRect(margin, y, W - margin * 2, 28, 3, 3, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(100, 110, 130);
-  doc.text('VEICOLO', margin + 5, y + 8);
-  doc.setFontSize(15);
-  doc.setTextColor(30, 34, 80);
-  doc.text(`${prev.veicolo_marca} ${prev.veicolo_modello}`, margin + 5, y + 18);
-  if (prev.alimentazione) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(130, 140, 160);
-    doc.text(prev.alimentazione, margin + 5, y + 24);
-  }
-  y += 36;
-
-  const canone = prev.canone_finale || prev.canone_mensile;
-  const boxes = [
-    { label: 'Durata', value: `${prev.durata_mesi} mesi` },
-    { label: 'Km/anno', value: Number(prev.km_annui).toLocaleString('it-IT') },
-    { label: 'Anticipo', value: prev.anticipo > 0 ? `€ ${Number(prev.anticipo).toLocaleString('it-IT')}` : 'Nessuno' },
-    { label: 'Deposito', value: 'Nessuno' },
-  ];
-  const boxW = (W - margin * 2 - 9) / 4;
-  boxes.forEach((b, i) => {
-    const bx = margin + i * (boxW + 3);
-    doc.setFillColor(240, 242, 252);
-    doc.roundedRect(bx, y, boxW, 22, 2, 2, 'F');
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.setTextColor(120, 130, 150);
-    doc.text(b.label, bx + boxW / 2, y + 7, { align: 'center' });
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.setTextColor(30, 34, 80);
-    doc.text(b.value, bx + boxW / 2, y + 16, { align: 'center' });
-  });
-  y += 30;
-
-  doc.setFillColor(249, 98, 9);
-  doc.roundedRect(margin, y, W - margin * 2, 22, 3, 3, 'F');
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(255, 220, 190);
-  doc.text('CANONE MENSILE IVA INCLUSA', margin + 5, y + 8);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(20);
-  doc.setTextColor(255, 255, 255);
-  doc.text(`€ ${Number(canone).toLocaleString('it-IT')} / mese`, W - margin - 5, y + 16, { align: 'right' });
-  y += 30;
-
-  if (prev.note_cliente) {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(30, 34, 80);
-    doc.text('DETTAGLI OFFERTA', margin, y);
-    y += 5;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(80, 90, 110);
-    const lines = doc.splitTextToSize(prev.note_cliente, W - margin * 2);
-    doc.text(lines, margin, y);
-  }
-
-  doc.setFillColor(47, 53, 137);
-  doc.rect(0, 277, W, 20, 'F');
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(180, 190, 220);
-  doc.text('Nolosubito · info@nolosubito.it · nolosubito.it', W / 2, 285, { align: 'center' });
-  doc.setTextColor(120, 130, 160);
-  doc.text('Questo preventivo ha validità 15 giorni dalla data di emissione.', W / 2, 290, { align: 'center' });
-
-  doc.save(`Nolosubito_${prev.veicolo_marca}_${prev.veicolo_modello}.pdf`);
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
