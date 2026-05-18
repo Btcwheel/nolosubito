@@ -286,12 +286,30 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
   const col2 = SERVIZI.filter((_, i) => i % 3 === 1);
   const col3 = SERVIZI.filter((_, i) => i % 3 === 2);
 
+  const TopStripe = () => (
+    <View style={{ flexDirection: 'row', height: 7 }}>
+      <View style={{ flex: 0.68, backgroundColor: NAVY }}/>
+      <View style={{ flex: 0.32, backgroundColor: ORANGE }}/>
+    </View>
+  );
+
+  const PageMeta = ({ showValid }) => (
+    <View style={{ paddingHorizontal: '11mm', paddingTop: 7, paddingBottom: 6 }}>
+      <Text style={{ fontSize: 7, color: '#888' }}>Offerta N.</Text>
+      <Text style={{ fontSize: 9, fontWeight: 'bold', color: DARK }}>{rif}</Text>
+      <Text style={{ fontSize: 7, color: '#888', marginTop: 1 }}>Emessa il {oggi}</Text>
+      {showValid && <Text style={{ fontSize: 7, color: '#888', marginTop: 1 }}>Valida fino al {scadenza}</Text>}
+    </View>
+  );
+
   return (
     <Document title={`Preventivo ${rif} — Nolosubito`} author="Nolosubito S.r.l.">
 
       {/* ══ PAGINA 1 ══ */}
       <Page size="A4" style={S.page}>
-        <View style={S.card}>
+        <TopStripe/>
+        <PageMeta showValid/>
+        <View style={[S.card, { margin: '0 11mm 9mm' }]}>
 
           <Header rif={rif} oggi={oggi} scadenza={scadenza} logoB64={logoB64} showValid/>
 
@@ -403,7 +421,9 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
 
       {/* ══ PAGINA 2 ══ */}
       <Page size="A4" style={S.page}>
-        <View style={S.card}>
+        <TopStripe/>
+        <PageMeta showValid={false}/>
+        <View style={[S.card, { margin: '0 11mm 9mm' }]}>
 
           <Header rif={rif} oggi={oggi} scadenza={scadenza} logoB64={logoB64} showValid={false}/>
 
@@ -450,7 +470,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
                 <Text style={S.ctaTitle}>Accettando l'offerta, attiviamo subito la pratica.</Text>
                 <Text style={S.ctaSub}>Pronta consegna · Procedura digitale · Risposta in 24h</Text>
               </View>
-              <View style={S.ctaBtn}><Text style={S.ctaBtnTxt}>ACCETTA OFFERTA</Text></View>
+              <View style={S.ctaBtn}><Text style={S.ctaBtnTxt}>ACCETTA OFFERTA +</Text></View>
             </View>
 
             <View style={S.signGrid}>
