@@ -181,10 +181,22 @@ export default function PraticaDetail() {
                 <dt className="text-muted-foreground">Tipo</dt>
                 <dd className="font-medium text-foreground">{pratica.cliente_tipo || "—"}</dd>
               </div>
+              {pratica.cliente_denominazione && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Ragione Sociale</dt>
+                  <dd className="font-medium text-foreground">{pratica.cliente_denominazione}</dd>
+                </div>
+              )}
               {pratica.cliente_piva && (
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">P.IVA / CF</dt>
-                  <dd className="font-medium text-foreground">{pratica.cliente_piva}</dd>
+                  <dt className="text-muted-foreground">Partita IVA</dt>
+                  <dd className="font-medium text-foreground font-mono">{pratica.cliente_piva}</dd>
+                </div>
+              )}
+              {pratica.cliente_cf && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Codice Fiscale</dt>
+                  <dd className="font-medium text-foreground font-mono tracking-widest">{pratica.cliente_cf}</dd>
                 </div>
               )}
             </dl>
