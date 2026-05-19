@@ -51,6 +51,8 @@ const CONTEXT_CONFIG = {
   },
 };
 
+const OTP_STORAGE_KEY = "ns_otp_pending";
+
 export default function Login({ context = "internal" }) {
   const cfg = CONTEXT_CONFIG[context] ?? CONTEXT_CONFIG.internal;
   const { signIn, sendOtp, verifyOtp, profile, isAuthenticated } = useAuth();
@@ -70,12 +72,28 @@ export default function Login({ context = "internal" }) {
   const [focused, setFocused]         = useState(null);
   const otpRefs                        = useRef([]);
 
-  // Sync email/mode da searchParams (fallback per mobile che perde i params al mount)
+  // Sync email/mode da searchParams + ripristino stato OTP su Android (tab ucciso in background)
   useEffect(() => {
     const e = searchParams.get("email");
     const m = searchParams.get("mode");
     if (e) setEmail(e);
     if (m === "otp") setMode("otp");
+
+    const saved = sessionStorage.getItem(OTP_STORAGE_KEY);
+    if (saved) {
+      try {
+        const { email: savedEmail, ts } = JSON.parse(saved);
+        if (Date.now() - ts < 10 * 60 * 1000) {
+          if (savedEmail) setEmail(savedEmail);
+          setMode("otp");
+          setOtpSent(true);
+        } else {
+          sessionStorage.removeItem(OTP_STORAGE_KEY);
+        }
+      } catch {
+        sessionStorage.removeItem(OTP_STORAGE_KEY);
+      }
+    }
   }, [searchParams]);
 
   React.useEffect(() => {
@@ -120,7 +138,11 @@ export default function Login({ context = "internal" }) {
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setLoading(true);
-    try { await sendOtp(email); setOtpSent(true); }
+    try {
+      await sendOtp(email);
+      setOtpSent(true);
+      sessionStorage.setItem(OTP_STORAGE_KEY, JSON.stringify({ email, ts: Date.now() }));
+    }
     catch (err) { toast({ title: "Errore", description: err.message, variant: "destructive" }); }
     finally { setLoading(false); }
   };
@@ -130,7 +152,10 @@ export default function Login({ context = "internal" }) {
     const token = otpDigits.join("");
     if (token.length < 6) return;
     setLoading(true);
-    try { await verifyOtp(email, token); }
+    try {
+      await verifyOtp(email, token);
+      sessionStorage.removeItem(OTP_STORAGE_KEY);
+    }
     catch (err) {
       toast({ title: "Codice non valido", description: "Controlla il codice e riprova.", variant: "destructive" });
       setOtpDigits(["", "", "", "", "", ""]);
@@ -452,7 +477,7 @@ export default function Login({ context = "internal" }) {
 
                 <button
                   type="button"
-                  onClick={() => { setOtpSent(false); setOtpDigits(["", "", "", "", "", ""]); }}
+                  onClick={() => { setOtpSent(false); setOtpDigits(["", "", "", "", "", ""]); sessionStorage.removeItem(OTP_STORAGE_KEY); }}
                   className="w-full text-xs text-electric hover:underline cursor-pointer"
                 >
                   Cambia email o reinvia il codice

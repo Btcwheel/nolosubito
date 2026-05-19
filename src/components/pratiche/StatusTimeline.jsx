@@ -15,8 +15,8 @@ export default function StatusTimeline({ currentStatus }) {
   const currentIndex = STEPS.findIndex(s => s.label === currentStatus);
 
   return (
-    <div className="w-full overflow-x-auto pb-2">
-      <div className="flex items-start min-w-max sm:min-w-0 gap-0">
+    <div className="w-full">
+      <div className="flex items-start gap-0">
         {STEPS.map((step, i) => {
           const isDone = i < currentIndex;
           const isCurrent = i === currentIndex;
@@ -55,7 +55,7 @@ export default function StatusTimeline({ currentStatus }) {
                     : isDone
                       ? "text-muted-foreground text-xs"
                       : "text-muted-foreground/40 text-xs"
-                }`} style={{ fontSize: "0.62rem", maxWidth: 72 }}>
+                }`} style={{ fontSize: "0.60rem", maxWidth: 52, wordBreak: "break-word" }}>
                   {step.label}
                 </p>
               </div>
