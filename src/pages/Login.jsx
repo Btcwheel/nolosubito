@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
@@ -59,6 +60,8 @@ export default function Login({ context = "internal" }) {
 
   const [mode, setMode]               = useState(() => searchParams.get("mode") === "otp" ? "otp" : "password");
   const [email, setEmail]             = useState(() => searchParams.get("email") ?? "");
+  const [resetSent, setResetSent]     = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [password, setPassword]       = useState("");
   const [showPw, setShowPw]           = useState(false);
   const [loading, setLoading]         = useState(false);
@@ -73,6 +76,26 @@ export default function Login({ context = "internal" }) {
       navigate(dest, { replace: true });
     }
   }, [isAuthenticated, profile, navigate]);
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      toast({ title: "Inserisci la tua email per ricevere il link.", variant: "destructive" });
+      return;
+    }
+    setResetLoading(true);
+    try {
+      const siteUrl = import.meta.env.VITE_SITE_URL ?? "https://nolosubito.it";
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${siteUrl}/backoffice`,
+      });
+      if (error) throw error;
+      setResetSent(true);
+    } catch (err) {
+      toast({ title: "Errore", description: err.message, variant: "destructive" });
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   const handlePasswordLogin = async (e) => {
     e.preventDefault();
@@ -349,6 +372,21 @@ export default function Login({ context = "internal" }) {
                     : <span className="flex items-center gap-2"><LogIn className="w-4 h-4" /> Accedi</span>
                   }
                 </Button>
+
+                {resetSent ? (
+                  <p className="text-center text-sm text-green-600 font-medium pt-1">
+                    Email inviata! Controlla la tua casella.
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResetPassword}
+                    disabled={resetLoading}
+                    className="w-full text-center text-xs text-muted-foreground hover:text-electric transition-colors pt-1 cursor-pointer"
+                  >
+                    {resetLoading ? <Loader2 className="w-3 h-3 animate-spin inline" /> : "Password dimenticata?"}
+                  </button>
+                )}
               </motion.form>
 
             ) : otpSent ? (
