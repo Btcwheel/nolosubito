@@ -131,7 +131,12 @@ export default function PreventivoModal({ preventivo, clienteNome, open, onClose
         </div>
 
         {/* Footer actions */}
-        <div className="px-6 py-4 border-t border-[#DCE2EF] flex gap-3 bg-white">
+        <div className="px-6 pt-3 pb-4 border-t border-[#DCE2EF] bg-white">
+          <p className="text-center text-xs text-[#6D7894] mb-3 flex items-center justify-center gap-1.5">
+            Per il documento completo con tutti i dettagli
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v7M3 6l3 3 3-3" stroke="#6D7894" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </p>
+        <div className="flex gap-3">
           <Button
             variant="outline"
             onClick={onClose}
@@ -147,6 +152,7 @@ export default function PreventivoModal({ preventivo, clienteNome, open, onClose
             <Download className="w-4 h-4" />
             {downloading ? "Generazione…" : "Scarica PDF"}
           </Button>
+        </div>
         </div>
 
       </DialogContent>
