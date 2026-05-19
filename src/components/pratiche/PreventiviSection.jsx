@@ -12,8 +12,9 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import {
   Plus, Send, Trash2, CheckCircle2, XCircle,
-  Car, ChevronUp, Loader2, RotateCcw, Sparkles, Paperclip, Eye, EyeOff, Download,
+  Car, ChevronUp, Loader2, RotateCcw, Sparkles, Paperclip, Eye, EyeOff, Download, FileText,
 } from "lucide-react";
+import PreventivoModal from "@/components/preventivi/PreventivoModal";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 
@@ -69,6 +70,7 @@ function FieldGroup({ label, required, children }) {
 
 function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoading }) {
   const [downloading, setDownloading] = React.useState(false);
+  const [preview, setPreview] = React.useState(false);
 
   const handleDownload = async () => {
     setDownloading(true);
@@ -163,6 +165,15 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
         <Button
           size="sm"
           variant="outline"
+          onClick={() => setPreview(true)}
+          className="gap-1.5 text-muted-foreground"
+        >
+          <FileText className="w-3.5 h-3.5" />
+          Anteprima
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
           onClick={handleDownload}
           disabled={downloading}
           className="gap-1.5 text-muted-foreground"
@@ -215,6 +226,12 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
           </div>
         )}
       </div>
+      <PreventivoModal
+        preventivo={prev}
+        clienteNome={clienteNome}
+        open={preview}
+        onClose={() => setPreview(false)}
+      />
     </div>
   );
 }

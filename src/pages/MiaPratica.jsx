@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { scaricaPreventivoPDF } from "@/lib/preventivoPdf";
+import PreventivoModal from "@/components/preventivi/PreventivoModal";
 import { praticheService } from "@/services/pratiche";
 import { preventiviService } from "@/services/preventivi";
 import { Button } from "@/components/ui/button";
@@ -259,6 +260,7 @@ function PreventiviCliente({ praticaId, clienteNome }) {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [showNuovaRichiesta, setShowNuovaRichiesta] = useState(false);
+  const [previewPrev, setPreviewPrev] = useState(null);
 
   const { data: preventivi = [], isLoading } = useQuery({
     queryKey: ["preventivi-cliente", praticaId],
@@ -427,10 +429,10 @@ function PreventiviCliente({ praticaId, clienteNome }) {
                     variant="outline"
                     size="sm"
                     className="w-full gap-2 text-muted-foreground"
-                    onClick={() => scaricaPreventivoPDF(prev, clienteNome)}
+                    onClick={() => setPreviewPrev(prev)}
                   >
-                    <Download className="w-3.5 h-3.5" />
-                    Scarica PDF
+                    <FileText className="w-3.5 h-3.5" />
+                    Apri preventivo
                   </Button>
                 </div>
 
@@ -451,6 +453,12 @@ function PreventiviCliente({ praticaId, clienteNome }) {
         onClose={() => setShowNuovaRichiesta(false)}
         praticaId={praticaId}
         clienteNome={clienteNome}
+      />
+      <PreventivoModal
+        preventivo={previewPrev}
+        clienteNome={clienteNome}
+        open={!!previewPrev}
+        onClose={() => setPreviewPrev(null)}
       />
     </>
   );
