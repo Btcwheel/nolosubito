@@ -258,11 +258,14 @@ export default function AdminTeam() {
         if (invitePerms[m.id] !== def[m.id]) override[m.id] = invitePerms[m.id];
       }
 
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
+
       const res = await fetch(INVITE_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           email: inviteForm.email,
