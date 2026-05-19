@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -5,6 +6,14 @@ export default function PageNotFound() {
   const location = useLocation();
   const pageName = location.pathname.substring(1);
   const { profile } = useAuth();
+
+  useEffect(() => {
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex, nofollow';
+    document.head.appendChild(meta);
+    return () => document.head.removeChild(meta);
+  }, []);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50">

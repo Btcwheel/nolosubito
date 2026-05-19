@@ -164,27 +164,31 @@ export default function PraticaDetail() {
             <h2 className="font-heading font-semibold text-base mb-4">Dati Cliente</h2>
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Nome</dt>
-                <dd className="font-medium text-foreground">{pratica.cliente_nome}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Email</dt>
-                <dd className="font-medium text-foreground">{pratica.cliente_email}</dd>
-              </div>
-              {pratica.cliente_telefono && (
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Telefono</dt>
-                  <dd className="font-medium text-foreground">{pratica.cliente_telefono}</dd>
-                </div>
-              )}
-              <div className="flex justify-between">
                 <dt className="text-muted-foreground">Tipo</dt>
                 <dd className="font-medium text-foreground">{pratica.cliente_tipo || "—"}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Nome</dt>
+                <dd className="font-medium text-foreground">{pratica.cliente_nome} {pratica.cliente_cognome || ""}</dd>
               </div>
               {pratica.cliente_denominazione && (
                 <div className="flex justify-between">
                   <dt className="text-muted-foreground">Ragione Sociale</dt>
                   <dd className="font-medium text-foreground">{pratica.cliente_denominazione}</dd>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Email</dt>
+                <dd className="font-medium text-foreground">{pratica.cliente_email}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Telefono</dt>
+                <dd className="font-medium text-foreground">{pratica.cliente_telefono || "—"}</dd>
+              </div>
+              {pratica.cliente_cf && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Codice Fiscale</dt>
+                  <dd className="font-medium text-foreground font-mono tracking-widest">{pratica.cliente_cf}</dd>
                 </div>
               )}
               {pratica.cliente_piva && (
@@ -193,10 +197,40 @@ export default function PraticaDetail() {
                   <dd className="font-medium text-foreground font-mono">{pratica.cliente_piva}</dd>
                 </div>
               )}
-              {pratica.cliente_cf && (
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-foreground shrink-0">Città</dt>
+                <dd className="font-medium text-foreground text-right">
+                  {[pratica.cliente_citta, pratica.cliente_provincia, pratica.cliente_cap].filter(Boolean).join(", ") || "—"}
+                </dd>
+              </div>
+              {pratica.cliente_indirizzo && (
+                <div className="flex justify-between gap-4">
+                  <dt className="text-muted-foreground shrink-0">Indirizzo</dt>
+                  <dd className="font-medium text-foreground text-right">{pratica.cliente_indirizzo}</dd>
+                </div>
+              )}
+              {pratica.cliente_occupazione && (
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Codice Fiscale</dt>
-                  <dd className="font-medium text-foreground font-mono tracking-widest">{pratica.cliente_cf}</dd>
+                  <dt className="text-muted-foreground">Occupazione</dt>
+                  <dd className="font-medium text-foreground">{pratica.cliente_occupazione}</dd>
+                </div>
+              )}
+              {pratica.cliente_tipo_contratto && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Contratto</dt>
+                  <dd className="font-medium text-foreground">{pratica.cliente_tipo_contratto}</dd>
+                </div>
+              )}
+              {pratica.cliente_garante != null && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Garante</dt>
+                  <dd className="font-medium text-foreground">{pratica.cliente_garante ? "Sì" : "No"}</dd>
+                </div>
+              )}
+              {pratica.cliente_anno_inizio_lavoro && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Anno inizio lavoro</dt>
+                  <dd className="font-medium text-foreground">{pratica.cliente_anno_inizio_lavoro}</dd>
                 </div>
               )}
             </dl>
@@ -210,6 +244,18 @@ export default function PraticaDetail() {
                 <dt className="text-muted-foreground">Veicolo</dt>
                 <dd className="font-medium text-foreground">{pratica.veicolo_marca} {pratica.veicolo_modello}</dd>
               </div>
+              {pratica.veicolo_versione && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Versione</dt>
+                  <dd className="font-medium text-foreground">{pratica.veicolo_versione}</dd>
+                </div>
+              )}
+              {pratica.veicolo_alimentazione && (
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Alimentazione</dt>
+                  <dd className="font-medium text-foreground">{pratica.veicolo_alimentazione}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Segmento</dt>
                 <dd className="font-medium text-foreground">{pratica.segmento || "—"}</dd>
@@ -239,6 +285,12 @@ export default function PraticaDetail() {
                 </div>
               )}
             </dl>
+            {pratica.note_cliente && (
+              <div className="mt-4 pt-4 border-t border-border/40">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Note del cliente</p>
+                <p className="text-sm text-foreground/80 whitespace-pre-wrap">{pratica.note_cliente}</p>
+              </div>
+            )}
           </div>
         </div>
 

@@ -114,6 +114,15 @@ export default function VehicleDetail() {
       .slice(0, 3);
   }, [allVehicles, decodedMake, decodedModel, bestOffer]);
 
+  useEffect(() => {
+    if (isLoading || bestOffer) return;
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex, nofollow';
+    document.head.appendChild(meta);
+    return () => document.head.removeChild(meta);
+  }, [isLoading, bestOffer]);
+
   const handleRequestQuote = (config) => {
     setQuoteConfig({ ...config, version: bestOffer.version || "", fuelType: bestOffer.fuel_type || "" });
     setShowForm(true);

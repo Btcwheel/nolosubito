@@ -55,7 +55,7 @@ function GigiImagePicker({ onSelect, onClose }) {
       <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         <div className="flex items-center gap-3 p-4 border-b border-border">
           <FolderOpen className="w-4 h-4 text-violet-500" />
-          <h3 className="font-semibold text-sm">Archivio immagini Gigi</h3>
+          <h3 className="font-semibold text-sm">Archivio immagini</h3>
           <div className="flex-1 relative">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <input

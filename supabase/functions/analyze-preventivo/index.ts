@@ -30,30 +30,25 @@ Deno.serve(async (req: Request) => {
     const textInput = body.text ?? "";
     userContent.push({
       type: "text",
-      text: `Analizza questo preventivo di noleggio a lungo termine ed estrai i dati in formato JSON.
-${textInput ? `Testo del documento:\n${textInput}` : ""}
+      text: `Estrai i dati di questo preventivo di noleggio a lungo termine e restituisci solo JSON valido.
+${textInput ? `Testo:\n${textInput}` : ""}
 
-Restituisci SOLO un oggetto JSON valido con questa struttura esatta (usa null per i campi non trovati):
+Schema:
 {
-  "veicolo_marca": "...",
-  "veicolo_modello": "...",
-  "veicolo_allestimento": "...",
-  "alimentazione": "...",
-  "durata_mesi": 36,
-  "km_annui": 15000,
-  "anticipo": 0,
-  "deposito_cauzionale": 0,
-  "canone_mensile": 0,
-  "servizi": ["manutenzione ordinaria", "assicurazione RC", "..."],
-  "note_aggiuntive": "..."
+  "veicolo_marca": string|null,
+  "veicolo_modello": string|null,
+  "veicolo_allestimento": string|null,
+  "alimentazione": string|null,
+  "durata_mesi": number|null,
+  "km_annui": number|null,
+  "anticipo": number|null,
+  "deposito_cauzionale": number|null,
+  "canone_mensile": number|null,
+  "servizi": string[],
+  "note_aggiuntive": string|null
 }
 
-Regole:
-- I valori numerici (durata, km, anticipo, deposito, canone) devono essere numeri puri senza simboli
-- I km_annui devono essere il valore annuale (non totale)
-- I servizi devono essere una lista di stringhe descrittive
-- Non includere mai il nome del fornitore originale (Leasys, Ayvens, ALD, Arval, ecc.) nei dati estratti
-- Se trovi un canone IVA inclusa ed esclusa, usa quello IVA inclusa`,
+Regole: numeri senza simboli, km_annui annuali, usa il canone IVA inclusa se presente, non aggiungere testo extra.`,
     });
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -64,8 +59,8 @@ Regole:
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
-        max_tokens: 1024,
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 512,
         messages: [{ role: "user", content: userContent }],
       }),
     });

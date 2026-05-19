@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { postsService } from "@/services/posts";
@@ -9,6 +9,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 
+function useNoIndex(active) {
+  useEffect(() => {
+    if (!active) return;
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex, nofollow';
+    document.head.appendChild(meta);
+    return () => document.head.removeChild(meta);
+  }, [active]);
+}
+
 export default function NewsDetail() {
   const { slug } = useParams();
 
@@ -16,6 +27,8 @@ export default function NewsDetail() {
     queryKey: ["post", slug],
     queryFn: () => postsService.getBySlug(slug),
   });
+
+  useNoIndex(!isLoading && !post);
 
   if (isLoading) {
     return (
