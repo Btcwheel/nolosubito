@@ -105,4 +105,13 @@ export const preventiviService = {
       .eq('status', 'Inviato')
       .is('letto_at', null);
   },
+
+  // Segna come letto un singolo preventivo (chiamato all'apertura del modal)
+  async segnaLetto(id) {
+    await supabase
+      .from('preventivi')
+      .update({ letto_at: new Date().toISOString() })
+      .eq('id', id)
+      .is('letto_at', null);
+  },
 };

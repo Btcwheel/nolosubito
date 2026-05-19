@@ -265,8 +265,6 @@ function PreventiviCliente({ praticaId, clienteNome }) {
   const { data: preventivi = [], isLoading } = useQuery({
     queryKey: ["preventivi-cliente", praticaId],
     queryFn: () => preventiviService.list(praticaId),
-    // Segna come letti i preventivi non ancora aperti
-    onSuccess: () => preventiviService.segnaLetti(praticaId),
   });
 
   const invalidate = () => {
@@ -429,7 +427,11 @@ function PreventiviCliente({ praticaId, clienteNome }) {
                     variant="outline"
                     size="sm"
                     className="w-full gap-2 text-muted-foreground"
-                    onClick={() => setPreviewPrev(prev)}
+                    onClick={() => {
+                      setPreviewPrev(prev);
+                      preventiviService.segnaLetto(prev.id);
+                      invalidate();
+                    }}
                   >
                     <FileText className="w-3.5 h-3.5" />
                     Apri preventivo
