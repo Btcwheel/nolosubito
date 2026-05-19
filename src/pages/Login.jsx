@@ -70,12 +70,24 @@ export default function Login({ context = "internal" }) {
   const [focused, setFocused]         = useState(null);
   const otpRefs                        = useRef([]);
 
+  // Sync email/mode da searchParams (fallback per mobile che perde i params al mount)
+  useEffect(() => {
+    const e = searchParams.get("email");
+    const m = searchParams.get("mode");
+    if (e) setEmail(e);
+    if (m === "otp") setMode("otp");
+  }, [searchParams]);
+
   React.useEffect(() => {
-    if (isAuthenticated && profile) {
-      const dest = { admin: "/admin", backoffice: "/backoffice", agente: "/agente", cms: "/cms", cliente: "/mia-pratica" }[profile.role] || "/";
-      navigate(dest, { replace: true });
+    if (!isAuthenticated || !profile) return;
+    // Contesto cliente: sempre /mia-pratica indipendentemente dal ruolo nel DB
+    if (context === "cliente") {
+      navigate("/mia-pratica", { replace: true });
+      return;
     }
-  }, [isAuthenticated, profile, navigate]);
+    const dest = { admin: "/admin", backoffice: "/backoffice", agente: "/agente", cms: "/cms", cliente: "/mia-pratica" }[profile.role] || "/";
+    navigate(dest, { replace: true });
+  }, [isAuthenticated, profile, navigate, context]);
 
   const handleResetPassword = async () => {
     if (!email) {
