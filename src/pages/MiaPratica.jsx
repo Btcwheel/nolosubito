@@ -501,31 +501,31 @@ export default function MiaPratica() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <SetPasswordDialog open={showSetPassword} onClose={() => setShowSetPassword(false)} />
       {/* Hero */}
-      <div className="bg-navy pt-28 pb-20 px-4 relative overflow-hidden">
+      <div className="bg-navy pt-20 pb-16 px-4 relative overflow-hidden w-full">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(37,99,235,0.25)_0%,_transparent_60%)]" />
-        <div className="max-w-2xl mx-auto text-center relative z-10">
+        <div className="w-full max-w-2xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-xs font-medium px-3 py-1.5 rounded-full border border-white/15 mb-5">
             <div className="w-1.5 h-1.5 rounded-full bg-electric animate-pulse" />
             Tracciamento in tempo reale
           </div>
-          <h1 className="font-heading font-bold text-4xl md:text-5xl text-white mb-4 leading-tight">
+          <h1 className="font-heading font-bold text-3xl md:text-5xl text-white mb-4 leading-tight px-2">
             La tua pratica Noleggio Lungo Termine
           </h1>
-          <p className="text-white/60 text-lg max-w-md mx-auto">
+          <p className="text-white/60 text-base md:text-lg px-2 mx-auto">
             Inserisci l'email utilizzata per la richiesta e monitora lo stato del tuo noleggio.
           </p>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 -mt-8 pb-16 relative z-10">
+      <div className="w-full max-w-2xl mx-auto px-4 -mt-8 pb-16 relative z-10">
         {/* Search card */}
         <div className="bg-card border border-border/60 rounded-2xl shadow-xl p-6 mb-8">
           <form onSubmit={handleSearch}>
             <p className="text-sm font-medium text-foreground mb-3">Email utilizzata per la richiesta</p>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -533,11 +533,11 @@ export default function MiaPratica() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="mario.rossi@email.it"
-                  className="pl-9 h-11"
+                  className="pl-9 h-11 w-full"
                   required
                 />
               </div>
-              <Button type="submit" className="bg-electric hover:bg-electric/90 text-white h-11 px-6 gap-2 shrink-0">
+              <Button type="submit" className="bg-electric hover:bg-electric/90 text-white h-11 px-6 gap-2 w-full sm:w-auto">
                 <Search className="w-4 h-4" /> Cerca
               </Button>
             </div>
