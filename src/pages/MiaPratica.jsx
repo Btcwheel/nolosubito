@@ -469,7 +469,15 @@ export default function MiaPratica() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user && !user.user_metadata?.has_password) {
+      if (!user) return;
+      // Se l'utente è autenticato usa la sua email automaticamente
+      if (user.email) {
+        const e = user.email.toLowerCase();
+        setEmail(e);
+        setSearchEmail(e);
+        setSubmitted(true);
+      }
+      if (!user.user_metadata?.has_password) {
         setShowSetPassword(true);
       }
     });
