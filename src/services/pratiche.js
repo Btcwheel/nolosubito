@@ -96,6 +96,10 @@ export const praticheService = {
     return this.update(praticaId, { agente_id: agenteId, agente_nome: agenteNome });
   },
 
+  async assignOperatore(praticaId, operatoreId, operatoreNome) {
+    return this.update(praticaId, { operatore_id: operatoreId, operatore_nome: operatoreNome });
+  },
+
   async setProvvigione(praticaId, importo, pagata) {
     return this.update(praticaId, { provvigione: importo, provvigione_pagata: pagata });
   },

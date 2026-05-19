@@ -97,7 +97,12 @@ function PraticaRow({ p, basePath }) {
         </div>
       </td>
       <td className="px-4 py-3 text-sm text-muted-foreground">
-        {p.agente_nome || <span className="italic text-muted-foreground/40">Non assegnata</span>}
+        {p.agente_nome || <span className="italic text-muted-foreground/40">—</span>}
+      </td>
+      <td className="px-4 py-3 text-sm">
+        {p.operatore_nome
+          ? <span className="font-medium text-foreground">{p.operatore_nome}</span>
+          : <span className="italic text-muted-foreground/40">Non assegnata</span>}
       </td>
       <td className="px-4 py-3 text-right">
         <Link to={`${basePath}/pratica/${p.id}`}>
@@ -244,6 +249,7 @@ export default function BackofficeDashboard() {
                         <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Stato</th>
                         <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Documenti</th>
                         <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Agente</th>
+                        <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Operatore</th>
                         <th className="text-right px-4 py-3"></th>
                       </tr>
                     </thead>

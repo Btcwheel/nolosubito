@@ -21,6 +21,16 @@ export const profilesService = {
     return data;
   },
 
+  async listOperatori() {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, full_name, email, nome, cognome')
+      .in('role', ['backoffice', 'admin'])
+      .order('full_name');
+    if (error) throw error;
+    return data;
+  },
+
   async listAgenti() {
     const { data, error } = await supabase
       .from('profiles')

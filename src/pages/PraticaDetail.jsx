@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { praticheService } from "@/services/pratiche";
+import { profilesService } from "@/services/profiles";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Lock, Eye, ChevronRight, Euro, CheckCircle2, Clock } from "lucide-react";
+import { ArrowLeft, Send, Lock, Eye, ChevronRight, Euro, CheckCircle2, Clock, Users } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { useToast } from "@/components/ui/use-toast";
@@ -35,6 +36,23 @@ export default function PraticaDetail() {
     queryKey: ["pratica", id],
     queryFn: () => praticheService.getById(id),
   });
+
+  // Carica lista operatori (backoffice + admin) per il re-assign — solo admin
+  const { data: operatori = [] } = useQuery({
+    queryKey: ["operatori"],
+    queryFn: () => profilesService.listOperatori(),
+    enabled: profile?.role === "admin",
+  });
+
+  // Auto-assign: primo operatore che apre la pratica si assegna
+  useEffect(() => {
+    if (!pratica || pratica.operatore_id) return;
+    if (!profile || !["backoffice", "admin"].includes(profile.role)) return;
+    const nome = [profile.nome, profile.cognome].filter(Boolean).join(" ") || profile.full_name || "Operatore";
+    praticheService.assignOperatore(pratica.id, profile.id, nome)
+      .then(() => qc.invalidateQueries(["pratica", id]))
+      .catch(() => {});
+  }, [pratica?.id, profile?.id]);
 
   // Notes are nested in pratica.pratica_note
   const note = useMemo(
@@ -303,6 +321,43 @@ export default function PraticaDetail() {
         <div className="mb-6">
           <DocumentUploadSection praticaId={id} />
         </div>
+
+        {/* Operatore backoffice */}
+        {profile?.role !== "cliente" && profile?.role !== "agente" && (
+          <div className="bg-card border border-border/50 rounded-2xl p-5 mb-6">
+            <h2 className="font-heading font-semibold text-base mb-3 flex items-center gap-2">
+              <Users className="w-4 h-4 text-electric" /> Operatore responsabile
+            </h2>
+            {profile?.role === "admin" ? (
+              <Select
+                value={pratica.operatore_id || ""}
+                onValueChange={(val) => {
+                  const op = operatori.find(o => o.id === val);
+                  if (op) {
+                    const nome = [op.nome, op.cognome].filter(Boolean).join(" ") || op.full_name || "Operatore";
+                    praticheService.assignOperatore(pratica.id, op.id, nome)
+                      .then(() => qc.invalidateQueries(["pratica", id]));
+                  }
+                }}
+              >
+                <SelectTrigger className="h-9 w-full max-w-xs">
+                  <SelectValue placeholder="Seleziona operatore…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {operatori.map(op => (
+                    <SelectItem key={op.id} value={op.id}>
+                      {[op.nome, op.cognome].filter(Boolean).join(" ") || op.full_name || op.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <p className="text-sm font-semibold text-foreground">
+                {pratica.operatore_nome || <span className="text-muted-foreground italic">Non assegnata</span>}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Provvigione agente — visibile solo a admin/backoffice */}
         {pratica.agente_id && profile?.role !== "cliente" && (
