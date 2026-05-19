@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/select";
 import { praticheService } from "@/services/pratiche";
 import { useToast } from "@/components/ui/use-toast";
-import { useAuth } from "@/lib/AuthContext";
 import {
   ArrowRight, Loader2, CheckCircle2, Mail, ExternalLink,
   User, Briefcase, Building,
@@ -126,7 +125,6 @@ const FUEL_TYPE_MAP = {
 
 export default function LeadForm({ prefilledConfig }) {
   const { toast } = useToast();
-  const { signInWithMagicLink } = useAuth();
   const [submitted, setSubmitted]         = useState(false);
   const [sending, setSending]             = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
@@ -204,8 +202,6 @@ export default function LeadForm({ prefilledConfig }) {
       });
 
       const email = f.email.trim().toLowerCase();
-      // Invia magic link — non blocca il flusso se fallisce
-      signInWithMagicLink(email).catch(() => {});
       setSubmittedEmail(email);
       setSubmitted(true);
     } catch (err) {

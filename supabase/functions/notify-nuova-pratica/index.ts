@@ -60,7 +60,7 @@ serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400 });
   }
 
-  const areaClienteLink = `${SITE_URL}/mia-pratica?email=${encodeURIComponent(clienteEmail)}`;
+  const areaClienteLink = `${SITE_URL}/accedi?mode=otp&email=${encodeURIComponent(clienteEmail)}`;
   const praticaLink = praticaId
     ? `${BACKOFFICE_URL}/pratica/${praticaId}`
     : BACKOFFICE_URL;
@@ -203,16 +203,15 @@ function buildConfermaCliente(d: ConfermaClienteData): string {
       <p style="margin:0;font-size:20px;font-weight:800;color:#2F3589;letter-spacing:0.04em;">${esc(d.codice)}</p>
     </div>
     <p style="margin:0 0 20px;font-size:14px;color:#6b7280;line-height:1.65;">
-      Puoi seguire lo stato della tua pratica dalla tua area personale:
+      Clicca il pulsante qui sotto per accedere alla tua area pratica. Ti verrà inviato un codice OTP direttamente a questa email.
     </p>
     <div style="text-align:center;margin:0 0 24px;">
       <a href="${d.areaLink}" style="display:inline-block;background:#F96209;color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:10px;font-size:15px;font-weight:700;">
-        Accedi alla tua area pratica &rarr;
+        Accedi con codice OTP &rarr;
       </a>
     </div>
     <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;line-height:1.7;">
-      Oppure copia questo link:<br/>
-      <a href="${d.areaLink}" style="color:#2F3589;word-break:break-all;font-size:12px;">${d.areaLink}</a>
+      Una volta sulla pagina, clicca <strong>Invia codice</strong> per ricevere il tuo codice di accesso.
     </p>
   </td></tr>
   <tr><td style="background:#f8f9fc;border:1px solid #e5e7f0;border-top:none;border-radius:0 0 16px 16px;padding:18px 36px;text-align:center;">

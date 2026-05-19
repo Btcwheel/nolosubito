@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,9 +55,10 @@ export default function Login({ context = "internal" }) {
   const { signIn, sendOtp, verifyOtp, profile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
 
-  const [mode, setMode]               = useState("password");
-  const [email, setEmail]             = useState("");
+  const [mode, setMode]               = useState(() => searchParams.get("mode") === "otp" ? "otp" : "password");
+  const [email, setEmail]             = useState(() => searchParams.get("email") ?? "");
   const [password, setPassword]       = useState("");
   const [showPw, setShowPw]           = useState(false);
   const [loading, setLoading]         = useState(false);
