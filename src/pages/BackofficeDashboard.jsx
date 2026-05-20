@@ -20,6 +20,7 @@ import { it } from "date-fns/locale";
 import { PRATICA_STATUS_COLORS, DEFAULT_STATUS_COLOR } from "@/lib/praticaStatus";
 import EscalationPanel from "@/components/backoffice/EscalationPanel";
 import KnowledgePanel from "@/components/backoffice/KnowledgePanel";
+import AdminLeads from "@/pages/AdminLeads";
 
 const ALL_STATUSES = [
   "Nuova", "In Lavorazione", "Documenti Richiesti", "Documenti Caricati",
@@ -28,10 +29,11 @@ const ALL_STATUSES = [
 ];
 
 const ALL_TABS = [
-  { id: "pratiche",    label: "Tutte le Pratiche",       icon: ClipboardList, modulo: 'pratiche' },
-  { id: "documenti",   label: "Documenti da Verificare",  icon: FileCheck,     modulo: 'pratiche' },
+  { id: "pratiche",    label: "Tutte le Pratiche",       icon: ClipboardList,        modulo: 'pratiche' },
+  { id: "documenti",   label: "Documenti da Verificare",  icon: FileCheck,            modulo: 'pratiche' },
+  { id: "lead",        label: "Lead",                     icon: Users,                modulo: 'lead' },
   { id: "escalation",  label: "Chat Luca",                icon: MessageSquareWarning, modulo: 'escalation' },
-  { id: "knowledge",   label: "Knowledge Base",           icon: BookOpen,      modulo: 'knowledge_base' },
+  { id: "knowledge",   label: "Knowledge Base",           icon: BookOpen,             modulo: 'knowledge_base' },
 ];
 
 function StatCard({ label, value, icon: Icon, colorClass }) {
@@ -323,6 +325,11 @@ export default function BackofficeDashboard() {
               </div>
             )}
           </div>
+        )}
+
+        {/* ── TAB LEAD ── */}
+        {activeTab === "lead" && (
+          <AdminLeads />
         )}
 
         {/* ── TAB CHAT LUCA (ESCALATION) ── */}
