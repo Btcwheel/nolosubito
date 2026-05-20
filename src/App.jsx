@@ -1,8 +1,8 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import AppLayout from './components/layout/AppLayout';
 import DashboardLayout from './components/layout/DashboardLayout';
@@ -42,6 +42,18 @@ const PageLoader = () => (
     <div className="w-8 h-8 border-4 border-t-electric border-electric/20 rounded-full animate-spin" />
   </div>
 );
+
+// Intercetta il token di recovery di Supabase dall'hash URL e reindirizza a /login
+function RecoveryRedirect() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes("type=recovery")) {
+      navigate("/login" + hash, { replace: true });
+    }
+  }, [navigate]);
+  return null;
+}
 
 const AppRoutes = () => {
   const { isLoadingAuth } = useAuth();
@@ -129,6 +141,7 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
+          <RecoveryRedirect />
           <AppRoutes />
         </Router>
         <Toaster />
