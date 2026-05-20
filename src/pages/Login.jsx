@@ -103,8 +103,13 @@ export default function Login({ context = "internal" }) {
     }
   }, [searchParams]);
 
-  // Intercetta il token di recovery dall'email di reset password
+  // Intercetta il token di recovery dall'hash URL o dall'evento Supabase
   useEffect(() => {
+    // Controlla subito l'hash (caso: redirect da email recovery)
+    if (window.location.hash.includes("type=recovery")) {
+      setRecoveryMode(true);
+    }
+    // Fallback: evento Supabase (caso: tab già aperta)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
     });
