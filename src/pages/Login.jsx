@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, LogIn, Mail, Eye, EyeOff, ArrowLeft, CheckCircle2, Zap, Shield, Users, TrendingUp, Car, FileText, HandshakeIcon, Bell } from "lucide-react";
+import { Loader2, LogIn, Mail, Eye, EyeOff, ArrowLeft, Zap, Shield, Users, TrendingUp, Car, FileText, HandshakeIcon, Bell } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 // Contenuto pannello sinistro per ogni contesto
@@ -72,12 +72,6 @@ export default function Login({ context = "internal" }) {
   const [focused, setFocused]         = useState(null);
   const otpRefs                        = useRef([]);
 
-  // Stato per il flusso di reset password
-  const [recoveryMode, setRecoveryMode] = useState(false);
-  const [newPassword, setNewPassword]   = useState("");
-  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
-  const [showNewPw, setShowNewPw]       = useState(false);
-  const [savingPw, setSavingPw]         = useState(false);
 
   // Sync email/mode da searchParams + ripristino stato OTP su Android (tab ucciso in background)
   useEffect(() => {
@@ -103,22 +97,8 @@ export default function Login({ context = "internal" }) {
     }
   }, [searchParams]);
 
-  // Intercetta il token di recovery dall'hash URL o dall'evento Supabase
-  useEffect(() => {
-    // Controlla subito l'hash (caso: redirect da email recovery)
-    if (window.location.hash.includes("type=recovery")) {
-      setRecoveryMode(true);
-    }
-    // Fallback: evento Supabase (caso: tab già aperta)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
-
   React.useEffect(() => {
     if (!isAuthenticated || !profile) return;
-    if (recoveryMode) return; // non redirigere durante il reset
     // Contesto cliente: sempre /mia-pratica indipendentemente dal ruolo nel DB
     if (context === "cliente") {
       navigate("/mia-pratica", { replace: true });
@@ -126,7 +106,7 @@ export default function Login({ context = "internal" }) {
     }
     const dest = { admin: "/admin", backoffice: "/backoffice", agente: "/agente", cms: "/cms", cliente: "/mia-pratica" }[profile.role] || "/";
     navigate(dest, { replace: true });
-  }, [isAuthenticated, profile, navigate, context, recoveryMode]);
+  }, [isAuthenticated, profile, navigate, context]);
 
   const handleResetPassword = async () => {
     if (!email) {
@@ -137,7 +117,7 @@ export default function Login({ context = "internal" }) {
     try {
       const siteUrl = import.meta.env.VITE_SITE_URL ?? "https://nolosubito.it";
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${siteUrl}/login`,
+        redirectTo: `${siteUrl}/backoffice`,
       });
       if (error) throw error;
       setResetSent(true);
@@ -145,31 +125,6 @@ export default function Login({ context = "internal" }) {
       toast({ title: "Errore", description: err.message, variant: "destructive" });
     } finally {
       setResetLoading(false);
-    }
-  };
-
-  const handleSaveNewPassword = async (e) => {
-    e.preventDefault();
-    if (newPassword.length < 8) {
-      toast({ title: "Password troppo corta", description: "Minimo 8 caratteri.", variant: "destructive" });
-      return;
-    }
-    if (newPassword !== newPasswordConfirm) {
-      toast({ title: "Le password non coincidono", variant: "destructive" });
-      return;
-    }
-    setSavingPw(true);
-    try {
-      const { error } = await supabase.auth.updateUser({ password: newPassword });
-      if (error) throw error;
-      toast({ title: "Password aggiornata!", description: "Ora puoi accedere con la nuova password." });
-      setRecoveryMode(false);
-      setNewPassword("");
-      setNewPasswordConfirm("");
-    } catch (err) {
-      toast({ title: "Errore", description: err.message, variant: "destructive" });
-    } finally {
-      setSavingPw(false);
     }
   };
 
@@ -373,56 +328,7 @@ export default function Login({ context = "internal" }) {
           </div>
 
           <AnimatePresence mode="wait">
-            {recoveryMode ? (
-              <motion.form
-                key="recovery"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.18 }}
-                onSubmit={handleSaveNewPassword}
-                className="space-y-4"
-              >
-                <div className="text-center mb-2">
-                  <p className="font-heading font-bold text-lg text-foreground">Nuova password</p>
-                  <p className="text-sm text-muted-foreground mt-1">Scegli una password sicura (min. 8 caratteri)</p>
-                </div>
-                <div className="relative">
-                  <label className={`absolute left-4 transition-all duration-200 pointer-events-none z-10 ${focused === "newpw" || newPassword ? "top-2 text-[10px] font-semibold" : "top-1/2 -translate-y-1/2 text-sm text-muted-foreground"}`}>
-                    Nuova password
-                  </label>
-                  <Input
-                    type={showNewPw ? "text" : "password"}
-                    required
-                    value={newPassword}
-                    onChange={e => setNewPassword(e.target.value)}
-                    onFocus={() => setFocused("newpw")}
-                    onBlur={() => setFocused(null)}
-                    className={`h-14 pt-5 pb-1 bg-muted/40 border transition-all duration-200 rounded-xl pr-12 ${focused === "newpw" ? "border-electric/60 ring-1 ring-electric/20 bg-electric/[0.03]" : "border-border/60"}`}
-                  />
-                  <button type="button" onClick={() => setShowNewPw(v => !v)} tabIndex={-1} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                    {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                <div className="relative">
-                  <label className={`absolute left-4 transition-all duration-200 pointer-events-none z-10 ${focused === "confirmpw" || newPasswordConfirm ? "top-2 text-[10px] font-semibold" : "top-1/2 -translate-y-1/2 text-sm text-muted-foreground"}`}>
-                    Conferma password
-                  </label>
-                  <Input
-                    type={showNewPw ? "text" : "password"}
-                    required
-                    value={newPasswordConfirm}
-                    onChange={e => setNewPasswordConfirm(e.target.value)}
-                    onFocus={() => setFocused("confirmpw")}
-                    onBlur={() => setFocused(null)}
-                    className={`h-14 pt-5 pb-1 bg-muted/40 border transition-all duration-200 rounded-xl ${focused === "confirmpw" ? "border-electric/60 ring-1 ring-electric/20 bg-electric/[0.03]" : "border-border/60"}`}
-                  />
-                </div>
-                <Button type="submit" disabled={savingPw} className="w-full h-13 bg-navy hover:bg-navy-light text-white font-semibold rounded-xl cursor-pointer transition-all duration-200 shadow-lg shadow-navy/20 py-3.5">
-                  {savingPw ? <Loader2 className="w-4 h-4 animate-spin" /> : <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Salva nuova password</span>}
-                </Button>
-              </motion.form>
-            ) : mode === "password" ? (
+            {mode === "password" ? (
               <motion.form
                 key="pw"
                 initial={{ opacity: 0, y: 8 }}

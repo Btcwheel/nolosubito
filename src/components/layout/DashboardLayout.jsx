@@ -1,12 +1,91 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
+import { supabase } from "@/lib/supabase";
 import {
   LayoutDashboard, ClipboardList, Layers, FileText,
   LogOut, Menu, X, ChevronRight, ExternalLink,
-  Users, FolderOpen,
+  Users, FolderOpen, KeyRound, Eye, EyeOff, Loader2, CheckCircle2,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 import OnboardingWelcome from "@/components/onboarding/OnboardingWelcome";
+
+// ── Modal cambio password (recovery + primo accesso) ─────────────────────────
+
+function ChangePasswordModal({ onClose }) {
+  const { toast } = useToast();
+  const [newPassword, setNewPassword]         = useState("");
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
+  const [showPw, setShowPw]                   = useState(false);
+  const [saving, setSaving]                   = useState(false);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (newPassword.length < 8) {
+      toast({ title: "Password troppo corta", description: "Minimo 8 caratteri.", variant: "destructive" });
+      return;
+    }
+    if (newPassword !== newPasswordConfirm) {
+      toast({ title: "Le password non coincidono", variant: "destructive" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      toast({ title: "Password aggiornata!" });
+      onClose();
+    } catch (err) {
+      toast({ title: "Errore", description: err.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4">
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-10 h-10 rounded-xl bg-electric/10 flex items-center justify-center">
+            <KeyRound className="w-5 h-5 text-electric" />
+          </div>
+          <div>
+            <h3 className="font-heading font-semibold text-base text-foreground">Imposta la tua password</h3>
+            <p className="text-xs text-muted-foreground">Scegli una password sicura per il tuo account</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSave} className="space-y-4">
+          <div className="relative">
+            <Input
+              type={showPw ? "text" : "password"}
+              placeholder="Nuova password (min. 8 caratteri)"
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              required
+              className="pr-10"
+            />
+            <button type="button" onClick={() => setShowPw(v => !v)} tabIndex={-1} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+          <Input
+            type={showPw ? "text" : "password"}
+            placeholder="Conferma password"
+            value={newPasswordConfirm}
+            onChange={e => setNewPasswordConfirm(e.target.value)}
+            required
+          />
+          <Button type="submit" disabled={saving} className="w-full bg-electric hover:bg-electric/90 text-white">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4 mr-2" />Salva password</>}
+          </Button>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 // ── Configurazione sidebar per ruolo ──────────────────────────────────────────
 
@@ -133,6 +212,16 @@ export default function DashboardLayout() {
   const { profile, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showChangePw, setShowChangePw] = useState(
+    () => window.location.hash.includes("type=recovery")
+  );
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setShowChangePw(true);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const role = profile?.role ?? "cliente";
   const config = NAV_BY_ROLE[role] ?? NAV_BY_ROLE.cliente;
@@ -211,6 +300,7 @@ export default function DashboardLayout() {
       </div>
 
       <OnboardingWelcome profile={profile} />
+      {showChangePw && <ChangePasswordModal onClose={() => setShowChangePw(false)} />}
     </div>
   );
 }
