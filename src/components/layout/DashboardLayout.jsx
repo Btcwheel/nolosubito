@@ -212,8 +212,9 @@ export default function DashboardLayout() {
   const { profile, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { state: locationState } = useLocation();
   const [showChangePw, setShowChangePw] = useState(
-    () => window.location.hash.includes("type=recovery")
+    () => !!locationState?.passwordRecovery
   );
 
   useEffect(() => {

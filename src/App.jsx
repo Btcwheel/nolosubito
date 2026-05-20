@@ -54,7 +54,7 @@ function RecoveryHandler() {
     const dest = profile
       ? ({ admin: "/admin", backoffice: "/backoffice", agente: "/agente", cms: "/cms", cliente: "/mia-pratica" }[profile.role] || "/backoffice")
       : "/backoffice";
-    navigate(dest + window.location.hash, { replace: true });
+    navigate(dest, { replace: true, state: { passwordRecovery: true } });
   }, [profile, navigate]);
 
   return null;
