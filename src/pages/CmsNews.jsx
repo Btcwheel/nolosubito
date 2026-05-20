@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink, FolderOpen, Search, Upload, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink, FolderOpen, Search, Upload, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
@@ -103,10 +103,102 @@ function GigiImagePicker({ onSelect, onClose }) {
 
 const CATEGORIES = ["Notizie","Approfondimenti","Offerte","Green Mobility","Azienda"];
 
+// ── TagInput per SEO keywords ─────────────────────────────────────────────────
+function TagInput({ tags, onChange, placeholder }) {
+  const [input, setInput] = useState("");
+  const add = () => {
+    const v = input.trim();
+    if (v && !tags.includes(v)) onChange([...tags, v]);
+    setInput("");
+  };
+  return (
+    <div className="flex flex-wrap gap-1.5 p-2 border border-border rounded-lg min-h-[38px] focus-within:ring-1 focus-within:ring-ring">
+      {tags.map(t => (
+        <span key={t} className="flex items-center gap-1 bg-muted text-xs px-2 py-0.5 rounded-full">
+          {t}
+          <button type="button" onClick={() => onChange(tags.filter(x => x !== t))} className="hover:text-destructive">×</button>
+        </span>
+      ))}
+      <input
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
+        onBlur={add}
+        placeholder={tags.length === 0 ? placeholder : ""}
+        className="flex-1 min-w-[120px] bg-transparent text-xs outline-none"
+      />
+    </div>
+  );
+}
+
+// ── Sezione SEO collassabile ──────────────────────────────────────────────────
+function SeoSection({ form, set }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-border/50 rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/30 transition-colors cursor-pointer"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-foreground">SEO &amp; Metatag</span>
+          <span className="text-[10px] text-muted-foreground font-normal">Ottimizzazione motori di ricerca</span>
+        </div>
+        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+      </button>
+      {open && (
+        <div className="px-4 pb-4 pt-1 space-y-4 border-t border-border/50">
+          <div>
+            <Label className="text-xs font-semibold mb-1.5 block">
+              Meta Title
+              <span className="ml-2 text-[10px] font-normal text-muted-foreground">
+                ({(form.seo_title || "").length}/60 caratteri)
+              </span>
+            </Label>
+            <Input
+              value={form.seo_title || ""}
+              onChange={e => set("seo_title", e.target.value)}
+              placeholder={`${form.title || "Titolo articolo"} | Nolosubito`}
+              maxLength={60}
+            />
+          </div>
+          <div>
+            <Label className="text-xs font-semibold mb-1.5 block">
+              Meta Description
+              <span className="ml-2 text-[10px] font-normal text-muted-foreground">
+                ({(form.seo_description || "").length}/160 caratteri)
+              </span>
+            </Label>
+            <Textarea
+              value={form.seo_description || ""}
+              onChange={e => set("seo_description", e.target.value)}
+              placeholder={form.summary || "Breve descrizione per i motori di ricerca…"}
+              rows={2}
+              maxLength={160}
+            />
+          </div>
+          <div>
+            <Label className="text-xs font-semibold mb-1.5 block">
+              Keywords <span className="font-normal text-muted-foreground">(Invio per aggiungere)</span>
+            </Label>
+            <TagInput
+              tags={form.seo_keywords || []}
+              onChange={val => set("seo_keywords", val)}
+              placeholder="es: noleggio auto, NLT, fleet…"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const EMPTY_POST = {
   title: "", slug: "", summary: "", content: "",
   cover_image_url: "", category: "Notizie",
   published_date: new Date().toISOString().slice(0, 16), is_published: true,
+  seo_title: "", seo_description: "", seo_keywords: [],
 };
 
 function slugify(str) {
@@ -471,6 +563,7 @@ export default function CmsNews() {
                   <input type="checkbox" checked={form.is_published} onChange={e => set("is_published", e.target.checked)} className="accent-electric" />
                   <span className="text-sm">Visibile sul sito</span>
                 </label>
+                <SeoSection form={form} set={set} />
               </div>
             )}
 

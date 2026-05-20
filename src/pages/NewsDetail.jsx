@@ -20,6 +20,40 @@ function useNoIndex(active) {
   }, [active]);
 }
 
+function useSeoMeta(post) {
+  useEffect(() => {
+    if (!post) return;
+
+    const prevTitle = document.title;
+    document.title = post.seo_title || post.title;
+
+    const setMeta = (name, content, attr = "name") => {
+      if (!content) return null;
+      let el = document.querySelector(`meta[${attr}="${name}"]`);
+      const created = !el;
+      if (created) { el = document.createElement("meta"); el.setAttribute(attr, name); document.head.appendChild(el); }
+      el.setAttribute("content", content);
+      return created ? el : null;
+    };
+
+    const desc = post.seo_description || post.summary;
+    const keywords = (post.seo_keywords || []).join(", ");
+
+    const created = [
+      setMeta("description", desc),
+      setMeta("keywords", keywords),
+      setMeta("og:title", post.seo_title || post.title, "property"),
+      setMeta("og:description", desc, "property"),
+      post.cover_image_url ? setMeta("og:image", post.cover_image_url, "property") : null,
+    ].filter(Boolean);
+
+    return () => {
+      document.title = prevTitle;
+      created.forEach(el => el.parentNode?.removeChild(el));
+    };
+  }, [post]);
+}
+
 export default function NewsDetail() {
   const { slug } = useParams();
 
@@ -29,6 +63,7 @@ export default function NewsDetail() {
   });
 
   useNoIndex(!isLoading && !post);
+  useSeoMeta(post);
 
   if (isLoading) {
     return (
