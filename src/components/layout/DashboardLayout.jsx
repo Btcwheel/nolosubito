@@ -225,6 +225,13 @@ export default function DashboardLayout() {
   }, []);
 
   const role = profile?.role ?? "cliente";
+
+  // Richiedi permesso notifiche agli operatori backoffice
+  useEffect(() => {
+    if (role === 'backoffice' && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, [role]);
   const config = NAV_BY_ROLE[role] ?? NAV_BY_ROLE.cliente;
 
   const handleLogout = async () => {
