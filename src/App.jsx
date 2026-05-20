@@ -1,9 +1,10 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { supabase } from '@/lib/supabase';
 import AppLayout from './components/layout/AppLayout';
 import DashboardLayout from './components/layout/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -42,6 +43,22 @@ const PageLoader = () => (
     <div className="w-8 h-8 border-4 border-t-electric border-electric/20 rounded-full animate-spin" />
   </div>
 );
+
+// Intercetta hash type=recovery e reindirizza alla dashboard corretta
+function RecoveryHandler() {
+  const navigate = useNavigate();
+  const { profile } = useAuth();
+
+  useEffect(() => {
+    if (!window.location.hash.includes("type=recovery")) return;
+    const dest = profile
+      ? ({ admin: "/admin", backoffice: "/backoffice", agente: "/agente", cms: "/cms", cliente: "/mia-pratica" }[profile.role] || "/backoffice")
+      : "/backoffice";
+    navigate(dest + window.location.hash, { replace: true });
+  }, [profile, navigate]);
+
+  return null;
+}
 
 const AppRoutes = () => {
   const { isLoadingAuth } = useAuth();
@@ -129,6 +146,7 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
+          <RecoveryHandler />
           <AppRoutes />
         </Router>
         <Toaster />
