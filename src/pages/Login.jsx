@@ -115,9 +115,8 @@ export default function Login({ context = "internal" }) {
     }
     setResetLoading(true);
     try {
-      const siteUrl = import.meta.env.VITE_SITE_URL ?? "https://nolosubito.it";
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${siteUrl}/backoffice`,
+        redirectTo: "https://nolosubito.it/backoffice",
       });
       if (error) throw error;
       setResetSent(true);
