@@ -5,6 +5,12 @@ const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+console.error("ENV_CHECK:", {
+  ANTHROPIC_API_KEY: ANTHROPIC_API_KEY ? "✓ set" : "✗ missing",
+  SUPABASE_URL: SUPABASE_URL ? "✓ set" : "✗ missing",
+  SUPABASE_SERVICE_ROLE_KEY: SUPABASE_SERVICE_ROLE_KEY ? "✓ set" : "✗ missing",
+});
+
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -27,12 +33,16 @@ interface GenerateRequest {
 }
 
 Deno.serve(async (req: Request) => {
+  console.error("REQUEST_STARTED:", req.method);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: CORS });
   }
 
   try {
+    console.error("PARSING_BODY...");
     const body = (await req.json()) as GenerateRequest;
+    console.error("BODY_PARSED:", JSON.stringify(body));
     const { topic, region } = body;
 
     if (!topic || !TOPICS[topic]) {
@@ -81,6 +91,8 @@ Deno.serve(async (req: Request) => {
       cover_image_url: null,
     };
 
+    console.error("POST_DATA:", JSON.stringify(postData, null, 2));
+
     const response = await fetch(`${SUPABASE_URL}/rest/v1/posts`, {
       method: "POST",
       headers: {
@@ -93,7 +105,8 @@ Deno.serve(async (req: Request) => {
 
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(`DB insert failed: ${errText}`);
+      console.error("DB_ERROR_RESPONSE:", response.status, errText);
+      throw new Error(`DB insert failed (${response.status}): ${errText}`);
     }
 
     const savedPost = await response.json();
@@ -103,7 +116,7 @@ Deno.serve(async (req: Request) => {
     });
   } catch (err) {
     console.error("Error:", err);
-    return new Response(JSON.stringify({ error: String(err) }), {
+    return new Response(JSON.stringify({ error: "Errore nella generazione dell'articolo. Riprova tra alcuni secondi." }), {
       status: 500,
       headers: { ...CORS, "Content-Type": "application/json" },
     });
@@ -130,21 +143,18 @@ TOPIC: ${topicDescription}
 ISTRUZIONI:
 1. Titolo accattivante per ${region} (max 70 caratteri)
 2. Sommario introduttivo (max 150 caratteri)
-3. Articolo completo in markdown (H2/H3, paragrafi, punti rilevanti)
+3. Articolo in markdown (H2/H3, paragrafi) — BREVE, circa 800-1000 parole max
 4. Titolo SEO-ottimizzato (max 60 car)
 5. Meta description (max 160 car)
 6. 5 keywords rilevanti (separate da virgola)
-7. Contenuto ORIGINALE, NON da altre fonti — creato da zero
-8. Parlare specificamente a clienti della Regione ${region}
-9. Menzionare vantaggi del noleggio a lungo termine
 
-RISPOSTA JSON (VALIDO):
+RISPOSTA JSON SOLO:
 {
-  "title": "Titolo accattivante per ${region}",
-  "summary": "Breve introduzione max 150 car",
-  "content": "# Articolo completo\n\n## Sezione 1\n\nContenuto in markdown...",
-  "seoTitle": "SEO title max 60 car",
-  "seoDescription": "Meta description max 160 car",
+  "title": "Titolo",
+  "summary": "Sommario",
+  "content": "# Titolo\n\n## Sezione\n\nTesto breve...",
+  "seoTitle": "SEO title",
+  "seoDescription": "Meta description",
   "keywords": "keyword1, keyword2, keyword3, keyword4, keyword5"
 }`;
 
@@ -157,26 +167,30 @@ RISPOSTA JSON (VALIDO):
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 1500,
+      max_tokens: 2500,
       messages: [{ role: "user", content: prompt }],
     }),
   });
 
   if (!response.ok) {
     const errText = await response.text();
-    throw new Error(`Claude API error: ${errText}`);
+    console.error("CLAUDE_API_ERROR:", response.status, errText);
+    throw new Error(`Claude API error (${response.status}): ${errText}`);
   }
 
   const data = await response.json() as any;
+  console.error("CLAUDE_RESPONSE:", JSON.stringify(data, null, 2));
   const raw = data.content?.[0]?.text ?? "{}";
 
-  // Estrai JSON dalla risposta
-  const jsonMatch = raw.match(/\{[\s\S]*\}/);
+  // Estrai JSON dalla risposta (con o senza markdown code fences)
+  let jsonMatch = raw.match(/```json\s*(\{[\s\S]*?\})\s*```/) || raw.match(/```\s*(\{[\s\S]*?\})\s*```/) || raw.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
+    console.error("NO_JSON_FOUND_IN_RESPONSE:", raw.substring(0, 500));
     throw new Error("Claude response non contiene JSON valido");
   }
 
-  const parsed = JSON.parse(jsonMatch[0]);
+  const jsonStr = jsonMatch[1] || jsonMatch[0];
+  const parsed = JSON.parse(jsonStr);
 
   return {
     title: parsed.title || "Articolo automotive",

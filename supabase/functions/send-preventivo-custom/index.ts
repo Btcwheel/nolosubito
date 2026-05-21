@@ -1,5 +1,6 @@
-/// <reference lib="deno.ns" />
+
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+// @ts-ignore
 import nodemailer from "npm:nodemailer@6.9.13";
 
 const SMTP_HOST        = Deno.env.get("SMTP_HOST")        ?? "";

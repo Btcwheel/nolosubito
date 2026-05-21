@@ -10,11 +10,22 @@ import {
   Path,
   Line,
   Rect,
+  Font,
 } from '@react-pdf/renderer';
+
+Font.register({
+  family: 'Inter',
+  fonts: [
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyeMZhrib2Bg-4.ttf', fontWeight: 400 },
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuG1YMZhrib2Bg-4.ttf', fontWeight: 500 },
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYMZhrib2Bg-4.ttf', fontWeight: 700 },
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuBWYMZhrib2Bg-4.ttf', fontWeight: 800 }
+  ]
+});
 
 const NAVY = '#36389D';
 const ORANGE = '#F6B000';
-const PAGE_BG = '#E9EDF5';
+const PAGE_BG = '#F4F7FB';
 const SHEET = '#FFFFFF';
 const TEXT = '#1F2942';
 const MUTED = '#6D7894';
@@ -29,20 +40,18 @@ const fmtN = (n) => (n != null ? Number(n).toLocaleString('it-IT') : '—');
 
 const S = StyleSheet.create({
   page: {
-    backgroundColor: SHEET,
-    fontFamily: 'Helvetica',
+    backgroundColor: PAGE_BG,
+    fontFamily: 'Inter',
     fontSize: 9,
     color: TEXT,
   },
   sheet: {
     flex: 1,
     margin: 0,
-    backgroundColor: SHEET,
+    backgroundColor: PAGE_BG,
     overflow: 'hidden',
   },
-  stripe: { flexDirection: 'row', height: 7 },
-  stripeBlue: { flex: 0.68, backgroundColor: NAVY },
-  stripeOrange: { flex: 0.32, backgroundColor: ORANGE },
+  stripe: { height: 8, backgroundColor: NAVY },
 
   header: {
     flexDirection: 'row',
@@ -511,6 +520,44 @@ const SmallIcon = ({ type }) => {
     );
   }
 
+  if (type === 'gas') {
+    return (
+      <Svg width={10} height={10} viewBox="0 0 12 12">
+        <Path d="M2.5 11V3c0-1.1.9-2 2-2h3c1.1 0 2 .9 2 2v8M1.5 11h9" stroke="#FFFFFF" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        <Path d="M9.5 4.5h2v3h-2" stroke="#FFFFFF" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        <Rect x="4" y="3.5" width="2" height="2.5" fill="#FFFFFF" />
+      </Svg>
+    );
+  }
+
+  if (type === 'calendar') {
+    return (
+      <Svg width={10} height={10} viewBox="0 0 12 12">
+        <Rect x="1.5" y="2.5" width="9" height="8" rx="1" stroke="#FFFFFF" strokeWidth="1" fill="none" />
+        <Path d="M3.5 1.5v2M8.5 1.5v2M1.5 5.5h9" stroke="#FFFFFF" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+
+  if (type === 'speed') {
+    return (
+      <Svg width={10} height={10} viewBox="0 0 12 12">
+        <Path d="M1.5 9A4.5 4.5 0 0 1 10.5 9" stroke="#FFFFFF" strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        <Circle cx="6" cy="8" r="1" fill="#FFFFFF" />
+        <Path d="M6 7L4.5 4.5" stroke="#FFFFFF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+
+  if (type === 'gear') {
+    return (
+      <Svg width={10} height={10} viewBox="0 0 12 12">
+        <Circle cx="6" cy="6" r="2.5" stroke="#FFFFFF" strokeWidth="1" fill="none" />
+        <Path d="M6 1.5V3M6 9v1.5M9 6h1.5M1.5 6H3M9.2 2.8L8.1 3.9M3.9 8.1L2.8 9.2M9.2 9.2L8.1 8.1M3.9 3.9L2.8 2.8" stroke="#FFFFFF" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+
   return null;
 };
 
@@ -542,8 +589,8 @@ const SpecRow = ({ k, v }) => (
   </View>
 );
 
-const QuoteRow = ({ label, excl, incl, total }) => (
-  <View style={[S.quoteRowLine, total && S.quoteRowTotal]}>
+const QuoteRow = ({ label, excl, incl, total = false, alt = false }) => (
+  <View style={[S.quoteRowLine, alt && S.quoteRowAlt, total && S.quoteRowTotal]}>
     <Text style={[total ? S.quoteCellBold : S.quoteCell, { flex: 1.5 }]}>{label}</Text>
     <Text style={[total ? S.quoteCellBold : S.quoteCell, S.quoteCellRight]}>{excl}</Text>
     <Text style={[total ? S.quoteCellBold : S.quoteCell, S.quoteCellRight]}>{incl}</Text>
@@ -584,13 +631,10 @@ const Header = ({ rif, oggi, scadenza, logoSrc }) => (
   </View>
 );
 
-const PageShell = ({ children, footerLeft, footerRight, logoSrc, rif, oggi, scadenza, showMeta = false, meta }) => (
+const PageShell = ({ children, footerLeft, footerRight, logoSrc, rif, oggi, scadenza, showMeta = false, meta = null }) => (
   <Page size="A4" style={S.page}>
     <View style={S.sheet}>
-      <View style={S.stripe}>
-        <View style={S.stripeBlue} />
-        <View style={S.stripeOrange} />
-      </View>
+      <View style={S.stripe} />
       <Header rif={rif} oggi={oggi} scadenza={scadenza} logoSrc={logoSrc} />
       <View style={S.content} wrap={false}>
         {showMeta && (
@@ -699,10 +743,10 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
 
   const chips = [
     { label: 'Pronta consegna', hot: true },
-    ...(prev.alimentazione ? [{ label: prev.alimentazione }] : []),
-    { label: `${prev.durata_mesi} mesi` },
-    { label: `${fmtN(prev.km_annui)} km/anno` },
-    ...(prev.cambio ? [{ label: prev.cambio }] : []),
+    ...(prev.alimentazione ? [{ label: prev.alimentazione, icon: 'gas' }] : []),
+    { label: `${prev.durata_mesi} mesi`, icon: 'calendar' },
+    { label: `${fmtN(prev.km_annui)} km/anno`, icon: 'speed' },
+    ...(prev.cambio ? [{ label: prev.cambio, icon: 'gear' }] : []),
   ];
 
   // Usa servizi salvati sul preventivo, poi prova a parserli da note_operative (legacy), poi default
@@ -729,10 +773,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
 
         <Text style={S.eyebrow}>PROPOSTA PERSONALIZZATA</Text>
         <Text style={S.h1}>
-          <Text style={S.h1Blue}>Proposta di noleggio </Text>
-          <Text>a lungo termine{'\n'}</Text>
-          <Text style={S.h1Blue}>di veicolo</Text>
-          <Text> in locazione</Text>
+          <Text style={S.h1Blue}>Proposta di noleggio a lungo termine{'\n'}di veicolo in locazione</Text>
         </Text>
         <Text style={S.intro}>
           Gentile <Text style={S.introBold}>{clienteNome || 'Cliente'}</Text>, abbiamo il piacere di trasmetterle l'offerta a Lei dedicata
@@ -790,10 +831,12 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
             {chips.map((c, i) => (
               c.hot ? (
                 <View key={i} style={S.chipHot}>
+                  <SmallIcon type="check" />
                   <Text style={S.chipHotText}>{c.label}</Text>
                 </View>
               ) : (
                 <View key={i} style={S.chip}>
+                  {c.icon && <SmallIcon type={c.icon} />}
                   <Text style={S.chipText}>{c.label}</Text>
                 </View>
               )
@@ -809,7 +852,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
               <Text style={[S.quoteHeadCell, S.quoteCellRight]}>IVA INCLUSA</Text>
             </View>
             <QuoteRow label="Quota Canone Veicolo" excl={`€ ${fmt(qVN)}`} incl={`€ ${fmt(qVL)}`} />
-            <QuoteRow label="Quota Canone Servizi" excl={`€ ${fmt(qSN)}`} incl={`€ ${fmt(qSL)}`} total={false} />
+            <QuoteRow label="Quota Canone Servizi" excl={`€ ${fmt(qSN)}`} incl={`€ ${fmt(qSL)}`} alt />
             <QuoteRow label="Anticipo" excl={`€ ${fmt(anticipoNetto)}`} incl={`€ ${fmt(anticipo)}`} />
             <QuoteRow label="Canone Mensile Totale" excl={`€ ${fmt(canoneNetto)}`} incl={`€ ${fmt(canone)}`} total />
           </View>

@@ -1,5 +1,6 @@
-/// <reference lib="deno.ns" />
+
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+// @ts-ignore - Deno imports are not recognized by standard TS
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const ANTHROPIC_API_KEY      = Deno.env.get("ANTHROPIC_API_KEY")!;
@@ -58,7 +59,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const offersTable = (offersRes.data || [])
-      .map(o => {
+      .map((o: any) => {
         const price = minPriceMap[`${o.make}|${o.model}`];
         const link = `${SITE_URL}/vehicle/${encodeURIComponent(o.make)}/${encodeURIComponent(o.model)}`;
         return `- ${o.make} ${o.model} | ${o.category} | ${o.fuel_type} | da €${price ?? "—"}/mese | ${link}`;
@@ -183,7 +184,7 @@ NON inventare risposte. NON fare supposizioni. Chiama il tool e basta — il mes
       return FALLBACK_RES;
     }
 
-    const data = await anthropicRes.json();
+    const data = await anthropicRes.json() as any;
     const content: { type: string; text?: string; id?: string; name?: string; input?: Record<string, string> }[] = data.content || [];
 
     let replyParts: string[] = [];
@@ -247,7 +248,7 @@ NON inventare risposte. NON fare supposizioni. Chiama il tool e basta — il mes
           }),
         });
         if (followUp.ok) {
-          const fuData = await followUp.json();
+          const fuData = await followUp.json() as any;
           const txt = fuData.content?.find((b: { type: string; text?: string }) => b.type === "text")?.text || "Grazie! Un consulente la contatterà presto.";
           replyParts = txt.split("||").map((s: string) => s.trim()).filter(Boolean);
         } else {

@@ -299,7 +299,7 @@ function GenerateArticleModal({ onClose, onSuccess }) {
           </div>
 
           <p className="text-xs text-muted-foreground bg-muted p-3 rounded">
-            ℹ️ Claude genererà un articolo originale con titoli SEO-ottimizzati, meta description, keywords e schema markup geo-targetizzato per la regione. Puoi aggiungere foto dopo la creazione.
+            ℹ️ Verrà generato un articolo originale con titoli SEO-ottimizzati, meta description, keywords e schema markup geo-targetizzato per la regione. Puoi aggiungere foto dopo la creazione.
           </p>
         </div>
 

@@ -1,6 +1,8 @@
-/// <reference lib="deno.ns" />
+
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+// @ts-ignore
 import { createClient } from "jsr:@supabase/supabase-js@2";
+// @ts-ignore
 import nodemailer from "npm:nodemailer@6.9.13";
 
 const SUPABASE_URL              = Deno.env.get("SUPABASE_URL")!;
@@ -37,7 +39,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "Solo gli admin possono invitare" }), { status: 403, headers: CORS });
   }
 
-  const { email, fullName, backofficeRole, permissions } = await req.json();
+  const { email, fullName, backofficeRole, permissions } = await req.json() as any;
   if (!email || !fullName || !backofficeRole) {
     return new Response(JSON.stringify({ error: "email, fullName e backofficeRole sono obbligatori" }), { status: 400, headers: CORS });
   }
