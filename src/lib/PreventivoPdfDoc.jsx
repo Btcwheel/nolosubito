@@ -705,7 +705,10 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
     ...(prev.cambio ? [{ label: prev.cambio }] : []),
   ];
 
-  const servizi = parseServizi(prev.note_operative) ?? SERVIZI_DEFAULT;
+  // Usa servizi salvati sul preventivo, poi prova a parserli da note_operative (legacy), poi default
+  const servizi = (prev.servizi?.length > 0 ? prev.servizi.map(n => SERVIZI_MAP[n.toLowerCase()] || [n, '']) : null)
+    ?? parseServizi(prev.note_operative)
+    ?? SERVIZI_DEFAULT;
   const col1 = servizi.filter((_, i) => i % 3 === 0);
   const col2 = servizi.filter((_, i) => i % 3 === 1);
   const col3 = servizi.filter((_, i) => i % 3 === 2);

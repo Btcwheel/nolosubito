@@ -54,6 +54,7 @@ const BLANK_FORM = {
   anticipo: "", canone_mensile: "", canone_finale: "",
   note_cliente: "", note_operative: "",
   carrier: "",
+  servizi: /** @type {string[]} */ ([]),
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -339,9 +340,8 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
           anticipo:        extracted.anticipo        ? String(extracted.anticipo)        : prev.anticipo,
           canone_mensile:  extracted.canone_mensile  ? String(extracted.canone_mensile)  : prev.canone_mensile,
           carrier:         extracted.carrier || prev.carrier,
-          note_operative:  extracted.servizi?.length
-            ? `Servizi inclusi: ${extracted.servizi.join(', ')}${extracted.note_aggiuntive ? '\n' + extracted.note_aggiuntive : ''}`
-            : prev.note_operative,
+          servizi:         extracted.servizi?.length ? extracted.servizi : prev.servizi,
+          note_operative:  extracted.note_aggiuntive || prev.note_operative,
         }));
 
         setBrokerFile(file);
@@ -384,9 +384,8 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
           anticipo:        extracted.anticipo        ? String(extracted.anticipo)        : prev.anticipo,
           canone_mensile:  extracted.canone_mensile  ? String(extracted.canone_mensile)  : prev.canone_mensile,
           carrier:         extracted.carrier || prev.carrier,
-          note_operative:  extracted.servizi?.length
-            ? `Servizi inclusi: ${extracted.servizi.join(', ')}${extracted.note_aggiuntive ? '\n' + extracted.note_aggiuntive : ''}`
-            : prev.note_operative,
+          servizi:         extracted.servizi?.length ? extracted.servizi : prev.servizi,
+          note_operative:  extracted.note_aggiuntive || prev.note_operative,
         }));
 
         setBrokerFile(file);
@@ -423,7 +422,9 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
       canone_mensile: parseFloat(form.canone_mensile),
       canone_finale:  form.canone_finale ? parseFloat(form.canone_finale) : null,
       note_cliente:   form.note_cliente.trim() || null,
-      note_operative: form.note_operative.trim() || null,
+      note_operative: form.servizi.length
+        ? `Servizi inclusi: ${form.servizi.join(', ')}${form.note_operative.trim() ? '\n' + form.note_operative.trim() : ''}`
+        : form.note_operative.trim() || null,
       carrier:        form.carrier.trim() || null,
     }),
     onSuccess: async (created) => {
@@ -616,6 +617,28 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
               </div>
             </div>
           </div>
+
+          {/* Servizi inclusi — checklist editabile */}
+          {form.servizi.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                Servizi inclusi nel PDF broker — deseleziona quelli NON presenti
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {form.servizi.map((s) => (
+                  <label key={s} className="flex items-center gap-2 text-xs cursor-pointer select-none bg-muted/20 rounded-lg px-2.5 py-2 hover:bg-muted/40 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked
+                      onChange={() => set("servizi", form.servizi.filter(x => x !== s))}
+                      className="w-3.5 h-3.5 accent-electric"
+                    />
+                    <span className="text-foreground">{s}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Note */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
