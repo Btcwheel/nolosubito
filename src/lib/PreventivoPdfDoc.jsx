@@ -608,20 +608,54 @@ const PageShell = ({ children, footerLeft, footerRight, logoSrc, rif, oggi, scad
   </Page>
 );
 
-const SERVIZI = [
+// Mappa servizio normalizzato → [etichetta display, descrizione breve]
+const SERVIZI_MAP = {
+  'rca':                            ['R.C.A. Responsabilità Civile',  'Massimale max 25 milioni'],
+  'copertura danni':                ['Copertura Danni',               'Penale a carico del cliente'],
+  'copertura danni kasko':          ['Copertura Danni Kasko',         'Penale 500 € per sinistro'],
+  'kasko':                          ['Copertura Danni Kasko',         'Penale 500 € per sinistro'],
+  'copertura incendio e furto':     ['Incendio e Furto',              'Penale 10% sul valore'],
+  'incendio e furto':               ['Incendio e Furto',              'Penale 10% sul valore'],
+  'manutenzione ordinaria e straordinaria': ['Manutenzione Ord. e Straord.', 'Tagliandi e riparazioni inclusi'],
+  'manutenzione ordinaria':         ['Manutenzione Ordinaria',        'Tagliandi periodici programmati'],
+  'manutenzione straordinaria':     ['Manutenzione Straordinaria',    'Riparazioni per usura'],
+  'tassa di proprietà':             ['Tassa di Possesso',             'Bollo auto gestito da broker'],
+  'immatricolazione':               ['Immatricolazione',              'Messa su strada inclusa'],
+  'pneumatici':                     ['Cambio Pneumatici',             'Stagionali (estivi/invernali)'],
+  'soccorso stradale':              ['Assistenza Stradale H24',       "Soccorso 365 giorni l'anno"],
+  'auto sostitutiva':               ['Auto Sostitutiva',              'Veicolo di cortesia incluso'],
+  'gestione multe':                 ['Gestione Multe',                'Rinotifica al conducente'],
+  'copertura cristalli':            ['Copertura Cristalli',           'Riparazione/sostituzione inclusa'],
+  'cristalli':                      ['Copertura Cristalli',           'Riparazione/sostituzione inclusa'],
+  'infortuni conducente':           ['Infortuni Conducente',          'Polizza assicurativa inclusa'],
+  'tutela legale':                  ['Tutela Legale',                 'Assistenza legale inclusa'],
+  'telematica':                     ['Telematica / GPS',              'Localizzazione e fleet management'],
+};
+
+const SERVIZI_DEFAULT = [
   ['R.C.A. Responsabilità Civile', 'Massimale max 25 milioni'],
-  ['Copertura Danni Kasko', 'Penale 500 € per sinistro'],
-  ['Incendio e Furto', 'Penale 10% sul valore'],
-  ['Manutenzione Ordinaria', 'Tagliandi periodici programmati'],
-  ['Manutenzione Straordinaria', 'Riparazioni per usura'],
-  ['Tassa di Possesso', 'Bollo auto gestito da broker'],
-  ['Immatricolazione', 'Messa su strada inclusa'],
-  ['Cambio Pneumatici', 'Stagionali (estivi/invernali)'],
-  ['Assistenza Stradale H24', "Soccorso 365 giorni l'anno"],
-  ['Consegna del Veicolo', 'Presso sede o domicilio'],
-  ['Gestione Multe', 'Rinotifica al conducente'],
-  ['Customer Care Dedicato', 'Numero verde + e-mail'],
+  ['Copertura Danni Kasko',        'Penale 500 € per sinistro'],
+  ['Incendio e Furto',             'Penale 10% sul valore'],
+  ['Manutenzione Ordinaria',       'Tagliandi periodici programmati'],
+  ['Manutenzione Straordinaria',   'Riparazioni per usura'],
+  ['Tassa di Possesso',            'Bollo auto gestito da broker'],
+  ['Immatricolazione',             'Messa su strada inclusa'],
+  ['Cambio Pneumatici',            'Stagionali (estivi/invernali)'],
+  ['Assistenza Stradale H24',      "Soccorso 365 giorni l'anno"],
+  ['Consegna del Veicolo',         'Presso sede o domicilio'],
+  ['Gestione Multe',               'Rinotifica al conducente'],
+  ['Customer Care Dedicato',       'Numero verde + e-mail'],
 ];
+
+// Estrae servizi da note_operative (formato: "Servizi inclusi: X, Y, Z")
+function parseServizi(noteOperative) {
+  if (!noteOperative) return null;
+  const match = noteOperative.match(/Servizi inclusi:\s*([^\n]+)/i);
+  if (!match) return null;
+  const nomi = match[1].split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  if (nomi.length === 0) return null;
+  return nomi.map(n => SERVIZI_MAP[n] || [n.replace(/\b\w/g, c => c.toUpperCase()), '']).filter(Boolean);
+}
 
 export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
   const rif = `NS-${prev.id.slice(-6).toUpperCase()}`;
@@ -671,9 +705,10 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
     ...(prev.cambio ? [{ label: prev.cambio }] : []),
   ];
 
-  const col1 = SERVIZI.filter((_, i) => i % 3 === 0);
-  const col2 = SERVIZI.filter((_, i) => i % 3 === 1);
-  const col3 = SERVIZI.filter((_, i) => i % 3 === 2);
+  const servizi = parseServizi(prev.note_operative) ?? SERVIZI_DEFAULT;
+  const col1 = servizi.filter((_, i) => i % 3 === 0);
+  const col2 = servizi.filter((_, i) => i % 3 === 1);
+  const col3 = servizi.filter((_, i) => i % 3 === 2);
 
   const logoSrc = logoB64 || null;
 
@@ -801,7 +836,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
           <Text style={S.sectionTitle}>SERVIZI INCLUSI NEL CANONE</Text>
           <View style={S.sectionRule} />
           <View style={S.sectionBadge}>
-            <Text style={S.sectionBadgeTxt}>{SERVIZI.length} servizi</Text>
+            <Text style={S.sectionBadgeTxt}>{servizi.length} servizi</Text>
           </View>
         </View>
 
