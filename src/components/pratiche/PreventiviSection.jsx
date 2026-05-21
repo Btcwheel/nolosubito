@@ -53,6 +53,7 @@ const BLANK_FORM = {
   durata_mesi: "", km_annui: "",
   anticipo: "", canone_mensile: "", canone_finale: "",
   note_cliente: "", note_operative: "",
+  carrier: "",
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -136,6 +137,13 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
         <p className="text-xs text-muted-foreground">
           Canone finale definito: <span className="font-semibold text-foreground">€{prev.canone_finale?.toLocaleString("it-IT")}/mese</span>
         </p>
+      )}
+
+      {/* Carrier */}
+      {prev.carrier && (
+        <span className="inline-flex items-center text-xs font-semibold text-muted-foreground bg-muted/40 border border-border/40 rounded-full px-2.5 py-0.5">
+          {prev.carrier}
+        </span>
       )}
 
       {/* Documento broker originale */}
@@ -326,6 +334,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
         km_annui:        kmValue     ? String(kmValue)     : prev.km_annui,
         anticipo:        extracted.anticipo        ? String(extracted.anticipo)        : prev.anticipo,
         canone_mensile:  extracted.canone_mensile  ? String(extracted.canone_mensile)  : prev.canone_mensile,
+        carrier:         extracted.carrier || prev.carrier,
         note_operative:  extracted.servizi?.length
           ? `Servizi inclusi: ${extracted.servizi.join(', ')}${extracted.note_aggiuntive ? '\n' + extracted.note_aggiuntive : ''}`
           : prev.note_operative,
@@ -365,6 +374,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
       canone_finale:  form.canone_finale ? parseFloat(form.canone_finale) : null,
       note_cliente:   form.note_cliente.trim() || null,
       note_operative: form.note_operative.trim() || null,
+      carrier:        form.carrier.trim() || null,
     }),
     onSuccess: async (created) => {
       // Se c'era un PDF broker, caricalo su Storage rinominato con il codice
