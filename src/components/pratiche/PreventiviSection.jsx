@@ -285,6 +285,14 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
       let base64 = null, mediaType = null, text = null;
 
       if (file.type === 'application/pdf') {
+        // Polyfill per browser che non supportano Promise.withResolvers (ES2024)
+        if (typeof Promise.withResolvers === 'undefined') {
+          Promise.withResolvers = function() {
+            let resolve, reject;
+            const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+            return { promise, resolve, reject };
+          };
+        }
         const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist');
         GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).href;
         const buffer = await file.arrayBuffer();
