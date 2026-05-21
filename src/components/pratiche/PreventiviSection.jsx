@@ -282,8 +282,6 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
     if (!showForm) setShowForm(true);
 
     try {
-      let base64 = null, mediaType = null, text = null;
-
       if (file.type === 'application/pdf') {
         // Polyfill per browser che non supportano Promise.withResolvers (ES2024)
         if (typeof Promise.withResolvers === 'undefined') {
@@ -297,59 +295,103 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
         GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).href;
         const buffer = await file.arrayBuffer();
         const pdf = await getDocument({ data: buffer }).promise;
-        let raw = '';
-        for (let i = 1; i <= pdf.numPages; i++) {
+
+        // Renderizza le prime 3 pagine come immagini JPEG — Claude Vision legge
+        // le tabelle dei servizi correttamente, il testo grezzo le distorce
+        const pages: string[] = [];
+        const maxPages = Math.min(pdf.numPages, 3);
+        for (let i = 1; i <= maxPages; i++) {
           const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          raw += content.items.map(item => item.str).join(' ') + '\n\n';
+          const viewport = page.getViewport({ scale: 1.8 });
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const ctx = canvas.getContext('2d')!;
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          pages.push(canvas.toDataURL('image/jpeg', 0.82).split(',')[1]);
         }
-        text = raw.trim();
+
+        const res = await fetch(ANALYZE_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ pages }),
+        });
+        const { data: extracted, error } = await res.json();
+        if (error) throw new Error(error);
+
+        const kmValue = extracted.km_annui
+          ? KM_OPTIONS.find(k => Math.abs(k.value - Number(extracted.km_annui)) < 2500)?.value ?? extracted.km_annui
+          : '';
+        const durataValue = extracted.durata_mesi
+          ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
+          : '';
+
+        setForm(prev => ({
+          ...prev,
+          veicolo_marca:   extracted.veicolo_marca  || prev.veicolo_marca,
+          veicolo_modello: [extracted.veicolo_modello, extracted.veicolo_allestimento].filter(Boolean).join(' ') || prev.veicolo_modello,
+          alimentazione:   extracted.alimentazione  || prev.alimentazione,
+          durata_mesi:     durataValue ? String(durataValue) : prev.durata_mesi,
+          km_annui:        kmValue     ? String(kmValue)     : prev.km_annui,
+          anticipo:        extracted.anticipo        ? String(extracted.anticipo)        : prev.anticipo,
+          canone_mensile:  extracted.canone_mensile  ? String(extracted.canone_mensile)  : prev.canone_mensile,
+          carrier:         extracted.carrier || prev.carrier,
+          note_operative:  extracted.servizi?.length
+            ? `Servizi inclusi: ${extracted.servizi.join(', ')}${extracted.note_aggiuntive ? '\n' + extracted.note_aggiuntive : ''}`
+            : prev.note_operative,
+        }));
+
+        setBrokerFile(file);
+        toast({ title: `Preventivo broker caricato — controlla e aggiusta i campi.` });
+        setExtracting(false);
+        return; // early return: tutto già gestito
       } else {
-        base64 = await new Promise(resolve => {
+        // Immagine: invia direttamente come base64
+        const b64 = await new Promise<string>(resolve => {
           const reader = new FileReader();
-          reader.onload = ev => resolve(ev.target.result.split(',')[1]);
+          reader.onload = ev => resolve((ev.target!.result as string).split(',')[1]);
           reader.readAsDataURL(file);
         });
-        mediaType = file.type;
+
+        const res = await fetch(ANALYZE_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ base64: b64, mediaType: file.type }),
+        });
+        const { data: extracted, error } = await res.json();
+        if (error) throw new Error(error);
+
+        const kmValue = extracted.km_annui
+          ? KM_OPTIONS.find(k => Math.abs(k.value - Number(extracted.km_annui)) < 2500)?.value ?? extracted.km_annui
+          : '';
+        const durataValue = extracted.durata_mesi
+          ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
+          : '';
+
+        setForm(prev => ({
+          ...prev,
+          veicolo_marca:   extracted.veicolo_marca  || prev.veicolo_marca,
+          veicolo_modello: [extracted.veicolo_modello, extracted.veicolo_allestimento].filter(Boolean).join(' ') || prev.veicolo_modello,
+          alimentazione:   extracted.alimentazione  || prev.alimentazione,
+          durata_mesi:     durataValue ? String(durataValue) : prev.durata_mesi,
+          km_annui:        kmValue     ? String(kmValue)     : prev.km_annui,
+          anticipo:        extracted.anticipo        ? String(extracted.anticipo)        : prev.anticipo,
+          canone_mensile:  extracted.canone_mensile  ? String(extracted.canone_mensile)  : prev.canone_mensile,
+          carrier:         extracted.carrier || prev.carrier,
+          note_operative:  extracted.servizi?.length
+            ? `Servizi inclusi: ${extracted.servizi.join(', ')}${extracted.note_aggiuntive ? '\n' + extracted.note_aggiuntive : ''}`
+            : prev.note_operative,
+        }));
+
+        setBrokerFile(file);
+        toast({ title: `Preventivo broker caricato — controlla e aggiusta i campi.` });
       }
-
-      const res = await fetch(ANALYZE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ base64, mediaType, text }),
-      });
-
-      const { data: extracted, error } = await res.json();
-      if (error) throw new Error(error);
-
-      // Mappa i campi estratti sul form esistente
-      const kmValue = extracted.km_annui
-        ? KM_OPTIONS.find(k => Math.abs(k.value - Number(extracted.km_annui)) < 2500)?.value ?? extracted.km_annui
-        : '';
-      const durataValue = extracted.durata_mesi
-        ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
-        : '';
-
-      setForm(prev => ({
-        ...prev,
-        veicolo_marca:   extracted.veicolo_marca  || prev.veicolo_marca,
-        veicolo_modello: [extracted.veicolo_modello, extracted.veicolo_allestimento].filter(Boolean).join(' ') || prev.veicolo_modello,
-        alimentazione:   extracted.alimentazione  || prev.alimentazione,
-        durata_mesi:     durataValue ? String(durataValue) : prev.durata_mesi,
-        km_annui:        kmValue     ? String(kmValue)     : prev.km_annui,
-        anticipo:        extracted.anticipo        ? String(extracted.anticipo)        : prev.anticipo,
-        canone_mensile:  extracted.canone_mensile  ? String(extracted.canone_mensile)  : prev.canone_mensile,
-        carrier:         extracted.carrier || prev.carrier,
-        note_operative:  extracted.servizi?.length
-          ? `Servizi inclusi: ${extracted.servizi.join(', ')}${extracted.note_aggiuntive ? '\n' + extracted.note_aggiuntive : ''}`
-          : prev.note_operative,
-      }));
-
-      setBrokerFile(file);
-      toast({ title: `Preventivo broker caricato — controlla e aggiusta i campi.` });
     } catch (err) {
       toast({ title: "Errore nell'analisi del documento", description: String(err), variant: 'destructive' });
     } finally {

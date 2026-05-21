@@ -13,14 +13,23 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json() as {
-      base64?: string;
+      base64?: string;       // singola immagine (legacy)
+      pages?: string[];      // array di pagine PDF renderizzate come immagini
       mediaType?: string;
       text?: string;
     };
 
     const userContent: unknown[] = [];
 
-    if (body.base64 && body.mediaType) {
+    // Più pagine PDF come immagini (preferito — Claude Vision legge le tabelle correttamente)
+    if (body.pages && body.pages.length > 0) {
+      for (const pageB64 of body.pages) {
+        userContent.push({
+          type: "image",
+          source: { type: "base64", media_type: "image/jpeg", data: pageB64 },
+        });
+      }
+    } else if (body.base64 && body.mediaType) {
       userContent.push({
         type: "image",
         source: { type: "base64", media_type: body.mediaType, data: body.base64 },
