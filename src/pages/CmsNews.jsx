@@ -209,6 +209,127 @@ function slugify(str) {
     .replace(/(^-|-$)/g,'');
 }
 
+// ── Generatore Articoli AI (Web Scraping + SEO + GEO) ──────────────────────────
+
+function GenerateArticleModal({ onClose, onSuccess }) {
+  const [topic, setTopic] = useState("auto");
+  const [region, setRegion] = useState("Lazio");
+  const [generating, setGenerating] = useState(false);
+  const { toast } = useToast();
+
+  const TOPICS = {
+    auto: "Nuove auto e modelli",
+    incentivi: "Incentivi per il noleggio a lungo termine",
+    codice_strada: "Novità nel codice della strada",
+    tecnologie: "Nuove tecnologie automobilistiche",
+    mezzi_commerciali: "Mezzi commerciali",
+  };
+
+  const REGIONS = ["Campania", "Lazio", "Toscana", "Umbria", "Marche", "Emilia Romagna"];
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-news-article`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${session?.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ topic, region }),
+        }
+      );
+
+      if (!res.ok) throw new Error(await res.text());
+      const { data } = await res.json();
+
+      toast({ title: "Articolo generato!", description: `${data.title}` });
+      onSuccess(data);
+      onClose();
+    } catch (err) {
+      toast({ title: "Errore generazione", description: err.message, variant: "destructive" });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[70] bg-black/40 flex items-center justify-center p-4">
+      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-violet-500" />
+            Genera Articolo con AI
+          </h3>
+          <button onClick={onClose} className="p-1 rounded hover:bg-muted">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Topic</Label>
+            <Select value={topic} onValueChange={setTopic}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(TOPICS).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>{v}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium mb-2 block">Regione</Label>
+            <Select value={region} onValueChange={setRegion}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {REGIONS.map(r => (
+                  <SelectItem key={r} value={r}>{r}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <p className="text-xs text-muted-foreground bg-muted p-3 rounded">
+            ℹ️ L'AI farà web scraping dai migliori siti automotive italiani, scaricherà foto (citando la fonte) e genererà un articolo riscritto con SEO e geo-targeting per la regione selezionata.
+          </p>
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          <Button variant="outline" onClick={onClose} className="flex-1">
+            Annulla
+          </Button>
+          <Button
+            onClick={handleGenerate}
+            disabled={generating}
+            className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
+          >
+            {generating ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Generando...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Genera Articolo
+              </>
+            )}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Sezione Bozze AI ─────────────────────────────────────────────────────────
 
 function AiDraftCard({ draft, onAccept, onReject, onEdit }) {
@@ -365,6 +486,7 @@ export default function CmsNews() {
   const [previewMode, setPreviewMode] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showGeneratorModal, setShowGeneratorModal] = useState(false);
   const fileInputRef = React.useRef(null);
 
   const handleImageUpload = async (e) => {
@@ -469,6 +591,28 @@ export default function CmsNews() {
     setEditing("new");
   };
 
+  const handleGenerateSuccess = (generatedArticle) => {
+    // Prepara il form con l'articolo generato per review prima di salvare
+    setForm({
+      title: generatedArticle.title,
+      slug: generatedArticle.slug,
+      summary: generatedArticle.summary,
+      content: generatedArticle.content,
+      cover_image_url: generatedArticle.cover_image_url,
+      category: generatedArticle.category,
+      seo_title: generatedArticle.seo_title,
+      seo_description: generatedArticle.seo_description,
+      seo_keywords: (generatedArticle.seo_keywords || "").split(",").map(k => k.trim()),
+      geo_region: generatedArticle.geo_region,
+      topic: generatedArticle.topic,
+      published_date: new Date().toISOString().slice(0, 16),
+      is_published: false, // Bozza per review
+    });
+    setPreviewMode(false);
+    setEditing("new");
+    qc.invalidateQueries({ queryKey: ["cms-posts"] });
+  };
+
   const set = (field, val) => setForm(prev => ({ ...prev, [field]: val }));
 
   const handleTitleChange = (val) => {
@@ -487,10 +631,22 @@ export default function CmsNews() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-heading font-bold text-xl text-foreground">News & Articoli</h2>
-        <Button onClick={openNew} className="bg-electric hover:bg-electric/90 text-white gap-2">
-          <Plus className="w-4 h-4" /> Nuovo Articolo
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowGeneratorModal(true)} className="bg-violet-600 hover:bg-violet-700 text-white gap-2">
+            <Sparkles className="w-4 h-4" /> Genera con AI
+          </Button>
+          <Button onClick={openNew} className="bg-electric hover:bg-electric/90 text-white gap-2">
+            <Plus className="w-4 h-4" /> Nuovo Articolo
+          </Button>
+        </div>
       </div>
+
+      {showGeneratorModal && (
+        <GenerateArticleModal
+          onClose={() => setShowGeneratorModal(false)}
+          onSuccess={handleGenerateSuccess}
+        />
+      )}
 
       <AiDraftsSection onEditDraft={openDraftEdit} />
 
