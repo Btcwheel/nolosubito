@@ -1,11 +1,6 @@
-fix: rimuovi TypeScript syntax da JSX, dinamicizza servizi, storage broker PDF
+fix: aumenta qualità PDF render (scale 2.5, JPEG 0.95) per leggere servizi piccoli
 
-- Rimuovi type annotations (: string[], as string, <>), operatori non-null (!) da PreventiviSection.jsx
-- Rendi i servizi dinamici: estrai da Vision AI, mostra checklist, salva array
-- Implementa storage broker PDF con bucket privato e signed URLs (1 anno)
-- Traccia carrier (Drivalia, Ayvens, VW, Leasys, Santander) dai preventivi
-- Aggiungi operatore backoffice: auto-assign al primo accesso, riassegna admin
-- Persisti OTP state in sessionStorage con TTL 10 min per evitare loop Android
-- Build passa, warning su chunk size (PreventivoModal 1.5MB) non blocca deploy
+Cloud Vision legge meglio le tabelle e i font piccoli con immagini ad alta qualità.
+Questo dovrebbe risolvere la mancata lettura dei servizi nei preventivi broker.
 
 Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>

@@ -303,13 +303,13 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
         const maxPages = Math.min(pdf.numPages, 3);
         for (let i = 1; i <= maxPages; i++) {
           const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 1.8 });
+          const viewport = page.getViewport({ scale: 2.5 });
           const canvas = document.createElement('canvas');
           canvas.width = viewport.width;
           canvas.height = viewport.height;
           const ctx = canvas.getContext('2d');
           await page.render({ canvasContext: ctx, viewport }).promise;
-          pages.push(canvas.toDataURL('image/jpeg', 0.82).split(',')[1]);
+          pages.push(canvas.toDataURL('image/jpeg', 0.95).split(',')[1]);
         }
 
         const res = await fetch(ANALYZE_URL, {
