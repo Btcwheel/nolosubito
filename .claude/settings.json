@@ -7,7 +7,8 @@
       "PowerShell(cd \"c:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\"; $env:NO_COLOR=1; node node_modules/vite/bin/vite.js build 2>&1 | Select-String -Pattern \"line|column|jsx|Expected|Unexpected|Cannot find\" | Select-Object -First 10 | ForEach-Object { $_.Line })",
       "PowerShell(cd \"c:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\"; $env:NO_COLOR=\"1\"; $result = npx vite build 2>&1; $result | Select-Object -First 30 | ForEach-Object { \"$_\" })",
       "Bash(Get-Content \"C:\\\\Users\\\\Quixel\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Quixel-Downloads-fleet-flow-nolo\\\\875f6933-03bb-4177-bc7e-a985b0f62485\\\\tasks\\\\beh9xasl1.output\")",
-      "Bash(Tail -30)"
+      "Bash(Tail -30)",
+      "PowerShell(Write-Host $logs)"
     ]
   },
   "hooks": {

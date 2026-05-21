@@ -64,11 +64,17 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
-          motion: ['framer-motion'],
-          charts: ['recharts'],
-          ui: ['lucide-react', 'clsx', 'tailwind-merge'],
+        manualChunks(id) {
+          // Separate chunks per ridurre JS unused
+          if (id.includes('node_modules/framer-motion')) return 'motion';
+          if (id.includes('node_modules/recharts')) return 'charts';
+          if (id.includes('node_modules/lucide-react')) return 'icons';
+          if (id.includes('node_modules/@radix-ui')) return 'radix';
+          if (id.includes('node_modules/react-pdf')) return 'pdf-render';
+          if (id.includes('node_modules/jspdf') || id.includes('node_modules/pdfmake')) return 'pdf-libs';
+          if (id.includes('node_modules/html2canvas')) return 'canvas';
+          if (id.includes('node_modules/@supabase')) return 'supabase';
+          if (id.includes('node_modules/react') && !id.includes('@')) return 'core-react';
         }
       }
     }
