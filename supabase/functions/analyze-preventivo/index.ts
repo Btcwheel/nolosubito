@@ -30,11 +30,58 @@ Deno.serve(async (req: Request) => {
     const textInput = body.text ?? "";
     userContent.push({
       type: "text",
-      text: `Estrai i dati di questo preventivo di noleggio a lungo termine e restituisci solo JSON valido.
-${textInput ? `Testo:\n${textInput}` : ""}
+      text: `Sei un esperto di noleggio a lungo termine (NLT) italiano. Estrai i dati dal preventivo e restituisci SOLO JSON valido, senza testo aggiuntivo.
+${textInput ? `Testo estratto:\n${textInput}` : ""}
 
-Schema:
+STEP 1 — Identifica il carrier leggendo intestazione/logo:
+- DRIVALIA → regole Drivalia
+- AYVENS / ALD Automotive → regole Ayvens
+- VOLKSWAGEN FINANCIAL SERVICES / VOLKSWAGEN LEASING → regole VW
+- LEASYS → regole Leasys
+- SANTANDER / Santander Consumer Renting → regole Santander
+- Altro → regole generiche
+
+STEP 2 — Estrai canone_mensile (SEMPRE IVA inclusa, arrotondato a 2 decimali):
+- DRIVALIA: campo "CANONE TOTALE" è IVA ESCLUSA → moltiplica ×1.22
+- AYVENS: usa "Canone mensile I.V.A. inclusa" (es. €443.52)
+- VW: usa il valore dopo "Totale €" nel "Canone totale" (es. €807,23)
+- LEASYS: usa colonna "Iva Inclusa" del "Canone Totale" (es. €772,20)
+- SANTANDER: ignora il box "Canone mensile" principale (IVA esclusa); usa "Canone Mensile inclusa IVA" dalla tabella sotto (es. 898,60€)
+- Generico: preferisci sempre il valore con IVA inclusa
+
+STEP 3 — Estrai km_annui (sempre annui, numero intero):
+- Se il doc mostra "Km/Anno" o "km annui" → usa direttamente quel valore
+- Se mostra solo "km totali" o "KM" senza /anno → calcola: km_totali / durata_mesi * 12
+- DRIVALIA: campo "KM" = km totali → dividi per durata_mesi e moltiplica per 12
+- AYVENS: "KM totali" → calcola come sopra
+- VW: "Km totali" → calcola come sopra
+- LEASYS: "km totali" → calcola come sopra
+- SANTANDER: "Km / Anno" → usa direttamente
+
+STEP 4 — Estrai anticipo (IVA inclusa se disponibile, altrimenti IVA esclusa):
+- LEASYS: usa la colonna "Iva Inclusa" dell'anticipo (es. €1.830,00)
+- Altri: usa il valore indicato come anticipo/acconto
+
+STEP 5 — Estrai servizi inclusi come array di stringhe brevi (max 60 caratteri ciascuna).
+Normalizza i nomi comuni:
+- RCA / Assicurazione RC → "RCA"
+- Manutenzione Ordinaria/Straordinaria → "Manutenzione Ordinaria e Straordinaria"
+- Incendio e Furto / Limitazione Furto-Incendio → "Copertura Incendio e Furto"
+- Danni / Copertura Danni / Limitazione danni → "Copertura Danni"
+- Cristalli → "Copertura Cristalli"
+- Soccorso Stradale / Assistenza stradale → "Soccorso Stradale"
+- Pneumatici → "Pneumatici"
+- Gestione Multe / Rinotifica Contravvenzioni → "Gestione Multe"
+- Auto sostitutiva / Veicolo Sostitutivo → "Auto Sostitutiva"
+- Tassa di Proprietà / Tassa Automobilistica → "Tassa di Proprietà"
+- Kasko → "Kasko"
+- Infortuni Conducente / PAI → "Infortuni Conducente"
+- Tutela Legale → "Tutela Legale"
+- GPS / Telematica / Blackbox → "Telematica"
+
+Schema output:
 {
+  "carrier": string|null,
   "veicolo_marca": string|null,
   "veicolo_modello": string|null,
   "veicolo_allestimento": string|null,
@@ -46,9 +93,7 @@ Schema:
   "canone_mensile": number|null,
   "servizi": string[],
   "note_aggiuntive": string|null
-}
-
-Regole: numeri senza simboli, km_annui annuali, usa il canone IVA inclusa se presente, non aggiungere testo extra.`,
+}`,
     });
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
