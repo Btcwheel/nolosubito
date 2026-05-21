@@ -96,6 +96,37 @@ export const preventiviService = {
     return data;
   },
 
+  /**
+   * Carica il PDF broker originale su Storage e salva l'URL nel preventivo.
+   * Il file viene rinominato con il codice preventivo NS-YYYY-XXXXXX.
+   */
+  async uploadDocumentoBroker(preventivoId, createdAt, file) {
+    const anno = new Date(createdAt).getFullYear();
+    const codice = `NS-${anno}-${preventivoId.slice(0, 6).toUpperCase()}`;
+    const ext = file.name.split('.').pop().toLowerCase();
+    const path = `${preventivoId}/${codice}.${ext}`;
+
+    const { error: upErr } = await supabase.storage
+      .from('preventivi-broker')
+      .upload(path, file, { upsert: true });
+    if (upErr) throw upErr;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('preventivi-broker')
+      .getPublicUrl(path);
+
+    // Il bucket è privato: usiamo signed URL valido 1 anno (31536000 sec)
+    const { data: signed, error: signErr } = await supabase.storage
+      .from('preventivi-broker')
+      .createSignedUrl(path, 31536000);
+    if (signErr) throw signErr;
+
+    return this.update(preventivoId, {
+      documento_broker_url: signed.signedUrl,
+      documento_broker_nome: `${codice}.${ext}`,
+    });
+  },
+
   // Segna come letti tutti i preventivi Inviato non ancora letti della pratica
   async segnaLetti(praticaId) {
     await supabase

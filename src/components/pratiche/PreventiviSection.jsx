@@ -138,6 +138,19 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
         </p>
       )}
 
+      {/* Documento broker originale */}
+      {prev.documento_broker_url && (
+        <a
+          href={prev.documento_broker_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 text-xs text-electric hover:underline w-fit"
+        >
+          <FileText className="w-3.5 h-3.5" />
+          {prev.documento_broker_nome || "Preventivo broker originale"}
+        </a>
+      )}
+
       {/* Note cliente */}
       {prev.note_cliente && (
         <div className="bg-muted/20 rounded-lg px-3 py-2 text-xs text-muted-foreground">
@@ -244,6 +257,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(BLANK_FORM);
   const [extracting, setExtracting] = useState(false);
+  const [brokerFile, setBrokerFile] = useState(null);
   const fileInputRef = useRef(null);
   const set = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
 
@@ -317,6 +331,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
           : prev.note_operative,
       }));
 
+      setBrokerFile(file);
       toast({ title: `Preventivo broker caricato — controlla e aggiusta i campi.` });
     } catch (err) {
       toast({ title: "Errore nell'analisi del documento", description: String(err), variant: 'destructive' });
@@ -351,7 +366,16 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
       note_cliente:   form.note_cliente.trim() || null,
       note_operative: form.note_operative.trim() || null,
     }),
-    onSuccess: () => {
+    onSuccess: async (created) => {
+      // Se c'era un PDF broker, caricalo su Storage rinominato con il codice
+      if (brokerFile) {
+        try {
+          await preventiviService.uploadDocumentoBroker(created.id, created.created_at, brokerFile);
+        } catch (e) {
+          console.warn('[preventivi] upload broker doc fallito:', e.message);
+        }
+        setBrokerFile(null);
+      }
       invalidate();
       setForm(BLANK_FORM);
       setShowForm(false);
@@ -554,7 +578,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-border/30">
-            <Button variant="outline" size="sm" onClick={() => { setShowForm(false); setForm(BLANK_FORM); }}>
+            <Button variant="outline" size="sm" onClick={() => { setShowForm(false); setForm(BLANK_FORM); setBrokerFile(null); }}>
               Annulla
             </Button>
             <Button
