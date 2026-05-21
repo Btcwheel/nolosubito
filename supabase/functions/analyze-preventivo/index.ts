@@ -62,8 +62,9 @@ STEP 4 — Estrai anticipo (IVA inclusa se disponibile, altrimenti IVA esclusa):
 - LEASYS: usa la colonna "Iva Inclusa" dell'anticipo (es. €1.830,00)
 - Altri: usa il valore indicato come anticipo/acconto
 
-STEP 5 — Estrai servizi inclusi come array di stringhe brevi (max 60 caratteri ciascuna).
-Normalizza i nomi comuni:
+STEP 5 — Estrai SOLO i servizi ESPLICITAMENTE elencati come inclusi nel documento.
+NON aggiungere servizi non presenti. NON assumere servizi standard. Se un servizio è marcato "No", "Escluso" o non è presente nella lista, NON includerlo.
+Normalizza i nomi dei servizi trovati:
 - RCA / Assicurazione RC → "RCA"
 - Manutenzione Ordinaria/Straordinaria → "Manutenzione Ordinaria e Straordinaria"
 - Incendio e Furto / Limitazione Furto-Incendio → "Copertura Incendio e Furto"
@@ -74,10 +75,11 @@ Normalizza i nomi comuni:
 - Gestione Multe / Rinotifica Contravvenzioni → "Gestione Multe"
 - Auto sostitutiva / Veicolo Sostitutivo → "Auto Sostitutiva"
 - Tassa di Proprietà / Tassa Automobilistica → "Tassa di Proprietà"
-- Kasko → "Kasko"
+- Kasko / KASKO → "Kasko"
 - Infortuni Conducente / PAI → "Infortuni Conducente"
 - Tutela Legale → "Tutela Legale"
 - GPS / Telematica / Blackbox → "Telematica"
+ATTENZIONE: per Ayvens la tabella "Servizi inclusi" ha colonne con valori "Si"/"No" — includi solo quelli con valore "Si".
 
 Schema output:
 {
