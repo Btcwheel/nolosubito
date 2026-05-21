@@ -54,7 +54,7 @@ const BLANK_FORM = {
   anticipo: "", canone_mensile: "", canone_finale: "",
   note_cliente: "", note_operative: "",
   carrier: "",
-  servizi: /** @type {string[]} */ ([]),
+  servizi: [],
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -299,7 +299,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
 
         // Renderizza le prime 3 pagine come immagini JPEG — Claude Vision legge
         // le tabelle dei servizi correttamente, il testo grezzo le distorce
-        const pages: string[] = [];
+        const pages = [];
         const maxPages = Math.min(pdf.numPages, 3);
         for (let i = 1; i <= maxPages; i++) {
           const page = await pdf.getPage(i);
@@ -307,7 +307,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
           const canvas = document.createElement('canvas');
           canvas.width = viewport.width;
           canvas.height = viewport.height;
-          const ctx = canvas.getContext('2d')!;
+          const ctx = canvas.getContext('2d');
           await page.render({ canvasContext: ctx, viewport }).promise;
           pages.push(canvas.toDataURL('image/jpeg', 0.82).split(',')[1]);
         }
@@ -350,9 +350,9 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
         return; // early return: tutto già gestito
       } else {
         // Immagine: invia direttamente come base64
-        const b64 = await new Promise<string>(resolve => {
+        const b64 = await new Promise(resolve => {
           const reader = new FileReader();
-          reader.onload = ev => resolve((ev.target!.result as string).split(',')[1]);
+          reader.onload = ev => resolve(ev.target.result.split(',')[1]);
           reader.readAsDataURL(file);
         });
 

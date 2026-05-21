@@ -30,7 +30,27 @@
       "WebFetch(domain:www.nolosubito.it)",
       "WebSearch",
       "WebFetch(domain:docs.perplexity.ai)",
-      "Bash(npx supabase *)"
+      "Bash(npx supabase *)",
+      "Bash(taskkill /F /IM node.exe 2>/dev/null; echo \"Done\")",
+      "Bash(git commit -m ' *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\\\\src\\\\pages\" -Filter \"*.jsx\")",
+      "Bash(Select-Object Name)",
+      "Bash(npx tsc *)",
+      "Bash(Remove-Item -Recurse -Force \"c:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\\\\dist\" -ErrorAction SilentlyContinue)",
+      "Bash(npx vite *)",
+      "Bash(node -e ' *)",
+      "Bash(node scripts/index-gigi-images.js)",
+      "Bash(node scripts/index-gigi-images.cjs)",
+      "Bash(node -e \"const d=require\\('./public/gigi-images.json'\\); const sorted=d.sort\\(\\(a,b\\)=>b.localeCompare\\(a\\)\\); console.log\\('Prime 10:'\\); sorted.slice\\(0,10\\).forEach\\(p=>console.log\\(p\\)\\); console.log\\('Totale:',d.length\\);\")",
+      "Bash(node --input-type=commonjs -e \"const d=require\\('./public/gigi-images.json'\\); console.log\\(d.slice\\(0,5\\)\\)\")",
+      "Bash(npm install *)",
+      "Bash(git commit *)",
+      "Bash(node scripts/migrate-images.cjs --batch 10)",
+      "Bash(node scripts/migrate-images.cjs --batch 500)",
+      "Bash(node scripts/link-wp-images.cjs)",
+      "Bash(Select-String -Pattern \"error|✓|✗|modules transformed\")",
+      "Bash(Select-Object -First 10)",
+      "WebFetch(domain:www.leasys.com)"
     ]
   }
 }

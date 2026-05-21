@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -E \"\\\\\\\\.jsx:[0-9]\")",
+      "PowerShell(Get-Content \"C:\\\\Users\\\\Quixel\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Quixel-Downloads-fleet-flow-nolo\\\\875f6933-03bb-4177-bc7e-a985b0f62485\\\\tasks\\\\bhqt6ii2k.output\" -Wait -Tail 20 -ErrorAction SilentlyContinue)",
+      "PowerShell(cd \"c:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\"; npm run build 2>&1 | Where-Object { $_ -match \"jsx|js:\" } | Select-Object -First 5)",
+      "PowerShell(cd \"c:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\"; $env:NO_COLOR=1; node node_modules/vite/bin/vite.js build 2>&1 | Select-String -Pattern \"line|column|jsx|Expected|Unexpected|Cannot find\" | Select-Object -First 10 | ForEach-Object { $_.Line })",
+      "PowerShell(cd \"c:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\"; $env:NO_COLOR=\"1\"; $result = npx vite build 2>&1; $result | Select-Object -First 30 | ForEach-Object { \"$_\" })",
+      "Bash(Get-Content \"C:\\\\Users\\\\Quixel\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Quixel-Downloads-fleet-flow-nolo\\\\875f6933-03bb-4177-bc7e-a985b0f62485\\\\tasks\\\\beh9xasl1.output\")",
+      "Bash(Tail -30)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('tool_input',d).get('command',''))\" 2>/dev/null || true); case \"$CMD\" in *grep*|*rg\\ *|*ripgrep*|*find\\ *|*fd\\ *|*ack\\ *|*ag\\ *)   [ -f graphify-out/graph.json ] &&   echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"graphify: knowledge graph at graphify-out/. For focused questions, run `graphify query \\\"<question>\\\"` (scoped subgraph, usually much smaller than GRAPH_REPORT.md) instead of grepping raw files. Read GRAPH_REPORT.md only for broad architecture context.\"}}'   || true ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}
