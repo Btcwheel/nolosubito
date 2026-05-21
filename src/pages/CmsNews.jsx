@@ -604,6 +604,7 @@ export default function CmsNews() {
 
     // Prepara il form con l'articolo generato per review prima di salvare
     setForm({
+      id: generatedArticle.id,
       title: generatedArticle.title,
       slug: generatedArticle.slug,
       summary: generatedArticle.summary,
@@ -619,7 +620,7 @@ export default function CmsNews() {
       is_published: false, // Bozza per review
     });
     setPreviewMode(false);
-    setEditing("new");
+    setEditing(generatedArticle);
     qc.invalidateQueries({ queryKey: ["cms-posts"] });
   };
 
