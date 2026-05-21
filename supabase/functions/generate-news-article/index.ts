@@ -1,9 +1,11 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 console.error("ENV_CHECK:", {
   ANTHROPIC_API_KEY: ANTHROPIC_API_KEY ? "✓ set" : "✗ missing",
@@ -26,6 +28,7 @@ const TOPICS = {
 };
 
 const REGIONS = ["Campania", "Lazio", "Toscana", "Umbria", "Marche", "Emilia Romagna"];
+const DEFAULT_POST_CATEGORY = "Notizie";
 
 interface GenerateRequest {
   topic: keyof typeof TOPICS;
@@ -73,45 +76,65 @@ Deno.serve(async (req: Request) => {
       region
     );
 
-    // Salva nel DB
-    const postData = {
+    // Salva prima i campi garantiti dallo schema, poi aggiunge i metadati opzionali.
+    const basePostData = {
       title: generatedArticle.title,
-      slug: generateSlug(generatedArticle.title),
       summary: generatedArticle.summary,
       content: generatedArticle.content,
-      category: TOPICS[topic],
-      seo_title: generatedArticle.seoTitle,
-      seo_description: generatedArticle.seoDescription,
-      seo_keywords: generatedArticle.keywords,
-      geo_region: region,
-      topic,
-      schema_markup: schemaMarkup,
+      category: DEFAULT_POST_CATEGORY,
       is_published: false,
       published_date: new Date().toISOString(),
       cover_image_url: null,
     };
 
-    console.error("POST_DATA:", JSON.stringify(postData, null, 2));
+    console.error("POST_DATA_BASE:", JSON.stringify(basePostData, null, 2));
 
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/posts`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "apikey": SUPABASE_SERVICE_ROLE_KEY,
-        "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-      },
-      body: JSON.stringify(postData),
-    });
+    const slugBase = generateSlug(generatedArticle.title);
+    const { data: savedPost, error: insertError } = await supabase
+      .from("posts")
+      .insert({ ...basePostData, slug: slugBase })
+      .select("*")
+      .single();
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("DB_ERROR_RESPONSE:", response.status, errText);
-      throw new Error(`DB insert failed (${response.status}): ${errText}`);
+    let finalSavedPost = savedPost;
+    let finalInsertError = insertError;
+
+    if (insertError && insertError.code === "23505") {
+      const fallbackSlug = `${slugBase}-${Date.now().toString(36)}`;
+      console.error("SLUG_CONFLICT_RETRY:", { slugBase, fallbackSlug, message: insertError.message });
+      const retry = await supabase
+        .from("posts")
+        .insert({ ...basePostData, slug: fallbackSlug })
+        .select("*")
+        .single();
+      finalSavedPost = retry.data;
+      finalInsertError = retry.error;
     }
 
-    const savedPost = await response.json();
+    if (finalInsertError) {
+      console.error("DB_INSERT_ERROR:", finalInsertError);
+      throw new Error(`DB insert failed: ${finalInsertError.message}`);
+    }
 
-    return new Response(JSON.stringify({ data: savedPost }), {
+    const optionalMetadata = {
+      seo_title: generatedArticle.seoTitle,
+      seo_description: generatedArticle.seoDescription,
+      seo_keywords: normalizeKeywords(generatedArticle.keywords),
+      geo_region: region,
+      topic,
+      schema_markup: schemaMarkup,
+    };
+
+    const { error: metadataError } = await supabase
+      .from("posts")
+      .update(optionalMetadata)
+      .eq("id", finalSavedPost.id);
+
+    if (metadataError) {
+      console.error("OPTIONAL_METADATA_UPDATE_FAILED:", metadataError);
+    }
+
+    return new Response(JSON.stringify({ data: finalSavedPost }), {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   } catch (err) {
@@ -183,14 +206,22 @@ RISPOSTA JSON SOLO:
   const raw = data.content?.[0]?.text ?? "{}";
 
   // Estrai JSON dalla risposta (con o senza markdown code fences)
-  let jsonMatch = raw.match(/```json\s*(\{[\s\S]*?\})\s*```/) || raw.match(/```\s*(\{[\s\S]*?\})\s*```/) || raw.match(/\{[\s\S]*\}/);
+  let jsonMatch = raw.match(/```json\s*(\{[\s\S]*\})\s*```/) || raw.match(/```\s*(\{[\s\S]*\})\s*```/) || raw.match(/\{[\s\S]*\}/);
   if (!jsonMatch) {
-    console.error("NO_JSON_FOUND_IN_RESPONSE:", raw.substring(0, 500));
-    throw new Error("Claude response non contiene JSON valido");
+    console.error("NO_JSON_FOUND:", raw.substring(0, 300));
+    throw new Error("JSON non trovato");
   }
 
   const jsonStr = jsonMatch[1] || jsonMatch[0];
-  const parsed = JSON.parse(jsonStr);
+  console.error("EXTRACTED_JSON_LENGTH:", jsonStr.length);
+
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonStr);
+  } catch (parseErr) {
+    console.error("JSON_PARSE_ERROR:", String(parseErr), "JSON:", jsonStr.substring(0, 200));
+    throw new Error("JSON invalido");
+  }
 
   return {
     title: parsed.title || "Articolo automotive",
@@ -200,6 +231,13 @@ RISPOSTA JSON SOLO:
     seoDescription: parsed.seoDescription || "Leggi il nostro articolo",
     keywords: parsed.keywords || "automotive, noleggio, italy",
   };
+}
+
+function normalizeKeywords(keywords: string): string[] {
+  return keywords
+    .split(",")
+    .map(k => k.trim())
+    .filter(Boolean);
 }
 
 // Genera schema.org JSON-LD per SEO

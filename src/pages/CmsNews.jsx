@@ -209,6 +209,14 @@ function slugify(str) {
     .replace(/(^-|-$)/g,'');
 }
 
+function normalizeSeoKeywords(keywords) {
+  if (Array.isArray(keywords)) return keywords.map(k => k.trim()).filter(Boolean);
+  if (typeof keywords === "string") {
+    return keywords.split(",").map(k => k.trim()).filter(Boolean);
+  }
+  return [];
+}
+
 // ── Generatore Articoli AI (Web Scraping + SEO + GEO) ──────────────────────────
 
 function GenerateArticleModal({ onClose, onSuccess }) {
@@ -592,6 +600,8 @@ export default function CmsNews() {
   };
 
   const handleGenerateSuccess = (generatedArticle) => {
+    const seoKeywords = normalizeSeoKeywords(generatedArticle.seo_keywords);
+
     // Prepara il form con l'articolo generato per review prima di salvare
     setForm({
       title: generatedArticle.title,
@@ -602,7 +612,7 @@ export default function CmsNews() {
       category: generatedArticle.category,
       seo_title: generatedArticle.seo_title,
       seo_description: generatedArticle.seo_description,
-      seo_keywords: (generatedArticle.seo_keywords || "").split(",").map(k => k.trim()),
+      seo_keywords: seoKeywords,
       geo_region: generatedArticle.geo_region,
       topic: generatedArticle.topic,
       published_date: new Date().toISOString().slice(0, 16),

@@ -37,7 +37,11 @@ function useSeoMeta(post) {
     };
 
     const desc = post.seo_description || post.summary;
-    const keywords = (post.seo_keywords || []).join(", ");
+    const keywords = Array.isArray(post.seo_keywords)
+      ? post.seo_keywords.join(", ")
+      : typeof post.seo_keywords === "string"
+        ? post.seo_keywords
+        : "";
 
     const created = [
       setMeta("description", desc),
