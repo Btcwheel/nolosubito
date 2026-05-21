@@ -10,16 +10,6 @@ const CORS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Siti automotive italiani da scrapare
-const AUTOMOTIVE_SOURCES = [
-  "https://www.quattroruote.it/articoli/",
-  "https://www.motorbox.it/articoli/",
-  "https://www.automoto.it/notizie/",
-  "https://newsauto.it/",
-  "https://www.infomotori.it/",
-];
-
-// Topic mapping
 const TOPICS = {
   auto: "Nuove auto e modelli",
   incentivi: "Incentivi per il noleggio a lungo termine",
@@ -56,40 +46,18 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Scraping semplificato: prova a estrarre ultimi articoli da una fonte
-    const sourceContent = await fetchSourceArticle(AUTOMOTIVE_SOURCES[0]);
-
-    if (!sourceContent) {
-      return new Response(JSON.stringify({ error: "Nessun articolo trovato da fonte" }), {
-        status: 500,
-        headers: { ...CORS, "Content-Type": "application/json" },
-      });
-    }
-
-    // Riscrittura con Claude + SEO
+    // Genera articolo con Claude basato su topic + region
     const generatedArticle = await generateArticleWithClaude(
-      sourceContent,
       topic,
       region,
       TOPICS[topic]
     );
 
-    // Downloader immagine e upload su Supabase Storage
-    let coverImageUrl = null;
-    if (sourceContent.photoUrl) {
-      coverImageUrl = await downloadAndUploadImage(
-        sourceContent.photoUrl,
-        sourceContent.photoAuthor
-      );
-    }
-
     // Schema markup per SEO + GEO
     const schemaMarkup = generateSchemaMarkup(
       generatedArticle.title,
       generatedArticle.summary,
-      region,
-      sourceContent.sourceUrl,
-      coverImageUrl
+      region
     );
 
     // Salva nel DB
@@ -99,19 +67,15 @@ Deno.serve(async (req: Request) => {
       summary: generatedArticle.summary,
       content: generatedArticle.content,
       category: TOPICS[topic],
-      cover_image_url: coverImageUrl || sourceContent.photoUrl,
       seo_title: generatedArticle.seoTitle,
       seo_description: generatedArticle.seoDescription,
       seo_keywords: generatedArticle.keywords,
       geo_region: region,
       topic,
-      source_url: sourceContent.sourceUrl,
-      source_author: sourceContent.author,
-      source_photo_url: sourceContent.photoUrl,
-      source_photo_author: sourceContent.photoAuthor,
       schema_markup: schemaMarkup,
       is_published: false,
       published_date: new Date().toISOString(),
+      cover_image_url: null,
     };
 
     const response = await fetch(`${SUPABASE_URL}/rest/v1/posts`, {
@@ -124,12 +88,18 @@ Deno.serve(async (req: Request) => {
       body: JSON.stringify(postData),
     });
 
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`DB insert failed: ${errText}`);
+    }
+
     const savedPost = await response.json();
 
     return new Response(JSON.stringify({ data: savedPost }), {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   } catch (err) {
+    console.error("Error:", err);
     return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
       headers: { ...CORS, "Content-Type": "application/json" },
@@ -137,42 +107,8 @@ Deno.serve(async (req: Request) => {
   }
 });
 
-// Fetch articolo da fonte (semplificato per ora)
-async function fetchSourceArticle(sourceUrl: string): Promise<{
-  sourceUrl: string;
-  author: string;
-  title: string;
-  summary: string;
-  content: string;
-  photoUrl: string;
-  photoAuthor: string;
-} | null> {
-  try {
-    const response = await fetch(sourceUrl);
-    const html = await response.text();
-
-    // Estrazione semplificata con regex (in produzione usare deno_dom)
-    const titleMatch = html.match(/<h1[^>]*>([^<]+)<\/h1>/);
-    const contentMatch = html.match(/<article[^>]*>(.+?)<\/article>/s);
-    const photoMatch = html.match(/<img[^>]+src=["']([^"']+)["'][^>]*alt=["']([^"']+)["']/);
-
-    return {
-      sourceUrl,
-      author: "Fonte automotive italiana",
-      title: titleMatch ? titleMatch[1].trim() : "Articolo automotive",
-      summary: contentMatch ? contentMatch[1].substring(0, 200) + "..." : "Leggi l'articolo completo",
-      content: contentMatch ? contentMatch[1] : "Contenuto non disponibile",
-      photoUrl: photoMatch ? photoMatch[1] : "",
-      photoAuthor: photoMatch ? photoMatch[2] : "Foto fonte originale",
-    };
-  } catch {
-    return null;
-  }
-}
-
-// Usa Claude per riscrivere articolo con SEO
+// Genera articolo con Claude
 async function generateArticleWithClaude(
-  source: any,
   topic: string,
   region: string,
   topicDescription: string
@@ -184,30 +120,28 @@ async function generateArticleWithClaude(
   seoDescription: string;
   keywords: string;
 }> {
-  const prompt = `Sei un esperto SEO e copywriter automotive italiano. Riscrivere l'articolo seguente per il mercato della Regione ${region}, con focus su noleggio a lungo termine.
+  const prompt = `Sei un esperto SEO e copywriter automotive italiano. Genera un articolo originale per il mercato della Regione ${region}, con focus su noleggio a lungo termine.
 
 TOPIC: ${topicDescription}
-FONTE ORIGINALE: "${source.title}" - ${source.sourceUrl}
-
-TESTO ORIGINALE:
-${source.content}
 
 ISTRUZIONI:
-1. Riscrivere COMPLETAMENTE il contenuto (non copia-incolla)
-2. Includere riferimento a: "Basato su: ${source.sourceUrl}" (cita la fonte)
-3. Ottimizzare per SEO locale (Regione ${region})
-4. Generare titolo SEO (max 60 car)
-5. Generare meta description (max 160 car)
-6. Generare 5 keywords rilevanti (separate da virgola)
-7. Strutturare con H2/H3 in markdown
+1. Titolo accattivante per ${region} (max 70 caratteri)
+2. Sommario introduttivo (max 150 caratteri)
+3. Articolo completo in markdown (H2/H3, paragrafi, punti rilevanti)
+4. Titolo SEO-ottimizzato (max 60 car)
+5. Meta description (max 160 car)
+6. 5 keywords rilevanti (separate da virgola)
+7. Contenuto ORIGINALE, NON da altre fonti — creato da zero
+8. Parlare specificamente a clienti della Regione ${region}
+9. Menzionare vantaggi del noleggio a lungo termine
 
-RISPOSTA JSON:
+RISPOSTA JSON (VALIDO):
 {
   "title": "Titolo accattivante per ${region}",
-  "summary": "Breve introduzione (max 150 car)",
-  "content": "Articolo completo in markdown...",
-  "seoTitle": "SEO title (max 60 car)",
-  "seoDescription": "Meta description (max 160 car)",
+  "summary": "Breve introduzione max 150 car",
+  "content": "# Articolo completo\n\n## Sezione 1\n\nContenuto in markdown...",
+  "seoTitle": "SEO title max 60 car",
+  "seoDescription": "Meta description max 160 car",
   "keywords": "keyword1, keyword2, keyword3, keyword4, keyword5"
 }`;
 
@@ -225,12 +159,21 @@ RISPOSTA JSON:
     }),
   });
 
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Claude API error: ${errText}`);
+  }
+
   const data = await response.json() as any;
   const raw = data.content?.[0]?.text ?? "{}";
 
   // Estrai JSON dalla risposta
-  const match = raw.match(/\{[\s\S]*\}/);
-  const parsed = match ? JSON.parse(match[0]) : {};
+  const jsonMatch = raw.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error("Claude response non contiene JSON valido");
+  }
+
+  const parsed = JSON.parse(jsonMatch[0]);
 
   return {
     title: parsed.title || "Articolo automotive",
@@ -242,55 +185,17 @@ RISPOSTA JSON:
   };
 }
 
-// Download immagine e upload su Supabase Storage
-async function downloadAndUploadImage(
-  imageUrl: string,
-  photoAuthor: string
-): Promise<string> {
-  try {
-    const response = await fetch(imageUrl);
-    const buffer = await response.arrayBuffer();
-
-    // Upload a Supabase Storage
-    const fileName = `news-${Date.now()}.jpg`;
-    const uploadResponse = await fetch(
-      `${SUPABASE_URL}/storage/v1/object/gigi-images/news/${fileName}`,
-      {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_SERVICE_ROLE_KEY,
-          "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-        body: buffer,
-      }
-    );
-
-    if (!uploadResponse.ok) {
-      console.error("Upload image failed:", await uploadResponse.text());
-      return imageUrl; // Fallback a URL originale
-    }
-
-    return `${SUPABASE_URL}/storage/v1/object/public/gigi-images/news/${fileName}`;
-  } catch (err) {
-    console.error("Download image error:", err);
-    return imageUrl; // Fallback a URL originale
-  }
-}
-
 // Genera schema.org JSON-LD per SEO
 function generateSchemaMarkup(
   title: string,
   summary: string,
-  region: string,
-  sourceUrl: string,
-  imageUrl: string | null
+  region: string
 ) {
   return {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
     headline: title,
     description: summary,
-    image: imageUrl || undefined,
     author: {
       "@type": "Organization",
       name: "Nolosubito",
@@ -307,11 +212,6 @@ function generateSchemaMarkup(
       "@type": "AdministrativeArea",
       name: region,
     },
-    mainEntity: {
-      "@type": "Article",
-      url: sourceUrl,
-      name: "Articolo fonte",
-    },
   };
 }
 
@@ -322,5 +222,6 @@ function generateSlug(title: string): string {
     .trim()
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-")
-    .replace(/-+/g, "-");
+    .replace(/-+/g, "-")
+    .substring(0, 100);
 }

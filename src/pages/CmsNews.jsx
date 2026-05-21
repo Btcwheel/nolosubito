@@ -276,7 +276,7 @@ function GenerateArticleModal({ onClose, onSuccess }) {
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[100]">
                 {Object.entries(TOPICS).map(([k, v]) => (
                   <SelectItem key={k} value={k}>{v}</SelectItem>
                 ))}
@@ -290,7 +290,7 @@ function GenerateArticleModal({ onClose, onSuccess }) {
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-[100]">
                 {REGIONS.map(r => (
                   <SelectItem key={r} value={r}>{r}</SelectItem>
                 ))}
@@ -299,7 +299,7 @@ function GenerateArticleModal({ onClose, onSuccess }) {
           </div>
 
           <p className="text-xs text-muted-foreground bg-muted p-3 rounded">
-            ℹ️ L'AI farà web scraping dai migliori siti automotive italiani, scaricherà foto (citando la fonte) e genererà un articolo riscritto con SEO e geo-targeting per la regione selezionata.
+            ℹ️ Claude genererà un articolo originale con titoli SEO-ottimizzati, meta description, keywords e schema markup geo-targetizzato per la regione. Puoi aggiungere foto dopo la creazione.
           </p>
         </div>
 
