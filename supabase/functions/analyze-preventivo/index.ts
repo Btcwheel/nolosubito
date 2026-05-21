@@ -73,22 +73,29 @@ STEP 4 — Estrai anticipo (IVA inclusa se disponibile, altrimenti IVA esclusa):
 
 STEP 5 — Estrai SOLO i servizi ESPLICITAMENTE elencati come inclusi nel documento.
 NON aggiungere servizi non presenti. NON assumere servizi standard. Se un servizio è marcato "No", "Escluso" o non è presente nella lista, NON includerlo.
-Normalizza i nomi dei servizi trovati:
-- RCA / Assicurazione RC → "RCA"
-- Manutenzione Ordinaria/Straordinaria → "Manutenzione Ordinaria e Straordinaria"
-- Incendio e Furto / Limitazione Furto-Incendio → "Copertura Incendio e Furto"
-- Danni / Copertura Danni / Limitazione danni → "Copertura Danni"
-- Cristalli → "Copertura Cristalli"
-- Soccorso Stradale / Assistenza stradale → "Soccorso Stradale"
-- Pneumatici → "Pneumatici"
-- Gestione Multe / Rinotifica Contravvenzioni → "Gestione Multe"
-- Auto sostitutiva / Veicolo Sostitutivo → "Auto Sostitutiva"
-- Tassa di Proprietà / Tassa Automobilistica → "Tassa di Proprietà"
-- Kasko / KASKO → "Kasko"
-- Infortuni Conducente / PAI → "Infortuni Conducente"
-- Tutela Legale → "Tutela Legale"
-- GPS / Telematica / Blackbox → "Telematica"
-ATTENZIONE: per Ayvens la tabella "Servizi inclusi" ha colonne con valori "Si"/"No" — includi solo quelli con valore "Si".
+
+Normalizza i nomi dei servizi trovati (mapping per carrier):
+RCA: RCA, Assicurazione RC, RCA max 25 milioni
+Incendio e Furto: Copertura Incendio e Furto, Incendio e Furto, Limitazione Furto-Incendio, Limitazione responsabilità Furto-Incendio, Assicurazione Incendio e Furto
+Copertura Danni: Copertura Danni, Danni, Limitazione danni, Limitazione responsabilità danni, Copertura Danni base, Kasko, Copertura Incendio/Furto/Danni
+Manutenzione: Manutenzione Ordinaria e Straordinaria, Manutenzione Ordinaria/Straordinaria, Manutenzione Meccanica, Manutenzione meccanica (Plus)
+Soccorso Stradale: Soccorso Stradale, Assistenza stradale, Ald Automotive Assistance, Traino Standard, Assistenza al parcheggio posteriore, Sostitutiva Z + Traino
+Cristalli: Copertura Cristalli, Cristalli, Cristalli Penale
+Gestione Multe: Gestione Multe, Gestione Sinistri, Rinotifica Contravvenzioni, Rinotifica al Cliente, Gestione Sinistri, Gestione Sinistri
+Pneumatici: Pneumatici, Pneumatici Performance a numero limitato
+Tassa di Proprietà: Tassa di Proprietà, Tassa Automobilistica, Tassa di Possesso con Riaddebito, Servizio pagamento tasse auto, Tassa Automobilistica - Riaddebito Periodico
+Auto Sostitutiva: Auto Sostitutiva, Veicolo Sostitutivo, Sostitutiva Z, Auto Piccola dopo 24H
+Kasko: Kasko, KASKO
+Telematica: Telematica, GPS, Blackbox, I-Care Smart, My-Leasys App, Telematica (Basic)
+Infortuni Conducente: Infortuni Conducente, PAI, Assicurazione Infortuni Conducente
+Tutela Legale: Tutela Legale
+
+ATTENZIONE:
+- Per Ayvens: tabella "Servizi inclusi" ha colonne "Si"/"No" — includi solo quelli con "Si"
+- Per Leasys: tabella con colonne Sì/No — includi solo quelli con "Sì"
+- Per Drivalia: sezione gialla "SERVIZI INCLUSI" — leggi la lista
+- Per Santander: sezione gialla "Pack Servizi" — leggi la lista
+- Per VW: sezione gialla "SERVIZI INCLUSI" — leggi la lista
 
 Schema output:
 {
