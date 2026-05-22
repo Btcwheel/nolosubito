@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 
 export default function PasswordReset() {
-  const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { profile } = useAuth();
@@ -19,23 +18,37 @@ export default function PasswordReset() {
   const [loading, setLoading] = useState(false);
   const [tokenValid, setTokenValid] = useState(null);
 
-  // Il recovery di Supabase arriva nel fragment (#...) o nella query string,
-  // non come `token` nei search params.
+  // Supabase emette PASSWORD_RECOVERY quando il link è valido.
+  // Evitiamo di giudicare il link solo dai parametri URL perché il client
+  // può già averli consumati e trasformati in sessione.
   useEffect(() => {
-    const search = new URLSearchParams(location.search);
-    const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
+    let alive = true;
+    const timeoutId = window.setTimeout(() => {
+      if (alive) setTokenValid((current) => current === null ? false : current);
+    }, 5000);
 
-    const isRecoveryLink =
-      search.get("type") === "recovery" ||
-      search.has("token") ||
-      search.has("code") ||
-      hash.get("type") === "recovery" ||
-      hash.has("access_token") ||
-      hash.has("code") ||
-      hash.has("token");
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!alive) return;
+      if (session?.user) {
+        // Se il recovery ha già creato una sessione, il listener sotto
+        // confermerà l'evento; nel frattempo lasciamo lo stato in check.
+        setTokenValid((current) => current ?? null);
+      }
+    });
 
-    setTokenValid(isRecoveryLink);
-  }, [location.hash, location.search]);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (!alive) return;
+      if (event === "PASSWORD_RECOVERY") {
+        setTokenValid(true);
+      }
+    });
+
+    return () => {
+      alive = false;
+      window.clearTimeout(timeoutId);
+      subscription.unsubscribe();
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
