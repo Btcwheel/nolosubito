@@ -24,7 +24,7 @@ export const profilesService = {
   async listOperatori() {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, full_name, email, nome, cognome')
+      .select('id, full_name, email, role, backoffice_role, is_active')
       .in('role', ['backoffice', 'admin'])
       .order('full_name');
     if (error) throw error;
