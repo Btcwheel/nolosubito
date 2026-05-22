@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,9 +8,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
 
 export default function PasswordReset() {
-  const [searchParams] = useSearchParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile } = useAuth();
 
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -17,19 +19,23 @@ export default function PasswordReset() {
   const [loading, setLoading] = useState(false);
   const [tokenValid, setTokenValid] = useState(null);
 
-  // Verifica il token alla mount
+  // Il recovery di Supabase arriva nel fragment (#...) o nella query string,
+  // non come `token` nei search params.
   useEffect(() => {
-    const token = searchParams.get("token");
-    const type = searchParams.get("type");
+    const search = new URLSearchParams(location.search);
+    const hash = new URLSearchParams(location.hash.replace(/^#/, ""));
 
-    if (!token || type !== "recovery") {
-      setTokenValid(false);
-      return;
-    }
+    const isRecoveryLink =
+      search.get("type") === "recovery" ||
+      search.has("token") ||
+      search.has("code") ||
+      hash.get("type") === "recovery" ||
+      hash.has("access_token") ||
+      hash.has("code") ||
+      hash.has("token");
 
-    // Token present, assume valid (Supabase will verify when we try to use it)
-    setTokenValid(true);
-  }, [searchParams]);
+    setTokenValid(isRecoveryLink);
+  }, [location.hash, location.search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,11 +61,25 @@ export default function PasswordReset() {
         throw error;
       }
 
-      toast({ title: "Password aggiornata con successo!", description: "Accedi con la nuova password." });
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const role = profile?.role ?? user?.user_metadata?.role ?? "cliente";
+      const destination =
+        {
+          admin: "/admin",
+          backoffice: "/backoffice",
+          agente: "/agente",
+          cms: "/cms",
+          cliente: "/mia-pratica",
+        }[role] || "/mia-pratica";
 
-      // Logout e ridireziona al login
-      await supabase.auth.signOut();
-      navigate("/accedi", { replace: true });
+      toast({
+        title: "Password aggiornata con successo!",
+        description: "Ti stiamo portando nella tua area.",
+      });
+
+      navigate(destination, { replace: true });
     } catch (err) {
       console.error("Reset password error:", err);
       toast({

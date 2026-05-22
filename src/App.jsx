@@ -2,7 +2,7 @@ import React, { Suspense, lazy, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { supabase } from '@/lib/supabase';
 import AppLayout from './components/layout/AppLayout';
@@ -48,15 +48,17 @@ const PageLoader = () => (
 // Intercetta hash type=recovery e reindirizza alla dashboard corretta
 function RecoveryHandler() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile } = useAuth();
 
   useEffect(() => {
+    if (location.pathname === "/password-reset") return;
     if (!window.location.hash.includes("type=recovery")) return;
     const dest = profile
       ? ({ admin: "/admin", backoffice: "/backoffice", agente: "/agente", cms: "/cms", cliente: "/mia-pratica" }[profile.role] || "/backoffice")
       : "/backoffice";
     navigate(dest, { replace: true, state: { passwordRecovery: true } });
-  }, [profile, navigate]);
+  }, [location.pathname, profile, navigate]);
 
   return null;
 }

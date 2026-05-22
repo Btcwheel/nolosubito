@@ -115,8 +115,9 @@ export default function Login({ context = "internal" }) {
     }
     setResetLoading(true);
     try {
+      const siteUrl = (import.meta.env.VITE_SITE_URL ?? window.location.origin).replace(/\/$/, "");
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "https://nolosubito.it/password-reset",
+        redirectTo: `${siteUrl}/password-reset`,
       });
       if (error) throw error;
       setResetSent(true);
@@ -131,7 +132,7 @@ export default function Login({ context = "internal" }) {
     e.preventDefault();
     setLoading(true);
     try { await signIn(email, password); }
-    catch (err) { toast({ title: "Accesso negato", description: err.message, variant: "destructive" }); }
+    catch (error) { toast({ title: "Accesso negato", description: error.message, variant: "destructive" }); }
     finally { setLoading(false); }
   };
 
@@ -156,7 +157,7 @@ export default function Login({ context = "internal" }) {
       await verifyOtp(email, token);
       sessionStorage.removeItem(OTP_STORAGE_KEY);
     }
-    catch (err) {
+    catch {
       toast({ title: "Codice non valido", description: "Controlla il codice e riprova.", variant: "destructive" });
       setOtpDigits(["", "", "", "", "", ""]);
       otpRefs.current[0]?.focus();
