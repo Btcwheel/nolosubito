@@ -8,7 +8,14 @@
       "PowerShell(cd \"c:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\"; $env:NO_COLOR=\"1\"; $result = npx vite build 2>&1; $result | Select-Object -First 30 | ForEach-Object { \"$_\" })",
       "Bash(Get-Content \"C:\\\\Users\\\\Quixel\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Quixel-Downloads-fleet-flow-nolo\\\\875f6933-03bb-4177-bc7e-a985b0f62485\\\\tasks\\\\beh9xasl1.output\")",
       "Bash(Tail -30)",
-      "PowerShell(Write-Host $logs)"
+      "PowerShell(Write-Host $logs)",
+      "Bash(git revert *)",
+      "Bash(cd /c/Users/Quixel/Downloads/fleet-flow-nolo && grep -r \"accordion\\\\|alert-dialog\\\\|aspect-ratio\\\\|avatar\" src/ --include=\"*.jsx\" | grep -v \"src/components/ui/\" | head -5)",
+      "Read(//c/c/Users/Quixel/Downloads/fleet-flow-nolo/**)",
+      "Bash(cd /c/Users/Quixel/Downloads/fleet-flow-nolo/src/components/ui && rm -f accordion.jsx alert-dialog.jsx alert.jsx aspect-ratio.jsx avatar.jsx breadcrumb.jsx calendar.jsx card.jsx carousel.jsx chart.jsx checkbox.jsx collapsible.jsx command.jsx context-menu.jsx drawer.jsx dropdown-menu.jsx form.jsx hover-card.jsx label.jsx menubar.jsx navigation-menu.jsx popover.jsx progress.jsx radio-group.jsx scroll-area.jsx separator.jsx sheet.jsx sidebar.jsx slider.jsx switch.jsx tabs.jsx toggle.jsx toggle-group.jsx tooltip.jsx && ls -1 | wc -l)"
+    ],
+    "additionalDirectories": [
+      "c:\\c\\Users\\Quixel\\Downloads\\fleet-flow-nolo\\src\\components\\ui"
     ]
   },
   "hooks": {
