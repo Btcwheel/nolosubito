@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   ArrowRight, Settings2, Fuel, Zap, Gauge, Leaf, Flame, RefreshCw, Truck,
 } from "lucide-react";
@@ -80,7 +81,12 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
   const imgH = compact ? "h-[170px]" : "h-[200px]";
 
   return (
-    <div className="h-full">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.3) }}
+      className="h-full"
+    >
       <Link
         to={`/vehicle/${encodeURIComponent(vehicle.make)}/${encodeURIComponent(vehicle.model)}`}
         state={{ segment }}
@@ -168,6 +174,6 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
           </div>
         </div>
       </Link>
-    </div>
+    </motion.div>
   );
 }
