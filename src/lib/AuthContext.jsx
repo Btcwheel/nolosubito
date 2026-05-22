@@ -18,6 +18,10 @@ export const AuthProvider = ({ children }) => {
 
     // Listener cambi auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('[AuthContext] Auth event:', _event, 'Session:', !!session);
+      if (_event === 'PASSWORD_RECOVERY') {
+        console.log('[AuthContext] PASSWORD_RECOVERY EVENT DETECTED');
+      }
       setUser(session?.user ?? null);
       if (session?.user) fetchProfile(session.user.id);
       else {
