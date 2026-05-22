@@ -9,7 +9,17 @@
       "Bash(Get-Content \"C:\\\\Users\\\\Quixel\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Quixel-Downloads-fleet-flow-nolo\\\\875f6933-03bb-4177-bc7e-a985b0f62485\\\\tasks\\\\beh9xasl1.output\")",
       "Bash(Tail -30)",
       "PowerShell(Write-Host $logs)",
-      "Bash(xargs grep -l \"pratiche\")"
+      "Bash(xargs grep -l \"pratiche\")",
+      "Bash(ls -la c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo\\\\\\\\.claude)",
+      "Bash(find c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo\\\\\\\\.git\\\\\\\\hooks -type f)",
+      "Bash(grep -n \"password\\\\|reset\\\\|recovery\" \"c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo\\\\\\\\src\\\\\\\\pages\\\\\\\\Login.jsx\")",
+      "Bash(grep -n \"mode.*reset\\\\|reset.*password\" \"c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo\\\\\\\\src\\\\\\\\pages\\\\\\\\Login.jsx\")",
+      "Bash(cd c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo)",
+      "Bash(git -C \"c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo\" log --oneline --all)",
+      "Bash(git -C \"c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo\" log -1 --oneline)",
+      "Bash(git -C \"c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo\" show 4c79d11:src/App.jsx)",
+      "Bash(git -C \"c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo\" log --oneline 4c79d11..HEAD -- src/App.jsx)",
+      "Bash(git -C \"c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo\" branch -a --contains 4c79d11)"
     ]
   },
   "hooks": {
