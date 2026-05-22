@@ -28,6 +28,7 @@ const ReuseOffers      = lazy(() => import('./pages/ReuseOffers'));
 const PrivacyPolicy    = lazy(() => import('./pages/PrivacyPolicy'));
 const TerminiCondizioni = lazy(() => import('./pages/TerminiCondizioni'));
 const Login            = lazy(() => import('./pages/Login'));
+const PasswordReset    = lazy(() => import('./pages/PasswordReset'));
 const AdminDashboard      = lazy(() => import('./pages/AdminDashboard'));
 const AdminLeads          = lazy(() => import('./pages/AdminLeads'));
 const AgenteDashboard     = lazy(() => import('./pages/AgenteDashboard'));
@@ -50,20 +51,10 @@ function RecoveryHandler() {
   const { profile } = useAuth();
 
   useEffect(() => {
-    console.log('[Recovery] hash:', window.location.hash);
-    console.log('[Recovery] profile:', profile);
-    console.log('[Recovery] location.search:', window.location.search);
-
-    if (!window.location.hash.includes("type=recovery")) {
-      console.log('[Recovery] No type=recovery in hash, skipping');
-      return;
-    }
-
-    console.log('[Recovery] Detected recovery, profile:', profile?.role);
+    if (!window.location.hash.includes("type=recovery")) return;
     const dest = profile
       ? ({ admin: "/admin", backoffice: "/backoffice", agente: "/agente", cms: "/cms", cliente: "/mia-pratica" }[profile.role] || "/backoffice")
       : "/backoffice";
-    console.log('[Recovery] Redirecting to:', dest);
     navigate(dest, { replace: true, state: { passwordRecovery: true } });
   }, [profile, navigate]);
 
@@ -79,10 +70,11 @@ const AppRoutes = () => {
     <Suspense fallback={<PageLoader />}>
       <Routes>
 
-        {/* ── Login — standalone, nessun layout ── */}
-        <Route path="/login"          element={<Login />} />
-        <Route path="/partner/accedi" element={<Login context="partner" />} />
-        <Route path="/accedi"         element={<Login context="cliente" />} />
+        {/* ── Login & Password Reset — standalone, nessun layout ── */}
+        <Route path="/login"            element={<Login />} />
+        <Route path="/partner/accedi"   element={<Login context="partner" />} />
+        <Route path="/accedi"           element={<Login context="cliente" />} />
+        <Route path="/password-reset"   element={<PasswordReset />} />
 
         {/* ── Sito pubblico ── */}
         <Route element={<AppLayout />}>
