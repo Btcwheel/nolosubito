@@ -116,7 +116,7 @@ export default function Login({ context = "internal" }) {
     setResetLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: "https://nolosubito.it/backoffice",
+        redirectTo: "https://nolosubito.it/",
       });
       if (error) throw error;
       setResetSent(true);
