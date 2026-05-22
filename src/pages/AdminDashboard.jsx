@@ -294,11 +294,11 @@ export default function AdminDashboard() {
                             }}
                           />
                         </th>
-                        {["Codice", "Cliente", "Veicolo", "Stato", "Agente", "Data", ""].map((h, i) => (
+                        {["Codice", "Cliente", "Veicolo", "Stato", "Agente", "Operatore", "Data", ""].map((h, i) => (
                           <th key={i} className={`text-left px-4 py-3 text-[11px] font-bold text-muted-foreground uppercase tracking-wider ${
                             i === 2 ? "hidden md:table-cell" :
-                            i === 4 || i === 5 ? "hidden lg:table-cell" :
-                            i === 6 ? "text-right" : ""
+                            i === 4 || i === 5 || i === 6 ? "hidden lg:table-cell" :
+                            i === 7 ? "text-right" : ""
                           }`}>{h}</th>
                         ))}
                       </tr>
@@ -367,6 +367,14 @@ export default function AdminDashboard() {
                               {p.agente_nome
                                 ? <span className="text-sm text-foreground">{p.agente_nome}</span>
                                 : <span className="text-xs text-muted-foreground/50 italic">Non assegnato</span>
+                              }
+                            </td>
+
+                            {/* Operatore */}
+                            <td className="px-4 py-3.5 hidden lg:table-cell">
+                              {p.operatore_nome
+                                ? <span className="font-medium text-foreground text-sm">{p.operatore_nome}</span>
+                                : <span className="italic text-muted-foreground/40 text-xs">Non assegnata</span>
                               }
                             </td>
 
