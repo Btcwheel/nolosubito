@@ -50,10 +50,20 @@ function RecoveryHandler() {
   const { profile } = useAuth();
 
   useEffect(() => {
-    if (!window.location.hash.includes("type=recovery")) return;
+    console.log('[Recovery] hash:', window.location.hash);
+    console.log('[Recovery] profile:', profile);
+    console.log('[Recovery] location.search:', window.location.search);
+
+    if (!window.location.hash.includes("type=recovery")) {
+      console.log('[Recovery] No type=recovery in hash, skipping');
+      return;
+    }
+
+    console.log('[Recovery] Detected recovery, profile:', profile?.role);
     const dest = profile
       ? ({ admin: "/admin", backoffice: "/backoffice", agente: "/agente", cms: "/cms", cliente: "/mia-pratica" }[profile.role] || "/backoffice")
       : "/backoffice";
+    console.log('[Recovery] Redirecting to:', dest);
     navigate(dest, { replace: true, state: { passwordRecovery: true } });
   }, [profile, navigate]);
 

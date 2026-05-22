@@ -219,7 +219,11 @@ export default function DashboardLayout() {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setShowChangePw(true);
+      console.log('[Dashboard] Auth event:', event);
+      if (event === "PASSWORD_RECOVERY") {
+        console.log('[Dashboard] PASSWORD_RECOVERY detected, showing modal');
+        setShowChangePw(true);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
