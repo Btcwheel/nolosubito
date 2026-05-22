@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, Car, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion, AnimatePresence } from "framer-motion";
+import { useLazyFramerMotion } from "@/hooks/useLazyFramerMotion";
 import VehicleCard from "../vehicles/VehicleCard";
 import { offersService } from "@/services/offers";
 
@@ -79,6 +79,7 @@ export default function FeaturedVehicles() {
   const [currentPage,    setCurrentPage]    = useState(1);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const resultsRef = useRef(null);
+  const { motion, AnimatePresence, isLoaded: framerLoaded } = useLazyFramerMotion();
 
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["offers-home-catalog"],
@@ -181,14 +182,20 @@ export default function FeaturedVehicles() {
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/60" />
 
             <div className="absolute bottom-0 inset-x-0 px-5 sm:px-8 lg:px-10 pb-10 sm:pb-6 z-10">
-              <motion.h1
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl text-white drop-shadow-md"
-              >
-                Noleggiamo il Futuro
-              </motion.h1>
+              {framerLoaded && motion ? (
+                <motion.h1
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl text-white drop-shadow-md"
+                >
+                  Noleggiamo il Futuro
+                </motion.h1>
+              ) : (
+                <h1 className="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl text-white drop-shadow-md">
+                  Noleggiamo il Futuro
+                </h1>
+              )}
             </div>
           </div>
 
@@ -314,7 +321,7 @@ export default function FeaturedVehicles() {
             Migliori Offerte Noleggio Lungo Termine
           </h2>
           <div className="h-[20px] shrink-0">
-            {!isLoading && (
+            {!isLoading && framerLoaded && AnimatePresence && motion ? (
               <AnimatePresence mode="wait">
                 <motion.p
                   key={filtered.length}
@@ -325,7 +332,11 @@ export default function FeaturedVehicles() {
                   Trovati <strong className="text-gray-700">{filtered.length}</strong> risultati
                 </motion.p>
               </AnimatePresence>
-            )}
+            ) : !isLoading ? (
+              <p className="text-sm text-gray-600">
+                Trovati <strong className="text-gray-700">{filtered.length}</strong> risultati
+              </p>
+            ) : null}
           </div>
         </div>
 
