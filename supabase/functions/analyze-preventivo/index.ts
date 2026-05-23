@@ -46,6 +46,7 @@ const SERVICE_GROUPS = [
     "rca max 25 milioni", "rca penale risarcitoria 250 euro",
     "rca max 25 milioni penale 250 i care", "rca penale 500",
     "massimale euro 26 000 000",
+    "r c a responsabilita civile",
   ]},
   { canonical: "Incendio e Furto", aliases: [
     "incendio e furto", "copertura incendio e furto", "limitazione furto incendio",
@@ -65,6 +66,7 @@ const SERVICE_GROUPS = [
     "manutenzione ordinaria e straordinaria", "manutenzione ordinaria straordinaria",
     "manutenzione ordinaria/straordinaria", "manutenzione meccanica",
     "manutenzione meccanica plus",
+    "manutenzione ord e straord",
   ]},
   { canonical: "Soccorso Stradale", aliases: [
     "soccorso stradale", "assistenza stradale", "ald automotive assistance",
@@ -97,7 +99,7 @@ const SERVICE_GROUPS = [
   ]},
   { canonical: "Telematica", aliases: [
     "telematica", "gps", "blackbox", "telematica basic",
-    "gosth primario installazione", "gosth primario installazione",
+    "gosth primario installazione",
     "sistemi di localizzazione gps gsm", "blackbox incluso",
     "i care smart", "my leasys app",
   ]},
