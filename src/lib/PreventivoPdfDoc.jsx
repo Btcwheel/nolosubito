@@ -12,15 +12,21 @@ import {
   Rect,
   Font,
 } from '@react-pdf/renderer';
-import { INTER_REGULAR, INTER_MEDIUM, INTER_BOLD, INTER_EXTRA_BOLD } from './pdf-fonts.js';
 
 Font.register({
   family: 'Inter',
   fonts: [
-    { src: INTER_REGULAR, fontWeight: 400 },
-    { src: INTER_MEDIUM, fontWeight: 500 },
-    { src: INTER_BOLD, fontWeight: 700 },
-    { src: INTER_EXTRA_BOLD, fontWeight: 800 }
+    { src: 'https://fonts.gstatic.com/s/inter/v18/UcCo3FwrK3iLTcviYwY4kCg.woff2', fontWeight: 400 },
+    { src: 'https://fonts.gstatic.com/s/inter/v18/UcCo3FwrK3iLTcviYwY4kCg.woff2', fontWeight: 500 },
+    { src: 'https://fonts.gstatic.com/s/inter/v18/UcCo3FwrK3iLTcviYwY4kCg.woff2', fontWeight: 700 },
+    { src: 'https://fonts.gstatic.com/s/inter/v18/UcCo3FwrK3iLTcviYwY4kCg.woff2', fontWeight: 800 }
+  ]
+});
+
+Font.register({
+  family: 'Inter-Bold',
+  fonts: [
+    { src: 'https://fonts.gstatic.com/s/inter/v18/UcCo3FwrK3iLTcviYwY4kCg.woff2', fontWeight: 400 },
   ]
 });
 
@@ -44,6 +50,7 @@ const S = StyleSheet.create({
     backgroundColor: PAGE_BG,
     fontFamily: 'Inter',
     fontSize: 9,
+    fontWeight: 700,
     color: TEXT,
   },
   sheet: {
