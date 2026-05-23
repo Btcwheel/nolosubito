@@ -652,7 +652,29 @@ const PageShell = ({ children, footerLeft, footerRight, logoSrc, rif, oggi, scad
   </Page>
 );
 
-// Mappa servizio normalizzato → [etichetta display, descrizione breve]
+// Mappa label canonico (dall'edge function) → [etichetta display, descrizione breve]
+const SERVIZI_CANONICAL_MAP = {
+  'R.C.A. Responsabilità Civile':     ['R.C.A. Responsabilità Civile',  'Massimale e penale variano in base al carrier scelto'],
+  'Incendio e Furto':                 ['Incendio e Furto',              'Penale variabile in base al carrier scelto'],
+  'Copertura Danni':                  ['Copertura Danni',               'Penale variabile in base al carrier scelto'],
+  'Manutenzione Ordinaria e Straordinaria': ['Manutenzione Ordinaria e Straordinaria', 'Tagliandi e riparazioni inclusi'],
+  'Soccorso Stradale':                ['Soccorso Stradale',             'Assistenza e traino inclusi'],
+  'Cristalli':                        ['Cristalli',                     'Riparazione/sostituzione inclusa'],
+  'Gestione Multe':                   ['Gestione Multe',                'Rinotifica contravvenzioni inclusa'],
+  'Gestione Sinistri':                ['Gestione Sinistri',             'Supporto pratiche sinistro'],
+  'Pneumatici':                       ['Pneumatici',                    'Sostituzione inclusa secondo usura'],
+  'Tassa di Proprietà':               ['Tassa di Proprietà',            'Gestione e pagamento bollo auto'],
+  'Auto Sostitutiva':                 ['Auto Sostitutiva',              'Veicolo sostitutivo in caso di fermo'],
+  'Telematica':                       ['Telematica',                    'Dispositivo GPS/Blackbox incluso'],
+  'Infortuni Conducente':             ['Infortuni Conducente',          'Polizza assicurativa inclusa'],
+  'Tutela Legale':                    ['Tutela Legale',                 'Assistenza legale inclusa'],
+  'Consegna del Veicolo':             ['Consegna del Veicolo',          'Consegna presso hub o domicilio'],
+  'Fatturazione Elettronica':         ['Fatturazione Elettronica',      'Emissione digitale delle fatture'],
+  'Eventi Atmosferici':               ['Eventi Atmosferici',            'Copertura da grandine e meteo'],
+  'Immatricolazione':                 ['Immatricolazione',              'Messa su strada inclusa'],
+};
+
+// Mappa servizio normalizzato → [etichetta display, descrizione breve] (legacy)
 const SERVIZI_MAP = {
   'rca':                            ['R.C.A. Responsabilità Civile',  'Massimale e penale variano in base al carrier scelto'],
   'copertura danni':                ['Copertura Danni',               'Penale variabile in base al carrier scelto'],
@@ -695,18 +717,18 @@ function normalizeServiceKey(value) {
 }
 
 const SERVIZI_DEFAULT = [
-  ['R.C.A. Responsabilità Civile', 'Massimale max 25 milioni'],
-  ['Copertura Danni Kasko',        'Penale 500 € per sinistro'],
-  ['Incendio e Furto',             'Penale 10% sul valore'],
-  ['Manutenzione Ordinaria',       'Tagliandi periodici programmati'],
-  ['Manutenzione Straordinaria',   'Riparazioni per usura'],
-  ['Tassa di Possesso',            'Bollo auto gestito da broker'],
-  ['Immatricolazione',             'Messa su strada inclusa'],
-  ['Cambio Pneumatici',            'Stagionali (estivi/invernali)'],
-  ['Assistenza Stradale H24',      "Soccorso 365 giorni l'anno"],
-  ['Consegna del Veicolo',         'Presso sede o domicilio'],
-  ['Gestione Multe',               'Rinotifica al conducente'],
-  ['Customer Care Dedicato',       'Numero verde + e-mail'],
+  ['R.C.A. Responsabilità Civile', 'Massimale e penale variano in base al carrier scelto'],
+  ['Copertura Danni',              'Penale variabile in base al carrier scelto'],
+  ['Incendio e Furto',             'Penale variabile in base al carrier scelto'],
+  ['Manutenzione Ordinaria e Straordinaria', 'Tagliandi e riparazioni inclusi'],
+  ['Soccorso Stradale',            'Assistenza e traino inclusi'],
+  ['Cristalli',                    'Riparazione/sostituzione inclusa'],
+  ['Gestione Multe',               'Rinotifica contravvenzioni inclusa'],
+  ['Gestione Sinistri',            'Supporto pratiche sinistro'],
+  ['Pneumatici',                   'Sostituzione inclusa secondo usura'],
+  ['Tassa di Proprietà',           'Gestione e pagamento bollo auto'],
+  ['Auto Sostitutiva',             'Veicolo sostitutivo in caso di fermo'],
+  ['Telematica',                   'Dispositivo GPS/Blackbox incluso'],
 ];
 
 // Estrae servizi da note_operative (formato: "Servizi inclusi: X, Y, Z")
@@ -768,11 +790,16 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
     ...(prev.cambio ? [{ label: prev.cambio, icon: 'gear' }] : []),
   ];
 
-  // Usa servizi salvati sul preventivo (coppie [canonical, original]), poi prova a parserli da note_operative (legacy), poi default
+  // Usa servizi salvati sul preventivo (coppie [canonical, original])
+  // Prima prova match diretto sul label canonico, poi fallback a normalizeServiceKey (legacy)
   const servizi = (prev.servizi?.length > 0
     ? prev.servizi.map(([canonical, original]) => {
-        const mapped = SERVIZI_MAP[normalizeServiceKey(canonical)];
-        if (mapped) return [mapped[0], original || mapped[1]];
+        // Match diretto sul label canonico (nuovo formato dall'edge function)
+        const canonicalMapped = SERVIZI_CANONICAL_MAP[canonical];
+        if (canonicalMapped) return [canonicalMapped[0], original || canonicalMapped[1]];
+        // Fallback: match normalizzato (legacy)
+        const normalizedMapped = SERVIZI_MAP[normalizeServiceKey(canonical)];
+        if (normalizedMapped) return [normalizedMapped[0], original || normalizedMapped[1]];
         return [canonical, original || ''];
       })
     : null)
