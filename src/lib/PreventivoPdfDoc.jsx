@@ -16,10 +16,10 @@ import {
 Font.register({
   family: 'Inter',
   fonts: [
-    { src: '/fonts/Inter-Regular.ttf', fontWeight: 400 },
-    { src: '/fonts/Inter-Medium.ttf', fontWeight: 500 },
-    { src: '/fonts/Inter-Bold.ttf', fontWeight: 700 },
-    { src: '/fonts/Inter-ExtraBold.ttf', fontWeight: 800 }
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyeMZhrib2Bg-4.ttf?v=2', fontWeight: 400 },
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuG1YMZhrib2Bg-4.ttf?v=2', fontWeight: 500 },
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYMZhrib2Bg-4.ttf?v=2', fontWeight: 700 },
+    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuBWYMZhrib2Bg-4.ttf?v=2', fontWeight: 800 }
   ]
 });
 
