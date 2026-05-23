@@ -27,8 +27,8 @@ const NAVY = '#36389D';
 const ORANGE = '#F6B000';
 const PAGE_BG = '#F4F7FB';
 const SHEET = '#FFFFFF';
-const TEXT = '#1F2942';
-const MUTED = '#6D7894';
+const TEXT = '#111827';
+const MUTED = '#374151';
 const SOFT = '#F4F6FB';
 const SOFTER = '#FAFBFD';
 const BORDER = '#DCE2EF';
@@ -70,11 +70,11 @@ const S = StyleSheet.create({
     borderLeftColor: '#CBD3E2',
     paddingVertical: 1,
   },
-  tagLine: { fontSize: 7.5, color: '#4B5563', letterSpacing: 1.4, fontWeight: 'bold', lineHeight: 1.15 },
+  tagLine: { fontSize: 7.5, color: '#374151', letterSpacing: 1.4, fontWeight: 'bold', lineHeight: 1.15 },
   headerRight: { alignItems: 'flex-end' },
-  headerLabel: { fontSize: 8, color: '#4B5563', letterSpacing: 1.1, fontWeight: 'bold' },
+  headerLabel: { fontSize: 8, color: '#374151', letterSpacing: 1.1, fontWeight: 'bold' },
   headerNumber: { fontSize: 13.5, color: TEXT, fontWeight: 'bold', marginTop: 2 },
-  headerDate: { fontSize: 8.2, color: '#4B5563', marginTop: 5 },
+  headerDate: { fontSize: 8.2, color: '#374151', marginTop: 5 },
   validPill: {
     marginTop: 7,
     flexDirection: 'row',
@@ -128,7 +128,7 @@ const S = StyleSheet.create({
     marginBottom: 13,
   },
   h1Blue: { color: NAVY },
-  intro: { fontSize: 8, lineHeight: 1.42, color: '#1F2942', marginBottom: 9, maxWidth: 430 },
+  intro: { fontSize: 8, lineHeight: 1.42, color: '#111827', marginBottom: 9, maxWidth: 430 },
   introBold: { color: NAVY, fontWeight: 'bold' },
   introRef: { color: NAVY, fontWeight: 'bold' },
 
@@ -144,7 +144,7 @@ const S = StyleSheet.create({
   cardLabel: {
     fontSize: 7.6,
     fontWeight: 'bold',
-    color: '#4B5563',
+    color: '#374151',
     letterSpacing: 1.6,
     marginBottom: 6,
   },
@@ -161,7 +161,7 @@ const S = StyleSheet.create({
   },
   cardName: { fontSize: 10.8, lineHeight: 1.15, color: TEXT, fontWeight: 'bold', marginBottom: 4, maxWidth: 198 },
   contactRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 2 },
-  contactText: { fontSize: 7.9, color: '#374151' },
+  contactText: { fontSize: 7.9, color: '#111827' },
 
   vehicle: {
     backgroundColor: NAVY,
@@ -223,7 +223,7 @@ const S = StyleSheet.create({
   quoteRow: { flexDirection: 'row', gap: 10, marginBottom: 8 },
   quoteTable: { flex: 1.6, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: BORDER },
   quoteHead: { flexDirection: 'row', backgroundColor: '#F5F7FD', paddingVertical: 7, paddingHorizontal: 13 },
-  quoteHeadCell: { fontSize: 7.4, fontWeight: 'bold', color: '#4B5563', letterSpacing: 1.1 },
+  quoteHeadCell: { fontSize: 7.4, fontWeight: 'bold', color: '#374151', letterSpacing: 1.1 },
   quoteRowLine: { flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 13, borderBottomWidth: 1, borderBottomColor: BORDER, backgroundColor: '#FFF' },
   quoteRowAlt: { backgroundColor: '#FAFBFD' },
   quoteRowTotal: { backgroundColor: BLUE_TINT },
@@ -282,7 +282,7 @@ const S = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 5,
   },
-  noteTxt: { color: '#374151', fontSize: 7.5, lineHeight: 1.35 },
+  noteTxt: { color: '#111827', fontSize: 7.5, lineHeight: 1.35 },
   servicesGrid: { flexDirection: 'row', gap: 8 },
   servicesCol: { flex: 1 },
   serviceItem: {
@@ -294,8 +294,8 @@ const S = StyleSheet.create({
     borderBottomColor: '#EEF1F7',
   },
   serviceTextWrap: { flex: 1 },
-  serviceTitle: { fontSize: 8, fontWeight: 'bold', color: '#1F2942', marginBottom: 1 },
-  serviceMeta: { fontSize: 7, color: '#4B5563', lineHeight: 1.15 },
+  serviceTitle: { fontSize: 8, fontWeight: 'bold', color: '#111827', marginBottom: 1 },
+  serviceMeta: { fontSize: 7, color: '#374151', lineHeight: 1.15 },
 
   p2TitleWrap: { marginTop: 2, marginBottom: 8 },
   p2Hero: { fontSize: 13.8, lineHeight: 1.1, color: TEXT, fontWeight: 'bold', marginBottom: 1 },
@@ -312,7 +312,7 @@ const S = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#EEF1F7',
   },
-  specK: { fontSize: 8.2, color: '#4B5563' },
+  specK: { fontSize: 8.2, color: '#374151' },
   specV: { fontSize: 8.2, color: TEXT, fontWeight: 'bold', textAlign: 'right', maxWidth: '56%' },
   valueGrid: { flexDirection: 'row', gap: 6, marginBottom: 10 },
   valueBox: {
@@ -323,7 +323,7 @@ const S = StyleSheet.create({
     minHeight: 60,
     justifyContent: 'space-between',
   },
-  valueBoxLabel: { fontSize: 7.1, color: '#4B5563', letterSpacing: 1.1, fontWeight: 'bold', marginBottom: 3 },
+  valueBoxLabel: { fontSize: 7.1, color: '#374151', letterSpacing: 1.1, fontWeight: 'bold', marginBottom: 3 },
   valueBoxValue: { fontSize: 10.8, color: TEXT, fontWeight: 'bold' },
   valueTotal: {
     flex: 1.1,
@@ -355,7 +355,7 @@ const S = StyleSheet.create({
     marginBottom: 6,
   },
   whyTitle: { fontSize: 7.9, fontWeight: 'bold', color: TEXT, marginBottom: 2 },
-  whyText: { fontSize: 6.7, color: '#374151', lineHeight: 1.18 },
+  whyText: { fontSize: 6.7, color: '#111827', lineHeight: 1.18 },
 
   cta: {
     backgroundColor: ORANGE,
@@ -368,7 +368,7 @@ const S = StyleSheet.create({
     marginBottom: 10,
   },
   ctaTitle: { fontSize: 9, fontWeight: 'bold', color: '#2D2000', marginBottom: 1 },
-  ctaSub: { fontSize: 7.1, color: '#4B5563' },
+  ctaSub: { fontSize: 7.1, color: '#111827' },
   ctaBtn: {
     backgroundColor: NAVY,
     borderRadius: 999,
@@ -384,10 +384,10 @@ const S = StyleSheet.create({
 
   signGrid: { flexDirection: 'row', gap: 24, marginBottom: 8 },
   signBlock: { flex: 1, borderTopWidth: 1.4, borderTopColor: TEXT, paddingTop: 4 },
-  signLabel: { fontSize: 7.2, color: '#4B5563', letterSpacing: 1.2, fontWeight: 'bold', marginBottom: 1 },
-  signName: { fontSize: 7.8, color: '#374151' },
+  signLabel: { fontSize: 7.2, color: '#374151', letterSpacing: 1.2, fontWeight: 'bold', marginBottom: 1 },
+  signName: { fontSize: 7.8, color: '#111827' },
 
-  legal: { fontSize: 5.5, lineHeight: 1.28, color: '#374151' },
+  legal: { fontSize: 5.5, lineHeight: 1.28, color: '#111827' },
   legalSection: { fontSize: 7.5, color: NAVY, fontWeight: 'bold', letterSpacing: 1.2, marginTop: 2, marginBottom: 2 },
   legalBlock: { marginBottom: 3 },
 
@@ -406,9 +406,9 @@ const S = StyleSheet.create({
   },
   footerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   footerDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: ORANGE },
-  footerTxt: { fontSize: 6.9, color: '#374151' },
+  footerTxt: { fontSize: 6.9, color: '#111827' },
   footerBold: { fontWeight: 'bold', color: TEXT },
-  footerRight: { fontSize: 6.9, color: '#374151' },
+  footerRight: { fontSize: 6.9, color: '#111827' },
 });
 
 const LogoFallback = () => (
