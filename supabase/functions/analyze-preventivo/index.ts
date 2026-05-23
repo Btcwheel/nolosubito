@@ -249,6 +249,14 @@ function canonicalizeService(value: unknown): { canonical: string; original: str
   if (!text) return null;
   const key = normalizeKey(text);
 
+  // Direct match on canonical label first
+  for (const group of SERVICE_GROUPS) {
+    if (normalizeKey(group.canonical) === key) {
+      return { canonical: group.canonical, original: text };
+    }
+  }
+
+  // Match on aliases
   for (const entry of SERVICE_ALIAS_ENTRIES) {
     if (key === entry.key || key.includes(entry.key)) {
       return { canonical: entry.canonical, original: text };
@@ -442,7 +450,7 @@ Campi richiesti:
   "note_aggiuntive": string|null
 }
 
-Per il campo "servizi", restituisci un array di stringhe con i nomi ESATTI dei servizi come appaiono nel documento. Non normalizzare i nomi.
+Per il campo "servizi", restituisci un array di stringhe con i nomi ESATTI dei servizi come appaiono nel documento. Non normalizzare i nomi. Estrai TUTTI i servizi inclusi elencati nel preventivo.
 
 Linee guida pratiche:
 - DRIVALIA: il valore canone è normalmente IVA esclusa, quindi usa il totale quando indicato e convertilo a IVA inclusa solo se il documento lo richiede.
