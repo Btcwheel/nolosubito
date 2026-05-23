@@ -129,9 +129,9 @@ const S = StyleSheet.create({
     marginBottom: 13,
   },
   h1Blue: { color: NAVY },
-  intro: { fontSize: 8, lineHeight: 1.42, color: '#111827', marginBottom: 9, maxWidth: 430 },
-  introBold: { color: NAVY, fontWeight: 'bold' },
-  introRef: { color: NAVY, fontWeight: 'bold' },
+  intro: { fontSize: 8, lineHeight: 1.42, color: '#000000', marginBottom: 9, maxWidth: 430 },
+  introBold: { color: '#000000', fontWeight: 'bold' },
+  introRef: { color: '#000000' },
 
   cardGrid: { flexDirection: 'row', gap: 10, marginBottom: 10 },
   card: {
