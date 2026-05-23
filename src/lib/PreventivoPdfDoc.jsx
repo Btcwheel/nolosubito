@@ -282,7 +282,7 @@ const S = StyleSheet.create({
     paddingHorizontal: 10,
     marginBottom: 5,
   },
-  noteTxt: { color: '#54617D', fontSize: 7.2, lineHeight: 1.28, fontStyle: 'italic' },
+  noteTxt: { color: '#54617D', fontSize: 7.2, lineHeight: 1.28 },
   servicesGrid: { flexDirection: 'row', gap: 8 },
   servicesCol: { flex: 1 },
   serviceItem: {
