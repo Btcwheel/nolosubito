@@ -1,27 +1,335 @@
-
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type AnalyzeBody = {
+  base64?: string;
+  pages?: string[];
+  mediaType?: string;
+  text?: string;
+};
+
+type JsonRecord = Record<string, unknown>;
+
+type NormalizedPreventivo = {
+  carrier: string | null;
+  veicolo_marca: string | null;
+  veicolo_modello: string | null;
+  veicolo_versione: string | null;
+  veicolo_allestimento: string | null;
+  alimentazione: string | null;
+  cambio: string | null;
+  carrozzeria: string | null;
+  colore_esterno: string | null;
+  interni: string | null;
+  potenza: number | null;
+  durata_mesi: number | null;
+  km_annui: number | null;
+  anticipo: number | null;
+  deposito_cauzionale: number | null;
+  canone_mensile: number | null;
+  valore_listing: number | null;
+  valore_optional: number | null;
+  valore_accessori: number | null;
+  servizi: string[];
+  note_aggiuntive: string | null;
+};
+
+const SERVICE_GROUPS = [
+  { canonical: "RCA", aliases: ["rca", "assicurazione rc", "rc auto", "responsabilita civile", "responsabilità civile", "rca max 25 milioni"] },
+  { canonical: "Incendio e Furto", aliases: ["incendio e furto", "copertura incendio e furto", "limitazione furto incendio", "limitazione responsabilita furto incendio", "assicurazione incendio e furto"] },
+  { canonical: "Copertura Danni", aliases: ["copertura danni", "danni", "limitazione danni", "limitazione responsabilita danni", "copertura danni base", "copertura incendio furto danni", "kasko"] },
+  { canonical: "Manutenzione Ordinaria e Straordinaria", aliases: ["manutenzione ordinaria e straordinaria", "manutenzione ordinaria straordinaria", "manutenzione ordinaria/straordinaria", "manutenzione meccanica", "manutenzione meccanica plus"] },
+  { canonical: "Soccorso Stradale", aliases: ["soccorso stradale", "assistenza stradale", "ald automotive assistance", "traino standard", "assistenza al parcheggio posteriore", "sostitutiva z traino"] },
+  { canonical: "Cristalli", aliases: ["copertura cristalli", "cristalli", "cristalli penale"] },
+  { canonical: "Gestione Multe", aliases: ["gestione multe", "rinotifica contravvenzioni", "rinotifica al cliente", "multe rinotifica al cliente"] },
+  { canonical: "Gestione Sinistri", aliases: ["gestione sinistri"] },
+  { canonical: "Pneumatici", aliases: ["pneumatici", "pneumatici performance a numero limitato"] },
+  { canonical: "Tassa di Proprietà", aliases: ["tassa di proprieta", "tassa di proprietà", "tassa di possesso", "tassa di possesso con riaddebito", "tassa automobilistica", "tassaautomobilistica riaddebito periodico", "servizio pagamento tasse auto"] },
+  { canonical: "Auto Sostitutiva", aliases: ["auto sostitutiva", "veicolo sostitutivo", "sostitutiva z", "auto piccola dopo 24h"] },
+  { canonical: "Telematica", aliases: ["telematica", "gps", "blackbox", "i care smart", "my leasys app", "telematica basic"] },
+  { canonical: "Infortuni Conducente", aliases: ["infortuni conducente", "pai", "assicurazione infortuni conducente"] },
+  { canonical: "Tutela Legale", aliases: ["tutela legale"] },
+  { canonical: "Consegna del Veicolo", aliases: ["consegna del veicolo", "consegna c o hub auto", "consegna c/o hub auto"] },
+  { canonical: "Fatturazione Elettronica", aliases: ["fatturazione elettronica"] },
+  { canonical: "Eventi Atmosferici", aliases: ["eventi atmosferici"] },
+  { canonical: "Immatricolazione", aliases: ["immatricolazione"] },
+  { canonical: "I-Care Smart", aliases: ["i care smart"] },
+  { canonical: "My-Leasys App", aliases: ["my leasys app"] },
+  { canonical: "Traino Standard", aliases: ["traino standard"] },
+];
+
+const SERVICE_ALIAS_ENTRIES = SERVICE_GROUPS
+  .flatMap(({ canonical, aliases }) => aliases.map((alias) => ({ canonical, key: normalizeKey(alias) })))
+  .sort((a, b) => b.key.length - a.key.length);
+
+const CARRIER_ALIASES: Array<{ canonical: string; key: string }> = [
+  { canonical: "Ayvens", key: normalizeKey("Ayvens") },
+  { canonical: "Ayvens", key: normalizeKey("ALD Automotive") },
+  { canonical: "Drivalia", key: normalizeKey("Drivalia") },
+  { canonical: "Leasys", key: normalizeKey("Leasys") },
+  { canonical: "Santander Consumer Renting", key: normalizeKey("Santander") },
+  { canonical: "Santander Consumer Renting", key: normalizeKey("Santander Consumer Renting") },
+  { canonical: "Volkswagen Financial Services", key: normalizeKey("Volkswagen Financial Services") },
+  { canonical: "Volkswagen Financial Services", key: normalizeKey("Volkswagen Leasing") },
+  { canonical: "Volkswagen Financial Services", key: normalizeKey("Volkswagen") },
+];
+
+function normalizeSpaces(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function cleanText(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  const text = normalizeSpaces(String(value).replace(/\u00a0/g, " "));
+  if (!text) return null;
+  const lowered = normalizeKey(text);
+  if (
+    lowered === "null" ||
+    lowered === "none" ||
+    lowered === "n a" ||
+    lowered === "na" ||
+    lowered === "n d" ||
+    lowered === "nd" ||
+    lowered === "non disponibile" ||
+    lowered === "-"
+  ) {
+    return null;
+  }
+  return text;
+}
+
+function normalizeKey(value: string) {
+  return normalizeSpaces(
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9]+/g, " ")
+      .toLowerCase(),
+  );
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function parseJsonFromText(raw: string): JsonRecord {
+  const first = raw.indexOf("{");
+  const last = raw.lastIndexOf("}");
+  if (first === -1 || last === -1 || last <= first) return {};
+  const chunk = raw.slice(first, last + 1);
+  try {
+    const parsed = JSON.parse(chunk);
+    return parsed && typeof parsed === "object" ? parsed as JsonRecord : {};
+  } catch {
+    return {};
+  }
+}
+
+function toNumberString(value: unknown): string | null {
+  const text = cleanText(value);
+  if (!text) return null;
+
+  const compact = text.replace(/[€$£]/g, "").replace(/\s+/g, "");
+  if (!compact) return null;
+
+  let normalized = compact;
+  const hasComma = normalized.includes(",");
+  const hasDot = normalized.includes(".");
+
+  if (hasComma && hasDot) {
+    if (normalized.lastIndexOf(",") > normalized.lastIndexOf(".")) {
+      normalized = normalized.replace(/\./g, "").replace(",", ".");
+    } else {
+      normalized = normalized.replace(/,/g, "");
+    }
+  } else if (hasComma) {
+    normalized = normalized.replace(",", ".");
+  } else if (hasDot) {
+    if (/^\d{1,3}(\.\d{3})+$/.test(normalized)) {
+      normalized = normalized.replace(/\./g, "");
+    }
+  }
+
+  normalized = normalized.replace(/[^0-9.-]/g, "");
+  if (!normalized || normalized === "-" || normalized === ".") return null;
+
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed)) return null;
+  return parsed.toFixed(2);
+}
+
+function toNumber(value: unknown, { integer = false }: { integer?: boolean } = {}): number | null {
+  const normalized = toNumberString(value);
+  if (!normalized) return null;
+  const parsed = Number(normalized);
+  if (!Number.isFinite(parsed)) return null;
+  return integer ? Math.round(parsed) : Number(parsed.toFixed(2));
+}
+
+function textOrNull(value: unknown) {
+  return cleanText(value);
+}
+
+function normalizeCarrier(value: unknown): string | null {
+  const text = cleanText(value);
+  if (!text) return null;
+  const key = normalizeKey(text);
+  for (const entry of CARRIER_ALIASES) {
+    if (key === entry.key || key.includes(entry.key)) return entry.canonical;
+  }
+  return text;
+}
+
+function canonicalizeService(value: unknown): string | null {
+  const text = cleanText(value);
+  if (!text) return null;
+  const key = normalizeKey(text);
+
+  for (const entry of SERVICE_ALIAS_ENTRIES) {
+    if (key === entry.key || key.includes(entry.key)) {
+      return entry.canonical;
+    }
+  }
+
+  return text;
+}
+
+function normalizeServices(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const item of value) {
+    const label = canonicalizeService(item);
+    if (!label) continue;
+    const key = normalizeKey(label);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(label);
+  }
+
+  return result;
+}
+
+function stripLeadingPrefix(value: string, prefix: string) {
+  if (!prefix) return value;
+  const pattern = new RegExp(`^${escapeRegex(prefix)}\\s+`, "i");
+  return value.replace(pattern, "").trim();
+}
+
+function stripTrailingSuffix(value: string, suffix: string) {
+  if (!suffix) return value;
+  const escaped = escapeRegex(suffix);
+  const pattern = new RegExp(`(?:\\s*[-–—:]?\\s*)${escaped}$`, "i");
+  return value.replace(pattern, "").trim();
+}
+
+function normalizeVehicleFields(raw: JsonRecord) {
+  const veicolo_marca = textOrNull(raw.veicolo_marca);
+  let veicolo_modello = textOrNull(raw.veicolo_modello);
+  let veicolo_versione = textOrNull(raw.veicolo_versione);
+  const veicolo_allestimento = textOrNull(raw.veicolo_allestimento);
+
+  if (!veicolo_versione && veicolo_allestimento) {
+    veicolo_versione = veicolo_allestimento;
+  }
+
+  if (veicolo_modello && veicolo_marca) {
+    veicolo_modello = stripLeadingPrefix(veicolo_modello, veicolo_marca);
+  }
+
+  if (veicolo_modello && veicolo_versione) {
+    const normalizedModel = normalizeKey(veicolo_modello);
+    const normalizedVersion = normalizeKey(veicolo_versione);
+
+    if (normalizedModel === normalizedVersion) {
+      veicolo_versione = null;
+    } else {
+      const strippedVersion = stripTrailingSuffix(veicolo_modello, veicolo_versione);
+      if (strippedVersion && normalizeKey(strippedVersion) !== normalizeKey(veicolo_modello)) {
+        veicolo_modello = strippedVersion;
+      }
+
+      if (veicolo_modello && veicolo_versione && normalizeKey(veicolo_versione).startsWith(`${normalizeKey(veicolo_modello)} `)) {
+        veicolo_versione = veicolo_versione.slice(veicolo_modello.length).trim();
+      }
+    }
+  }
+
+  if (!veicolo_modello && veicolo_versione) {
+    veicolo_modello = veicolo_versione;
+    veicolo_versione = null;
+  }
+
+  return {
+    veicolo_marca,
+    veicolo_modello,
+    veicolo_versione,
+    veicolo_allestimento: veicolo_versione,
+    alimentazione: textOrNull(raw.alimentazione),
+    cambio: textOrNull(raw.cambio),
+    carrozzeria: textOrNull(raw.carrozzeria),
+    colore_esterno: textOrNull(raw.colore_esterno),
+    interni: textOrNull(raw.interni),
+    potenza: toNumber(raw.potenza, { integer: true }),
+    durata_mesi: toNumber(raw.durata_mesi, { integer: true }),
+    km_annui: toNumber(raw.km_annui, { integer: true }),
+    anticipo: toNumber(raw.anticipo),
+    deposito_cauzionale: toNumber(raw.deposito_cauzionale),
+    canone_mensile: toNumber(raw.canone_mensile),
+    valore_listing: toNumber(raw.valore_listing),
+    valore_optional: toNumber(raw.valore_optional),
+    valore_accessori: toNumber(raw.valore_accessori),
+  };
+}
+
+function normalizePreventivo(raw: JsonRecord): NormalizedPreventivo {
+  const vehicle = normalizeVehicleFields(raw);
+  return {
+    carrier: normalizeCarrier(raw.carrier),
+    veicolo_marca: vehicle.veicolo_marca,
+    veicolo_modello: vehicle.veicolo_modello,
+    veicolo_versione: vehicle.veicolo_versione,
+    veicolo_allestimento: vehicle.veicolo_allestimento,
+    alimentazione: vehicle.alimentazione,
+    cambio: vehicle.cambio,
+    carrozzeria: vehicle.carrozzeria,
+    colore_esterno: vehicle.colore_esterno,
+    interni: vehicle.interni,
+    potenza: vehicle.potenza,
+    durata_mesi: vehicle.durata_mesi,
+    km_annui: vehicle.km_annui,
+    anticipo: vehicle.anticipo,
+    deposito_cauzionale: vehicle.deposito_cauzionale,
+    canone_mensile: vehicle.canone_mensile,
+    valore_listing: vehicle.valore_listing,
+    valore_optional: vehicle.valore_optional,
+    valore_accessori: vehicle.valore_accessori,
+    servizi: normalizeServices(raw.servizi),
+    note_aggiuntive: textOrNull(raw.note_aggiuntive),
+  };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
-  try {
-    const body = await req.json() as {
-      base64?: string;       // singola immagine (legacy)
-      pages?: string[];      // array di pagine PDF renderizzate come immagini
-      mediaType?: string;
-      text?: string;
-    };
+  if (!ANTHROPIC_API_KEY) {
+    return new Response(JSON.stringify({ error: "Missing ANTHROPIC_API_KEY" }), {
+      status: 500,
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
 
+  try {
+    const body = await req.json() as AnalyzeBody;
     const userContent: unknown[] = [];
 
-    // Più pagine PDF come immagini (preferito — Claude Vision legge le tabelle correttamente)
     if (body.pages && body.pages.length > 0) {
       for (const pageB64 of body.pages) {
         userContent.push({
@@ -36,82 +344,52 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const textInput = body.text ?? "";
+    const textInput = cleanText(body.text);
     userContent.push({
       type: "text",
-      text: `Sei un esperto di noleggio a lungo termine (NLT) italiano. Estrai i dati dal preventivo e restituisci SOLO JSON valido, senza testo aggiuntivo.
-${textInput ? `Testo estratto:\n${textInput}` : ""}
+      text: `Sei un esperto di preventivi NLT italiani. Estrai i dati dal documento e restituisci SOLO JSON valido, senza markdown, senza spiegazioni, senza testo aggiuntivo.
 
-STEP 1 — Identifica il carrier leggendo intestazione/logo:
-- DRIVALIA → regole Drivalia
-- AYVENS / ALD Automotive → regole Ayvens
-- VOLKSWAGEN FINANCIAL SERVICES / VOLKSWAGEN LEASING → regole VW
-- LEASYS → regole Leasys
-- SANTANDER / Santander Consumer Renting → regole Santander
-- Altro → regole generiche
+Se sono presenti sia testo estratto che immagini, usa le immagini come fonte primaria e il testo solo come supporto.
+Se una pagina contiene la scheda tecnica del veicolo, trattala come fonte di verità per marca, modello, versione/allestimento, alimentazione, cambio, carrozzeria, colore esterno, interni e potenza.
+Non concatenare marca, modello e versione in un solo campo.
+Non inventare servizi inclusi: estrai solo quelli esplicitamente elencati come inclusi.
+Ignora banner, claim promozionali e sezioni di marketing come "Perché scegliere..." se non contengono dati del preventivo.
 
-STEP 2 — Estrai canone_mensile (SEMPRE IVA inclusa, arrotondato a 2 decimali):
-- DRIVALIA: campo "CANONE TOTALE" è IVA ESCLUSA → moltiplica ×1.22
-- AYVENS: usa "Canone mensile I.V.A. inclusa" (es. €443.52)
-- VW: usa il valore dopo "Totale €" nel "Canone totale" (es. €807,23)
-- LEASYS: usa colonna "Iva Inclusa" del "Canone Totale" (es. €772,20)
-- SANTANDER: ignora il box "Canone mensile" principale (IVA esclusa); usa "Canone Mensile inclusa IVA" dalla tabella sotto (es. 898,60€)
-- Generico: preferisci sempre il valore con IVA inclusa
+Testo estratto opzionale:
+${textInput ? textInput : "(nessuno)"}
 
-STEP 3 — Estrai km_annui (sempre annui, numero intero):
-- Se il doc mostra "Km/Anno" o "km annui" → usa direttamente quel valore
-- Se mostra solo "km totali" o "KM" senza /anno → calcola: km_totali / durata_mesi * 12
-- DRIVALIA: campo "KM" = km totali → dividi per durata_mesi e moltiplica per 12
-- AYVENS: "KM totali" → calcola come sopra
-- VW: "Km totali" → calcola come sopra
-- LEASYS: "km totali" → calcola come sopra
-- SANTANDER: "Km / Anno" → usa direttamente
-
-STEP 4 — Estrai anticipo (IVA inclusa se disponibile, altrimenti IVA esclusa):
-- LEASYS: usa la colonna "Iva Inclusa" dell'anticipo (es. €1.830,00)
-- Altri: usa il valore indicato come anticipo/acconto
-
-STEP 5 — Estrai SOLO i servizi ESPLICITAMENTE elencati come inclusi nel documento.
-NON aggiungere servizi non presenti. NON assumere servizi standard. Se un servizio è marcato "No", "Escluso" o non è presente nella lista, NON includerlo.
-
-Normalizza i nomi dei servizi trovati (mapping per carrier):
-RCA: RCA, Assicurazione RC, RCA max 25 milioni
-Incendio e Furto: Copertura Incendio e Furto, Incendio e Furto, Limitazione Furto-Incendio, Limitazione responsabilità Furto-Incendio, Assicurazione Incendio e Furto
-Copertura Danni: Copertura Danni, Danni, Limitazione danni, Limitazione responsabilità danni, Copertura Danni base, Kasko, Copertura Incendio/Furto/Danni
-Manutenzione: Manutenzione Ordinaria e Straordinaria, Manutenzione Ordinaria/Straordinaria, Manutenzione Meccanica, Manutenzione meccanica (Plus)
-Soccorso Stradale: Soccorso Stradale, Assistenza stradale, Ald Automotive Assistance, Traino Standard, Assistenza al parcheggio posteriore, Sostitutiva Z + Traino
-Cristalli: Copertura Cristalli, Cristalli, Cristalli Penale
-Gestione Multe: Gestione Multe, Gestione Sinistri, Rinotifica Contravvenzioni, Rinotifica al Cliente, Gestione Sinistri, Gestione Sinistri
-Pneumatici: Pneumatici, Pneumatici Performance a numero limitato
-Tassa di Proprietà: Tassa di Proprietà, Tassa Automobilistica, Tassa di Possesso con Riaddebito, Servizio pagamento tasse auto, Tassa Automobilistica - Riaddebito Periodico
-Auto Sostitutiva: Auto Sostitutiva, Veicolo Sostitutivo, Sostitutiva Z, Auto Piccola dopo 24H
-Kasko: Kasko, KASKO
-Telematica: Telematica, GPS, Blackbox, I-Care Smart, My-Leasys App, Telematica (Basic)
-Infortuni Conducente: Infortuni Conducente, PAI, Assicurazione Infortuni Conducente
-Tutela Legale: Tutela Legale
-
-ATTENZIONE:
-- Per Ayvens: tabella "Servizi inclusi" ha colonne "Si"/"No" — includi solo quelli con "Si"
-- Per Leasys: tabella con colonne Sì/No — includi solo quelli con "Sì"
-- Per Drivalia: sezione gialla "SERVIZI INCLUSI" — leggi la lista
-- Per Santander: sezione gialla "Pack Servizi" — leggi la lista
-- Per VW: sezione gialla "SERVIZI INCLUSI" — leggi la lista
-
-Schema output:
+Campi richiesti:
 {
   "carrier": string|null,
   "veicolo_marca": string|null,
   "veicolo_modello": string|null,
+  "veicolo_versione": string|null,
   "veicolo_allestimento": string|null,
   "alimentazione": string|null,
+  "cambio": string|null,
+  "carrozzeria": string|null,
+  "colore_esterno": string|null,
+  "interni": string|null,
+  "potenza": number|null,
   "durata_mesi": number|null,
   "km_annui": number|null,
   "anticipo": number|null,
   "deposito_cauzionale": number|null,
   "canone_mensile": number|null,
+  "valore_listing": number|null,
+  "valore_optional": number|null,
+  "valore_accessori": number|null,
   "servizi": string[],
   "note_aggiuntive": string|null
-}`,
+}
+
+Linee guida pratiche:
+- DRIVALIA: il valore canone è normalmente IVA esclusa, quindi usa il totale quando indicato e convertilo a IVA inclusa solo se il documento lo richiede.
+- AYVENS/ALD, LEASYS, VW, SANTANDER: preferisci sempre i valori IVA inclusa quando esplicitati.
+- Se il documento mostra solo km totali, converti in km annui usando la durata.
+- Se trovi una versione/allestimento ripetuta nel modello, separala nel campo versione e lascia il modello pulito.
+- Se un servizio è esplicitamente incluso ma il suo nome non è standard, preservalo come stringa leggibile e deduplicala solo per equivalenza semantica.
+`,
     });
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -123,19 +401,25 @@ Schema output:
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 512,
+        max_tokens: 768,
         messages: [{ role: "user", content: userContent }],
       }),
     });
 
-    const data = await response.json() as any;
-    const raw = data.content?.[0]?.text ?? "{}";
+    const responseText = await response.text();
+    if (!response.ok) {
+      return new Response(JSON.stringify({ error: responseText || `Anthropic API error (${response.status})` }), {
+        status: response.status,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
+    }
 
-    // Estrai il JSON dalla risposta (Claude potrebbe aggiungere testo intorno)
-    const match = raw.match(/\{[\s\S]*\}/);
-    const parsed = match ? JSON.parse(match[0]) : {};
+    const payload = JSON.parse(responseText) as { content?: Array<{ text?: string }> };
+    const raw = payload.content?.[0]?.text ?? "{}";
+    const parsed = parseJsonFromText(raw);
+    const data = normalizePreventivo(parsed);
 
-    return new Response(JSON.stringify({ data: parsed }), {
+    return new Response(JSON.stringify({ data }), {
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   } catch (err) {

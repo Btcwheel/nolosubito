@@ -50,12 +50,57 @@ const STATUS_CFG = {
 
 const BLANK_FORM = {
   veicolo_marca: "", veicolo_modello: "", alimentazione: "",
+  veicolo_versione: "", colore_esterno: "", interni: "",
+  cambio: "", carrozzeria: "", potenza: "",
   durata_mesi: "", km_annui: "",
   anticipo: "", canone_mensile: "", canone_finale: "",
+  deposito_cauzionale: "", valore_listing: "", valore_optional: "", valore_accessori: "",
   note_cliente: "", note_operative: "",
   carrier: "",
   servizi: [],
 };
+
+function isPresent(value) {
+  return value !== null && value !== undefined && value !== "";
+}
+
+function toFormNumber(value) {
+  if (!isPresent(value)) return "";
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? String(numeric) : String(value);
+}
+
+async function renderPdfPagesAndText(pdf) {
+  const pages = [];
+  const textParts = [];
+  const maxPages = Math.min(pdf.numPages, 3);
+
+  for (let i = 1; i <= maxPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 2.5 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) continue;
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    pages.push(canvas.toDataURL('image/jpeg', 0.95).split(',')[1]);
+
+    try {
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item) => item?.str ?? '')
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (pageText) textParts.push(`PAGINA ${i}: ${pageText}`);
+    } catch {
+      // Scanned PDFs can have no usable text layer.
+    }
+  }
+
+  return { pages, text: textParts.join('\n\n') };
+}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -89,6 +134,9 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
           <p className="font-semibold text-foreground text-sm">
             {prev.veicolo_marca} {prev.veicolo_modello}
           </p>
+          {prev.veicolo_versione && (
+            <p className="text-xs text-muted-foreground mt-0.5">{prev.veicolo_versione}</p>
+          )}
           {prev.alimentazione && (
             <p className="text-xs text-muted-foreground mt-0.5">{prev.alimentazione}</p>
           )}
@@ -299,18 +347,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
 
         // Renderizza le prime 3 pagine come immagini JPEG — Claude Vision legge
         // le tabelle dei servizi correttamente, il testo grezzo le distorce
-        const pages = [];
-        const maxPages = Math.min(pdf.numPages, 3);
-        for (let i = 1; i <= maxPages; i++) {
-          const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 2.5 });
-          const canvas = document.createElement('canvas');
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          const ctx = canvas.getContext('2d');
-          await page.render({ canvasContext: ctx, viewport }).promise;
-          pages.push(canvas.toDataURL('image/jpeg', 0.95).split(',')[1]);
-        }
+        const { pages, text } = await renderPdfPagesAndText(pdf);
 
         const res = await fetch(ANALYZE_URL, {
           method: 'POST',
@@ -318,7 +355,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
-          body: JSON.stringify({ pages }),
+          body: JSON.stringify({ pages, text }),
         });
         const { data: extracted, error } = await res.json();
         if (error) throw new Error(error);
@@ -330,19 +367,31 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
           ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
           : '';
 
-        setForm(prev => ({
+        const applyExtraction = (prev) => ({
           ...prev,
-          veicolo_marca:   extracted.veicolo_marca  || prev.veicolo_marca,
-          veicolo_modello: [extracted.veicolo_modello, extracted.veicolo_allestimento].filter(Boolean).join(' ') || prev.veicolo_modello,
-          alimentazione:   extracted.alimentazione  || prev.alimentazione,
-          durata_mesi:     durataValue ? String(durataValue) : prev.durata_mesi,
-          km_annui:        kmValue     ? String(kmValue)     : prev.km_annui,
-          anticipo:        extracted.anticipo        ? String(extracted.anticipo)        : prev.anticipo,
-          canone_mensile:  extracted.canone_mensile  ? String(extracted.canone_mensile)  : prev.canone_mensile,
-          carrier:         extracted.carrier || prev.carrier,
-          servizi:         extracted.servizi?.length ? extracted.servizi : prev.servizi,
-          note_operative:  extracted.note_aggiuntive || prev.note_operative,
-        }));
+          veicolo_marca:        extracted.veicolo_marca || prev.veicolo_marca,
+          veicolo_modello:      extracted.veicolo_modello || prev.veicolo_modello,
+          veicolo_versione:     extracted.veicolo_versione || extracted.veicolo_allestimento || prev.veicolo_versione,
+          alimentazione:        extracted.alimentazione || prev.alimentazione,
+          colore_esterno:       extracted.colore_esterno || prev.colore_esterno,
+          interni:              extracted.interni || prev.interni,
+          cambio:               extracted.cambio || prev.cambio,
+          carrozzeria:          extracted.carrozzeria || prev.carrozzeria,
+          potenza:              isPresent(extracted.potenza) ? toFormNumber(extracted.potenza) : prev.potenza,
+          durata_mesi:          durataValue ? String(durataValue) : prev.durata_mesi,
+          km_annui:             kmValue ? String(kmValue) : prev.km_annui,
+          anticipo:             isPresent(extracted.anticipo) ? toFormNumber(extracted.anticipo) : prev.anticipo,
+          deposito_cauzionale:  isPresent(extracted.deposito_cauzionale) ? toFormNumber(extracted.deposito_cauzionale) : prev.deposito_cauzionale,
+          canone_mensile:       isPresent(extracted.canone_mensile) ? toFormNumber(extracted.canone_mensile) : prev.canone_mensile,
+          valore_listing:       isPresent(extracted.valore_listing) ? toFormNumber(extracted.valore_listing) : prev.valore_listing,
+          valore_optional:      isPresent(extracted.valore_optional) ? toFormNumber(extracted.valore_optional) : prev.valore_optional,
+          valore_accessori:     isPresent(extracted.valore_accessori) ? toFormNumber(extracted.valore_accessori) : prev.valore_accessori,
+          carrier:              extracted.carrier || prev.carrier,
+          servizi:              extracted.servizi?.length ? extracted.servizi : prev.servizi,
+          note_operative:       extracted.note_aggiuntive || prev.note_operative,
+        });
+
+        setForm(applyExtraction);
 
         setBrokerFile(file);
         toast({ title: `Preventivo broker caricato — controlla e aggiusta i campi.` });
@@ -374,18 +423,28 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
           ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
           : '';
 
-        setForm(prev => ({
+        setForm((prev) => ({
           ...prev,
-          veicolo_marca:   extracted.veicolo_marca  || prev.veicolo_marca,
-          veicolo_modello: [extracted.veicolo_modello, extracted.veicolo_allestimento].filter(Boolean).join(' ') || prev.veicolo_modello,
-          alimentazione:   extracted.alimentazione  || prev.alimentazione,
-          durata_mesi:     durataValue ? String(durataValue) : prev.durata_mesi,
-          km_annui:        kmValue     ? String(kmValue)     : prev.km_annui,
-          anticipo:        extracted.anticipo        ? String(extracted.anticipo)        : prev.anticipo,
-          canone_mensile:  extracted.canone_mensile  ? String(extracted.canone_mensile)  : prev.canone_mensile,
-          carrier:         extracted.carrier || prev.carrier,
-          servizi:         extracted.servizi?.length ? extracted.servizi : prev.servizi,
-          note_operative:  extracted.note_aggiuntive || prev.note_operative,
+          veicolo_marca:        extracted.veicolo_marca || prev.veicolo_marca,
+          veicolo_modello:      extracted.veicolo_modello || prev.veicolo_modello,
+          veicolo_versione:     extracted.veicolo_versione || extracted.veicolo_allestimento || prev.veicolo_versione,
+          alimentazione:        extracted.alimentazione || prev.alimentazione,
+          colore_esterno:       extracted.colore_esterno || prev.colore_esterno,
+          interni:              extracted.interni || prev.interni,
+          cambio:               extracted.cambio || prev.cambio,
+          carrozzeria:          extracted.carrozzeria || prev.carrozzeria,
+          potenza:              isPresent(extracted.potenza) ? toFormNumber(extracted.potenza) : prev.potenza,
+          durata_mesi:          durataValue ? String(durataValue) : prev.durata_mesi,
+          km_annui:             kmValue ? String(kmValue) : prev.km_annui,
+          anticipo:             isPresent(extracted.anticipo) ? toFormNumber(extracted.anticipo) : prev.anticipo,
+          deposito_cauzionale:  isPresent(extracted.deposito_cauzionale) ? toFormNumber(extracted.deposito_cauzionale) : prev.deposito_cauzionale,
+          canone_mensile:       isPresent(extracted.canone_mensile) ? toFormNumber(extracted.canone_mensile) : prev.canone_mensile,
+          valore_listing:       isPresent(extracted.valore_listing) ? toFormNumber(extracted.valore_listing) : prev.valore_listing,
+          valore_optional:      isPresent(extracted.valore_optional) ? toFormNumber(extracted.valore_optional) : prev.valore_optional,
+          valore_accessori:     isPresent(extracted.valore_accessori) ? toFormNumber(extracted.valore_accessori) : prev.valore_accessori,
+          carrier:              extracted.carrier || prev.carrier,
+          servizi:              extracted.servizi?.length ? extracted.servizi : prev.servizi,
+          note_operative:       extracted.note_aggiuntive || prev.note_operative,
         }));
 
         setBrokerFile(file);
@@ -415,17 +474,26 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
       pratica_id:     praticaId,
       veicolo_marca:  form.veicolo_marca.trim(),
       veicolo_modello: form.veicolo_modello.trim(),
+      veicolo_versione: form.veicolo_versione.trim() || null,
       alimentazione:  form.alimentazione || null,
+      colore_esterno: form.colore_esterno.trim() || null,
+      interni:        form.interni.trim() || null,
+      cambio:         form.cambio.trim() || null,
+      carrozzeria:    form.carrozzeria.trim() || null,
+      potenza:        form.potenza !== "" ? parseInt(form.potenza, 10) : null,
       durata_mesi:    parseInt(form.durata_mesi),
       km_annui:       parseInt(form.km_annui),
       anticipo:       form.anticipo ? parseFloat(form.anticipo) : 0,
+      deposito_cauzionale: form.deposito_cauzionale !== "" ? parseFloat(form.deposito_cauzionale) : null,
       canone_mensile: parseFloat(form.canone_mensile),
       canone_finale:  form.canone_finale ? parseFloat(form.canone_finale) : null,
+      valore_listing: form.valore_listing !== "" ? parseFloat(form.valore_listing) : null,
+      valore_optional: form.valore_optional !== "" ? parseFloat(form.valore_optional) : null,
+      valore_accessori: form.valore_accessori !== "" ? parseFloat(form.valore_accessori) : null,
       note_cliente:   form.note_cliente.trim() || null,
-      note_operative: form.servizi.length
-        ? `Servizi inclusi: ${form.servizi.join(', ')}${form.note_operative.trim() ? '\n' + form.note_operative.trim() : ''}`
-        : form.note_operative.trim() || null,
+      note_operative: form.note_operative.trim() || null,
       carrier:        form.carrier.trim() || null,
+      servizi:        form.servizi,
     }),
     onSuccess: async (created) => {
       // Se c'era un PDF broker, caricalo su Storage rinominato con il codice
@@ -556,6 +624,14 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
                   className="h-10"
                 />
               </FieldGroup>
+              <FieldGroup label="Versione / allestimento">
+                <Input
+                  value={form.veicolo_versione}
+                  onChange={(e) => set("veicolo_versione", e.target.value)}
+                  placeholder="es. Style / R-Line"
+                  className="h-10"
+                />
+              </FieldGroup>
               <FieldGroup label="Alimentazione">
                 <Select value={form.alimentazione} onValueChange={(v) => set("alimentazione", v)}>
                   <SelectTrigger className="h-10"><SelectValue placeholder="Seleziona…" /></SelectTrigger>
@@ -564,6 +640,66 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
                   </SelectContent>
                 </Select>
               </FieldGroup>
+              <div className="grid grid-cols-2 gap-3">
+                <FieldGroup label="Colore esterno">
+                  <Input
+                    value={form.colore_esterno}
+                    onChange={(e) => set("colore_esterno", e.target.value)}
+                    placeholder="es. Nero pastello"
+                    className="h-10"
+                  />
+                </FieldGroup>
+                <FieldGroup label="Interni">
+                  <Input
+                    value={form.interni}
+                    onChange={(e) => set("interni", e.target.value)}
+                    placeholder="es. Tessuto nero"
+                    className="h-10"
+                  />
+                </FieldGroup>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <FieldGroup label="Cambio">
+                  <Input
+                    value={form.cambio}
+                    onChange={(e) => set("cambio", e.target.value)}
+                    placeholder="es. Automatico"
+                    className="h-10"
+                  />
+                </FieldGroup>
+                <FieldGroup label="Carrozzeria">
+                  <Input
+                    value={form.carrozzeria}
+                    onChange={(e) => set("carrozzeria", e.target.value)}
+                    placeholder="es. SUV"
+                    className="h-10"
+                  />
+                </FieldGroup>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <FieldGroup label="Potenza">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={form.potenza}
+                    onChange={(e) => set("potenza", e.target.value)}
+                    placeholder="es. 110"
+                    className="h-10"
+                  />
+                </FieldGroup>
+                <FieldGroup label="Deposito cauzionale (€)">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.deposito_cauzionale}
+                    onChange={(e) => set("deposito_cauzionale", e.target.value)}
+                    placeholder="0"
+                    className="h-10"
+                  />
+                </FieldGroup>
+              </div>
             </div>
 
             {/* Configurazione */}
@@ -611,6 +747,41 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
                     value={form.canone_finale}
                     onChange={(e) => set("canone_finale", e.target.value)}
                     placeholder="Opz."
+                    className="h-10"
+                  />
+                </FieldGroup>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <FieldGroup label="Valore listino (€)">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.valore_listing}
+                    onChange={(e) => set("valore_listing", e.target.value)}
+                    placeholder="es. 28000"
+                    className="h-10"
+                  />
+                </FieldGroup>
+                <FieldGroup label="Valore optional (€)">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.valore_optional}
+                    onChange={(e) => set("valore_optional", e.target.value)}
+                    placeholder="es. 1500"
+                    className="h-10"
+                  />
+                </FieldGroup>
+                <FieldGroup label="Valore accessori (€)">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={form.valore_accessori}
+                    onChange={(e) => set("valore_accessori", e.target.value)}
+                    placeholder="es. 500"
                     className="h-10"
                   />
                 </FieldGroup>

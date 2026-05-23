@@ -1,7 +1,7 @@
 import React from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, X, Car, Calendar, Gauge, Wallet, FileText } from "lucide-react";
+import { Download } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { scaricaPreventivoPDF } from "@/lib/preventivoPdf";
@@ -47,6 +47,9 @@ export default function PreventivoModal({ preventivo, clienteNome, open, onClose
               <h2 className="text-xl font-bold text-white leading-tight">
                 {p.veicolo_marca} {p.veicolo_modello}
               </h2>
+              {p.veicolo_versione && (
+                <p className="text-sm text-white/60 mt-0.5">{p.veicolo_versione}</p>
+              )}
               {p.alimentazione && (
                 <p className="text-sm text-white/60 mt-0.5">{p.alimentazione}</p>
               )}

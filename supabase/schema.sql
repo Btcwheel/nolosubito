@@ -391,11 +391,21 @@ create table if not exists preventivi (
   -- Veicolo
   veicolo_marca    text not null,
   veicolo_modello  text not null,
+  veicolo_versione text,
   alimentazione    text,
+  colore_esterno   text,
+  interni          text,
+  cambio           text,
+  carrozzeria      text,
+  potenza          integer,
+  valore_listing   numeric(10,2),
+  valore_optional   numeric(10,2),
+  valore_accessori  numeric(10,2),
   -- Configurazione
   durata_mesi      integer not null,
   km_annui         integer not null,
   anticipo         numeric(10,2) default 0,
+  deposito_cauzionale numeric(10,2),
   canone_mensile   numeric(10,2) not null,
   canone_finale    numeric(10,2),
   -- Comunicazione
@@ -519,7 +529,7 @@ alter table offer_configs
 
 
 -- preventivi table (see CREATE TABLE above for fresh installs)
-create table if not exists preventivi (id uuid default uuid_generate_v4() primary key, pratica_id uuid references pratiche(id) on delete cascade not null, veicolo_marca text not null, veicolo_modello text not null, alimentazione text, durata_mesi integer not null, km_annui integer not null, anticipo numeric(10,2) default 0, canone_mensile numeric(10,2) not null, canone_finale numeric(10,2), note_operative text, note_cliente text, status text not null default 'Bozza' check (status in ('Bozza','Inviato','Accettato','Rifiutato')), inviato_at timestamptz, accettato_at timestamptz, created_by uuid references profiles(id), created_at timestamptz default now(), updated_at timestamptz default now());
+create table if not exists preventivi (id uuid default uuid_generate_v4() primary key, pratica_id uuid references pratiche(id) on delete cascade not null, veicolo_marca text not null, veicolo_modello text not null, veicolo_versione text, alimentazione text, colore_esterno text, interni text, cambio text, carrozzeria text, potenza integer, valore_listing numeric(10,2), valore_optional numeric(10,2), valore_accessori numeric(10,2), durata_mesi integer not null, km_annui integer not null, anticipo numeric(10,2) default 0, deposito_cauzionale numeric(10,2), canone_mensile numeric(10,2) not null, canone_finale numeric(10,2), note_operative text, note_cliente text, status text not null default 'Bozza' check (status in ('Bozza','Inviato','Accettato','Rifiutato')), inviato_at timestamptz, accettato_at timestamptz, created_by uuid references profiles(id), created_at timestamptz default now(), updated_at timestamptz default now());
 
 alter table pratiche
   add column if not exists cliente_cognome            text,

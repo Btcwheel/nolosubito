@@ -674,7 +674,25 @@ const SERVIZI_MAP = {
   'infortuni conducente':           ['Infortuni Conducente',          'Polizza assicurativa inclusa'],
   'tutela legale':                  ['Tutela Legale',                 'Assistenza legale inclusa'],
   'telematica':                     ['Telematica / GPS',              'Localizzazione e fleet management'],
+  'fatturazione elettronica':       ['Fatturazione Elettronica',      'Emissione digitale delle fatture'],
+  'consegna del veicolo':           ['Consegna del Veicolo',          'Consegna presso hub o domicilio'],
+  'consegna c o hub auto':          ['Consegna del Veicolo',          'Consegna presso hub o domicilio'],
+  'eventi atmosferici':             ['Eventi Atmosferici',            'Copertura da grandine e meteo'],
+  'my leasys app':                  ['My-Leasys App',                 'App di gestione contratto'],
+  'i care smart':                   ['I-Care Smart',                  'Servizi digitali e assistenza'],
+  'traino standard':                ['Traino Standard',               'Soccorso e traino incluso'],
+  'gestione sinistri':              ['Gestione Sinistri',             'Supporto pratiche sinistro'],
 };
+
+function normalizeServiceKey(value) {
+  return String(value)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 const SERVIZI_DEFAULT = [
   ['R.C.A. Responsabilità Civile', 'Massimale max 25 milioni'],
@@ -698,13 +716,13 @@ function parseServizi(noteOperative) {
   if (!match) return null;
   const nomi = match[1].split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
   if (nomi.length === 0) return null;
-  return nomi.map(n => SERVIZI_MAP[n] || [n.replace(/\b\w/g, c => c.toUpperCase()), '']).filter(Boolean);
+  return nomi.map(n => SERVIZI_MAP[normalizeServiceKey(n)] || [n.replace(/\b\w/g, c => c.toUpperCase()), '']).filter(Boolean);
 }
 
 export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
   const rif = `NS-${prev.id.slice(-6).toUpperCase()}`;
   const oggi = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
-  const scadenza = new Date(Date.now() + 15 * 86400000).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
+  const scadenza = new Date(Date.now() + 5 * 86400000).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
   const mesAnno = new Date().toLocaleDateString('it-IT', { month: '2-digit', year: 'numeric' });
 
   const canone = Number(prev.canone_finale ?? prev.canone_mensile);
@@ -736,6 +754,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
     ['Interni', prev.interni || 'A definire'],
     ['Emissioni CO₂', prev.emissioni_co2 || '—'],
     ['Classe ambientale', prev.classe_ambientale || '—'],
+    ['Deposito cauzionale', prev.deposito_cauzionale != null ? `€ ${fmt(prev.deposito_cauzionale)}` : '—'],
     ['Durata contratto', `${prev.durata_mesi} mesi`],
     ['Km annui', `${fmtN(prev.km_annui)} km`],
     ['Km totali', `${fmtN(kmTotali)} km`],
@@ -750,7 +769,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
   ];
 
   // Usa servizi salvati sul preventivo, poi prova a parserli da note_operative (legacy), poi default
-  const servizi = (prev.servizi?.length > 0 ? prev.servizi.map(n => SERVIZI_MAP[n.toLowerCase()] || [n, '']) : null)
+  const servizi = (prev.servizi?.length > 0 ? prev.servizi.map(n => SERVIZI_MAP[normalizeServiceKey(n)] || [n, '']) : null)
     ?? parseServizi(prev.note_operative)
     ?? SERVIZI_DEFAULT;
   const col1 = servizi.filter((_, i) => i % 3 === 0);

@@ -1,16 +1,15 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { praticheService } from "@/services/pratiche";
 import { profilesService } from "@/services/profiles";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Send, Lock, Eye, ChevronRight, Euro, CheckCircle2, Clock, Users } from "lucide-react";
+import { ArrowLeft, Send, Lock, Eye, Euro, CheckCircle2, Clock, Users } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { useToast } from "@/components/ui/use-toast";
