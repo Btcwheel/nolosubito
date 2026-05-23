@@ -654,33 +654,33 @@ const PageShell = ({ children, footerLeft, footerRight, logoSrc, rif, oggi, scad
 
 // Mappa servizio normalizzato → [etichetta display, descrizione breve]
 const SERVIZI_MAP = {
-  'rca':                            ['R.C.A. Responsabilità Civile',  'Massimale max 25 milioni'],
-  'copertura danni':                ['Copertura Danni',               'Penale a carico del cliente'],
-  'copertura danni kasko':          ['Copertura Danni Kasko',         'Penale 500 € per sinistro'],
-  'kasko':                          ['Copertura Danni Kasko',         'Penale 500 € per sinistro'],
-  'copertura incendio e furto':     ['Incendio e Furto',              'Penale 10% sul valore'],
-  'incendio e furto':               ['Incendio e Furto',              'Penale 10% sul valore'],
-  'manutenzione ordinaria e straordinaria': ['Manutenzione Ord. e Straord.', 'Tagliandi e riparazioni inclusi'],
+  'rca':                            ['R.C.A. Responsabilità Civile',  'Massimale e penale variano in base al carrier scelto'],
+  'copertura danni':                ['Copertura Danni',               'Penale variabile in base al carrier scelto'],
+  'copertura danni kasko':          ['Copertura Danni',               'Penale variabile in base al carrier scelto'],
+  'kasko':                          ['Copertura Danni',               'Penale variabile in base al carrier scelto'],
+  'copertura incendio e furto':     ['Incendio e Furto',              'Penale variabile in base al carrier scelto'],
+  'incendio e furto':               ['Incendio e Furto',              'Penale variabile in base al carrier scelto'],
+  'manutenzione ordinaria e straordinaria': ['Manutenzione Ordinaria e Straordinaria', 'Tagliandi e riparazioni inclusi'],
   'manutenzione ordinaria':         ['Manutenzione Ordinaria',        'Tagliandi periodici programmati'],
   'manutenzione straordinaria':     ['Manutenzione Straordinaria',    'Riparazioni per usura'],
-  'tassa di proprietà':             ['Tassa di Possesso',             'Bollo auto gestito da broker'],
+  'tassa di proprietà':             ['Tassa di Proprietà',            'Gestione e pagamento bollo auto'],
   'immatricolazione':               ['Immatricolazione',              'Messa su strada inclusa'],
-  'pneumatici':                     ['Cambio Pneumatici',             'Stagionali (estivi/invernali)'],
-  'soccorso stradale':              ['Assistenza Stradale H24',       "Soccorso 365 giorni l'anno"],
-  'auto sostitutiva':               ['Auto Sostitutiva',              'Veicolo di cortesia incluso'],
-  'gestione multe':                 ['Gestione Multe',                'Rinotifica al conducente'],
-  'copertura cristalli':            ['Copertura Cristalli',           'Riparazione/sostituzione inclusa'],
-  'cristalli':                      ['Copertura Cristalli',           'Riparazione/sostituzione inclusa'],
+  'pneumatici':                     ['Pneumatici',                    'Sostituzione inclusa secondo usura'],
+  'soccorso stradale':              ['Soccorso Stradale',             'Assistenza e traino inclusi'],
+  'auto sostitutiva':               ['Auto Sostitutiva',              'Veicolo sostitutivo in caso di fermo'],
+  'gestione multe':                 ['Gestione Multe',                'Rinotifica contravvenzioni inclusa'],
+  'copertura cristalli':            ['Cristalli',                     'Riparazione/sostituzione inclusa'],
+  'cristalli':                      ['Cristalli',                     'Riparazione/sostituzione inclusa'],
   'infortuni conducente':           ['Infortuni Conducente',          'Polizza assicurativa inclusa'],
   'tutela legale':                  ['Tutela Legale',                 'Assistenza legale inclusa'],
-  'telematica':                     ['Telematica / GPS',              'Localizzazione e fleet management'],
+  'telematica':                     ['Telematica',                    'Dispositivo GPS/Blackbox incluso'],
   'fatturazione elettronica':       ['Fatturazione Elettronica',      'Emissione digitale delle fatture'],
   'consegna del veicolo':           ['Consegna del Veicolo',          'Consegna presso hub o domicilio'],
   'consegna c o hub auto':          ['Consegna del Veicolo',          'Consegna presso hub o domicilio'],
   'eventi atmosferici':             ['Eventi Atmosferici',            'Copertura da grandine e meteo'],
-  'my leasys app':                  ['My-Leasys App',                 'App di gestione contratto'],
-  'i care smart':                   ['I-Care Smart',                  'Servizi digitali e assistenza'],
-  'traino standard':                ['Traino Standard',               'Soccorso e traino incluso'],
+  'my leasys app':                  ['Telematica',                    'App di gestione contratto'],
+  'i care smart':                   ['Telematica',                    'Servizi digitali e assistenza'],
+  'traino standard':                ['Soccorso Stradale',             'Soccorso e traino incluso'],
   'gestione sinistri':              ['Gestione Sinistri',             'Supporto pratiche sinistro'],
 };
 
@@ -768,8 +768,14 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
     ...(prev.cambio ? [{ label: prev.cambio, icon: 'gear' }] : []),
   ];
 
-  // Usa servizi salvati sul preventivo, poi prova a parserli da note_operative (legacy), poi default
-  const servizi = (prev.servizi?.length > 0 ? prev.servizi.map(n => SERVIZI_MAP[normalizeServiceKey(n)] || [n, '']) : null)
+  // Usa servizi salvati sul preventivo (coppie [canonical, original]), poi prova a parserli da note_operative (legacy), poi default
+  const servizi = (prev.servizi?.length > 0
+    ? prev.servizi.map(([canonical, original]) => {
+        const mapped = SERVIZI_MAP[normalizeServiceKey(canonical)];
+        if (mapped) return [mapped[0], original || mapped[1]];
+        return [canonical, original || ''];
+      })
+    : null)
     ?? parseServizi(prev.note_operative)
     ?? SERVIZI_DEFAULT;
   const col1 = servizi.filter((_, i) => i % 3 === 0);
@@ -915,6 +921,12 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
           <View style={S.servicesCol}>{col1.map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
           <View style={S.servicesCol}>{col2.map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
           <View style={S.servicesCol}>{col3.map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
+        </View>
+
+        <View style={[S.noteBox, { marginTop: 5 }]}>
+          <Text style={S.noteTxt}>
+            I massimali, le penali e le condizioni specifiche dei servizi inclusi possono variare in base alla società di noleggio selezionata. I dettagli verranno confermati in fase di attivazione del contratto.
+          </Text>
         </View>
       </PageShell>
 

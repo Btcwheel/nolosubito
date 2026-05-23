@@ -796,17 +796,21 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
                 Servizi inclusi nel PDF broker — deseleziona quelli NON presenti
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-                {form.servizi.map((s) => (
-                  <label key={s} className="flex items-center gap-2 text-xs cursor-pointer select-none bg-muted/20 rounded-lg px-2.5 py-2 hover:bg-muted/40 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked
-                      onChange={() => set("servizi", form.servizi.filter(x => x !== s))}
-                      className="w-3.5 h-3.5 accent-electric"
-                    />
-                    <span className="text-foreground">{s}</span>
-                  </label>
-                ))}
+                {form.servizi.map((s, idx) => {
+                  const [canonical, original] = Array.isArray(s) ? s : [s, null];
+                  const display = original ? `${canonical} (${original})` : canonical;
+                  return (
+                    <label key={idx} className="flex items-center gap-2 text-xs cursor-pointer select-none bg-muted/20 rounded-lg px-2.5 py-2 hover:bg-muted/40 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked
+                        onChange={() => set("servizi", form.servizi.filter((_, i) => i !== idx))}
+                        className="w-3.5 h-3.5 accent-electric"
+                      />
+                      <span className="text-foreground">{display}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           )}

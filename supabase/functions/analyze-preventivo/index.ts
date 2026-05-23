@@ -36,32 +36,88 @@ type NormalizedPreventivo = {
   valore_listing: number | null;
   valore_optional: number | null;
   valore_accessori: number | null;
-  servizi: string[];
+  servizi: Array<[string, string | null]>;
   note_aggiuntive: string | null;
 };
 
 const SERVICE_GROUPS = [
-  { canonical: "RCA", aliases: ["rca", "assicurazione rc", "rc auto", "responsabilita civile", "responsabilità civile", "rca max 25 milioni"] },
-  { canonical: "Incendio e Furto", aliases: ["incendio e furto", "copertura incendio e furto", "limitazione furto incendio", "limitazione responsabilita furto incendio", "assicurazione incendio e furto"] },
-  { canonical: "Copertura Danni", aliases: ["copertura danni", "danni", "limitazione danni", "limitazione responsabilita danni", "copertura danni base", "copertura incendio furto danni", "kasko"] },
-  { canonical: "Manutenzione Ordinaria e Straordinaria", aliases: ["manutenzione ordinaria e straordinaria", "manutenzione ordinaria straordinaria", "manutenzione ordinaria/straordinaria", "manutenzione meccanica", "manutenzione meccanica plus"] },
-  { canonical: "Soccorso Stradale", aliases: ["soccorso stradale", "assistenza stradale", "ald automotive assistance", "traino standard", "assistenza al parcheggio posteriore", "sostitutiva z traino"] },
-  { canonical: "Cristalli", aliases: ["copertura cristalli", "cristalli", "cristalli penale"] },
-  { canonical: "Gestione Multe", aliases: ["gestione multe", "rinotifica contravvenzioni", "rinotifica al cliente", "multe rinotifica al cliente"] },
-  { canonical: "Gestione Sinistri", aliases: ["gestione sinistri"] },
-  { canonical: "Pneumatici", aliases: ["pneumatici", "pneumatici performance a numero limitato"] },
-  { canonical: "Tassa di Proprietà", aliases: ["tassa di proprieta", "tassa di proprietà", "tassa di possesso", "tassa di possesso con riaddebito", "tassa automobilistica", "tassaautomobilistica riaddebito periodico", "servizio pagamento tasse auto"] },
-  { canonical: "Auto Sostitutiva", aliases: ["auto sostitutiva", "veicolo sostitutivo", "sostitutiva z", "auto piccola dopo 24h"] },
-  { canonical: "Telematica", aliases: ["telematica", "gps", "blackbox", "i care smart", "my leasys app", "telematica basic"] },
-  { canonical: "Infortuni Conducente", aliases: ["infortuni conducente", "pai", "assicurazione infortuni conducente"] },
-  { canonical: "Tutela Legale", aliases: ["tutela legale"] },
-  { canonical: "Consegna del Veicolo", aliases: ["consegna del veicolo", "consegna c o hub auto", "consegna c/o hub auto"] },
-  { canonical: "Fatturazione Elettronica", aliases: ["fatturazione elettronica"] },
-  { canonical: "Eventi Atmosferici", aliases: ["eventi atmosferici"] },
-  { canonical: "Immatricolazione", aliases: ["immatricolazione"] },
-  { canonical: "I-Care Smart", aliases: ["i care smart"] },
-  { canonical: "My-Leasys App", aliases: ["my leasys app"] },
-  { canonical: "Traino Standard", aliases: ["traino standard"] },
+  { canonical: "R.C.A. Responsabilità Civile", aliases: [
+    "rca", "assicurazione rc", "rc auto", "responsabilita civile", "responsabilità civile",
+    "rca max 25 milioni", "rca penale risarcitoria 250 euro",
+    "rca max 25 milioni penale 250 i care", "rca penale 500",
+    "massimale euro 26 000 000",
+  ]},
+  { canonical: "Incendio e Furto", aliases: [
+    "incendio e furto", "copertura incendio e furto", "limitazione furto incendio",
+    "limitazione responsabilita furto incendio", "assicurazione incendio e furto",
+    "limitazione responsabilita furto incendio con penale risarcitoria 10",
+    "incendio e furto penale 0 i care", "incendio e furto penale 10 i care",
+    "furto quota cliente 10 valore commerciale",
+  ]},
+  { canonical: "Copertura Danni", aliases: [
+    "copertura danni", "danni", "limitazione danni", "limitazione responsabilita danni",
+    "copertura danni base", "copertura incendio furto danni", "kasko",
+    "limitazione responsabilita danni penale risarcitoria 500",
+    "copertura danni base penale 250 i care", "copertura danni base penale 500 i care",
+    "penale come kasko", "danni al veicolo incendio furto parziale quota cliente 500",
+  ]},
+  { canonical: "Manutenzione Ordinaria e Straordinaria", aliases: [
+    "manutenzione ordinaria e straordinaria", "manutenzione ordinaria straordinaria",
+    "manutenzione ordinaria/straordinaria", "manutenzione meccanica",
+    "manutenzione meccanica plus",
+  ]},
+  { canonical: "Soccorso Stradale", aliases: [
+    "soccorso stradale", "assistenza stradale", "ald automotive assistance",
+    "traino standard", "assistenza al parcheggio posteriore", "sostitutiva z traino",
+    "assistenza stradale h24", "soccorso 365 giorni",
+  ]},
+  { canonical: "Cristalli", aliases: [
+    "copertura cristalli", "cristalli", "cristalli penale",
+    "cristalli penale 250", "cristalli penale 500", "cristalli penale 150",
+  ]},
+  { canonical: "Gestione Multe", aliases: [
+    "gestione multe", "rinotifica contravvenzioni", "rinotifica al cliente",
+    "multe rinotifica al cliente", "gestione multe 10 a notifica",
+  ]},
+  { canonical: "Gestione Sinistri", aliases: ["gestione sinistri"]},
+  { canonical: "Pneumatici", aliases: [
+    "pneumatici", "pneumatici performance a numero limitato",
+    "pneumatici premium performance", "pneumatici performance a numero limitato x4",
+  ]},
+  { canonical: "Tassa di Proprietà", aliases: [
+    "tassa di proprieta", "tassa di proprietà", "tassa di possesso",
+    "tassa di possesso con riaddebito", "tassa automobilistica",
+    "tassaautomobilistica riaddebito periodico", "servizio pagamento tasse auto",
+    "tassa automobilistica con riaddebito", "tassa di possesso con riaddebito",
+    "tassaautomobilistica riaddebitoperiodico",
+  ]},
+  { canonical: "Auto Sostitutiva", aliases: [
+    "auto sostitutiva", "veicolo sostitutivo", "sostitutiva z",
+    "auto piccola dopo 24h", "auto sostitutiva auto piccola dopo 24h",
+  ]},
+  { canonical: "Telematica", aliases: [
+    "telematica", "gps", "blackbox", "telematica basic",
+    "gosth primario installazione", "gosth primario installazione",
+    "sistemi di localizzazione gps gsm", "blackbox incluso",
+    "i care smart", "my leasys app",
+  ]},
+  { canonical: "Infortuni Conducente", aliases: [
+    "infortuni conducente", "pai", "assicurazione infortuni conducente",
+    "garanzia infortuni del conducente", "infortuni conducente polizza assicurativa inclusa",
+  ]},
+  { canonical: "Tutela Legale", aliases: [
+    "tutela legale", "tutela legale fino a 15 000",
+    "tutela legale assistenza legale inclusa",
+  ]},
+  { canonical: "Consegna del Veicolo", aliases: [
+    "consegna del veicolo", "consegna c o hub auto", "consegna c/o hub auto",
+    "consegna vettura drivalia point",
+  ]},
+  { canonical: "Fatturazione Elettronica", aliases: ["fatturazione elettronica"]},
+  { canonical: "Eventi Atmosferici", aliases: [
+    "eventi atmosferici", "eventi atmosferici penale 250", "eventi atmosferici penale 500",
+  ]},
+  { canonical: "Immatricolazione", aliases: ["immatricolazione"]},
 ];
 
 const SERVICE_ALIAS_ENTRIES = SERVICE_GROUPS
@@ -186,32 +242,33 @@ function normalizeCarrier(value: unknown): string | null {
   return text;
 }
 
-function canonicalizeService(value: unknown): string | null {
+function canonicalizeService(value: unknown): { canonical: string; original: string } | null {
   const text = cleanText(value);
   if (!text) return null;
   const key = normalizeKey(text);
 
   for (const entry of SERVICE_ALIAS_ENTRIES) {
     if (key === entry.key || key.includes(entry.key)) {
-      return entry.canonical;
+      return { canonical: entry.canonical, original: text };
     }
   }
 
-  return text;
+  return { canonical: text, original: text };
 }
 
-function normalizeServices(value: unknown): string[] {
+function normalizeServices(value: unknown): Array<[string, string | null]> {
   if (!Array.isArray(value)) return [];
   const seen = new Set<string>();
-  const result: string[] = [];
+  const result: Array<[string, string | null]> = [];
 
   for (const item of value) {
-    const label = canonicalizeService(item);
-    if (!label) continue;
-    const key = normalizeKey(label);
+    const mapped = canonicalizeService(item);
+    if (!mapped) continue;
+    const key = normalizeKey(mapped.canonical);
     if (seen.has(key)) continue;
     seen.add(key);
-    result.push(label);
+    const original = normalizeKey(mapped.original) === normalizeKey(mapped.canonical) ? null : mapped.original;
+    result.push([mapped.canonical, original]);
   }
 
   return result;
@@ -382,6 +439,8 @@ Campi richiesti:
   "servizi": string[],
   "note_aggiuntive": string|null
 }
+
+Per il campo "servizi", restituisci un array di stringhe con i nomi ESATTI dei servizi come appaiono nel documento. Non normalizzare i nomi.
 
 Linee guida pratiche:
 - DRIVALIA: il valore canone è normalmente IVA esclusa, quindi usa il totale quando indicato e convertilo a IVA inclusa solo se il documento lo richiede.
