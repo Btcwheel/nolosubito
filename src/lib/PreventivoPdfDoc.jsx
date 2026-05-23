@@ -43,7 +43,7 @@ const S = StyleSheet.create({
     backgroundColor: PAGE_BG,
     fontFamily: 'Inter',
     fontSize: 9,
-    fontWeight: 700,
+    fontWeight: 500,
     color: TEXT,
   },
   sheet: {
@@ -129,9 +129,9 @@ const S = StyleSheet.create({
     marginBottom: 13,
   },
   h1Blue: { color: NAVY },
-  intro: { fontSize: 8, lineHeight: 1.42, color: '#000000', marginBottom: 9, maxWidth: 430 },
-  introBold: { color: '#000000', fontWeight: 'bold' },
-  introRef: { color: '#000000' },
+  intro: { fontSize: 8, lineHeight: 1.42, color: '#1F2937', marginBottom: 9, maxWidth: 430 },
+  introBold: { color: '#1F2937', fontWeight: 'bold' },
+  introRef: { color: '#1F2937' },
 
   cardGrid: { flexDirection: 'row', gap: 10, marginBottom: 10 },
   card: {
