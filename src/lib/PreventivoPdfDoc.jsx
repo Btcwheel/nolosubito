@@ -27,7 +27,7 @@ const NAVY = '#36389D';
 const ORANGE = '#F6B000';
 const PAGE_BG = '#F4F7FB';
 const SHEET = '#FFFFFF';
-const TEXT = '#111827';
+const TEXT = '#2D3748';
 const MUTED = '#374151';
 const SOFT = '#F4F6FB';
 const SOFTER = '#FAFBFD';
@@ -39,11 +39,11 @@ const fmt = (n) => (n != null ? Number(n).toLocaleString('it-IT', { minimumFract
 const fmtN = (n) => (n != null ? Number(n).toLocaleString('it-IT') : '—');
 
 const S = StyleSheet.create({
-page: {
+  page: {
     backgroundColor: PAGE_BG,
     fontFamily: 'Helvetica',
     fontSize: 9,
-    fontWeight: 700,
+    fontWeight: 500,
     color: TEXT,
   },
   sheet: {
@@ -826,9 +826,9 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
         <View style={S.heroGlow} />
 
         <Text style={S.eyebrow}>PROPOSTA PERSONALIZZATA</Text>
-        <Text style={S.h1}>
-          <Text style={S.h1Blue}>Proposta di noleggio a lungo termine{'\n'}di veicolo in locazione</Text>
-        </Text>
+         <Text style={S.h1}>
+           <Text style={S.h1Blue}>Preventivo noleggio</Text>
+         </Text>
         <Text style={S.intro}>
           Gentile <Text style={S.introBold}>{clienteNome || 'Cliente'}</Text>, abbiamo il piacere di trasmetterle l'offerta a Lei dedicata
           <Text style={S.introRef}>(1)</Text>. La ringraziamo per la preferenza accordataci e restiamo a Sua disposizione per qualsiasi chiarimento.
