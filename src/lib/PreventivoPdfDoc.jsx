@@ -14,12 +14,12 @@ import {
 } from '@react-pdf/renderer';
 
 Font.register({
-  family: 'Inter',
+  family: 'Helvetica',
   fonts: [
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyeMZhrib2Bg-4.ttf', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuG1YMZhrib2Bg-4.ttf', fontWeight: 500 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYMZhrib2Bg-4.ttf', fontWeight: 700 },
-    { src: 'https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuBWYMZhrib2Bg-4.ttf', fontWeight: 800 }
+    { src: 'https://fonts.gstatic.com/s/helveticaneue/v14/9k6XhRCM9yBvX5r8g4y4wK1i5F8.woff2', fontWeight: 400 },
+    { src: 'https://fonts.gstatic.com/s/helveticaneue/v14/9k6XhRCM9yBvX5r8g4y4wK1i5F8.woff2', fontWeight: 500 },
+    { src: 'https://fonts.gstatic.com/s/helveticaneue/v14/9k6XhRCM9yBvX5r8g4y4wK1i5F8.woff2', fontWeight: 700 },
+    { src: 'https://fonts.gstatic.com/s/helveticaneue/v14/9k6XhRCM9yBvX5r8g4y4wK1i5F8.woff2', fontWeight: 800 }
   ]
 });
 
@@ -39,11 +39,11 @@ const fmt = (n) => (n != null ? Number(n).toLocaleString('it-IT', { minimumFract
 const fmtN = (n) => (n != null ? Number(n).toLocaleString('it-IT') : '—');
 
 const S = StyleSheet.create({
-  page: {
+page: {
     backgroundColor: PAGE_BG,
-    fontFamily: 'Inter',
+    fontFamily: 'Helvetica',
     fontSize: 9,
-    fontWeight: 500,
+    fontWeight: 700,
     color: TEXT,
   },
   sheet: {
