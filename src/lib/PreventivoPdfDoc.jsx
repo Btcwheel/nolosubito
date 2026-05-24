@@ -1,27 +1,19 @@
 import {
   Document,
   Page,
-  View,
   Text,
-  Image,
   StyleSheet,
-  Svg,
-  Circle,
-  Path,
-  Line,
+  View,
   Rect,
+  Svg,
+  Line,
+  Path,
   Font,
+  Circle,
+  Image,
 } from '@react-pdf/renderer';
 
-Font.register({
-  family: 'Helvetica',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/helveticaneue/v14/9k6XhRCM9yBvX5r8g4y4wK1i5F8.woff2', fontWeight: 400 },
-    { src: 'https://fonts.gstatic.com/s/helveticaneue/v14/9k6XhRCM9yBvX5r8g4y4wK1i5F8.woff2', fontWeight: 500 },
-    { src: 'https://fonts.gstatic.com/s/helveticaneue/v14/9k6XhRCM9yBvX5r8g4y4wK1i5F8.woff2', fontWeight: 700 },
-    { src: 'https://fonts.gstatic.com/s/helveticaneue/v14/9k6XhRCM9yBvX5r8g4y4wK1i5F8.woff2', fontWeight: 800 }
-  ]
-});
+// Skip external font registration - use system Helvetica
 
 const NAVY = '#36389D';
 const ORANGE = '#F6B000';
