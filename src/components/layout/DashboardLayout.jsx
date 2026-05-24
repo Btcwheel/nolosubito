@@ -14,7 +14,7 @@ import OnboardingWelcome from "@/components/onboarding/OnboardingWelcome";
 
 // ── Modal cambio password (recovery + primo accesso) ─────────────────────────
 
-function ChangePasswordModal({ onClose }) {
+function ChangePasswordModal({ onClose, isRecoveryMode = false }) {
   const { toast } = useToast();
   const [newPassword, setNewPassword]         = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
@@ -45,15 +45,23 @@ function ChangePasswordModal({ onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4">
-      <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6">
+    <div
+      className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4"
+      onClick={isRecoveryMode ? undefined : onClose}
+    >
+      <div
+        className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center gap-3 mb-5">
           <div className="w-10 h-10 rounded-xl bg-electric/10 flex items-center justify-center">
             <KeyRound className="w-5 h-5 text-electric" />
           </div>
           <div>
             <h3 className="font-heading font-semibold text-base text-foreground">Imposta la tua password</h3>
-            <p className="text-xs text-muted-foreground">Scegli una password sicura per il tuo account</p>
+            <p className="text-xs text-muted-foreground">
+              {isRecoveryMode ? "Scegli una password sicura. Questo è obbligatorio." : "Scegli una password sicura per il tuo account"}
+            </p>
           </div>
         </div>
 
@@ -66,6 +74,7 @@ function ChangePasswordModal({ onClose }) {
               onChange={e => setNewPassword(e.target.value)}
               required
               className="pr-10"
+              disabled={saving}
             />
             <button type="button" onClick={() => setShowPw(v => !v)} tabIndex={-1} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -77,6 +86,7 @@ function ChangePasswordModal({ onClose }) {
             value={newPasswordConfirm}
             onChange={e => setNewPasswordConfirm(e.target.value)}
             required
+            disabled={saving}
           />
           <Button type="submit" disabled={saving} className="w-full bg-electric hover:bg-electric/90 text-white">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CheckCircle2 className="w-4 h-4 mr-2" />Salva password</>}
@@ -216,10 +226,16 @@ export default function DashboardLayout() {
   const [showChangePw, setShowChangePw] = useState(
     () => !!locationState?.passwordRecovery
   );
+  const [isRecoveryMode, setIsRecoveryMode] = useState(
+    () => !!locationState?.passwordRecovery
+  );
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setShowChangePw(true);
+      if (event === "PASSWORD_RECOVERY") {
+        setShowChangePw(true);
+        setIsRecoveryMode(true);
+      }
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -308,7 +324,15 @@ export default function DashboardLayout() {
       </div>
 
       <OnboardingWelcome profile={profile} />
-      {showChangePw && <ChangePasswordModal onClose={() => setShowChangePw(false)} />}
+      {showChangePw && (
+        <ChangePasswordModal
+          isRecoveryMode={isRecoveryMode}
+          onClose={() => {
+            setShowChangePw(false);
+            setIsRecoveryMode(false);
+          }}
+        />
+      )}
     </div>
   );
 }

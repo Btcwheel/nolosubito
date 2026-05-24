@@ -18,27 +18,53 @@ export default function PasswordReset() {
   const [loading, setLoading] = useState(false);
   const [tokenValid, setTokenValid] = useState(null);
 
-  // Supabase emette PASSWORD_RECOVERY quando il link è valido.
-  // Evitiamo di giudicare il link solo dai parametri URL perché il client
-  // può già averli consumati e trasformati in sessione.
+  // Supabase emette PASSWORD_RECOVERY quando il link è valido per il flusso classico.
+  // Aggiungiamo anche il supporto per token_hash e per catturare gli errori nell'URL istantaneamente.
   useEffect(() => {
     let alive = true;
+    
+    // Controlla se c'è un errore nell'URL (hash o query)
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const searchParams = new URLSearchParams(window.location.search);
+    const errorDesc = hashParams.get("error_description") || searchParams.get("error_description");
+    
+    if (errorDesc) {
+      setTokenValid(false);
+      return;
+    }
+
+    const tokenHash = searchParams.get("token_hash");
+    const type = searchParams.get("type");
+
+    // Nuovo flusso raccomandato: Token Hash (previene i click automatici degli antivirus/email scanner)
+    if (tokenHash && type === "recovery") {
+      supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" })
+        .then(({ error }) => {
+          if (!alive) return;
+          if (error) {
+            setTokenValid(false);
+          } else {
+            setTokenValid(true);
+          }
+        });
+      return;
+    }
+
+    // Flusso classico: attendiamo PASSWORD_RECOVERY
     const timeoutId = window.setTimeout(() => {
       if (alive) setTokenValid((current) => current === null ? false : current);
-    }, 5000);
+    }, 15000); // 15 secondi invece di 30
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!alive) return;
       if (session?.user) {
-        // Se il recovery ha già creato una sessione, il listener sotto
-        // confermerà l'evento; nel frattempo lasciamo lo stato in check.
-        setTokenValid((current) => current ?? null);
+        setTokenValid(true);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (!alive) return;
-      if (event === "PASSWORD_RECOVERY") {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
         setTokenValid(true);
       }
     });

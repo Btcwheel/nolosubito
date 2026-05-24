@@ -35,7 +35,7 @@ const S = StyleSheet.create({
     backgroundColor: PAGE_BG,
     fontFamily: 'Helvetica',
     fontSize: 9,
-    fontWeight: 500,
+    fontWeight: 400,
     color: TEXT,
   },
   sheet: {
@@ -870,8 +870,8 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
           <Text style={S.vehicleLabel}>VEICOLO PROPOSTO</Text>
           <View style={S.vehicleLine} />
           <Text style={S.vehicleName}>{prev.veicolo_marca} {prev.veicolo_modello}</Text>
-          {(prev.veicolo_versione || prev.alimentazione) && (
-            <Text style={S.vehicleSub}>{[prev.veicolo_versione, prev.alimentazione].filter(Boolean).join(' · ')}</Text>
+          {(prev.veicolo_versione) && (
+            <Text style={S.vehicleSub}>{[prev.veicolo_versione].filter(Boolean).join(' · ')}</Text>
           )}
           <View style={S.chipWrap}>
             {chips.map((c, i) => (
@@ -946,7 +946,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
 
         <View style={[S.noteBox, { marginTop: 5 }]}>
           <Text style={S.noteTxt}>
-            I massimali, le penali e le condizioni specifiche dei servizi inclusi possono variare in base alla società di noleggio selezionata. I dettagli verranno confermati in fase di attivazione del contratto.
+            I massimali, le penali e le condizioni specifiche dei servizi inclusi possono variare in base alla società Madre di noleggio selezionata. I dettagli verranno confermati in fase di attivazione del contratto.
           </Text>
         </View>
       </PageShell>
@@ -1005,7 +1005,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
         <View style={S.whyGrid}>
           {[
             { ic: <WIcon type="shield" />, h: 'Canone tutto incluso', p: 'Un solo importo fisso al mese, costi pianificabili senza sorprese.' },
-            { ic: <WIcon type="clock" />, h: '15+ anni di esperienza', p: 'Sedi a Roma, Napoli, Avellino e Salerno con rete su tutta Italia.' },
+            { ic: <WIcon type="clock" />, h: '15+ anni di esperienza', p: 'Sedi a Roma, Viterbo, Napoli, Avellino e Salerno con rete su tutta Italia.' },
             { ic: <WIcon type="check" />, h: 'Burocrazia zero', p: 'Immatricolazione, bollo, assicurazione: gestiamo tutto noi.' },
             { ic: <WIcon type="chat" />, h: 'Customer Care H24', p: 'Assistenza stradale e consulenti dedicati per tutta la durata.' },
           ].map(({ ic, h, p }) => (
