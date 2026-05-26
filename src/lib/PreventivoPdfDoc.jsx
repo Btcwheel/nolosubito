@@ -380,8 +380,8 @@ const S = StyleSheet.create({
   signLabel: { fontSize: 7.2, color: '#374151', letterSpacing: 1.2, fontWeight: 'bold', marginBottom: 1 },
   signName: { fontSize: 7.8, color: '#111827' },
 
-  legal: { fontSize: 5.5, lineHeight: 1.28, color: '#111827' },
-  legalSection: { fontSize: 7.5, color: NAVY, fontWeight: 'bold', letterSpacing: 1.2, marginTop: 2, marginBottom: 2 },
+  legal: { fontSize: 6.2, lineHeight: 1.35, color: '#111827' },
+  legalSection: { fontSize: 8, color: NAVY, fontWeight: 'bold', letterSpacing: 1.2, marginTop: 2, marginBottom: 2 },
   legalBlock: { marginBottom: 3 },
 
   footer: {
@@ -645,58 +645,84 @@ const PageShell = ({ children, footerLeft, footerRight, logoSrc, rif, oggi, scad
   </Page>
 );
 
-// Mappa label canonico (dall'edge function) → [etichetta display, descrizione breve]
+// Mappa codice Nolosubito → [nome_nolosubito, descrizione]
+const SERVIZI_NOLOSUBITO_MAP = {
+  'RCA': ['RC Auto', 'Responsabilità Civile Auto verso terzi'],
+  'DANNI': ['Copertura Danni', 'Penale variabile in base alla società di noleggio'],
+  'FURTO_INCENDIO': ['Furto e Incendio', 'Penale variabile in base alla società di noleggio'],
+  'CRISTALLI': ['Cristalli', 'Riparazione e sostituzione cristalli'],
+  'INFORTUNI': ['Infortuni Conducente', 'Polizza assicurativa inclusa'],
+  'TUTELA_LEGALE': ['Tutela Legale', 'Assistenza legale inclusa'],
+  'ATMOSFERICI': ['Eventi Atmosferici', 'Copertura da grandine e meteo'],
+  'MANUTENZIONE': ['Manutenzione', 'Tagliandi e riparazioni inclusi'],
+  'CAMBIO_PNEUMATICI': ['Cambio Pneumatici', 'Sostituzione e cambio stagionale pneumatici'],
+  'SOCCORSO': ['Soccorso Stradale', 'Assistenza e traino inclusi'],
+  'AUTO_SOSTITUTIVA': ['Auto Sostitutiva', 'Veicolo sostitutivo in caso di fermo'],
+  'CONSEGNA': ['Consegna Veicolo', 'Consegna presso hub o domicilio'],
+  'BOLLO': ['Tassa di Proprietà', 'Gestione e pagamento bollo auto'],
+  'MULTE': ['Gestione Multe', 'Rinotifica contravvenzioni inclusa'],
+  'SINISTRI': ['Gestione Sinistri', 'Supporto pratiche sinistro'],
+  'FATTURAZIONE': ['Fatturazione Elettronica', 'Emissione digitale delle fatture'],
+  'IMMATRICOLAZIONE': ['Immatricolazione', 'Messa su strada inclusa'],
+  'TELEMATICA': ['Telematica', 'Dispositivo GPS/Blackbox incluso'],
+  'SERVIZIO_CLIENTI': ['Servizio Clienti', 'Assistenza clienti dedicata'],
+};
+
+// Servizi richiedibili on-demand (codici)
+const SERVIZI_RICHIEDIBILI = new Set(['AUTO_SOSTITUTIVA', 'CAMBIO_PNEUMATICI']);
+
+// Mappa label canonico legacy → [nome_nolosubito, descrizione] (backward compat)
 const SERVIZI_CANONICAL_MAP = {
-  'R.C.A. Responsabilità Civile':     ['R.C.A. Responsabilità Civile',  'Massimale e penale variano in base al carrier scelto'],
-  'Incendio e Furto':                 ['Incendio e Furto',              'Penale variabile in base al carrier scelto'],
-  'Copertura Danni':                  ['Copertura Danni',               'Penale variabile in base al carrier scelto'],
-  'Manutenzione Ordinaria e Straordinaria': ['Manutenzione Ordinaria e Straordinaria', 'Tagliandi e riparazioni inclusi'],
-  'Soccorso Stradale':                ['Soccorso Stradale',             'Assistenza e traino inclusi'],
-  'Cristalli':                        ['Cristalli',                     'Riparazione/sostituzione inclusa'],
-  'Gestione Multe':                   ['Gestione Multe',                'Rinotifica contravvenzioni inclusa'],
-  'Gestione Sinistri':                ['Gestione Sinistri',             'Supporto pratiche sinistro'],
-  'Pneumatici':                       ['Pneumatici',                    'Sostituzione inclusa secondo usura'],
-  'Tassa di Proprietà':               ['Tassa di Proprietà',            'Gestione e pagamento bollo auto'],
-  'Auto Sostitutiva':                 ['Auto Sostitutiva',              'Veicolo sostitutivo in caso di fermo'],
-  'Telematica':                       ['Telematica',                    'Dispositivo GPS/Blackbox incluso'],
-  'Infortuni Conducente':             ['Infortuni Conducente',          'Polizza assicurativa inclusa'],
-  'Tutela Legale':                    ['Tutela Legale',                 'Assistenza legale inclusa'],
-  'Consegna del Veicolo':             ['Consegna del Veicolo',          'Consegna presso hub o domicilio'],
-  'Fatturazione Elettronica':         ['Fatturazione Elettronica',      'Emissione digitale delle fatture'],
-  'Eventi Atmosferici':               ['Eventi Atmosferici',            'Copertura da grandine e meteo'],
-  'Immatricolazione':                 ['Immatricolazione',              'Messa su strada inclusa'],
+  'R.C.A. Responsabilità Civile': ['RC Auto', 'Massimale e penale variano in base alla società di noleggio'],
+  'Incendio e Furto': ['Furto e Incendio', 'Penale variabile in base alla società di noleggio'],
+  'Copertura Danni': ['Copertura Danni', 'Penale variabile in base alla società di noleggio'],
+  'Manutenzione Ordinaria e Straordinaria': ['Manutenzione', 'Tagliandi e riparazioni inclusi'],
+  'Soccorso Stradale': ['Soccorso Stradale', 'Assistenza e traino inclusi'],
+  'Cristalli': ['Cristalli', 'Riparazione/sostituzione inclusa'],
+  'Gestione Multe': ['Gestione Multe', 'Rinotifica contravvenzioni inclusa'],
+  'Gestione Sinistri': ['Gestione Sinistri', 'Supporto pratiche sinistro'],
+  'Pneumatici': ['Cambio Pneumatici', 'Sostituzione e cambio stagionale pneumatici'],
+  'Tassa di Proprietà': ['Tassa di Proprietà', 'Gestione e pagamento bollo auto'],
+  'Auto Sostitutiva': ['Auto Sostitutiva', 'Veicolo sostitutivo in caso di fermo'],
+  'Telematica': ['Telematica', 'Dispositivo GPS/Blackbox incluso'],
+  'Infortuni Conducente': ['Infortuni Conducente', 'Polizza assicurativa inclusa'],
+  'Tutela Legale': ['Tutela Legale', 'Assistenza legale inclusa'],
+  'Consegna del Veicolo': ['Consegna Veicolo', 'Consegna presso hub o domicilio'],
+  'Fatturazione Elettronica': ['Fatturazione Elettronica', 'Emissione digitale delle fatture'],
+  'Eventi Atmosferici': ['Eventi Atmosferici', 'Copertura da grandine e meteo'],
+  'Immatricolazione': ['Immatricolazione', 'Messa su strada inclusa'],
 };
 
 // Mappa servizio normalizzato → [etichetta display, descrizione breve] (legacy)
 const SERVIZI_MAP = {
-  'rca':                            ['R.C.A. Responsabilità Civile',  'Massimale e penale variano in base al carrier scelto'],
-  'copertura danni':                ['Copertura Danni',               'Penale variabile in base al carrier scelto'],
-  'copertura danni kasko':          ['Copertura Danni',               'Penale variabile in base al carrier scelto'],
-  'kasko':                          ['Copertura Danni',               'Penale variabile in base al carrier scelto'],
-  'copertura incendio e furto':     ['Incendio e Furto',              'Penale variabile in base al carrier scelto'],
-  'incendio e furto':               ['Incendio e Furto',              'Penale variabile in base al carrier scelto'],
+  'rca': ['R.C.A. Responsabilità Civile', 'Massimale e penale variano in base al carrier scelto'],
+  'copertura danni': ['Copertura Danni', 'Penale variabile in base al carrier scelto'],
+  'copertura danni kasko': ['Copertura Danni', 'Penale variabile in base al carrier scelto'],
+  'kasko': ['Copertura Danni', 'Penale variabile in base al carrier scelto'],
+  'copertura incendio e furto': ['Incendio e Furto', 'Penale variabile in base al carrier scelto'],
+  'incendio e furto': ['Incendio e Furto', 'Penale variabile in base al carrier scelto'],
   'manutenzione ordinaria e straordinaria': ['Manutenzione Ordinaria e Straordinaria', 'Tagliandi e riparazioni inclusi'],
-  'manutenzione ordinaria':         ['Manutenzione Ordinaria',        'Tagliandi periodici programmati'],
-  'manutenzione straordinaria':     ['Manutenzione Straordinaria',    'Riparazioni per usura'],
-  'tassa di proprietà':             ['Tassa di Proprietà',            'Gestione e pagamento bollo auto'],
-  'immatricolazione':               ['Immatricolazione',              'Messa su strada inclusa'],
-  'pneumatici':                     ['Pneumatici',                    'Sostituzione inclusa secondo usura'],
-  'soccorso stradale':              ['Soccorso Stradale',             'Assistenza e traino inclusi'],
-  'auto sostitutiva':               ['Auto Sostitutiva',              'Veicolo sostitutivo in caso di fermo'],
-  'gestione multe':                 ['Gestione Multe',                'Rinotifica contravvenzioni inclusa'],
-  'copertura cristalli':            ['Cristalli',                     'Riparazione/sostituzione inclusa'],
-  'cristalli':                      ['Cristalli',                     'Riparazione/sostituzione inclusa'],
-  'infortuni conducente':           ['Infortuni Conducente',          'Polizza assicurativa inclusa'],
-  'tutela legale':                  ['Tutela Legale',                 'Assistenza legale inclusa'],
-  'telematica':                     ['Telematica',                    'Dispositivo GPS/Blackbox incluso'],
-  'fatturazione elettronica':       ['Fatturazione Elettronica',      'Emissione digitale delle fatture'],
-  'consegna del veicolo':           ['Consegna del Veicolo',          'Consegna presso hub o domicilio'],
-  'consegna c o hub auto':          ['Consegna del Veicolo',          'Consegna presso hub o domicilio'],
-  'eventi atmosferici':             ['Eventi Atmosferici',            'Copertura da grandine e meteo'],
-  'my leasys app':                  ['Telematica',                    'App di gestione contratto'],
-  'i care smart':                   ['Telematica',                    'Servizi digitali e assistenza'],
-  'traino standard':                ['Soccorso Stradale',             'Soccorso e traino incluso'],
-  'gestione sinistri':              ['Gestione Sinistri',             'Supporto pratiche sinistro'],
+  'manutenzione ordinaria': ['Manutenzione Ordinaria', 'Tagliandi periodici programmati'],
+  'manutenzione straordinaria': ['Manutenzione Straordinaria', 'Riparazioni per usura'],
+  'tassa di proprietà': ['Tassa di Proprietà', 'Gestione e pagamento bollo auto'],
+  'immatricolazione': ['Immatricolazione', 'Messa su strada inclusa'],
+  'pneumatici': ['Pneumatici', 'Sostituzione inclusa secondo usura'],
+  'soccorso stradale': ['Soccorso Stradale', 'Assistenza e traino inclusi'],
+  'auto sostitutiva': ['Auto Sostitutiva', 'Veicolo sostitutivo in caso di fermo'],
+  'gestione multe': ['Gestione Multe', 'Rinotifica contravvenzioni inclusa'],
+  'copertura cristalli': ['Cristalli', 'Riparazione/sostituzione inclusa'],
+  'cristalli': ['Cristalli', 'Riparazione/sostituzione inclusa'],
+  'infortuni conducente': ['Infortuni Conducente', 'Polizza assicurativa inclusa'],
+  'tutela legale': ['Tutela Legale', 'Assistenza legale inclusa'],
+  'telematica': ['Telematica', 'Dispositivo GPS/Blackbox incluso'],
+  'fatturazione elettronica': ['Fatturazione Elettronica', 'Emissione digitale delle fatture'],
+  'consegna del veicolo': ['Consegna del Veicolo', 'Consegna presso hub o domicilio'],
+  'consegna c o hub auto': ['Consegna del Veicolo', 'Consegna presso hub o domicilio'],
+  'eventi atmosferici': ['Eventi Atmosferici', 'Copertura da grandine e meteo'],
+  'my leasys app': ['Telematica', 'App di gestione contratto'],
+  'i care smart': ['Telematica', 'Servizi digitali e assistenza'],
+  'traino standard': ['Soccorso Stradale', 'Soccorso e traino incluso'],
+  'gestione sinistri': ['Gestione Sinistri', 'Supporto pratiche sinistro'],
 };
 
 function normalizeServiceKey(value) {
@@ -710,18 +736,18 @@ function normalizeServiceKey(value) {
 }
 
 const SERVIZI_DEFAULT = [
-  ['R.C.A. Responsabilità Civile', 'Massimale e penale variano in base al carrier scelto'],
-  ['Copertura Danni',              'Penale variabile in base al carrier scelto'],
-  ['Incendio e Furto',             'Penale variabile in base al carrier scelto'],
-  ['Manutenzione Ordinaria e Straordinaria', 'Tagliandi e riparazioni inclusi'],
-  ['Soccorso Stradale',            'Assistenza e traino inclusi'],
-  ['Cristalli',                    'Riparazione/sostituzione inclusa'],
-  ['Gestione Multe',               'Rinotifica contravvenzioni inclusa'],
-  ['Gestione Sinistri',            'Supporto pratiche sinistro'],
-  ['Pneumatici',                   'Sostituzione inclusa secondo usura'],
-  ['Tassa di Proprietà',           'Gestione e pagamento bollo auto'],
-  ['Auto Sostitutiva',             'Veicolo sostitutivo in caso di fermo'],
-  ['Telematica',                   'Dispositivo GPS/Blackbox incluso'],
+  ['RC Auto', 'Massimale e penale variano in base alla società di noleggio'],
+  ['Copertura Danni', 'Penale variabile in base alla società di noleggio'],
+  ['Furto e Incendio', 'Penale variabile in base alla società di noleggio'],
+  ['Manutenzione', 'Tagliandi e riparazioni inclusi'],
+  ['Soccorso Stradale', 'Assistenza e traino inclusi'],
+  ['Cristalli', 'Riparazione/sostituzione inclusa'],
+  ['Gestione Multe', 'Rinotifica contravvenzioni inclusa'],
+  ['Gestione Sinistri', 'Supporto pratiche sinistro'],
+  ['Tassa di Proprietà', 'Gestione e pagamento bollo auto'],
+  ['Cambio Pneumatici', 'Sostituzione e cambio stagionale pneumatici'],
+  ['Auto Sostitutiva', 'Veicolo sostitutivo in caso di fermo'],
+  ['Telematica', 'Dispositivo GPS/Blackbox incluso'],
 ];
 
 // Estrae servizi da note_operative (formato: "Servizi inclusi: X, Y, Z")
@@ -741,14 +767,16 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
   const mesAnno = new Date().toLocaleDateString('it-IT', { month: '2-digit', year: 'numeric' });
 
   const canone = Number(prev.canone_finale ?? prev.canone_mensile);
-  const canoneNetto = canone / 1.22;
+  const canoneNetto = Math.round((canone / 1.22) * 100) / 100;
+
+  const quotaVeicolo = Number(prev.quota_veicolo) || 0;
+  const quotaServizi = Number(prev.quota_servizi) || 0;
+  const quotaVeicoloNetto = quotaVeicolo ? Math.round((quotaVeicolo / 1.22) * 100) / 100 : 0;
+  const quotaServiziNetto = quotaServizi ? Math.round((quotaServizi / 1.22) * 100) / 100 : 0;
+
   const anticipo = Number(prev.anticipo) || 0;
   const anticipoNetto = anticipo / 1.22;
   const kmTotali = Number(prev.km_annui) * (Number(prev.durata_mesi) / 12);
-  const qVN = canoneNetto * 0.67;
-  const qSN = canoneNetto * 0.33;
-  const qVL = canone * 0.67;
-  const qSL = canone * 0.33;
 
   const listing = Number(prev.valore_listing || prev.valore_veicolo || 0);
   const optional = Number(prev.valore_optional || 0);
@@ -783,25 +811,75 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
     ...(prev.cambio ? [{ label: prev.cambio, icon: 'gear' }] : []),
   ];
 
-  // Usa servizi salvati sul preventivo (coppie [canonical, original])
-  // Prima prova match diretto sul label canonico, poi fallback a normalizeServiceKey (legacy)
+  // Normalizza servizi — supporta sia nuovo formato {codice, penale, originale}
+  // sia vecchio formato [canonical, original] che stringhe plain (legacy)
+  function normalizzaServizio(s) {
+    let obj = s;
+    if (typeof s === 'string' && s.startsWith('{')) {
+      try {
+        obj = JSON.parse(s);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // Nuovo formato oggetto
+    if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+      const mapped = SERVIZI_NOLOSUBITO_MAP[obj.codice];
+      if (mapped) {
+        const nota = obj.penale != null ? `Penale € ${obj.penale}` : mapped[1];
+        return [mapped[0], nota];
+      }
+      return ['Servizio', ''];
+    }
+    // Vecchio formato [canonical, original]
+    const [canonical, original] = Array.isArray(s) ? s : [s, null];
+    const canonicalMapped = SERVIZI_CANONICAL_MAP[canonical];
+    if (canonicalMapped) return [canonicalMapped[0], original || canonicalMapped[1]];
+    const normalizedMapped = SERVIZI_MAP[normalizeServiceKey(canonical)];
+    if (normalizedMapped) return [normalizedMapped[0], original || normalizedMapped[1]];
+    return [canonical, original || ''];
+  }
+
   const serviziRaw = prev.servizi?.length > 0 ? prev.servizi : null;
-  const servizi = serviziRaw
-    ? serviziRaw.map((s) => {
-        // Handle both formats: [canonical, original] pairs and plain strings (legacy)
-        const [canonical, original] = Array.isArray(s) ? s : [s, null];
-        // Match diretto sul label canonico (nuovo formato dall'edge function)
-        const canonicalMapped = SERVIZI_CANONICAL_MAP[canonical];
-        if (canonicalMapped) return [canonicalMapped[0], original || canonicalMapped[1]];
-        // Fallback: match normalizzato (legacy)
-        const normalizedMapped = SERVIZI_MAP[normalizeServiceKey(canonical)];
-        if (normalizedMapped) return [normalizedMapped[0], original || normalizedMapped[1]];
-        return [canonical, original || ''];
-      })
+  const serviziInclusi = serviziRaw
+    ? serviziRaw.map(normalizzaServizio)
     : parseServizi(prev.note_operative) ?? SERVIZI_DEFAULT;
-  const col1 = servizi.filter((_, i) => i % 3 === 0);
-  const col2 = servizi.filter((_, i) => i % 3 === 1);
-  const col3 = servizi.filter((_, i) => i % 3 === 2);
+
+  // Servizi richiedibili (non inclusi ma disponibili on-demand)
+  const codiciInclusi = new Set(
+    (prev.servizi || []).map((s) => {
+      let obj = s;
+      if (typeof s === 'string' && s.startsWith('{')) {
+        try { obj = JSON.parse(s); } catch (e) { }
+      }
+      return obj && typeof obj === 'object' && !Array.isArray(obj) ? obj.codice : null;
+    }).filter(Boolean),
+  );
+  const serviziRichiedibili = prev.servizi_richiesti?.length > 0
+    ? prev.servizi_richiesti.map((sr) => {
+      let obj = sr;
+      if (typeof sr === 'string' && sr.startsWith('{')) {
+        try { obj = JSON.parse(sr); } catch (e) { }
+      }
+      if (!obj || typeof obj !== 'object') return null;
+
+      const mapped = SERVIZI_NOLOSUBITO_MAP[obj.codice];
+      if (!mapped) return null;
+      if (obj.richiesto) return [`✓ ${mapped[0]}`, 'Richiesto — in attesa di conferma costo'];
+      return [mapped[0], 'Disponibile su richiesta'];
+    }).filter(Boolean)
+    : Array.from(SERVIZI_RICHIEDIBILI)
+      .filter((cod) => !codiciInclusi.has(cod))
+      .map((cod) => {
+        const mapped = SERVIZI_NOLOSUBITO_MAP[cod];
+        return mapped ? [mapped[0], 'Disponibile su richiesta'] : null;
+      })
+      .filter(Boolean);
+
+  const col1 = serviziInclusi.filter((_, i) => i % 3 === 0);
+  const col2 = serviziInclusi.filter((_, i) => i % 3 === 1);
+  const col3 = serviziInclusi.filter((_, i) => i % 3 === 2);
 
   const logoSrc = logoB64 || null;
 
@@ -818,9 +896,9 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
         <View style={S.heroGlow} />
 
         <Text style={S.eyebrow}>PROPOSTA PERSONALIZZATA</Text>
-         <Text style={S.h1}>
-           <Text style={S.h1Blue}>Preventivo noleggio</Text>
-         </Text>
+        <Text style={S.h1}>
+          <Text style={S.h1Blue}>Preventivo noleggio veicolo a lungo termine</Text>
+        </Text>
         <Text style={S.intro}>
           Gentile <Text style={S.introBold}>{clienteNome || 'Cliente'}</Text>, abbiamo il piacere di trasmetterle l'offerta a Lei dedicata
           <Text style={S.introRef}>(1)</Text>. La ringraziamo per la preferenza accordataci e restiamo a Sua disposizione per qualsiasi chiarimento.
@@ -897,8 +975,8 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
               <Text style={[S.quoteHeadCell, S.quoteCellRight]}>IVA ESCLUSA</Text>
               <Text style={[S.quoteHeadCell, S.quoteCellRight]}>IVA INCLUSA</Text>
             </View>
-            <QuoteRow label="Quota Canone Veicolo" excl={`€ ${fmt(qVN)}`} incl={`€ ${fmt(qVL)}`} />
-            <QuoteRow label="Quota Canone Servizi" excl={`€ ${fmt(qSN)}`} incl={`€ ${fmt(qSL)}`} alt />
+            <QuoteRow label="Quota Canone Veicolo" excl={`€ ${fmt(quotaVeicoloNetto)}`} incl={`€ ${fmt(quotaVeicolo)}`} />
+            <QuoteRow label="Quota Canone Servizi" excl={`€ ${fmt(quotaServiziNetto)}`} incl={`€ ${fmt(quotaServizi)}`} alt />
             <QuoteRow label="Anticipo" excl={`€ ${fmt(anticipoNetto)}`} incl={`€ ${fmt(anticipo)}`} />
             <QuoteRow label="Canone Mensile Totale" excl={`€ ${fmt(canoneNetto)}`} incl={`€ ${fmt(canone)}`} total />
           </View>
@@ -928,7 +1006,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
           <Text style={S.sectionTitle}>SERVIZI INCLUSI NEL CANONE</Text>
           <View style={S.sectionRule} />
           <View style={S.sectionBadge}>
-            <Text style={S.sectionBadgeTxt}>{servizi.length} servizi</Text>
+            <Text style={S.sectionBadgeTxt}>{serviziInclusi.length} servizi</Text>
           </View>
         </View>
 
@@ -944,11 +1022,22 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
           <View style={S.servicesCol}>{col3.map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
         </View>
 
-        <View style={[S.noteBox, { marginTop: 5 }]}>
-          <Text style={S.noteTxt}>
-            I massimali, le penali e le condizioni specifiche dei servizi inclusi possono variare in base alla società Madre di noleggio selezionata. I dettagli verranno confermati in fase di attivazione del contratto.
-          </Text>
-        </View>
+        {serviziRichiedibili.length > 0 && (
+          <>
+            <View style={[S.sectionTitleRow, { marginTop: 5 }]}>
+              <Text style={S.sectionTitle}>SERVIZI RICHIEDIBILI</Text>
+              <View style={S.sectionRule} />
+              <View style={S.sectionBadge}>
+                <Text style={S.sectionBadgeTxt}>{serviziRichiedibili.length} servizi</Text>
+              </View>
+            </View>
+            <View style={S.servicesGrid}>
+              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 0).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
+              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 1).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
+              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 2).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
+            </View>
+          </>
+        )}
       </PageShell>
 
       <PageShell
@@ -956,7 +1045,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
         rif={rif}
         oggi={oggi}
         scadenza={scadenza}
-        footerLeft="Via degli Archivi di Stato 15, Roma · info@nolosubito.it · +39 06 400 49490"
+        footerLeft="Via Nuova Poggioreale 60L - 80143 - Napoli · info@nolosubito.it · +39 06 400 49490"
         footerRight={`Pagina 2 di 2 · Ed. 1 — ${mesAnno}`}
       >
         <Text style={S.eyebrow}>DETTAGLI TECNICI</Text>
@@ -1017,17 +1106,6 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
           ))}
         </View>
 
-        <View style={S.cta}>
-          <View>
-            <Text style={S.ctaTitle}>Accettando l'offerta, attiviamo subito la pratica.</Text>
-            <Text style={S.ctaSub}>Pronta consegna · Procedura digitale · Risposta in 24h</Text>
-          </View>
-          <View style={S.ctaBtn}>
-            <Text style={S.ctaBtnTxt}>ACCETTA OFFERTA</Text>
-            <SmallIcon type="arrow" />
-          </View>
-        </View>
-
         <View style={S.signGrid}>
           <View style={S.signBlock}>
             <Text style={S.signLabel}>PER IL CLIENTE</Text>
@@ -1053,7 +1131,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
 
           <Text style={S.legalSection}>INFORMATIVA PRIVACY</Text>
           <Text style={S.legalBlock}>
-            Il titolare del trattamento dei dati personali inseriti nel presente modulo è Nolosubito S.r.l., con sede legale in Via degli Archivi di Stato 15, Roma. I dati sono trattati per fornirLe il preventivo richiesto, sulla base dell'art. 6, par. 1, lett. b) GDPR, nonché per finalità gestionali e analitiche interne, sulla base dell'art. 6, par. 1, lett. f) GDPR, nel rispetto del principio di proporzionalità. I dati sono trattati con modalità elettroniche e, ove non seguisse una Sua richiesta o affidamento, saranno eliminati entro 90 giorni dalla compilazione del presente modulo. Per esercitare i Suoi diritti, così come previsti dal Regolamento UE 2016/679, può scrivere a info@nolosubito.it. Ha inoltre diritto di presentare un reclamo, nelle forme e modalità stabilite dalla legge, al Garante per la protezione dei dati personali.
+            Il titolare del trattamento dei dati personali inseriti nel presente modulo è Nolosubito S.r.l., con sede legale in Via Nuova Poggioreale 60L - 80143 - Napoli. I dati sono trattati per fornirLe il preventivo richiesto, sulla base dell'art. 6, par. 1, lett. b) GDPR, nonché per finalità gestionali e analitiche interne, sulla base dell'art. 6, par. 1, lett. f) GDPR, nel rispetto del principio di proporzionalità. I dati sono trattati con modalità elettroniche e, ove non seguisse una Sua richiesta o affidamento, saranno eliminati entro 90 giorni dalla compilazione del presente modulo. Per esercitare i Suoi diritti, così come previsti dal Regolamento UE 2016/679, può scrivere a info@nolosubito.it. Ha inoltre diritto di presentare un reclamo, nelle forme e modalità stabilite dalla legge, al Garante per la protezione dei dati personali.
           </Text>
         </View>
       </PageShell>

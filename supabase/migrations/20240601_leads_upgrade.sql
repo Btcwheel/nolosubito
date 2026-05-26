@@ -64,10 +64,12 @@ create index if not exists idx_lead_attivita_created_at on lead_attivita(created
 -- RLS per lead_attivita: admin e backoffice vedono tutto
 alter table lead_attivita enable row level security;
 
+drop policy if exists "Admin e backoffice vedono tutte le attività lead" on lead_attivita;
 create policy "Admin e backoffice vedono tutte le attività lead"
   on lead_attivita for select
   using (get_user_role() in ('admin','backoffice'));
 
+drop policy if exists "Admin e backoffice inseriscono attività" on lead_attivita;
 create policy "Admin e backoffice inseriscono attività"
   on lead_attivita for insert
   with check (get_user_role() in ('admin','backoffice'));

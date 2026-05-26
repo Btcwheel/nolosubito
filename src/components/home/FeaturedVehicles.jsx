@@ -87,12 +87,12 @@ export default function FeaturedVehicles() {
   });
 
   const categories = useMemo(
-    () => [...new Set(vehicles.map(v => v.category).filter(Boolean))].sort(),
+    () => [...new Set(vehicles.map(v => v.category?.trim()).filter(Boolean))].sort(),
     [vehicles],
   );
 
   const brands = useMemo(
-    () => [...new Set(vehicles.map(v => v.make).filter(Boolean))].sort(),
+    () => [...new Set(vehicles.map(v => v.make?.trim().toUpperCase()).filter(Boolean))].sort(),
     [vehicles],
   );
 
@@ -103,14 +103,15 @@ export default function FeaturedVehicles() {
       .filter(v => {
         // Filtro tipologia (segmento)
         if (tipologia === "all") return true;
-        if (tipologia === "Moto") return MOTO_CATS.includes(v.category);
+        const cat = v.category?.trim();
+        if (tipologia === "Moto") return MOTO_CATS.includes(cat);
         // P.IVA e Privati: escludi moto, filtra per segmento
-        if (MOTO_CATS.includes(v.category)) return false;
+        if (MOTO_CATS.includes(cat)) return false;
         if (!v.segments || !Array.isArray(v.segments)) return tipologia === "P.IVA"; // default
         return v.segments.includes(tipologia);
       })
-      .filter(v => makeFilter === "all" || v.make === makeFilter)
-      .filter(v => categoryFilter === "all" || v.category === categoryFilter)
+      .filter(v => makeFilter === "all" || v.make?.trim().toUpperCase() === makeFilter)
+      .filter(v => categoryFilter === "all" || v.category?.trim() === categoryFilter)
       .filter(v => {
         if (budgetFilter === "all") return true;
         const p = v.monthly_rent ?? 0;
@@ -122,11 +123,12 @@ export default function FeaturedVehicles() {
       })
       .filter(v => {
         if (!quickFilter) return true;
+        const cat = v.category?.trim();
         // Moto → matcha "Moto", "Moto e Scooter"
-        if (quickFilter === "Moto")    return ["Moto", "Moto e Scooter"].includes(v.category);
+        if (quickFilter === "Moto")    return ["Moto", "Moto e Scooter"].includes(cat);
         // Scooter → matcha "Scooter", "Moto e Scooter"
-        if (quickFilter === "Scooter") return ["Scooter", "Moto e Scooter"].includes(v.category);
-        if (quickFilter === "SUV" || quickFilter === "Berlina") return v.category === quickFilter;
+        if (quickFilter === "Scooter") return ["Scooter", "Moto e Scooter"].includes(cat);
+        if (quickFilter === "SUV" || quickFilter === "Berlina") return cat === quickFilter;
         if (quickFilter === "Ibride")     return v.fuel_type === "Hybrid";
         if (quickFilter === "Elettriche") return v.fuel_type === "Electric";
         return true;

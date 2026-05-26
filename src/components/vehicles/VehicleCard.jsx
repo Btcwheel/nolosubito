@@ -31,6 +31,20 @@ function SpecBox({ icon: Icon, label }) {
   );
 }
 
+function BrandLogo({ make }) {
+  const [failed, setFailed] = React.useState(false);
+  if (!make || failed) return null;
+  const logoName = make.trim().toLowerCase().replace(/\s+/g, '-');
+  return (
+    <img
+      src={`/brands/${logoName}.svg`}
+      alt={make}
+      className="w-8 h-8 object-contain opacity-80"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 export default function VehicleCard({ vehicle, index = 0, segment, compact = false }) {
   const imgSrc    = getVehicleImage(vehicle);
   const imgPos    = getVehicleImagePosition(vehicle);
@@ -124,9 +138,12 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
 
             {/* Label + Title + Subtitle */}
             <div className="mb-4">
-              <p className="text-[12px] font-bold text-[#777682] uppercase tracking-[1.2px] leading-none mb-[5px]">
-                {segmentLabel}
-              </p>
+              <div className="flex items-center justify-between gap-2 mb-[5px]">
+                <p className="text-[12px] font-bold text-[#777682] uppercase tracking-[1.2px] leading-none">
+                  {segmentLabel}
+                </p>
+                <BrandLogo make={vehicle.make} />
+              </div>
               <h3 className="text-[20px] font-bold text-navy-dark leading-7">
                 {vehicle.make} {vehicle.model}
               </h3>

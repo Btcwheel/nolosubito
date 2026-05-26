@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { scaricaPreventivoPDF } from "@/lib/preventivoPdf";
 import { preventiviService } from "@/services/preventivi";
+import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,16 +49,43 @@ const STATUS_CFG = {
   Rifiutato: { label: "Rifiutato",cls: "bg-destructive/10 text-destructive border-destructive/20" },
 };
 
+// Codici servizi richiedibili on-demand
+const SERVIZI_RICHIEDIBILI = ['AUTO_SOSTITUTIVA', 'CAMBIO_PNEUMATICI'];
+
+const NOLOSUBITO_MAP = {
+  'RCA': 'RC Auto',
+  'DANNI': 'Copertura Danni',
+  'FURTO_INCENDIO': 'Furto e Incendio',
+  'CRISTALLI': 'Cristalli',
+  'INFORTUNI': 'Infortuni Conducente',
+  'TUTELA_LEGALE': 'Tutela Legale',
+  'ATMOSFERICI': 'Eventi Atmosferici',
+  'MANUTENZIONE': 'Manutenzione',
+  'CAMBIO_PNEUMATICI': 'Cambio Pneumatici',
+  'SOCCORSO': 'Soccorso Stradale',
+  'AUTO_SOSTITUTIVA': 'Auto Sostitutiva',
+  'CONSEGNA': 'Consegna Veicolo',
+  'BOLLO': 'Tassa di Proprietà',
+  'MULTE': 'Gestione Multe',
+  'SINISTRI': 'Gestione Sinistri',
+  'FATTURAZIONE': 'Fatturazione Elettronica',
+  'IMMATRICOLAZIONE': 'Immatricolazione',
+  'TELEMATICA': 'Telematica',
+  'SERVIZIO_CLIENTI': 'Servizio Clienti',
+};
+
 const BLANK_FORM = {
   veicolo_marca: "", veicolo_modello: "", alimentazione: "",
   veicolo_versione: "", colore_esterno: "", interni: "",
   cambio: "", carrozzeria: "", potenza: "",
   durata_mesi: "", km_annui: "",
   anticipo: "", canone_mensile: "", canone_finale: "",
+  quota_veicolo: "", quota_servizi: "",
   deposito_cauzionale: "", valore_listing: "", valore_optional: "", valore_accessori: "",
   note_cliente: "", note_operative: "",
   carrier: "",
   servizi: [],
+  servizi_richiesti: [],
 };
 
 function isPresent(value) {
@@ -73,7 +101,7 @@ function toFormNumber(value) {
 async function renderPdfPagesAndText(pdf) {
   const pages = [];
   const textParts = [];
-  const maxPages = Math.min(pdf.numPages, 3);
+  const maxPages = Math.min(pdf.numPages, 5);
 
   for (let i = 1; i <= maxPages; i++) {
     const page = await pdf.getPage(i);
@@ -115,7 +143,7 @@ function FieldGroup({ label, required, children }) {
   );
 }
 
-function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoading }) {
+function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoading, isStaff = true }) {
   const [downloading, setDownloading] = React.useState(false);
   const [preview, setPreview] = React.useState(false);
 
@@ -188,8 +216,8 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
         </p>
       )}
 
-      {/* Carrier */}
-      {prev.carrier && (
+      {/* Carrier — visibile solo a staff (admin/backoffice/agente) */}
+      {isStaff && prev.carrier && (
         <span className="inline-flex items-center text-xs font-semibold text-muted-foreground bg-muted/40 border border-border/40 rounded-full px-2.5 py-0.5">
           {prev.carrier}
         </span>
@@ -330,6 +358,20 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
     setExtracting(true);
     if (!showForm) setShowForm(true);
 
+    function calcRichiedibili(estrattiServizi) {
+      const codiciInclusi = new Set(
+        (estrattiServizi || []).map((s) => {
+          const obj = (typeof s === 'string' && s.startsWith('{'))
+            ? (() => { try { return JSON.parse(s); } catch(e) { return null; } })()
+            : s;
+          return obj && typeof obj === 'object' && !Array.isArray(obj) ? obj.codice : null;
+        }).filter(Boolean),
+      );
+      return SERVIZI_RICHIEDIBILI
+        .filter((cod) => !codiciInclusi.has(cod))
+        .map((codice) => ({ codice, richiesto: false, prezzo: null }));
+    }
+
     try {
       if (file.type === 'application/pdf') {
         // Polyfill per browser che non supportano Promise.withResolvers (ES2024)
@@ -367,29 +409,44 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
           ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
           : '';
 
-        const applyExtraction = (prev) => ({
-          ...prev,
-          veicolo_marca:        extracted.veicolo_marca || prev.veicolo_marca,
-          veicolo_modello:      extracted.veicolo_modello || prev.veicolo_modello,
-          veicolo_versione:     extracted.veicolo_versione || extracted.veicolo_allestimento || prev.veicolo_versione,
-          alimentazione:        extracted.alimentazione || prev.alimentazione,
-          colore_esterno:       extracted.colore_esterno || prev.colore_esterno,
-          interni:              extracted.interni || prev.interni,
-          cambio:               extracted.cambio || prev.cambio,
-          carrozzeria:          extracted.carrozzeria || prev.carrozzeria,
-          potenza:              isPresent(extracted.potenza) ? toFormNumber(extracted.potenza) : prev.potenza,
-          durata_mesi:          durataValue ? String(durataValue) : prev.durata_mesi,
-          km_annui:             kmValue ? String(kmValue) : prev.km_annui,
-          anticipo:             isPresent(extracted.anticipo) ? toFormNumber(extracted.anticipo) : prev.anticipo,
-          deposito_cauzionale:  isPresent(extracted.deposito_cauzionale) ? toFormNumber(extracted.deposito_cauzionale) : prev.deposito_cauzionale,
-          canone_mensile:       isPresent(extracted.canone_mensile) ? toFormNumber(extracted.canone_mensile) : prev.canone_mensile,
-          valore_listing:       isPresent(extracted.valore_listing) ? toFormNumber(extracted.valore_listing) : prev.valore_listing,
-          valore_optional:      isPresent(extracted.valore_optional) ? toFormNumber(extracted.valore_optional) : prev.valore_optional,
-          valore_accessori:     isPresent(extracted.valore_accessori) ? toFormNumber(extracted.valore_accessori) : prev.valore_accessori,
-          carrier:              extracted.carrier || prev.carrier,
-          servizi:              extracted.servizi?.length ? extracted.servizi : prev.servizi,
-          note_operative:       extracted.note_aggiuntive || prev.note_operative,
-        });
+        function calcRichiedibili(estrattiServizi) {
+          const codiciInclusi = new Set(
+            (estrattiServizi || []).map((s) => (s && typeof s === 'object' && !Array.isArray(s) ? s.codice : null)).filter(Boolean),
+          );
+          return SERVIZI_RICHIEDIBILI
+            .filter((cod) => !codiciInclusi.has(cod))
+            .map((codice) => ({ codice, richiesto: false, prezzo: null }));
+        }
+
+        const applyExtraction = (prev) => {
+          const nuoviServizi = extracted.servizi?.length ? extracted.servizi : prev.servizi;
+          return {
+            ...prev,
+            veicolo_marca:        extracted.veicolo_marca || prev.veicolo_marca,
+            veicolo_modello:      extracted.veicolo_modello || prev.veicolo_modello,
+            veicolo_versione:     extracted.veicolo_versione || extracted.veicolo_allestimento || prev.veicolo_versione,
+            alimentazione:        extracted.alimentazione || prev.alimentazione,
+            colore_esterno:       extracted.colore_esterno || prev.colore_esterno,
+            interni:              extracted.interni || prev.interni,
+            cambio:               extracted.cambio || prev.cambio,
+            carrozzeria:          extracted.carrozzeria || prev.carrozzeria,
+            potenza:              isPresent(extracted.potenza) ? toFormNumber(extracted.potenza) : prev.potenza,
+            durata_mesi:          durataValue ? String(durataValue) : prev.durata_mesi,
+            km_annui:             kmValue ? String(kmValue) : prev.km_annui,
+            anticipo:             isPresent(extracted.anticipo) ? toFormNumber(extracted.anticipo) : prev.anticipo,
+            deposito_cauzionale:  isPresent(extracted.deposito_cauzionale) ? toFormNumber(extracted.deposito_cauzionale) : prev.deposito_cauzionale,
+            canone_mensile:       isPresent(extracted.canone_mensile) ? toFormNumber(extracted.canone_mensile) : prev.canone_mensile,
+            quota_veicolo:        isPresent(extracted.quota_veicolo) ? toFormNumber(extracted.quota_veicolo) : prev.quota_veicolo,
+            quota_servizi:        isPresent(extracted.quota_servizi) ? toFormNumber(extracted.quota_servizi) : prev.quota_servizi,
+            valore_listing:       isPresent(extracted.valore_listing) ? toFormNumber(extracted.valore_listing) : prev.valore_listing,
+            valore_optional:      isPresent(extracted.valore_optional) ? toFormNumber(extracted.valore_optional) : prev.valore_optional,
+            valore_accessori:     isPresent(extracted.valore_accessori) ? toFormNumber(extracted.valore_accessori) : prev.valore_accessori,
+            carrier:              extracted.carrier || prev.carrier,
+            servizi:              nuoviServizi,
+            servizi_richiesti:    calcRichiedibili(nuoviServizi),
+            note_operative:       extracted.note_aggiuntive || prev.note_operative,
+          };
+        };
 
         setForm(applyExtraction);
 
@@ -423,29 +480,35 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
           ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
           : '';
 
-        setForm((prev) => ({
-          ...prev,
-          veicolo_marca:        extracted.veicolo_marca || prev.veicolo_marca,
-          veicolo_modello:      extracted.veicolo_modello || prev.veicolo_modello,
-          veicolo_versione:     extracted.veicolo_versione || extracted.veicolo_allestimento || prev.veicolo_versione,
-          alimentazione:        extracted.alimentazione || prev.alimentazione,
-          colore_esterno:       extracted.colore_esterno || prev.colore_esterno,
-          interni:              extracted.interni || prev.interni,
-          cambio:               extracted.cambio || prev.cambio,
-          carrozzeria:          extracted.carrozzeria || prev.carrozzeria,
-          potenza:              isPresent(extracted.potenza) ? toFormNumber(extracted.potenza) : prev.potenza,
-          durata_mesi:          durataValue ? String(durataValue) : prev.durata_mesi,
-          km_annui:             kmValue ? String(kmValue) : prev.km_annui,
-          anticipo:             isPresent(extracted.anticipo) ? toFormNumber(extracted.anticipo) : prev.anticipo,
-          deposito_cauzionale:  isPresent(extracted.deposito_cauzionale) ? toFormNumber(extracted.deposito_cauzionale) : prev.deposito_cauzionale,
-          canone_mensile:       isPresent(extracted.canone_mensile) ? toFormNumber(extracted.canone_mensile) : prev.canone_mensile,
-          valore_listing:       isPresent(extracted.valore_listing) ? toFormNumber(extracted.valore_listing) : prev.valore_listing,
-          valore_optional:      isPresent(extracted.valore_optional) ? toFormNumber(extracted.valore_optional) : prev.valore_optional,
-          valore_accessori:     isPresent(extracted.valore_accessori) ? toFormNumber(extracted.valore_accessori) : prev.valore_accessori,
-          carrier:              extracted.carrier || prev.carrier,
-          servizi:              extracted.servizi?.length ? extracted.servizi : prev.servizi,
-          note_operative:       extracted.note_aggiuntive || prev.note_operative,
-        }));
+        setForm((prev) => {
+          const imgServizi = extracted.servizi?.length ? extracted.servizi : prev.servizi;
+          return {
+            ...prev,
+            veicolo_marca:        extracted.veicolo_marca || prev.veicolo_marca,
+            veicolo_modello:      extracted.veicolo_modello || prev.veicolo_modello,
+            veicolo_versione:     extracted.veicolo_versione || extracted.veicolo_allestimento || prev.veicolo_versione,
+            alimentazione:        extracted.alimentazione || prev.alimentazione,
+            colore_esterno:       extracted.colore_esterno || prev.colore_esterno,
+            interni:              extracted.interni || prev.interni,
+            cambio:               extracted.cambio || prev.cambio,
+            carrozzeria:          extracted.carrozzeria || prev.carrozzeria,
+            potenza:              isPresent(extracted.potenza) ? toFormNumber(extracted.potenza) : prev.potenza,
+            durata_mesi:          durataValue ? String(durataValue) : prev.durata_mesi,
+            km_annui:             kmValue ? String(kmValue) : prev.km_annui,
+            anticipo:             isPresent(extracted.anticipo) ? toFormNumber(extracted.anticipo) : prev.anticipo,
+            deposito_cauzionale:  isPresent(extracted.deposito_cauzionale) ? toFormNumber(extracted.deposito_cauzionale) : prev.deposito_cauzionale,
+            canone_mensile:       isPresent(extracted.canone_mensile) ? toFormNumber(extracted.canone_mensile) : prev.canone_mensile,
+            quota_veicolo:        isPresent(extracted.quota_veicolo) ? toFormNumber(extracted.quota_veicolo) : prev.quota_veicolo,
+            quota_servizi:        isPresent(extracted.quota_servizi) ? toFormNumber(extracted.quota_servizi) : prev.quota_servizi,
+            valore_listing:       isPresent(extracted.valore_listing) ? toFormNumber(extracted.valore_listing) : prev.valore_listing,
+            valore_optional:      isPresent(extracted.valore_optional) ? toFormNumber(extracted.valore_optional) : prev.valore_optional,
+            valore_accessori:     isPresent(extracted.valore_accessori) ? toFormNumber(extracted.valore_accessori) : prev.valore_accessori,
+            carrier:              extracted.carrier || prev.carrier,
+            servizi:              imgServizi,
+            servizi_richiesti:    calcRichiedibili(imgServizi),
+            note_operative:       extracted.note_aggiuntive || prev.note_operative,
+          };
+        });
 
         setBrokerFile(file);
         toast({ title: `Preventivo broker caricato — controlla e aggiusta i campi.` });
@@ -461,6 +524,18 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
     queryKey: ["preventivi", praticaId],
     queryFn: () => preventiviService.list(praticaId),
   });
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      const { data } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+      return data;
+    },
+    staleTime: 300000,
+  });
+  const isStaff = profile?.role && ['admin', 'backoffice', 'agente'].includes(profile.role);
 
   const invalidate = () => {
     qc.invalidateQueries(["preventivi", praticaId]);
@@ -487,6 +562,8 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
       deposito_cauzionale: form.deposito_cauzionale !== "" ? parseFloat(form.deposito_cauzionale) : null,
       canone_mensile: parseFloat(form.canone_mensile),
       canone_finale:  form.canone_finale ? parseFloat(form.canone_finale) : null,
+      quota_veicolo:  form.quota_veicolo !== "" ? parseFloat(form.quota_veicolo) : null,
+      quota_servizi:  form.quota_servizi !== "" ? parseFloat(form.quota_servizi) : null,
       valore_listing: form.valore_listing !== "" ? parseFloat(form.valore_listing) : null,
       valore_optional: form.valore_optional !== "" ? parseFloat(form.valore_optional) : null,
       valore_accessori: form.valore_accessori !== "" ? parseFloat(form.valore_accessori) : null,
@@ -494,6 +571,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
       note_operative: form.note_operative.trim() || null,
       carrier:        form.carrier.trim() || null,
       servizi:        form.servizi,
+      servizi_richiesti: form.servizi_richiesti?.length ? form.servizi_richiesti : [],
     }),
     onSuccess: async (created) => {
       // Se c'era un PDF broker, caricalo su Storage rinominato con il codice
@@ -751,6 +829,26 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
                   />
                 </FieldGroup>
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                <FieldGroup label="Quota Veicolo (€)">
+                  <Input
+                    type="number" min="0" step="0.01"
+                    value={form.quota_veicolo}
+                    onChange={(e) => set("quota_veicolo", e.target.value)}
+                    placeholder="Dal preventivo broker"
+                    className="h-10"
+                  />
+                </FieldGroup>
+                <FieldGroup label="Quota Servizi (€)">
+                  <Input
+                    type="number" min="0" step="0.01"
+                    value={form.quota_servizi}
+                    onChange={(e) => set("quota_servizi", e.target.value)}
+                    placeholder="Dal preventivo broker"
+                    className="h-10"
+                  />
+                </FieldGroup>
+              </div>
               <div className="grid grid-cols-3 gap-2">
                 <FieldGroup label="Valore listino (€)">
                   <Input
@@ -797,8 +895,20 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                 {form.servizi.map((s, idx) => {
-                  const [canonical, original] = Array.isArray(s) ? s : [s, null];
-                  const display = original ? `${canonical} (${original})` : canonical;
+                  const obj = (typeof s === 'string' && s.startsWith('{'))
+                    ? (() => { try { return JSON.parse(s); } catch(e) { return s; } })()
+                    : s;
+                  const display = (() => {
+                    if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+                      const nome = NOLOSUBITO_MAP[obj.codice] || obj.codice || obj.originale || '';
+                      const penale = obj.penale != null ? ` — penale €${obj.penale}` : '';
+                      return `${nome}${penale}`;
+                    }
+                    // Vecchio formato [canonical, original]
+                    const [canonical, original] = Array.isArray(obj) ? obj : [obj, null];
+                    const nome = NOLOSUBITO_MAP[canonical] || canonical;
+                    return original ? `${nome} (${original})` : nome;
+                  })();
                   return (
                     <label key={idx} className="flex items-center gap-2 text-xs cursor-pointer select-none bg-muted/20 rounded-lg px-2.5 py-2 hover:bg-muted/40 transition-colors">
                       <input
@@ -811,6 +921,52 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
                     </label>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Servizi richiedibili */}
+          {form.servizi.length > 0 && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                Servizi aggiuntivi richiedibili dal cliente
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {(() => {
+                  const codiciInclusi = new Set(
+                    form.servizi.map((s) => {
+                      const obj = (typeof s === 'string' && s.startsWith('{'))
+                        ? (() => { try { return JSON.parse(s); } catch(e) { return null; } })()
+                        : s;
+                      return obj && typeof obj === 'object' && !Array.isArray(obj) ? obj.codice : null;
+                    }).filter(Boolean),
+                  );
+                  const serviziMancanti = SERVIZI_RICHIEDIBILI.filter((cod) => !codiciInclusi.has(cod));
+                  if (serviziMancanti.length === 0) return <p className="text-xs text-muted-foreground italic col-span-full">Tutti i servizi richiedibili sono già inclusi</p>;
+                  return serviziMancanti.map((codice) => {
+                    const giaRichiesto = form.servizi_richiesti?.find((sr) => sr.codice === codice);
+                    const nome = NOLOSUBITO_MAP[codice] || codice.replace('_', ' ').toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase());
+                    return (
+                      <label key={codice} className="flex items-center gap-2 text-xs cursor-pointer select-none bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-2 hover:bg-amber-100 transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={giaRichiesto?.richiesto || false}
+                          onChange={() => {
+                            if (giaRichiesto) {
+                              set("servizi_richiesti", form.servizi_richiesti.map((sr) =>
+                                sr.codice === codice ? { ...sr, richiesto: !sr.richiesto } : sr,
+                              ));
+                            } else {
+                              set("servizi_richiesti", [...(form.servizi_richiesti || []), { codice, richiesto: true, prezzo: null }]);
+                            }
+                          }}
+                          className="w-3.5 h-3.5 accent-amber-600"
+                        />
+                        <span className="text-foreground">{nome}</span>
+                      </label>
+                    );
+                  });
+                })()}
               </div>
             </div>
           )}
@@ -878,6 +1034,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
               onReinvia={(id) => reinviaMut.mutate(id)}
               onDelete={(id) => deleteMut.mutate(id)}
               isLoading={isMutating}
+              isStaff={isStaff}
             />
           ))}
         </div>

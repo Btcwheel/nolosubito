@@ -15,6 +15,7 @@ values (
 on conflict (id) do nothing;
 
 -- Solo utenti autenticati con ruolo interno possono caricare
+drop policy if exists "preventivi-broker upload" on storage.objects;
 create policy "preventivi-broker upload"
   on storage.objects for insert
   with check (
@@ -23,6 +24,7 @@ create policy "preventivi-broker upload"
   );
 
 -- Solo utenti autenticati con ruolo interno possono leggere
+drop policy if exists "preventivi-broker read" on storage.objects;
 create policy "preventivi-broker read"
   on storage.objects for select
   using (
@@ -31,6 +33,7 @@ create policy "preventivi-broker read"
   );
 
 -- Solo admin e backoffice possono eliminare
+drop policy if exists "preventivi-broker delete" on storage.objects;
 create policy "preventivi-broker delete"
   on storage.objects for delete
   using (

@@ -265,8 +265,6 @@ function GalleryImagesInput({ images, onChange, make, model }) {
 
 // ── Editor configurazioni prezzi ──────────────────────────────────────────────
 
-const VAT = 0.22;
-
 function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOptions = KM_OPTIONS, advanceBrackets = ADVANCE_BRACKETS_DEFAULT }) {
   const addRow = () => {
     onChange([...rows, { ...EMPTY_PRICE_ROW, _key: nextKey(), segment: defaultSegment }]);
@@ -296,17 +294,14 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
 
   const duplicateRow = (row) => {
     let newSegment = row.segment;
-    let newRent = Number(row.monthly_rent) || 0;
 
     if (row.segment === "P.IVA") {
       newSegment = "Privati";
-      newRent = Math.round(newRent * (1 + VAT));
     } else if (row.segment === "Privati") {
       newSegment = "P.IVA";
-      newRent = Math.round(newRent / (1 + VAT));
     }
 
-    const newRow = { ...row, _key: nextKey(), id: null, segment: newSegment, monthly_rent: newRent, is_featured: false };
+    const newRow = { ...row, _key: nextKey(), id: null, segment: newSegment, monthly_rent: Number(row.monthly_rent) || 0, is_featured: false };
     const idx = rows.findIndex(r => r._key === row._key);
     const updated = [...rows];
     updated.splice(idx + 1, 0, newRow);
@@ -417,7 +412,7 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
               <button
                 type="button"
                 onClick={() => duplicateRow(row)}
-                title={row.segment === "P.IVA" ? "Duplica come Privati (+IVA 22%)" : row.segment === "Privati" ? "Duplica come P.IVA (-IVA 22%)" : "Duplica riga"}
+                title={row.segment === "P.IVA" ? "Duplica come Privati" : row.segment === "Privati" ? "Duplica come P.IVA" : "Duplica riga"}
                 className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-blue-50 text-muted-foreground hover:text-blue-600 transition-colors cursor-pointer"
               >
                 <Copy className="w-3.5 h-3.5" />

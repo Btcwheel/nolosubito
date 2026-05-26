@@ -10,11 +10,13 @@ values (
 on conflict (id) do nothing;
 
 -- Chiunque può leggere (pubblico)
+drop policy if exists "news-images public read" on storage.objects;
 create policy "news-images public read"
   on storage.objects for select
   using (bucket_id = 'news-images');
 
 -- Solo admin e cms possono caricare
+drop policy if exists "news-images cms upload" on storage.objects;
 create policy "news-images cms upload"
   on storage.objects for insert
   with check (
@@ -23,6 +25,7 @@ create policy "news-images cms upload"
   );
 
 -- Solo admin e cms possono eliminare
+drop policy if exists "news-images cms delete" on storage.objects;
 create policy "news-images cms delete"
   on storage.objects for delete
   using (

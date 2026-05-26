@@ -16,6 +16,12 @@ type AnalyzeBody = {
 
 type JsonRecord = Record<string, unknown>;
 
+type ServizioNormalizzato = {
+  codice: string | null;
+  penale: number | null;
+  originale: string | null;
+};
+
 type NormalizedPreventivo = {
   carrier: string | null;
   veicolo_marca: string | null;
@@ -33,10 +39,12 @@ type NormalizedPreventivo = {
   anticipo: number | null;
   deposito_cauzionale: number | null;
   canone_mensile: number | null;
+  quota_veicolo: number | null;
+  quota_servizi: number | null;
   valore_listing: number | null;
   valore_optional: number | null;
   valore_accessori: number | null;
-  servizi: Array<[string, string | null]>;
+  servizi: Array<ServizioNormalizzato>;
   note_aggiuntive: string | null;
 };
 
@@ -101,7 +109,8 @@ const SERVICE_GROUPS = [
     "telematica", "gps", "blackbox", "telematica basic",
     "gosth primario installazione",
     "sistemi di localizzazione gps gsm", "blackbox incluso",
-    "i care smart", "my leasys app",
+    "i care", "i care smart", "i care protection", "i care box", "i care connect",
+    "my leasys app",
   ]},
   { canonical: "Infortuni Conducente", aliases: [
     "infortuni conducente", "pai", "assicurazione infortuni conducente",
@@ -121,6 +130,27 @@ const SERVICE_GROUPS = [
   ]},
   { canonical: "Immatricolazione", aliases: ["immatricolazione"]},
 ];
+
+const SERVIZI_TO_CODE: Record<string, string> = {
+  "R.C.A. Responsabilità Civile": "RCA",
+  "Incendio e Furto": "FURTO_INCENDIO",
+  "Copertura Danni": "DANNI",
+  "Manutenzione Ordinaria e Straordinaria": "MANUTENZIONE",
+  "Soccorso Stradale": "SOCCORSO",
+  "Cristalli": "CRISTALLI",
+  "Gestione Multe": "MULTE",
+  "Gestione Sinistri": "SINISTRI",
+  "Pneumatici": "CAMBIO_PNEUMATICI",
+  "Tassa di Proprietà": "BOLLO",
+  "Auto Sostitutiva": "AUTO_SOSTITUTIVA",
+  "Telematica": "TELEMATICA",
+  "Infortuni Conducente": "INFORTUNI",
+  "Tutela Legale": "TUTELA_LEGALE",
+  "Consegna del Veicolo": "CONSEGNA",
+  "Fatturazione Elettronica": "FATTURAZIONE",
+  "Eventi Atmosferici": "ATMOSFERICI",
+  "Immatricolazione": "IMMATRICOLAZIONE",
+};
 
 const SERVICE_ALIAS_ENTRIES = SERVICE_GROUPS
   .flatMap(({ canonical, aliases }) => aliases.map((alias) => ({ canonical, key: normalizeKey(alias) })))
@@ -244,32 +274,63 @@ function normalizeCarrier(value: unknown): string | null {
   return text;
 }
 
-function canonicalizeService(value: unknown): { canonical: string; original: string } | null {
+const CARRIER_TERMS = /\b(i[- ]?care|my[- ]?leasys)\b/gi;
+
+function stripCarrierTerms(text: string | null): string | null {
+  if (!text) return null;
+  const stripped = text.replace(CARRIER_TERMS, '').replace(/\s{2,}/g, ' ').trim();
+  return stripped || null;
+}
+
+function extractPenale(texto: string | null): number | null {
+  if (!texto) return null;
+  const lower = texto.toLowerCase();
+  const match = lower.match(/penal[ei]\s*(?:risarcitoria\s+)?(\d{1,6}(?:[.,]\d{1,2})?)/);
+  if (match) {
+    const val = Number(match[1].replace(",", "."));
+    return Number.isFinite(val) ? val : null;
+  }
+  return null;
+}
+
+function canonicalizeService(value: unknown): { canonical: string; codice: string | null; penale: number | null; original: string | null } | null {
   const text = cleanText(value);
   if (!text) return null;
   const key = normalizeKey(text);
+  let canonical: string | null = null;
 
-  // Direct match on canonical label first
   for (const group of SERVICE_GROUPS) {
     if (normalizeKey(group.canonical) === key) {
-      return { canonical: group.canonical, original: text };
+      canonical = group.canonical;
+      break;
     }
   }
 
-  // Match on aliases
-  for (const entry of SERVICE_ALIAS_ENTRIES) {
-    if (key === entry.key || key.includes(entry.key)) {
-      return { canonical: entry.canonical, original: text };
+  if (!canonical) {
+    for (const entry of SERVICE_ALIAS_ENTRIES) {
+      if (key === entry.key || key.includes(entry.key)) {
+        canonical = entry.canonical;
+        break;
+      }
     }
   }
 
-  return { canonical: text, original: text };
+  if (!canonical) {
+    return { canonical: text, codice: null, penale: null, original: text };
+  }
+
+  const codice = SERVIZI_TO_CODE[canonical] ?? null;
+  const penale = extractPenale(text);
+  const originalText = normalizeKey(text) === normalizeKey(canonical) ? null : text;
+  const original = stripCarrierTerms(originalText);
+
+  return { canonical, codice, penale, original };
 }
 
-function normalizeServices(value: unknown): Array<[string, string | null]> {
+function normalizeServices(value: unknown): Array<ServizioNormalizzato> {
   if (!Array.isArray(value)) return [];
   const seen = new Set<string>();
-  const result: Array<[string, string | null]> = [];
+  const result: Array<ServizioNormalizzato> = [];
 
   for (const item of value) {
     const mapped = canonicalizeService(item);
@@ -277,8 +338,7 @@ function normalizeServices(value: unknown): Array<[string, string | null]> {
     const key = normalizeKey(mapped.canonical);
     if (seen.has(key)) continue;
     seen.add(key);
-    const original = normalizeKey(mapped.original) === normalizeKey(mapped.canonical) ? null : mapped.original;
-    result.push([mapped.canonical, original]);
+    result.push({ codice: mapped.codice, penale: mapped.penale, originale: mapped.original });
   }
 
   return result;
@@ -375,6 +435,8 @@ function normalizePreventivo(raw: JsonRecord): NormalizedPreventivo {
     anticipo: vehicle.anticipo,
     deposito_cauzionale: vehicle.deposito_cauzionale,
     canone_mensile: vehicle.canone_mensile,
+    quota_veicolo: toNumber(raw.quota_veicolo),
+    quota_servizi: toNumber(raw.quota_servizi),
     valore_listing: vehicle.valore_listing,
     valore_optional: vehicle.valore_optional,
     valore_accessori: vehicle.valore_accessori,
@@ -443,6 +505,8 @@ Campi richiesti:
   "anticipo": number|null,
   "deposito_cauzionale": number|null,
   "canone_mensile": number|null,
+  "quota_veicolo": number|null,
+  "quota_servizi": number|null,
   "valore_listing": number|null,
   "valore_optional": number|null,
   "valore_accessori": number|null,
@@ -452,6 +516,9 @@ Campi richiesti:
 
 Per il campo "servizi", restituisci un array di stringhe con i nomi ESATTI dei servizi come appaiono nel documento. Non normalizzare i nomi. Estrai TUTTI i servizi inclusi elencati nel preventivo.
 
+Per gli importi delle penali (franchigie) di ogni servizio, includile nel nome del servizio tra parentesi quando presenti (es. "RCA Penale 250").
+I campi "quota_veicolo" e "quota_servizi" rappresentano la suddivisione del canone mensile tra quota veicolo e quota servizi, così come riportata nel preventivo broker originale. Estrai SEMPRE i valori che trovi nel documento, senza calcolarli. Usa valori IVA inclusa quando presenti. Se il documento non ha la suddivisione, lascia null.
+Il campo "valore_listing" è il prezzo totale del veicolo (es. "Valore veicolo", "Prezzo veicolo", "Valore di listino", "Prezzo di listino"). Cercalo in tutte le pagine, spesso nella sezione "Scheda tecnica" o "Dati veicolo" o nella sezione economica.
 Linee guida pratiche:
 - DRIVALIA: il valore canone è normalmente IVA esclusa, quindi usa il totale quando indicato e convertilo a IVA inclusa solo se il documento lo richiede.
 - AYVENS/ALD, LEASYS, VW, SANTANDER: preferisci sempre i valori IVA inclusa quando esplicitati.
