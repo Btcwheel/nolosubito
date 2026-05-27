@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Search, Eye, ClipboardList, Car, TrendingUp,
   CheckCircle2, Clock, AlertCircle, Zap, Layers,
-  BarChart2, ArrowUpRight, ChevronRight, Circle, Trash2, Loader2, Users,
+  BarChart2, ArrowUpRight, ChevronRight, Circle, Trash2, Loader2, Users, Tag, X,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -43,6 +43,11 @@ export default function AdminDashboard() {
   const [searchAuto, setSearchAuto]         = useState("");
   const [selectedPraticheIds, setSelectedPraticheIds] = useState(new Set());
   const [confirmDeletePraticheMode, setConfirmDeletePraticheMode] = useState(null); // "all" | "selected"
+  const [promoEditId, setPromoEditId]       = useState(null);
+  const [promoDiscount, setPromoDiscount]   = useState("10");
+  const [promoExpires, setPromoExpires]     = useState("");
+  const [promoSegment, setPromoSegment]     = useState("entrambi"); // "piva" | "privati" | "entrambi"
+  const [promoServices, setPromoServices]   = useState("");
   const qc = useQueryClient();
   const { toast } = useToast();
   const { profile } = useAuth();
@@ -62,6 +67,53 @@ export default function AdminDashboard() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["offers-admin"] }),
     onError: () => toast({ title: "Errore", description: "Aggiornamento fallito.", variant: "destructive" }),
   });
+
+  const savePromo = useMutation({
+    mutationFn: ({ id, promo_expires_at, promo_discount_pct, promo_segment, promo_services }) =>
+      offersService.update(id, { promo_expires_at, promo_discount_pct, promo_segment, promo_services }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["offers-admin"] });
+      qc.invalidateQueries({ queryKey: ["offers-home-catalog"] });
+      setPromoEditId(null);
+      toast({ title: "Promo salvata", description: "L'offerta è ora visibile sul sito." });
+    },
+    onError: () => toast({ title: "Errore", description: "Salvataggio promo fallito.", variant: "destructive" }),
+  });
+
+  const removePromo = useMutation({
+    mutationFn: (id) => offersService.update(id, { promo_expires_at: null, promo_discount_pct: null, promo_segment: null, promo_services: null }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["offers-admin"] });
+      qc.invalidateQueries({ queryKey: ["offers-home-catalog"] });
+      toast({ title: "Promo rimossa" });
+    },
+    onError: () => toast({ title: "Errore", description: "Rimozione promo fallita.", variant: "destructive" }),
+  });
+
+  function openPromoEdit(o) {
+    setPromoEditId(o.id);
+    setPromoDiscount(o.promo_discount_pct ? String(o.promo_discount_pct) : "10");
+    setPromoServices(o.promo_services || "");
+    setPromoSegment(
+      o.promo_segment === "P.IVA"   ? "piva"    :
+      o.promo_segment === "Privati" ? "privati"  :
+      "entrambi"
+    );
+    // Se c'è già una scadenza la precompilo, altrimenti default +3gg
+    if (o.promo_expires_at && new Date(o.promo_expires_at) > new Date()) {
+      setPromoExpires(new Date(o.promo_expires_at).toISOString().slice(0, 16));
+    } else {
+      const d = new Date();
+      d.setDate(d.getDate() + 3);
+      setPromoExpires(d.toISOString().slice(0, 16));
+    }
+  }
+
+  function quickDays(n) {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    setPromoExpires(d.toISOString().slice(0, 16));
+  }
 
   const stats = useMemo(() => ({
     totale:       pratiche.length,
@@ -478,6 +530,137 @@ export default function AdminDashboard() {
                     >
                       {o.is_active ? "✓ Attivo — clicca per disattivare" : "Disattivato — clicca per attivare"}
                     </button>
+
+                    {/* ── Promo button / form ── */}
+                    {promoEditId === o.id ? (
+                      <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-xl space-y-3">
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-bold text-orange-700 flex items-center gap-1.5">
+                            <Tag className="w-3.5 h-3.5" /> Imposta Promozione
+                          </p>
+                          <button onClick={() => setPromoEditId(null)} className="text-orange-400 hover:text-orange-600 cursor-pointer">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Segmento */}
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide">Visibile a</label>
+                          <div className="flex gap-1.5">
+                            {[
+                              { value: "entrambi", label: "Entrambi" },
+                              { value: "piva",     label: "P.IVA" },
+                              { value: "privati",  label: "Privati" },
+                            ].map(opt => (
+                              <button
+                                key={opt.value}
+                                type="button"
+                                onClick={() => setPromoSegment(opt.value)}
+                                className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg border transition-all cursor-pointer ${
+                                  promoSegment === opt.value
+                                    ? "bg-orange-500 text-white border-orange-500"
+                                    : "bg-white text-orange-600 border-orange-200 hover:bg-orange-100"
+                                }`}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Sconto % */}
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide">Sconto %</label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="99"
+                            value={promoDiscount}
+                            onChange={e => setPromoDiscount(e.target.value)}
+                            className="h-8 text-sm rounded-lg"
+                          />
+                        </div>
+
+                        {/* Servizi aggiuntivi */}
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide">Servizi aggiuntivi</label>
+                          <textarea
+                            value={promoServices}
+                            onChange={e => setPromoServices(e.target.value)}
+                            placeholder="es. I primi 3 mesi sono gratis"
+                            rows={2}
+                            className="w-full text-sm px-3 py-2 rounded-lg border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-orange-300"
+                          />
+                        </div>
+
+                        {/* Scade il */}
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide">Scade il</label>
+                          <Input
+                            type="datetime-local"
+                            value={promoExpires}
+                            onChange={e => setPromoExpires(e.target.value)}
+                            className="h-8 text-sm rounded-lg"
+                          />
+                          <div className="flex gap-1.5 flex-wrap">
+                            {[1, 3, 7, 10, 15, 30].map(n => (
+                              <button
+                                key={n}
+                                type="button"
+                                onClick={() => quickDays(n)}
+                                className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 hover:bg-orange-200 cursor-pointer border border-orange-200"
+                              >
+                                +{n}g
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Azioni */}
+                        <div className="flex gap-2 pt-1">
+                          <Button
+                            size="sm"
+                            className="flex-1 h-8 text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold"
+                            disabled={!promoExpires || !promoDiscount || savePromo.isPending}
+                            onClick={() => savePromo.mutate({
+                              id: o.id,
+                              promo_expires_at:  new Date(promoExpires).toISOString(),
+                              promo_discount_pct: parseFloat(promoDiscount),
+                              promo_segment:  promoSegment === "piva" ? "P.IVA" : promoSegment === "privati" ? "Privati" : null,
+                              promo_services: promoServices.trim() || null,
+                            })}
+                          >
+                            {savePromo.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Salva Promo"}
+                          </Button>
+                          {(o.promo_expires_at || o.promo_discount_pct) && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 text-xs text-red-600 border-red-200 hover:bg-red-50"
+                              disabled={removePromo.isPending}
+                              onClick={() => removePromo.mutate(o.id)}
+                            >
+                              Rimuovi
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => openPromoEdit(o)}
+                        className={`mt-2 w-full py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
+                          o.promo_expires_at && new Date(o.promo_expires_at) > new Date()
+                            ? "bg-orange-50 text-orange-700 border-orange-200"
+                            : "bg-muted/50 text-muted-foreground border-border hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200"
+                        }`}
+                      >
+                        <Tag className="w-3 h-3" />
+                        {o.promo_expires_at && new Date(o.promo_expires_at) > new Date()
+                          ? `🔥 Promo attiva -${Math.round(o.promo_discount_pct)}%`
+                          : "Aggiungi Promo"}
+                      </button>
+                    )}
                   </motion.div>
                 ))}
               </div>

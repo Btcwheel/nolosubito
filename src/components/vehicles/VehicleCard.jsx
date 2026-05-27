@@ -2,11 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  ArrowRight, Settings2, Fuel, Zap, Gauge, Leaf, Flame, RefreshCw, Truck,
+  ArrowRight, Settings2, Fuel, Zap, Gauge, Leaf, Flame, RefreshCw, Truck, Tag,
 } from "lucide-react";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
 import { formatDisplayedRent, isVatIncludedForDisplay, resolvePricingSegment } from "@/lib/vehiclePricing";
+import { useCountdown } from "@/hooks/useCountdown";
 
 const FUEL_IT = {
   Electric: "Elettrica",
@@ -42,6 +43,33 @@ function BrandLogo({ make }) {
       className="w-8 h-8 object-contain opacity-80"
       onError={() => setFailed(true)}
     />
+  );
+}
+
+function PromoCountdownBadge({ expiresAt, discountPct, compact = false }) {
+  const cd = useCountdown(expiresAt);
+  if (!cd || cd.expired) return null;
+  const label = cd.days > 0 ? `${cd.days}g ${cd.hours}h` : `${cd.hours}h ${cd.minutes}m`;
+
+  if (compact) {
+    return (
+      <span className="text-[11px] font-semibold text-red-500 tabular-nums">
+        Scade in {label}
+      </span>
+    );
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-red-500 text-white rounded-[8px] px-2.5 py-[5px] shadow-lg shadow-red-500/30"
+    >
+      <Tag className="w-3 h-3 shrink-0" />
+      <span className="text-[10px] font-bold uppercase tracking-wide leading-none">
+        -{Math.round(discountPct)}% · {label}
+      </span>
+    </motion.div>
   );
 }
 
@@ -94,6 +122,23 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
 
   const imgH = compact ? "h-[170px]" : "h-[200px]";
 
+  // Promo
+  const isInPromo = !!(
+    vehicle.promo_expires_at &&
+    vehicle.promo_discount_pct &&
+    new Date(vehicle.promo_expires_at) > new Date()
+  );
+  const promoRent = isInPromo && vehicle.monthly_rent
+    ? Math.round(vehicle.monthly_rent * (1 - Number(vehicle.promo_discount_pct) / 100))
+    : null;
+  const promoDisplay = promoRent
+    ? formatDisplayedRent(promoRent, {
+        segment: effectiveSegment,
+        vehicleCategory: vehicle.category,
+        vehicleSegments: vehicle.segments || [],
+      })
+    : null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -106,7 +151,9 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
         state={{ segment }}
         className="group block h-full"
       >
-        <div className="h-full flex flex-col bg-white border border-frame rounded-2xl shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_8px_32px_0px_rgba(45,46,130,0.12)]">
+        <div className={`h-full flex flex-col bg-white border rounded-2xl shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)] overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0px_8px_32px_0px_rgba(45,46,130,0.12)] ${
+          isInPromo ? "border-red-300 ring-1 ring-red-300/50" : "border-frame"
+        }`}>
 
           {/* ── Image ── */}
           <div className={`relative bg-[#f8fafc] overflow-hidden ${imgH}`}>
@@ -123,6 +170,13 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
               onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0"; }}
             />
 
+            {vehicle.promo_expires_at && vehicle.promo_discount_pct && (
+              <PromoCountdownBadge
+                expiresAt={vehicle.promo_expires_at}
+                discountPct={vehicle.promo_discount_pct}
+              />
+            )}
+
             {badge && (
               <div className={`absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm border ${badge.border} rounded-[8px] px-3 py-[5px] max-w-[calc(100%-24px)]`}>
                 <badge.icon className={`w-3 h-3 shrink-0 ${badge.color}`} />
@@ -134,7 +188,7 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
           </div>
 
           {/* ── Body ── */}
-          <div className="flex-1 flex flex-col justify-between p-6">
+          <div className={`flex-1 flex flex-col justify-between p-6 ${isInPromo ? "pb-0" : ""}`}>
 
             {/* Label + Title + Subtitle */}
             <div className="mb-4">
@@ -164,17 +218,25 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
             )}
 
             {/* Price + CTA */}
-            <div className="flex items-end justify-between gap-3">
+            <div className={`flex items-end justify-between gap-3 ${isInPromo ? "mb-4" : ""}`}>
               <div className="min-w-0">
                 <p className="text-[12px] font-medium text-[#777682] leading-none mb-1">Da soli</p>
                 <div className="flex items-baseline gap-0.5 flex-wrap">
-                  <span className="text-[28px] sm:text-[32px] font-bold text-navy-dark leading-none">
+                  <span className={`font-bold leading-none ${isInPromo ? "text-[22px] sm:text-[24px] text-[#999] line-through" : "text-[28px] sm:text-[32px] text-navy-dark"}`}>
                     {displayPrice ? `${displayPrice.toLocaleString("it-IT")}€` : "Su richiesta"}
                   </span>
-                  {displayPrice && (
+                  {displayPrice && !isInPromo && (
                     <span className="text-[14px] font-medium text-[#464651]">/mese</span>
                   )}
                 </div>
+                {isInPromo && promoDisplay && (
+                  <div className="flex items-baseline gap-1 mt-0.5">
+                    <span className="text-[28px] sm:text-[32px] font-bold text-red-600 leading-none">
+                      {promoDisplay.toLocaleString("it-IT")}€
+                    </span>
+                    <span className="text-[14px] font-medium text-red-400">/mese</span>
+                  </div>
+                )}
                 <p className="text-[10px] italic text-[#777682] mt-1">
                   {isVatIncludedForDisplay({
                     segment: effectiveSegment,
@@ -188,6 +250,28 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
                 <ArrowRight className="w-4 h-4 text-white" />
               </div>
             </div>
+
+            {/* Strip promo in fondo alla card */}
+            {isInPromo && (
+              <div className="-mx-6 bg-red-50 border-t border-red-100">
+                <div className="flex items-center justify-between gap-2 px-6 py-2">
+                  <span className="flex items-center gap-1.5 text-[11px] font-bold text-red-600 uppercase tracking-wide">
+                    <Tag className="w-3 h-3 shrink-0" />
+                    -{Math.round(vehicle.promo_discount_pct)}% Offerta
+                  </span>
+                  <PromoCountdownBadge
+                    expiresAt={vehicle.promo_expires_at}
+                    discountPct={vehicle.promo_discount_pct}
+                    compact
+                  />
+                </div>
+                {vehicle.promo_services && (
+                  <p className="px-6 pb-2.5 text-[11px] text-emerald-700 font-medium flex items-center gap-1.5 border-t border-red-100/60">
+                    🎁 {vehicle.promo_services}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </Link>

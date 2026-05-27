@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import {
   ChevronLeft, ChevronRight, Fuel, Gauge, Zap, Leaf, ShieldCheck,
   Wrench, FileText, Lock, TrendingDown, CheckCircle2, ArrowDown, Car,
-  Settings2, Calendar,
+  Settings2, Calendar, Tag,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +18,7 @@ import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks
 import { getVehicleDetailSrcSet, getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
 import { splitVehicleDescription } from "@/lib/vehicleText";
 import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing";
+import { useCountdown } from "@/hooks/useCountdown";
 
 const MOCK_GALLERY_EXTRAS = [
   { src: "https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?w=1200&q=85", label: "3/4 anteriore" },
@@ -39,6 +40,105 @@ const INCLUDED = [
   { icon: FileText,    label: "Gestione bollo e tasse" },
   { icon: Lock,        label: "Furto e Incendio" },
 ];
+
+function PromoBadge({ discountPct }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 }}
+      className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-red-500/90 backdrop-blur-sm text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg shadow-red-500/40 whitespace-nowrap"
+    >
+      <Tag className="w-3.5 h-3.5 shrink-0" />
+      Offerta -{Math.round(discountPct)}% · Tempo limitato
+    </motion.div>
+  );
+}
+
+function PromoDigit({ value, label }) {
+  const padded = String(value).padStart(2, "0");
+  return (
+    <div className="flex flex-col items-center">
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span
+          key={padded}
+          initial={{ y: -16, opacity: 0 }}
+          animate={{ y: 0,   opacity: 1 }}
+          exit={{   y:  16,  opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="font-bold text-navy-dark tabular-nums leading-none"
+          style={{ fontSize: "1.4rem" }}
+        >
+          {padded}
+        </motion.span>
+      </AnimatePresence>
+      <span className="text-[9px] font-semibold uppercase tracking-widest text-gray-400 mt-0.5">{label}</span>
+    </div>
+  );
+}
+
+function PromoBox({ expiresAt, discountPct, baseRent, segment, vehicleCategory, vehicleSegments, promoServices }) {
+  const cd = useCountdown(expiresAt);
+  if (!cd || cd.expired) return null;
+
+  const promoRent = baseRent ? Math.round(Number(baseRent) * (1 - Number(discountPct) / 100)) : null;
+  const originalDisplay = baseRent
+    ? formatDisplayedRent(Number(baseRent), { segment, vehicleCategory, vehicleSegments })
+    : null;
+  const promoDisplay = promoRent
+    ? formatDisplayedRent(promoRent, { segment, vehicleCategory, vehicleSegments })
+    : null;
+
+  const urgencyBg =
+    cd.days >= 3 ? "from-emerald-50 to-emerald-50/50 border-emerald-200" :
+    cd.days >= 1 ? "from-amber-50 to-amber-50/50 border-amber-200"       :
+    "from-red-50 to-red-50/50 border-red-200";
+
+  const urgencyText = cd.days >= 3 ? "text-emerald-700" : cd.days >= 1 ? "text-amber-700" : "text-red-600";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className={`rounded-2xl border bg-gradient-to-br ${urgencyBg} p-4 space-y-3`}
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-base">🔥</span>
+        <p className="text-xs font-bold uppercase tracking-widest text-gray-600">Offerta Speciale</p>
+      </div>
+
+      <div className="flex items-center justify-center gap-3 py-2">
+        <PromoDigit value={cd.days}    label="giorni"  />
+        <span className="text-gray-300 text-xl font-thin mb-3">:</span>
+        <PromoDigit value={cd.hours}   label="ore"     />
+        <span className="text-gray-300 text-xl font-thin mb-3">:</span>
+        <PromoDigit value={cd.minutes} label="minuti"  />
+        <span className="text-gray-300 text-xl font-thin mb-3">:</span>
+        <PromoDigit value={cd.seconds} label="secondi" />
+      </div>
+
+      {promoDisplay && originalDisplay && (
+        <div className="text-center space-y-0.5">
+          <p className="text-xs text-gray-400 line-through tabular-nums">
+            {originalDisplay.toLocaleString("it-IT")}€/mese
+          </p>
+          <p className={`text-xl font-black tabular-nums ${urgencyText}`}>
+            {promoDisplay.toLocaleString("it-IT")}€<span className="text-sm font-semibold">/mese</span>
+          </p>
+          <p className="text-[10px] text-gray-400">
+            Sconto -{Math.round(discountPct)}% · applicato automaticamente
+          </p>
+          {promoServices && (
+            <p className="mt-1 text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+              🎁 {promoServices}
+            </p>
+          )}
+        </div>
+      )}
+    </motion.div>
+  );
+}
 
 export default function VehicleDetail() {
   const { make, model } = useParams();
@@ -378,6 +478,11 @@ export default function VehicleDetail() {
                   )}
                 </div>
 
+                {/* Ribbon promo diagonale */}
+                {bestOffer.promo_expires_at && bestOffer.promo_discount_pct && (
+                  <PromoBadge discountPct={bestOffer.promo_discount_pct} />
+                )}
+
                 {/* Gallery nav arrows */}
                 {galleryImages.length > 1 && (
                   <>
@@ -524,8 +629,19 @@ export default function VehicleDetail() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
-              className="lg:sticky lg:top-24 self-start"
+              className="lg:sticky lg:top-24 self-start space-y-4"
             >
+              {bestOffer.promo_expires_at && bestOffer.promo_discount_pct && (
+                <PromoBox
+                  expiresAt={bestOffer.promo_expires_at}
+                  discountPct={bestOffer.promo_discount_pct}
+                  baseRent={bestOffer.monthly_rent}
+                  segment={currentSegment}
+                  vehicleCategory={bestOffer.category}
+                  vehicleSegments={bestOffer.segments || []}
+                  promoServices={bestOffer.promo_services}
+                />
+              )}
               <QuoteBox
                 fixedMake={decodedMake}
                 fixedModel={decodedModel}

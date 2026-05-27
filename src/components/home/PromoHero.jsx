@@ -1,0 +1,293 @@
+import React, { useRef, useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { ArrowRight, Tag, X } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { offersService } from "@/services/offers";
+import { useCountdown } from "@/hooks/useCountdown";
+import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
+import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing";
+
+function DigitBlock({ value, label }) {
+  const padded = String(value).padStart(2, "0");
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div className="relative overflow-hidden">
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.div
+            key={padded}
+            initial={{ y: -28, opacity: 0 }}
+            animate={{ y: 0,   opacity: 1 }}
+            exit={{   y:  28,  opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            className="tabular-nums font-bold text-white leading-none"
+            style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
+          >
+            {padded}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+      <span className="text-[10px] font-semibold uppercase tracking-widest text-white/50">{label}</span>
+    </div>
+  );
+}
+
+function CountdownTimer({ expiresAt }) {
+  const cd = useCountdown(expiresAt);
+  if (!cd || cd.expired) return null;
+  const urgencyColor =
+    cd.days >= 3 ? "shadow-emerald-500/30" :
+    cd.days >= 1 ? "shadow-amber-500/30"   :
+    "shadow-red-500/30 animate-pulse";
+  return (
+    <div className={`inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/20 shadow-xl ${urgencyColor}`}>
+      <DigitBlock value={cd.days}    label="giorni"  />
+      <span className="text-white/40 text-2xl font-thin mb-4">:</span>
+      <DigitBlock value={cd.hours}   label="ore"     />
+      <span className="text-white/40 text-2xl font-thin mb-4">:</span>
+      <DigitBlock value={cd.minutes} label="minuti"  />
+      <span className="text-white/40 text-2xl font-thin mb-4">:</span>
+      <DigitBlock value={cd.seconds} label="secondi" />
+    </div>
+  );
+}
+
+function PromoSlide({ promo, imgY }) {
+  const imgSrc = getVehicleImage(promo);
+  const imgPos = getVehicleImagePosition(promo);
+  const effectiveSegment = resolvePricingSegment({
+    segment: null,
+    vehicleCategory: promo.category,
+    vehicleSegments: promo.segments || [],
+  });
+  const originalRent  = promo.monthly_rent;
+  const discountPct   = Number(promo.promo_discount_pct);
+  const promoRent     = originalRent ? Math.round(originalRent * (1 - discountPct / 100)) : null;
+  const originalDisplay = originalRent
+    ? formatDisplayedRent(originalRent, { segment: effectiveSegment, vehicleCategory: promo.category, vehicleSegments: promo.segments || [] })
+    : null;
+  const promoDisplay = promoRent
+    ? formatDisplayedRent(promoRent, { segment: effectiveSegment, vehicleCategory: promo.category, vehicleSegments: promo.segments || [] })
+    : null;
+
+  return (
+    <motion.div
+      key={promo.id}
+      initial={{ opacity: 0, x: 30 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{   opacity: 0, x: -30 }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+      className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center"
+    >
+      {/* ── Left: contenuto ── */}
+      <div className="space-y-6 z-10">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
+          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">
+            Offerta Esclusiva · Tempo Limitato
+          </span>
+        </div>
+
+        <div>
+          <p className="text-sm font-semibold text-[#71BAED] uppercase tracking-widest mb-1">{promo.make}</p>
+          <h2 className="font-bold text-white leading-none tracking-tight" style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}>
+            {promo.model}
+          </h2>
+          {promo.version && (
+            <p className="mt-2 text-sm text-white/40 font-medium tracking-wide">{promo.version}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-white/40 uppercase tracking-widest">Scade tra</p>
+          <CountdownTimer expiresAt={promo.promo_expires_at} />
+        </div>
+
+        {promoDisplay && (
+          <div className="space-y-1">
+            {originalDisplay && originalDisplay !== promoDisplay && (
+              <div className="flex items-center gap-2">
+                <span className="text-white/30 line-through text-lg tabular-nums">
+                  {originalDisplay.toLocaleString("it-IT")}€/mese
+                </span>
+                <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1">
+                  <Tag className="w-2.5 h-2.5" />
+                  -{discountPct}%
+                </span>
+              </div>
+            )}
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-bold text-white tabular-nums" style={{ fontSize: "clamp(2.5rem, 5vw, 3.8rem)", lineHeight: 1 }}>
+                {promoDisplay.toLocaleString("it-IT")}€
+              </span>
+              <span className="text-white/50 text-lg font-medium">/mese</span>
+            </div>
+            <p className="text-[11px] text-white/30">
+              IVA{effectiveSegment === "Privati" ? " inclusa" : " esclusa"} · Anticipo 0€
+            </p>
+          </div>
+        )}
+
+        {promo.promo_services && (
+          <p className="text-sm text-emerald-300 font-medium flex items-center gap-1.5">
+            🎁 {promo.promo_services}
+          </p>
+        )}
+
+        <div className="flex flex-wrap items-center gap-3 pt-2">
+          <motion.div
+            initial={{ scale: 0, rotate: -15 }}
+            animate={{ scale: 1, rotate: -3 }}
+            transition={{ delay: 0.3, type: "spring", stiffness: 260, damping: 18 }}
+            className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-sm font-bold px-4 py-2 rounded-xl shadow-lg shadow-orange-500/30"
+          >
+            Risparmia {originalDisplay && promoDisplay
+              ? `${Math.round(originalDisplay - promoDisplay).toLocaleString("it-IT")}€/mese`
+              : `${discountPct}%`}
+          </motion.div>
+
+          <Link
+            to={`/vehicle/${encodeURIComponent(promo.make)}/${encodeURIComponent(promo.model)}`}
+            className="group inline-flex items-center gap-2 bg-[#71BAED] hover:bg-[#5aa8df] text-white font-bold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/20"
+          >
+            Scopri l'offerta
+            <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+          </Link>
+        </div>
+      </div>
+
+      {/* ── Right: immagine ── */}
+      <div className="relative h-[280px] sm:h-[340px] lg:h-[420px] overflow-hidden rounded-2xl">
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f23] via-transparent to-transparent z-10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f23] via-transparent to-transparent z-10 pointer-events-none lg:hidden" />
+        <motion.img
+          src={imgSrc}
+          alt={`${promo.make} ${promo.model}`}
+          style={{ y: imgY, objectPosition: imgPos }}
+          className="w-full h-full object-cover scale-110"
+          onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }}
+        />
+        <motion.div
+          initial={{ scale: 0, rotate: 12 }}
+          animate={{ scale: 1, rotate: 12 }}
+          transition={{ delay: 0.5, type: "spring", stiffness: 240, damping: 16 }}
+          className="absolute top-4 right-4 z-20 w-16 h-16 rounded-full bg-red-500 text-white flex flex-col items-center justify-center shadow-xl shadow-red-500/40"
+        >
+          <span className="text-[10px] font-bold uppercase leading-none">PROMO</span>
+          <span className="text-xl font-black leading-none">-{Math.round(discountPct)}%</span>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}
+
+export default function PromoHero() {
+  const containerRef = useRef(null);
+
+  const [dismissed, setDismissed] = useState(
+    () => sessionStorage.getItem("promoHeroDismissed") === "1"
+  );
+  const [idx, setIdx]       = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  const { data: vehicles = [] } = useQuery({
+    queryKey: ["offers-home-catalog"],
+    queryFn:  () => offersService.listWithMinPrice(),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const promos = vehicles
+    .filter(v => v.promo_expires_at && v.promo_discount_pct && new Date(v.promo_expires_at) > new Date())
+    .sort((a, b) => new Date(a.promo_expires_at) - new Date(b.promo_expires_at));
+
+  // Auto-close dopo 5s dall'apertura
+  useEffect(() => {
+    if (dismissed || promos.length === 0) return;
+    const id = setTimeout(dismiss, 5000);
+    return () => clearTimeout(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dismissed, promos.length]);
+
+  // Auto-slide carosello ogni 5s
+  useEffect(() => {
+    if (paused || promos.length <= 1 || dismissed) return;
+    const id = setInterval(() => setIdx(i => (i + 1) % promos.length), 5000);
+    return () => clearInterval(id);
+  }, [paused, promos.length, dismissed]);
+
+  // Reset indice se le promo cambiano
+  useEffect(() => {
+    setIdx(0);
+  }, [promos.length]);
+
+  function dismiss() {
+    setDismissed(true);
+    sessionStorage.setItem("promoHeroDismissed", "1");
+  }
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  });
+  const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
+
+  if (promos.length === 0) return null;
+
+  return (
+    <AnimatePresence>
+      {!dismissed && (
+        <motion.section
+          ref={containerRef}
+          key="promo-hero"
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0, y: -16, height: 0, overflow: "hidden" }}
+          transition={{ duration: 0.35, ease: "easeInOut" }}
+          className="relative w-full overflow-hidden"
+          style={{ background: "linear-gradient(135deg, #0f0f23 0%, #1a1a3e 40%, #0d1f3c 100%)" }}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          {/* Noise texture */}
+          <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }}
+          />
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-1/3 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Pulsante chiusura X */}
+          <button
+            onClick={dismiss}
+            aria-label="Chiudi offerta"
+            className="absolute top-3 right-3 z-30 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors duration-200 cursor-pointer"
+          >
+            <X className="w-4 h-4 text-white/70" />
+          </button>
+
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+            <AnimatePresence mode="wait">
+              <PromoSlide key={promos[idx]?.id} promo={promos[idx]} imgY={imgY} />
+            </AnimatePresence>
+
+            {/* Dot navigation (solo se più di una promo) */}
+            {promos.length > 1 && (
+              <div className="flex justify-center gap-2 mt-8">
+                {promos.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setIdx(i)}
+                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                      i === idx ? "bg-white w-5" : "bg-white/30 w-2 hover:bg-white/50"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Bottom divider */}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        </motion.section>
+      )}
+    </AnimatePresence>
+  );
+}
