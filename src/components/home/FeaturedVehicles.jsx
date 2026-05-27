@@ -5,10 +5,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import VehicleCard from "../vehicles/VehicleCard";
 import { offersService } from "@/services/offers";
+import { supabase } from "@/lib/supabase";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 9;
-const HERO_IMG  = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=533&q=80&auto=format&fit=crop&crop=center";
+const DEFAULT_HERO_IMG = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=533&q=80&auto=format&fit=crop&crop=center";
 
 const TIPOLOGIA_OPTIONS = [
   { value: "all",     label: "Tutti" },
@@ -85,6 +86,22 @@ export default function FeaturedVehicles() {
     queryFn:  () => offersService.listWithMinPrice(),
     staleTime: 5 * 60 * 1000,
   });
+
+  // Hero image da CMS (fallback a Unsplash)
+  const { data: heroImg } = useQuery({
+    queryKey: ["hero-image"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("key", "hero_image")
+        .single();
+      return data?.value?.url || DEFAULT_HERO_IMG;
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const heroImage = heroImg || DEFAULT_HERO_IMG;
 
   const categories = useMemo(
     () => [...new Set(vehicles.map(v => v.category?.trim()).filter(Boolean))].sort(),
@@ -172,19 +189,13 @@ export default function FeaturedVehicles() {
           {/* ── Immagine & Testo ── */}
           <div className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-lg h-[300px] sm:h-[400px]">
             <img
-              src={HERO_IMG}
-              srcSet={`
-                https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=400&h=267&q=75&auto=format&fit=crop&crop=center 400w,
-                https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=750&h=500&q=80&auto=format&fit=crop&crop=center 750w,
-                https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1280&h=533&q=80&auto=format&fit=crop&crop=center 1280w
-              `}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1280px"
+              src={heroImage}
               alt="Noleggio Lungo Termine"
               width="1280"
               height="533"
               className="absolute inset-0 w-full h-full object-cover object-center"
-               loading="eager"
-               fetchPriority="high"
+              loading="eager"
+              fetchPriority="high"
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/60" />
 

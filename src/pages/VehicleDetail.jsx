@@ -223,6 +223,59 @@ export default function VehicleDetail() {
     return () => document.head.removeChild(meta);
   }, [isLoading, bestOffer]);
 
+  // OG meta tags dinamici per social sharing
+  useEffect(() => {
+    if (!bestOffer) return;
+
+    const title = `${decodedMake} ${decodedModel}${bestOffer.version ? ` ${bestOffer.version}` : ''} | Noleggio Lungo Termine`;
+    const description = bestOffer.category
+      ? `Noleggio a lungo termine ${decodedMake} ${decodedModel} · ${bestOffer.category} · ${bestOffer.fuel_type || ''}`
+      : `Scopri l'offerta di noleggio per ${decodedMake} ${decodedModel}`;
+    const image = bestOffer.vehicle_image || "https://nolosubito.it/og-image.png";
+    const url = `https://nolosubito.it/vehicle/${encodeURIComponent(decodedMake)}/${encodeURIComponent(decodedModel)}`;
+
+    const setMeta = (property, content) => {
+      let meta = document.querySelector(`meta[property="${property}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('property', property);
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', content);
+    };
+
+    const setTitle = (content) => {
+      document.title = content;
+      let meta = document.querySelector('meta[property="og:title"]');
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute('property', 'og:title');
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', content);
+    };
+
+    setTitle(title);
+    setMeta('og:description', description);
+    setMeta('og:image', image);
+    setMeta('og:url', url);
+    setMeta('og:type', 'article');
+
+    // Twitter Card
+    let twCard = document.querySelector('meta[name="twitter:card"]');
+    if (!twCard) {
+      twCard = document.createElement('meta');
+      twCard.setAttribute('name', 'twitter:card');
+      document.head.appendChild(twCard);
+    }
+    twCard.setAttribute('content', 'summary_large_image');
+
+    return () => {
+      // Pulizia: rimuovi meta tag aggiunti dinamicamente
+      document.querySelectorAll('meta[property="og:description"], meta[property="og:image"], meta[property="og:url"], meta[property="og:type"], meta[name="twitter:card"]').forEach(m => m.remove());
+    };
+  }, [bestOffer, decodedMake, decodedModel]);
+
   const handleRequestQuote = (config) => {
     setQuoteConfig({ ...config, version: bestOffer.version || "", fuelType: bestOffer.fuel_type || "" });
     setShowForm(true);
