@@ -11,23 +11,22 @@ import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing
 function DigitBlock({ value, label }) {
   const padded = String(value).padStart(2, "0");
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-col items-center gap-0.5 sm:gap-1">
       <div className="relative overflow-hidden">
         <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
             key={padded}
-            initial={{ y: -28, opacity: 0 }}
+            initial={{ y: -24, opacity: 0 }}
             animate={{ y: 0,   opacity: 1 }}
-            exit={{   y:  28,  opacity: 0 }}
+            exit={{   y:  24,  opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="tabular-nums font-bold text-white leading-none"
-            style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
+            className="tabular-nums font-bold text-white leading-none text-3xl sm:text-4xl lg:text-5xl"
           >
             {padded}
           </motion.div>
         </AnimatePresence>
       </div>
-      <span className="text-[10px] font-semibold uppercase tracking-widest text-white/50">{label}</span>
+      <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-white/50">{label}</span>
     </div>
   );
 }
@@ -40,13 +39,13 @@ function CountdownTimer({ expiresAt }) {
     cd.days >= 1 ? "shadow-amber-500/30"   :
     "shadow-red-500/30 animate-pulse";
   return (
-    <div className={`inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/20 shadow-xl ${urgencyColor}`}>
+    <div className={`inline-flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl px-4 sm:px-6 py-3 sm:py-4 border border-white/20 shadow-xl ${urgencyColor}`}>
       <DigitBlock value={cd.days}    label="giorni"  />
-      <span className="text-white/40 text-2xl font-thin mb-4">:</span>
+      <span className="text-white/40 text-xl sm:text-2xl font-thin mb-4">:</span>
       <DigitBlock value={cd.hours}   label="ore"     />
-      <span className="text-white/40 text-2xl font-thin mb-4">:</span>
+      <span className="text-white/40 text-xl sm:text-2xl font-thin mb-4">:</span>
       <DigitBlock value={cd.minutes} label="minuti"  />
-      <span className="text-white/40 text-2xl font-thin mb-4">:</span>
+      <span className="text-white/40 text-xl sm:text-2xl font-thin mb-4">:</span>
       <DigitBlock value={cd.seconds} label="secondi" />
     </div>
   );
@@ -77,78 +76,81 @@ function PromoSlide({ promo, imgY }) {
       animate={{ opacity: 1, x: 0 }}
       exit={{   opacity: 0, x: -30 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-      className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center"
+      className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-16 items-center"
     >
       {/* ── Left: contenuto ── */}
-      <div className="space-y-6 z-10">
+      <div className="space-y-4 sm:space-y-6 z-10">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-red-400 animate-pulse" />
-          <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">
+          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-400 animate-pulse" />
+          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">
             Offerta Esclusiva · Tempo Limitato
           </span>
         </div>
 
         <div>
-          <p className="text-sm font-semibold text-[#71BAED] uppercase tracking-widest mb-1">{promo.make}</p>
-          <h2 className="font-bold text-white leading-none tracking-tight" style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}>
+          <p className="text-xs sm:text-sm font-semibold text-[#71BAED] uppercase tracking-widest mb-1">{promo.make}</p>
+          <h2 className="font-bold text-white leading-none tracking-tight text-3xl sm:text-4xl lg:text-5xl xl:text-6xl">
             {promo.model}
           </h2>
           {promo.version && (
-            <p className="mt-2 text-sm text-white/40 font-medium tracking-wide">{promo.version}</p>
+            <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-white/40 font-medium tracking-wide">{promo.version}</p>
           )}
         </div>
 
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-white/40 uppercase tracking-widest">Scade tra</p>
-          <CountdownTimer expiresAt={promo.promo_expires_at} />
+        {/* Countdown + prezzo su mobile: affiancati */}
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-8">
+          <div className="space-y-1.5">
+            <p className="text-[10px] font-medium text-white/40 uppercase tracking-widest">Scade tra</p>
+            <CountdownTimer expiresAt={promo.promo_expires_at} />
+          </div>
+
+          {promoDisplay && (
+            <div className="space-y-0.5">
+              {originalDisplay && originalDisplay !== promoDisplay && (
+                <div className="flex items-center gap-2">
+                  <span className="text-white/30 line-through text-base sm:text-lg tabular-nums">
+                    {originalDisplay.toLocaleString("it-IT")}€/mese
+                  </span>
+                  <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1">
+                    <Tag className="w-2.5 h-2.5" />
+                    -{discountPct}%
+                  </span>
+                </div>
+              )}
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-bold text-white tabular-nums text-4xl sm:text-5xl lg:text-6xl leading-none">
+                  {promoDisplay.toLocaleString("it-IT")}€
+                </span>
+                <span className="text-white/50 text-base sm:text-lg font-medium">/mese</span>
+              </div>
+              <p className="text-[10px] sm:text-[11px] text-white/30">
+                IVA{effectiveSegment === "Privati" ? " inclusa" : " esclusa"} · Anticipo 0€
+              </p>
+            </div>
+          )}
         </div>
 
-        {promoDisplay && (
-          <div className="space-y-1">
-            {originalDisplay && originalDisplay !== promoDisplay && (
-              <div className="flex items-center gap-2">
-                <span className="text-white/30 line-through text-lg tabular-nums">
-                  {originalDisplay.toLocaleString("it-IT")}€/mese
-                </span>
-                <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1">
-                  <Tag className="w-2.5 h-2.5" />
-                  -{discountPct}%
-                </span>
-              </div>
-            )}
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-bold text-white tabular-nums" style={{ fontSize: "clamp(2.5rem, 5vw, 3.8rem)", lineHeight: 1 }}>
-                {promoDisplay.toLocaleString("it-IT")}€
-              </span>
-              <span className="text-white/50 text-lg font-medium">/mese</span>
-            </div>
-            <p className="text-[11px] text-white/30">
-              IVA{effectiveSegment === "Privati" ? " inclusa" : " esclusa"} · Anticipo 0€
-            </p>
-          </div>
-        )}
-
         {promo.promo_services && (
-          <p className="text-sm text-emerald-300 font-medium flex items-center gap-1.5">
+          <p className="text-xs sm:text-sm text-emerald-300 font-medium flex items-center gap-1.5">
             🎁 {promo.promo_services}
           </p>
         )}
 
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          <motion.div
-            initial={{ scale: 0, rotate: -15 }}
-            animate={{ scale: 1, rotate: -3 }}
-            transition={{ delay: 0.3, type: "spring", stiffness: 260, damping: 18 }}
-            className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-sm font-bold px-4 py-2 rounded-xl shadow-lg shadow-orange-500/30"
-          >
-            Risparmia {originalDisplay && promoDisplay
-              ? `${Math.round(originalDisplay - promoDisplay).toLocaleString("it-IT")}€/mese`
-              : `${discountPct}%`}
-          </motion.div>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {originalDisplay && promoDisplay && (
+            <motion.div
+              initial={{ scale: 0, rotate: -15 }}
+              animate={{ scale: 1, rotate: -3 }}
+              transition={{ delay: 0.3, type: "spring", stiffness: 260, damping: 18 }}
+              className="bg-gradient-to-br from-amber-400 to-orange-500 text-white text-xs sm:text-sm font-bold px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl shadow-lg shadow-orange-500/30"
+            >
+              Risparmia {Math.round(originalDisplay - promoDisplay).toLocaleString("it-IT")}€/mese
+            </motion.div>
+          )}
 
           <Link
             to={`/vehicle/${encodeURIComponent(promo.make)}/${encodeURIComponent(promo.model)}`}
-            className="group inline-flex items-center gap-2 bg-[#71BAED] hover:bg-[#5aa8df] text-white font-bold px-6 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/20"
+            className="group inline-flex items-center gap-2 bg-[#71BAED] hover:bg-[#5aa8df] text-white font-bold px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/20 text-sm sm:text-base"
           >
             Scopri l'offerta
             <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
@@ -156,8 +158,8 @@ function PromoSlide({ promo, imgY }) {
         </div>
       </div>
 
-      {/* ── Right: immagine ── */}
-      <div className="relative h-[280px] sm:h-[340px] lg:h-[420px] overflow-hidden rounded-2xl">
+      {/* ── Right: immagine (nascosta su mobile molto piccolo, visibile da sm) ── */}
+      <div className="relative h-[200px] sm:h-[280px] lg:h-[400px] overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f23] via-transparent to-transparent z-10 pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f23] via-transparent to-transparent z-10 pointer-events-none lg:hidden" />
         <motion.img
@@ -171,10 +173,10 @@ function PromoSlide({ promo, imgY }) {
           initial={{ scale: 0, rotate: 12 }}
           animate={{ scale: 1, rotate: 12 }}
           transition={{ delay: 0.5, type: "spring", stiffness: 240, damping: 16 }}
-          className="absolute top-4 right-4 z-20 w-16 h-16 rounded-full bg-red-500 text-white flex flex-col items-center justify-center shadow-xl shadow-red-500/40"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-500 text-white flex flex-col items-center justify-center shadow-xl shadow-red-500/40"
         >
-          <span className="text-[10px] font-bold uppercase leading-none">PROMO</span>
-          <span className="text-xl font-black leading-none">-{Math.round(discountPct)}%</span>
+          <span className="text-[8px] sm:text-[10px] font-bold uppercase leading-none">PROMO</span>
+          <span className="text-base sm:text-xl font-black leading-none">-{Math.round(discountPct)}%</span>
         </motion.div>
       </div>
     </motion.div>
@@ -200,10 +202,10 @@ export default function PromoHero() {
     .filter(v => v.promo_expires_at && v.promo_discount_pct && new Date(v.promo_expires_at) > new Date())
     .sort((a, b) => new Date(a.promo_expires_at) - new Date(b.promo_expires_at));
 
-  // Auto-close dopo 5s dall'apertura
+  // Auto-close dopo 30s dall'apertura
   useEffect(() => {
     if (dismissed || promos.length === 0) return;
-    const id = setTimeout(dismiss, 5000);
+    const id = setTimeout(dismiss, 30000);
     return () => clearTimeout(id);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dismissed, promos.length]);
@@ -263,7 +265,7 @@ export default function PromoHero() {
             <X className="w-4 h-4 text-white/70" />
           </button>
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
             <AnimatePresence mode="wait">
               <PromoSlide key={promos[idx]?.id} promo={promos[idx]} imgY={imgY} />
             </AnimatePresence>
