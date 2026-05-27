@@ -50,7 +50,7 @@ function PromoBadge({ discountPct }) {
       className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-red-500/90 backdrop-blur-sm text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg shadow-red-500/40 whitespace-nowrap"
     >
       <Tag className="w-3.5 h-3.5 shrink-0" />
-      Offerta -{Math.round(discountPct)}% · Tempo limitato
+      {discountPct > 0 ? `Offerta -${Math.round(discountPct)}% · Tempo limitato` : "Offerta Speciale · Tempo limitato"}
     </motion.div>
   );
 }
@@ -118,7 +118,7 @@ function PromoBox({ expiresAt, discountPct, baseRent, segment, vehicleCategory, 
         <PromoDigit value={cd.seconds} label="secondi" />
       </div>
 
-      {promoDisplay && originalDisplay && (
+      {promoDisplay && originalDisplay && discountPct > 0 && (
         <div className="text-center space-y-0.5">
           <p className="text-xs text-gray-400 line-through tabular-nums">
             {originalDisplay.toLocaleString("it-IT")}€/mese
@@ -129,12 +129,12 @@ function PromoBox({ expiresAt, discountPct, baseRent, segment, vehicleCategory, 
           <p className="text-[10px] text-gray-400">
             Sconto -{Math.round(discountPct)}% · applicato automaticamente
           </p>
-          {promoServices && (
-            <p className="mt-1 text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
-              🎁 {promoServices}
-            </p>
-          )}
         </div>
+      )}
+      {promoServices && (
+        <p className="mt-1 text-[11px] font-semibold text-emerald-600 flex items-center gap-1 text-center justify-center">
+          🎁 {promoServices}
+        </p>
       )}
     </motion.div>
   );
@@ -532,7 +532,7 @@ export default function VehicleDetail() {
                 </div>
 
                 {/* Ribbon promo diagonale */}
-                {bestOffer.promo_expires_at && bestOffer.promo_discount_pct && (
+                {bestOffer.promo_expires_at && new Date(bestOffer.promo_expires_at) > new Date() && (
                   <PromoBadge discountPct={bestOffer.promo_discount_pct} />
                 )}
 
@@ -684,7 +684,7 @@ export default function VehicleDetail() {
               transition={{ duration: 0.4, delay: 0.1 }}
               className="lg:sticky lg:top-24 self-start space-y-4"
             >
-              {bestOffer.promo_expires_at && bestOffer.promo_discount_pct && (
+              {bestOffer.promo_expires_at && new Date(bestOffer.promo_expires_at) > new Date() && (
                 <PromoBox
                   expiresAt={bestOffer.promo_expires_at}
                   discountPct={bestOffer.promo_discount_pct}

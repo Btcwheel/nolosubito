@@ -67,7 +67,7 @@ function PromoCountdownBadge({ expiresAt, discountPct, compact = false }) {
     >
       <Tag className="w-3 h-3 shrink-0" />
       <span className="text-[10px] font-bold uppercase tracking-wide leading-none">
-        -{Math.round(discountPct)}% · {label}
+        {discountPct > 0 ? `-${Math.round(discountPct)}% · ` : ""}{label}
       </span>
     </motion.div>
   );
@@ -125,7 +125,6 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
   // Promo
   const isInPromo = !!(
     vehicle.promo_expires_at &&
-    vehicle.promo_discount_pct &&
     new Date(vehicle.promo_expires_at) > new Date()
   );
   const promoRent = isInPromo && vehicle.monthly_rent
@@ -170,7 +169,7 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
               onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0"; }}
             />
 
-            {vehicle.promo_expires_at && vehicle.promo_discount_pct && (
+            {vehicle.promo_expires_at && new Date(vehicle.promo_expires_at) > new Date() && (
               <PromoCountdownBadge
                 expiresAt={vehicle.promo_expires_at}
                 discountPct={vehicle.promo_discount_pct}
@@ -257,7 +256,7 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
                 <div className="flex items-center justify-between gap-2 px-6 py-2">
                   <span className="flex items-center gap-1.5 text-[11px] font-bold text-red-600 uppercase tracking-wide">
                     <Tag className="w-3 h-3 shrink-0" />
-                    -{Math.round(vehicle.promo_discount_pct)}% Offerta
+                    {vehicle.promo_discount_pct > 0 ? `-${Math.round(vehicle.promo_discount_pct)}% Offerta` : "Offerta Speciale"}
                   </span>
                   <PromoCountdownBadge
                     expiresAt={vehicle.promo_expires_at}

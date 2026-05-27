@@ -137,7 +137,7 @@ function PromoSlide({ promo, imgY }) {
         )}
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          {originalDisplay && promoDisplay && (
+          {originalDisplay && promoDisplay && discountPct > 0 && (
             <motion.div
               initial={{ scale: 0, rotate: -15 }}
               animate={{ scale: 1, rotate: -3 }}
@@ -169,15 +169,17 @@ function PromoSlide({ promo, imgY }) {
           className="w-full h-full object-cover scale-110"
           onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0.3"; }}
         />
-        <motion.div
-          initial={{ scale: 0, rotate: 12 }}
-          animate={{ scale: 1, rotate: 12 }}
-          transition={{ delay: 0.5, type: "spring", stiffness: 240, damping: 16 }}
-          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-500 text-white flex flex-col items-center justify-center shadow-xl shadow-red-500/40"
-        >
-          <span className="text-[8px] sm:text-[10px] font-bold uppercase leading-none">PROMO</span>
-          <span className="text-base sm:text-xl font-black leading-none">-{Math.round(discountPct)}%</span>
-        </motion.div>
+        {discountPct > 0 && (
+          <motion.div
+            initial={{ scale: 0, rotate: 12 }}
+            animate={{ scale: 1, rotate: 12 }}
+            transition={{ delay: 0.5, type: "spring", stiffness: 240, damping: 16 }}
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-500 text-white flex flex-col items-center justify-center shadow-xl shadow-red-500/40"
+          >
+            <span className="text-[8px] sm:text-[10px] font-bold uppercase leading-none">PROMO</span>
+            <span className="text-base sm:text-xl font-black leading-none">-{Math.round(discountPct)}%</span>
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );
@@ -199,7 +201,7 @@ export default function PromoHero() {
   });
 
   const promos = vehicles
-    .filter(v => v.promo_expires_at && v.promo_discount_pct && new Date(v.promo_expires_at) > new Date())
+    .filter(v => v.promo_expires_at && new Date(v.promo_expires_at) > new Date())
     .sort((a, b) => new Date(a.promo_expires_at) - new Date(b.promo_expires_at));
 
   // Auto-close dopo 30s dall'apertura

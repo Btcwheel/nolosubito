@@ -92,7 +92,7 @@ export default function AdminDashboard() {
 
   function openPromoEdit(o) {
     setPromoEditId(o.id);
-    setPromoDiscount(o.promo_discount_pct ? String(o.promo_discount_pct) : "10");
+    setPromoDiscount(o.promo_discount_pct != null ? String(o.promo_discount_pct) : "10");
     setPromoServices(o.promo_services || "");
     setPromoSegment(
       o.promo_segment === "P.IVA"   ? "piva"    :
@@ -574,7 +574,7 @@ export default function AdminDashboard() {
                           <label className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide">Sconto %</label>
                           <Input
                             type="number"
-                            min="1"
+                            min="0"
                             max="99"
                             value={promoDiscount}
                             onChange={e => setPromoDiscount(e.target.value)}
@@ -657,7 +657,7 @@ export default function AdminDashboard() {
                       >
                         <Tag className="w-3 h-3" />
                         {o.promo_expires_at && new Date(o.promo_expires_at) > new Date()
-                          ? `🔥 Promo attiva -${Math.round(o.promo_discount_pct)}%`
+                          ? o.promo_discount_pct > 0 ? `🔥 Promo attiva -${Math.round(o.promo_discount_pct)}%` : "🔥 Promo attiva"
                           : "Aggiungi Promo"}
                       </button>
                     )}
