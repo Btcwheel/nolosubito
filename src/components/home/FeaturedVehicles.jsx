@@ -133,7 +133,13 @@ export default function FeaturedVehicles() {
         if (quickFilter === "Elettriche") return v.fuel_type === "Electric";
         return true;
       })
-      .filter(v => !prontoConsegna || v.is_ready_delivery === true);
+      .filter(v => !prontoConsegna || v.is_ready_delivery === true)
+      .sort((a, b) => {
+        const now = new Date();
+        const aPromo = a.promo_expires_at && a.promo_discount_pct && new Date(a.promo_expires_at) > now ? 1 : 0;
+        const bPromo = b.promo_expires_at && b.promo_discount_pct && new Date(b.promo_expires_at) > now ? 1 : 0;
+        return bPromo - aPromo;
+      });
   }, [vehicles, makeFilter, tipologia, categoryFilter, budgetFilter, quickFilter, prontoConsegna]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));

@@ -260,7 +260,7 @@ export default function PromoHero() {
           <button
             onClick={dismiss}
             aria-label="Chiudi offerta"
-            className="absolute top-3 right-3 z-30 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors duration-200 cursor-pointer"
+            className="absolute top-[68px] sm:top-4 right-3 sm:right-4 z-30 w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors duration-200 cursor-pointer"
           >
             <X className="w-4 h-4 text-white/70" />
           </button>
