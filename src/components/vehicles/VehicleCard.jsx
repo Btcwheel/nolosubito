@@ -127,8 +127,9 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
     vehicle.promo_expires_at &&
     new Date(vehicle.promo_expires_at) > new Date()
   );
-  const promoRent = isInPromo && vehicle.monthly_rent
-    ? Math.round(vehicle.monthly_rent * (1 - Number(vehicle.promo_discount_pct) / 100))
+  const discountPct = Number(vehicle.promo_discount_pct);
+  const promoRent = isInPromo && vehicle.monthly_rent && discountPct > 0
+    ? Math.round(vehicle.monthly_rent * (1 - discountPct / 100))
     : null;
   const promoDisplay = promoRent
     ? formatDisplayedRent(promoRent, {
@@ -221,10 +222,10 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
               <div className="min-w-0">
                 <p className="text-[12px] font-medium text-[#777682] leading-none mb-1">Da soli</p>
                 <div className="flex items-baseline gap-0.5 flex-wrap">
-                  <span className={`font-bold leading-none ${isInPromo ? "text-[22px] sm:text-[24px] text-[#999] line-through" : "text-[28px] sm:text-[32px] text-navy-dark"}`}>
+                  <span className={`font-bold leading-none ${isInPromo && promoDisplay ? "text-[22px] sm:text-[24px] text-[#999] line-through" : "text-[28px] sm:text-[32px] text-navy-dark"}`}>
                     {displayPrice ? `${displayPrice.toLocaleString("it-IT")}€` : "Su richiesta"}
                   </span>
-                  {displayPrice && !isInPromo && (
+                  {displayPrice && !(isInPromo && promoDisplay) && (
                     <span className="text-[14px] font-medium text-[#464651]">/mese</span>
                   )}
                 </div>
