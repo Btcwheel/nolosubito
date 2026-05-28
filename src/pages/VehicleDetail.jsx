@@ -473,7 +473,7 @@ export default function VehicleDetail() {
                         <p className="text-[10px] text-gray-400 mt-0.5">+ IVA 22%</p>
                       )}
                       {(currentSegment === "Privati" || currentSegment === "ReUse") && (
-                        <p className="text-[10px] text-gray-400 mt-0.5">IVA inclusa</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">{currentSegment === "ReUse" ? "+ IVA 22%" : "IVA inclusa"}</p>
                       )}
                     </div>
                   )}

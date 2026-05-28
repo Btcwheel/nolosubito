@@ -153,7 +153,7 @@ export default function ReUseQuoteBox({ fixedMake, fixedModel, onRequestQuote })
                           <span className="text-[10px] text-muted-foreground">/mese</span>
                         </div>
                         <p className="text-[10px] text-muted-foreground mt-0.5">
-                          Anticipo €0 · IVA 22% inclusa
+                          Anticipo €0 · + IVA 22%
                         </p>
                       </motion.button>
                     );
@@ -173,7 +173,7 @@ export default function ReUseQuoteBox({ fixedMake, fixedModel, onRequestQuote })
                     </span>
                     <span className="text-white/40 text-sm">/mese</span>
                   </div>
-                  <p className="text-white/30 text-[11px] mt-1">IVA 22% inclusa · Anticipo €0</p>
+                  <p className="text-white/30 text-[11px] mt-1">+ IVA 22% · Anticipo €0</p>
                 </div>
               </div>
             )}

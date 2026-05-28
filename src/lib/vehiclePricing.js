@@ -36,10 +36,6 @@ export function isVatIncludedForDisplay({ segment, vehicleCategory, vehicleSegme
     return false;
   }
 
-  if (segment === "ReUse" || vehicleSegments.includes("ReUse")) {
-    return true;
-  }
-
   const resolvedSegment = resolvePricingSegment({ segment, vehicleCategory, vehicleSegments });
   return resolvedSegment === "Privati" || resolvedSegment === "Moto";
 }
