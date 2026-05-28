@@ -17,11 +17,13 @@ export function resolvePricingSegment({ segment, vehicleCategory, vehicleSegment
   const segments = Array.isArray(vehicleSegments) ? vehicleSegments : [];
   const hasPiva = segments.includes("P.IVA");
   const hasPrivati = segments.includes("Privati");
+  const hasReuse = segments.includes("ReUse");
 
   if (isMotoCategory(vehicleCategory)) {
     return "Moto";
   }
 
+  if (hasReuse) return "ReUse";
   if (hasPiva && !hasPrivati) return "P.IVA";
   if (hasPrivati && !hasPiva) return "Privati";
   if (hasPiva) return "P.IVA";
@@ -32,6 +34,10 @@ export function resolvePricingSegment({ segment, vehicleCategory, vehicleSegment
 export function isVatIncludedForDisplay({ segment, vehicleCategory, vehicleSegments = [] } = {}) {
   if (segment === "Moto" && isMotoCategory(vehicleCategory) && vehicleSegments.includes("Privati")) {
     return false;
+  }
+
+  if (segment === "ReUse" || vehicleSegments.includes("ReUse")) {
+    return true;
   }
 
   const resolvedSegment = resolvePricingSegment({ segment, vehicleCategory, vehicleSegments });

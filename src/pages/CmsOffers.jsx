@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { offersService } from "@/services/offers";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, Zap, RefreshCw, Loader2, Search } from "lucide-react";
 
 const EMPTY_CONFIG = {
   make: "", model: "", segment: "P.IVA",
@@ -15,7 +15,9 @@ const EMPTY_CONFIG = {
   advance_payment: 0, monthly_rent: 0, is_active: true,
 };
 
-const SEGMENTS = ["P.IVA", "Veicoli Commerciali", "Privati"];
+const SEGMENTS = ["P.IVA", "Veicoli Commerciali", "Privati", "ReUse"];
+const DURATIONS = [12, 24, 36, 48, 60];
+const KM_OPTIONS = [5000, 8000, 10000, 15000, 20000, 25000, 30000, 40000];
 
 export default function CmsOffers() {
   const { toast } = useToast();
@@ -23,10 +25,89 @@ export default function CmsOffers() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_CONFIG);
 
+  // ── Re-Use Quick Create state ────────────────────────────────────────────
+  const [reuseMake, setReuseMake] = useState("");
+  const [reuseModel, setReuseModel] = useState("");
+  const [reuseRents, setReuseRents] = useState({});
+  const [reuseSaving, setReuseSaving] = useState(false);
+
   const { data: configs = [], isLoading } = useQuery({
     queryKey: ["cms-offers"],
     queryFn: () => offersService.getAllConfigs(),
   });
+
+  const { data: vehicles = [] } = useQuery({
+    queryKey: ["cms-vehicles-list"],
+    queryFn: () => offersService.list(),
+  });
+
+  // ── Table search / filter ────────────────────────────────────────────────
+  const [search, setSearch] = useState("");
+  const [segmentFilter, setSegmentFilter] = useState("all");
+
+  const filteredConfigs = useMemo(() => {
+    const q = search.toLowerCase();
+    return configs.filter(c => {
+      const matchSearch = !q || `${c.make} ${c.model}`.toLowerCase().includes(q);
+      const matchSegment = segmentFilter === "all" || c.segment === segmentFilter;
+      return matchSearch && matchSegment;
+    });
+  }, [configs, search, segmentFilter]);
+
+  const configMakes = useMemo(() => [...new Set(configs.map(c => c.make))].sort(), [configs]);
+  const configSegments = useMemo(() => [...new Set(configs.map(c => c.segment))].sort(), [configs]);
+
+  const reuseMakes = useMemo(() => [...new Set(vehicles.map(v => v.make))].sort(), [vehicles]);
+  const reuseModels = useMemo(() => {
+    if (!reuseMake) return [];
+    return [...new Set(vehicles.filter(v => v.make === reuseMake).map(v => v.model))].sort();
+  }, [vehicles, reuseMake]);
+
+  const REUSE_COMBOS = [
+    { months: 12, km: 10000 },
+    { months: 12, km: 20000 },
+    { months: 24, km: 10000 },
+    { months: 24, km: 20000 },
+  ];
+
+  const handleReuseGenerate = async () => {
+    if (!reuseMake || !reuseModel) {
+      toast({ title: "Seleziona marca e modello", variant: "destructive" });
+      return;
+    }
+    const combosToSave = REUSE_COMBOS.filter(({ months, km }) => {
+      const key = `${months}|${km}`;
+      const rent = Number(reuseRents[key]);
+      return rent && rent > 0;
+    });
+    if (combosToSave.length === 0) {
+      toast({ title: "Inserisci almeno un canone valido", variant: "destructive" });
+      return;
+    }
+    setReuseSaving(true);
+    try {
+      for (const { months, km } of combosToSave) {
+        const key = `${months}|${km}`;
+        await offersService.upsertConfig({
+          make: reuseMake,
+          model: reuseModel,
+          segment: "ReUse",
+          duration_months: months,
+          annual_km: km,
+          advance_payment: 0,
+          monthly_rent: Number(reuseRents[key]),
+          is_active: true,
+        });
+      }
+      qc.invalidateQueries(["cms-offers"]);
+      toast({ title: `${combosToSave.length} config Re-Use create per ${reuseMake} ${reuseModel}` });
+      setReuseRents({});
+    } catch (err) {
+      toast({ title: "Errore", description: err?.message, variant: "destructive" });
+    } finally {
+      setReuseSaving(false);
+    }
+  };
 
   const saveMutation = useMutation({
     mutationFn: (data) => offersService.upsertConfig(data),
@@ -106,11 +187,17 @@ export default function CmsOffers() {
               </div>
               <div>
                 <Label className="text-xs">Durata (mesi)</Label>
-                <Input type="number" value={form.duration_months} onChange={e => set("duration_months", e.target.value)} className="mt-1" />
+                <Select value={String(form.duration_months)} onValueChange={v => set("duration_months", Number(v))}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>{DURATIONS.map(d => <SelectItem key={d} value={String(d)}>{d} mesi</SelectItem>)}</SelectContent>
+                </Select>
               </div>
               <div>
                 <Label className="text-xs">KM Annui</Label>
-                <Input type="number" value={form.annual_km} onChange={e => set("annual_km", e.target.value)} className="mt-1" />
+                <Select value={String(form.annual_km)} onValueChange={v => set("annual_km", Number(v))}>
+                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                  <SelectContent>{KM_OPTIONS.map(k => <SelectItem key={k} value={String(k)}>{k.toLocaleString("it-IT")} km</SelectItem>)}</SelectContent>
+                </Select>
               </div>
               <div>
                 <Label className="text-xs">Anticipo (€)</Label>
@@ -137,11 +224,104 @@ export default function CmsOffers() {
         </div>
       )}
 
+      {/* ── Quick Create Re-Use ──────────────────────────────────────────── */}
+      <div className="bg-card border border-teal-200 rounded-2xl p-5 mb-6">
+        <div className="flex items-center gap-2.5 mb-4">
+          <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+            <RefreshCw className="w-4 h-4 text-teal-600" />
+          </div>
+          <div>
+            <h3 className="font-heading font-semibold text-foreground text-sm">Quick Create Re-Use</h3>
+            <p className="text-xs text-muted-foreground">Seleziona marca/modello e inserisci i canoni per ogni combinazione</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-12 gap-3 items-end mb-4">
+          <div className="col-span-5">
+            <Label className="text-xs">Marca</Label>
+            <Select value={reuseMake} onValueChange={v => { setReuseMake(v); setReuseModel(""); setReuseRents({}); }}>
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Seleziona marca" /></SelectTrigger>
+              <SelectContent>{reuseMakes.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="col-span-4">
+            <Label className="text-xs">Modello</Label>
+            <Select value={reuseModel} onValueChange={setReuseModel} disabled={!reuseMake}>
+              <SelectTrigger className="mt-1"><SelectValue placeholder={reuseMake ? "Seleziona modello" : "Prima la marca"} /></SelectTrigger>
+              <SelectContent>{reuseModels.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="col-span-3">
+            <Button
+              onClick={handleReuseGenerate}
+              disabled={reuseSaving || !reuseMake || !reuseModel || !Object.values(reuseRents).some(v => Number(v) > 0)}
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white cursor-pointer h-10"
+            >
+              {reuseSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-4 h-4 mr-2" />}
+              Crea config
+            </Button>
+          </div>
+        </div>
+
+        {reuseMake && reuseModel && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {REUSE_COMBOS.map(({ months, km }) => {
+              const key = `${months}|${km}`;
+              return (
+                <div key={key} className="bg-muted/30 rounded-xl p-3 border border-border/50">
+                  <p className="text-[11px] font-semibold text-foreground mb-2">
+                    {months}m · {km.toLocaleString("it-IT")} km/anno
+                  </p>
+                  <div className="relative">
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
+                    <Input
+                      type="number"
+                      value={reuseRents[key] || ""}
+                      onChange={e => setReuseRents(prev => ({ ...prev, [key]: e.target.value }))}
+                      placeholder="0"
+                      className="pl-6 h-9 text-sm font-medium"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
       <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
+        {/* Search bar */}
+        <div className="flex gap-3 items-center p-4 border-b border-border/50 bg-muted/20">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Cerca marca o modello…"
+              className="pl-9 h-9"
+            />
+          </div>
+          <Select value={segmentFilter} onValueChange={setSegmentFilter}>
+            <SelectTrigger className="w-44 h-9">
+              <SelectValue placeholder="Tutti i segmenti" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tutti i segmenti</SelectItem>
+              {configSegments.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {filteredConfigs.length < configs.length && (
+            <span className="text-xs text-muted-foreground">
+              {filteredConfigs.length} di {configs.length}
+            </span>
+          )}
+        </div>
+
         {isLoading ? (
           <div className="p-6 space-y-3">{Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}</div>
-        ) : configs.length === 0 ? (
-          <div className="py-16 text-center text-muted-foreground">Nessuna configurazione. Creane una nuova.</div>
+        ) : filteredConfigs.length === 0 ? (
+          <div className="py-16 text-center text-muted-foreground">
+            {configs.length === 0 ? "Nessuna configurazione. Creane una nuova." : "Nessun risultato per la ricerca."}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -157,7 +337,7 @@ export default function CmsOffers() {
                 </tr>
               </thead>
               <tbody>
-                {configs.map(o => (
+                {filteredConfigs.map(o => (
                   <tr key={o.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
                     <td className="px-4 py-3 font-medium text-foreground">{o.make} {o.model}</td>
                     <td className="px-4 py-3 text-muted-foreground">{o.segment}</td>

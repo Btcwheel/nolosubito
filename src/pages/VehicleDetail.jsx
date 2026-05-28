@@ -187,10 +187,10 @@ export default function VehicleDetail() {
     if (preferredSegment && !activeSegment) setActiveSegment(preferredSegment);
   }, [preferredSegment]);
 
-  // Segmenti disponibili (P.IVA e/o Privati) per mostrare i tab
+  // Segmenti disponibili (P.IVA, Privati e/o ReUse) per mostrare i tab
   const availableSegments = useMemo(() => {
     const segs = vehicle?.segments || [];
-    return ["P.IVA", "Privati"].filter(s => segs.includes(s));
+    return ["P.IVA", "Privati", "ReUse"].filter(s => segs.includes(s));
   }, [vehicle]);
 
   const currentSegment = activeSegment || preferredSegment;
@@ -431,7 +431,7 @@ export default function VehicleDetail() {
                 {/* ── Right: prezzo + toggle segmento ── */}
                 <div className="flex flex-col items-start lg:items-end gap-3 shrink-0">
 
-                  {/* Toggle P.IVA / Privati */}
+                  {/* Toggle P.IVA / Privati / ReUse */}
                   {availableSegments.length > 1 && (
                     <div
                       className="flex items-center p-1 rounded-xl gap-1"
@@ -448,7 +448,7 @@ export default function VehicleDetail() {
                             : { color: "#888", backgroundColor: "transparent" }
                           }
                         >
-                          {seg === "P.IVA" ? "Azienda / P.IVA" : "Privati"}
+                          {seg === "P.IVA" ? "Azienda / P.IVA" : seg === "ReUse" ? "Re-Use Cert." : "Privati"}
                         </button>
                       ))}
                     </div>
@@ -472,7 +472,7 @@ export default function VehicleDetail() {
                       {currentSegment === "P.IVA" && (
                         <p className="text-[10px] text-gray-400 mt-0.5">+ IVA 22%</p>
                       )}
-                      {currentSegment === "Privati" && (
+                      {(currentSegment === "Privati" || currentSegment === "ReUse") && (
                         <p className="text-[10px] text-gray-400 mt-0.5">IVA inclusa</p>
                       )}
                     </div>

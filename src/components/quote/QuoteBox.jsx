@@ -13,6 +13,7 @@ import {
   resolvePricingSegment,
   isMotoCategory,
 } from "@/lib/vehiclePricing";
+import ReUseQuoteBox from "@/components/quote/ReUseQuoteBox";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const ALL_DURATIONS = [24, 36, 48, 60];
@@ -73,6 +74,17 @@ function OptionButton({ selected, available = true, onClick, children }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChange, onRequestQuote }) {
+
+  if (segment === "ReUse") {
+    return (
+      <ReUseQuoteBox
+        fixedMake={fixedMake}
+        fixedModel={fixedModel}
+        onRequestQuote={onRequestQuote}
+      />
+    );
+  }
+
   const [selectedMake, setSelectedMake] = useState(fixedMake || "");
   const [selectedModel, setSelectedModel] = useState(fixedModel || "");
   const [duration, setDuration] = useState(36);
