@@ -196,7 +196,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
 
   useEffect(() => {
     if (vehicleConfigs.length && !availableDurations.has(duration)) {
-      const sorted = availableDurations.toSorted((a, b) => a - b);
+      const sorted = Array.from(availableDurations).sort((a, b) => a - b);
       if (sorted[0]) setDuration(sorted[0]);
     }
   }, [vehicleConfigs, availableDurations, duration]);

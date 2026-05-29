@@ -246,7 +246,7 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
 
   useEffect(() => {
     if (activeConfigs.length && !availableDurations.has(duration)) {
-      const sorted = availableDurations.toSorted((a, b) => a - b);
+      const sorted = Array.from(availableDurations).sort((a, b) => a - b);
       if (sorted[0]) setDuration(sorted[0]);
     }
   }, [activeConfigs, availableDurations, duration]);
