@@ -48,7 +48,7 @@ const SEGMENTS_OPTIONS = [
 ];
 
 const PRICE_SEGMENTS = ["P.IVA", "Privati", "Veicoli Commerciali", "Moto", "ReUse"];
-const DURATE = [24, 36, 48, 60];
+const DURATE = [12, 24, 36, 48, 60];
 const KM_OPTIONS = [10000, 15000, 20000, 25000, 30000, 40000];
 const KM_OPTIONS_MOTO = [5000, 8000, 10000, 12000];
 

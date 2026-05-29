@@ -30,7 +30,7 @@ const ALIMENTAZIONI = [
   "Plug-in Hybrid", "Elettrica", "Metano", "GPL",
 ];
 
-const DURATE = [24, 36, 48, 60];
+const DURATE = [12, 24, 36, 48, 60];
 
 const KM_OPTIONS = [
   { value: 10000,  label: "10.000 km/anno" },
