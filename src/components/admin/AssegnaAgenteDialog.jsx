@@ -27,8 +27,8 @@ export default function AssegnaAgenteDialog({ pratica, agenti, onClose }) {
       <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-heading font-semibold text-lg">Assegna Agente</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-            <X className="w-4 h-4" />
+          <button type="button" onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+            <X className="size-4" />
           </button>
         </div>
 

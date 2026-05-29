@@ -103,7 +103,7 @@ function ConvertModal({ lead, onClose, onConverted }) {
             <h3 className="font-heading font-semibold text-lg">Converti in Pratica</h3>
             <p className="text-sm text-muted-foreground mt-0.5">Crea una nuova pratica dal lead</p>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted"><X className="w-4 h-4" /></button>
+          <button type="button" onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted"><X className="size-4" /></button>
         </div>
         <div className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -133,7 +133,7 @@ function ConvertModal({ lead, onClose, onConverted }) {
         <div className="flex gap-3 px-6 py-4 border-t border-border">
           <Button variant="outline" onClick={onClose} className="flex-1">Annulla</Button>
           <Button onClick={handleSubmit} disabled={saving} className="flex-1 bg-electric hover:bg-electric/90 text-white gap-2">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+            {saving ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
             Crea Pratica
           </Button>
         </div>
@@ -162,8 +162,8 @@ function Timeline({ leadId }) {
         const Icon = meta.icon;
         return (
           <div key={a.id} className="flex gap-3 relative">
-            <div className={`w-8 h-8 rounded-full ${meta.bg} flex items-center justify-center shrink-0 z-10 border border-white`}>
-              <Icon className={`w-3.5 h-3.5 ${meta.color}`} />
+            <div className={`size-8 rounded-full ${meta.bg} flex items-center justify-center shrink-0 z-10 border border-white`}>
+              <Icon className={`size-3.5 ${meta.color}`} />
             </div>
             <div className="flex-1 min-w-0 pb-1">
               <div className="flex items-baseline justify-between gap-2">
@@ -264,14 +264,14 @@ function LeadDrawer({ lead, onClose, onRefresh }) {
 
         {/* Header */}
         <div className="px-5 py-4 border-b border-border flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-navy/10 flex items-center justify-center shrink-0 mt-0.5">
-            <User className="w-5 h-5 text-navy" />
+          <div className="size-10 rounded-full bg-navy/10 flex items-center justify-center shrink-0 mt-0.5">
+            <User className="size-5 text-navy" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-base text-foreground truncate">{lead.nome || "Senza nome"}</p>
             <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
-              {lead.email && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Mail className="w-3 h-3" />{lead.email}</span>}
-              {lead.telefono && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Phone className="w-3 h-3" />{lead.telefono}</span>}
+              {lead.email && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Mail className="size-3" />{lead.email}</span>}
+              {lead.telefono && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Phone className="size-3" />{lead.telefono}</span>}
             </div>
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               <Badge className={`text-[10px] px-2 py-0.5 border ${STATUS_STYLES[lead.status]}`}>{lead.status}</Badge>
@@ -281,7 +281,7 @@ function LeadDrawer({ lead, onClose, onRefresh }) {
               )}
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted shrink-0"><X className="w-4 h-4" /></button>
+          <button type="button" onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted shrink-0"><X className="size-4" /></button>
         </div>
 
         {/* Info rapide */}
@@ -306,7 +306,7 @@ function LeadDrawer({ lead, onClose, onRefresh }) {
             { id: "azioni",     label: "Azioni" },
             { id: "preferenze", label: "Preferenze" },
           ].map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
+            <button type="button" key={t.id} onClick={() => setTab(t.id)}
               className={`flex-1 py-2.5 text-xs font-semibold transition-colors border-b-2 ${tab === t.id ? "border-electric text-electric" : "border-transparent text-muted-foreground hover:text-foreground"}`}>
               {t.label}
             </button>
@@ -323,7 +323,7 @@ function LeadDrawer({ lead, onClose, onRefresh }) {
               {Array.isArray(lead.chat_history) && lead.chat_history.length > 0 && (
                 <details className="mb-4">
                   <summary className="text-xs font-semibold text-muted-foreground cursor-pointer mb-2 flex items-center gap-1">
-                    <Bot className="w-3.5 h-3.5" /> Chat AI ({lead.chat_history.length} messaggi)
+                    <Bot className="size-3.5" /> Chat AI ({lead.chat_history.length} messaggi)
                   </summary>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                     {lead.chat_history.map((m, i) => (
@@ -344,7 +344,7 @@ function LeadDrawer({ lead, onClose, onRefresh }) {
             <div className="space-y-5">
               {/* Registra contatto */}
               <div className="p-4 rounded-xl border border-border bg-muted/20 space-y-3">
-                <p className="text-xs font-semibold flex items-center gap-1.5"><UserCheck className="w-4 h-4 text-green-500" /> Registra contatto</p>
+                <p className="text-xs font-semibold flex items-center gap-1.5"><UserCheck className="size-4 text-green-500" /> Registra contatto</p>
                 <Textarea
                   value={nota}
                   onChange={e => setNota(e.target.value)}
@@ -352,14 +352,14 @@ function LeadDrawer({ lead, onClose, onRefresh }) {
                   className="text-xs min-h-[60px] resize-none"
                 />
                 <Button onClick={handleContatto} disabled={savingContatto} size="sm" className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white">
-                  {savingContatto ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserCheck className="w-3.5 h-3.5" />}
+                  {savingContatto ? <Loader2 className="size-3.5 animate-spin" /> : <UserCheck className="size-3.5" />}
                   Segna come Contattato
                 </Button>
               </div>
 
               {/* Aggiungi nota */}
               <div className="p-4 rounded-xl border border-border bg-muted/20 space-y-3">
-                <p className="text-xs font-semibold flex items-center gap-1.5"><MessageSquare className="w-4 h-4 text-sky-500" /> Aggiungi nota</p>
+                <p className="text-xs font-semibold flex items-center gap-1.5"><MessageSquare className="size-4 text-sky-500" /> Aggiungi nota</p>
                 <Textarea
                   value={nota}
                   onChange={e => setNota(e.target.value)}
@@ -367,14 +367,14 @@ function LeadDrawer({ lead, onClose, onRefresh }) {
                   className="text-xs min-h-[60px] resize-none"
                 />
                 <Button onClick={handleNota} disabled={savingNota || !nota.trim()} size="sm" variant="outline" className="w-full gap-2">
-                  {savingNota ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageSquare className="w-3.5 h-3.5" />}
+                  {savingNota ? <Loader2 className="size-3.5 animate-spin" /> : <MessageSquare className="size-3.5" />}
                   Salva nota
                 </Button>
               </div>
 
               {/* Programma follow-up */}
               <div className="p-4 rounded-xl border border-border bg-muted/20 space-y-3">
-                <p className="text-xs font-semibold flex items-center gap-1.5"><Calendar className="w-4 h-4 text-orange-500" /> Programma follow-up</p>
+                <p className="text-xs font-semibold flex items-center gap-1.5"><Calendar className="size-4 text-orange-500" /> Programma follow-up</p>
                 <Input
                   type="datetime-local"
                   value={followUp}
@@ -382,7 +382,7 @@ function LeadDrawer({ lead, onClose, onRefresh }) {
                   className="text-xs"
                 />
                 <Button onClick={handleFollowUp} disabled={savingFU || !followUp} size="sm" variant="outline" className="w-full gap-2">
-                  {savingFU ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Calendar className="w-3.5 h-3.5" />}
+                  {savingFU ? <Loader2 className="size-3.5 animate-spin" /> : <Calendar className="size-3.5" />}
                   Programma
                 </Button>
               </div>
@@ -403,27 +403,27 @@ function LeadDrawer({ lead, onClose, onRefresh }) {
               )}
 
               <div className="grid grid-cols-2 gap-3">
-                <div><Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1"><Car className="w-3 h-3" /> Marca</Label>
+                <div><Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1"><Car className="size-3" /> Marca</Label>
                   <Input value={prefs.pref_marca} onChange={e => setPrefs(p => ({...p, pref_marca: e.target.value}))} placeholder="es. BMW" className="text-xs" /></div>
                 <div><Label className="text-xs font-semibold mb-1.5 block">Modello</Label>
                   <Input value={prefs.pref_modello} onChange={e => setPrefs(p => ({...p, pref_modello: e.target.value}))} placeholder="es. Serie 3" className="text-xs" /></div>
               </div>
 
-              <div><Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1"><Fuel className="w-3 h-3" /> Carburante</Label>
+              <div><Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1"><Fuel className="size-3" /> Carburante</Label>
                 <Select value={prefs.pref_carburante} onValueChange={v => setPrefs(p => ({...p, pref_carburante: v}))}>
                   <SelectTrigger className="text-xs"><SelectValue placeholder="Seleziona…" /></SelectTrigger>
                   <SelectContent>{CARBURANTI.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}</SelectContent>
                 </Select></div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div><Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1"><Timer className="w-3 h-3" /> Durata (mesi)</Label>
+                <div><Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1"><Timer className="size-3" /> Durata (mesi)</Label>
                   <Input type="number" value={prefs.pref_durata_mesi} onChange={e => setPrefs(p => ({...p, pref_durata_mesi: e.target.value}))} placeholder="36" className="text-xs" /></div>
-                <div><Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1"><Activity className="w-3 h-3" /> Km/anno</Label>
+                <div><Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1"><Activity className="size-3" /> Km/anno</Label>
                   <Input type="number" value={prefs.pref_km_anno} onChange={e => setPrefs(p => ({...p, pref_km_anno: e.target.value}))} placeholder="15000" className="text-xs" /></div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div><Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1"><Euro className="w-3 h-3" /> Budget min (€/mese)</Label>
+                <div><Label className="text-xs font-semibold mb-1.5 block flex items-center gap-1"><Euro className="size-3" /> Budget min (€/mese)</Label>
                   <Input type="number" value={prefs.pref_budget_min} onChange={e => setPrefs(p => ({...p, pref_budget_min: e.target.value}))} placeholder="300" className="text-xs" /></div>
                 <div><Label className="text-xs font-semibold mb-1.5 block">Budget max (€/mese)</Label>
                   <Input type="number" value={prefs.pref_budget_max} onChange={e => setPrefs(p => ({...p, pref_budget_max: e.target.value}))} placeholder="600" className="text-xs" /></div>
@@ -433,7 +433,7 @@ function LeadDrawer({ lead, onClose, onRefresh }) {
                 <Input type="number" value={prefs.pref_anticipo} onChange={e => setPrefs(p => ({...p, pref_anticipo: e.target.value}))} placeholder="0" className="text-xs" /></div>
 
               <Button onClick={handlePrefs} disabled={savingPref} className="w-full gap-2 bg-electric hover:bg-electric/90 text-white">
-                {savingPref ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                {savingPref ? <Loader2 className="size-4 animate-spin" /> : null}
                 Salva preferenze
               </Button>
             </div>
@@ -513,7 +513,7 @@ export default function AdminLeads() {
           </div>
           {followUpCount > 0 && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-50 border border-orange-200 text-orange-700 text-xs font-semibold cursor-pointer" onClick={() => { setSoloFollowUp(true); setShowFilters(true); }}>
-              <AlertCircle className="w-4 h-4" /> {followUpCount} follow-up scadut{followUpCount === 1 ? "o" : "i"}
+              <AlertCircle className="size-4" /> {followUpCount} follow-up scadut{followUpCount === 1 ? "o" : "i"}
             </div>
           )}
         </div>
@@ -523,11 +523,11 @@ export default function AdminLeads() {
           <div className="mb-4 flex flex-wrap items-center gap-3">
             {selectedIds.size > 0 && (
               <Button variant="outline" size="sm" onClick={() => setConfirmDelete("selected")} className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10">
-                <Trash2 className="w-3.5 h-3.5" /> Elimina selezionati ({selectedIds.size})
+                <Trash2 className="size-3.5" /> Elimina selezionati ({selectedIds.size})
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={() => setConfirmDelete("all")} className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/10">
-              <Trash2 className="w-3.5 h-3.5" /> Elimina tutti
+              <Trash2 className="size-3.5" /> Elimina tutti
             </Button>
           </div>
         )}
@@ -535,7 +535,7 @@ export default function AdminLeads() {
         {/* Stats bar */}
         <div className="flex flex-wrap gap-2 mb-5">
           {ALL_STATUSES.map(s => (
-            <button key={s}
+            <button type="button" key={s}
               onClick={() => setFilter(filterStatus === s ? "tutti" : s)}
               className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-semibold transition-all ${filterStatus === s ? "border-electric/50 bg-electric/10 text-electric" : "border-border bg-card text-muted-foreground hover:border-electric/30"}`}>
               {s}
@@ -547,15 +547,15 @@ export default function AdminLeads() {
         {/* Barra filtri */}
         <div className="flex gap-2 mb-4 flex-wrap">
           <div className="relative flex-1 min-w-48 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cerca nome, email, marca…" className="pl-9 text-sm" />
           </div>
           <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)} className={`gap-2 ${hasActiveFilters ? "border-electric text-electric" : ""}`}>
-            <Filter className="w-3.5 h-3.5" /> Filtri {hasActiveFilters && `(${[filterCarburante, filterMarca, soloFollowUp].filter(Boolean).length})`}
+            <Filter className="size-3.5" /> Filtri {hasActiveFilters && `(${[filterCarburante, filterMarca, soloFollowUp].filter(Boolean).length})`}
           </Button>
           {(filterStatus !== "tutti" || search || hasActiveFilters) && (
             <Button variant="ghost" size="sm" onClick={() => { setFilter("tutti"); setSearch(""); resetFilters(); }} className="gap-1 text-muted-foreground">
-              <RotateCcw className="w-3.5 h-3.5" /> Reset
+              <RotateCcw className="size-3.5" /> Reset
             </Button>
           )}
         </div>
@@ -578,16 +578,16 @@ export default function AdminLeads() {
               </Select>
             </div>
             <div className="flex items-end">
-              <button
+              <button type="button"
                 onClick={() => setSoloFollowUp(!soloFollowUp)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-colors w-full ${soloFollowUp ? "bg-orange-50 border-orange-300 text-orange-700" : "border-border text-muted-foreground hover:border-border/60"}`}>
-                <Calendar className="w-3.5 h-3.5" /> Solo follow-up
+                <Calendar className="size-3.5" /> Solo follow-up
               </button>
             </div>
             {hasActiveFilters && (
               <div className="flex items-end">
                 <Button variant="ghost" size="sm" onClick={resetFilters} className="gap-1 w-full text-xs">
-                  <X className="w-3 h-3" /> Pulisci filtri
+                  <X className="size-3" /> Pulisci filtri
                 </Button>
               </div>
             )}
@@ -603,7 +603,7 @@ export default function AdminLeads() {
           ) : (
             <>
               <div className="flex items-center gap-3 px-5 py-2.5 border-b border-border/30 bg-muted/10">
-                <input type="checkbox" className="w-4 h-4 rounded border-border cursor-pointer"
+                <input type="checkbox" className="size-4 rounded border-border cursor-pointer"
                   checked={filtered.length > 0 && filtered.every(l => selectedIds.has(l.id))}
                   onChange={e => { if (e.target.checked) setSelectedIds(new Set(filtered.map(l => l.id))); else setSelectedIds(new Set()); }} />
                 <span className="text-xs text-muted-foreground">{selectedIds.size > 0 ? `${selectedIds.size} selezionati` : `${filtered.length} lead`}</span>
@@ -614,16 +614,16 @@ export default function AdminLeads() {
                   <div key={lead.id} className={`flex items-center gap-3 px-5 py-4 hover:bg-muted/20 transition-colors cursor-pointer group ${selectedIds.has(lead.id) ? "bg-destructive/5" : ""}`}
                     onClick={() => setDetail(lead)}>
                     {/* Checkbox */}
-                    <input type="checkbox" className="w-4 h-4 rounded border-border cursor-pointer shrink-0"
+                    <input type="checkbox" className="size-4 rounded border-border cursor-pointer shrink-0"
                       checked={selectedIds.has(lead.id)}
                       onClick={e => e.stopPropagation()}
                       onChange={e => { const n = new Set(selectedIds); if (e.target.checked) n.add(lead.id); else n.delete(lead.id); setSelectedIds(n); }} />
 
                     {/* Avatar con indicatore follow-up */}
-                    <div className="relative w-9 h-9 rounded-full bg-navy/10 flex items-center justify-center shrink-0">
-                      <User className="w-4 h-4 text-navy" />
+                    <div className="relative size-9 rounded-full bg-navy/10 flex items-center justify-center shrink-0">
+                      <User className="size-4 text-navy" />
                       {lead.follow_up_at && new Date(lead.follow_up_at) <= new Date() && (
-                        <span className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-orange-500 border-2 border-card" />
+                        <span className="absolute -top-0.5 -right-0.5 size-3 rounded-full bg-orange-500 border-2 border-card" />
                       )}
                     </div>
 
@@ -636,13 +636,13 @@ export default function AdminLeads() {
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
-                        {lead.email && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Mail className="w-3 h-3" />{lead.email}</span>}
-                        {lead.telefono && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Phone className="w-3 h-3" />{lead.telefono}</span>}
+                        {lead.email && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Mail className="size-3" />{lead.email}</span>}
+                        {lead.telefono && <span className="flex items-center gap-1 text-xs text-muted-foreground"><Phone className="size-3" />{lead.telefono}</span>}
                       </div>
                       {/* Preferenze strutturate */}
                       <div className="flex flex-wrap gap-1.5 mt-1">
-                        {lead.pref_marca && <span className="flex items-center gap-1 text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground"><Car className="w-2.5 h-2.5" />{lead.pref_marca} {lead.pref_modello}</span>}
-                        {lead.pref_carburante && <span className="flex items-center gap-1 text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground"><Fuel className="w-2.5 h-2.5" />{lead.pref_carburante}</span>}
+                        {lead.pref_marca && <span className="flex items-center gap-1 text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground"><Car className="size-2.5" />{lead.pref_marca} {lead.pref_modello}</span>}
+                        {lead.pref_carburante && <span className="flex items-center gap-1 text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground"><Fuel className="size-2.5" />{lead.pref_carburante}</span>}
                         {lead.pref_durata_mesi && <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">{lead.pref_durata_mesi} mesi</span>}
                         {(lead.pref_budget_min || lead.pref_budget_max) && (
                           <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
@@ -672,11 +672,11 @@ export default function AdminLeads() {
                     {/* Converti */}
                     {lead.status !== "Convertito" && (
                       <Button size="sm" variant="outline" onClick={e => { e.stopPropagation(); setConvert(lead); }} className="h-8 text-xs gap-1 shrink-0">
-                        <Plus className="w-3.5 h-3.5" /> Pratica
+                        <Plus className="size-3.5" /> Pratica
                       </Button>
                     )}
 
-                    <ChevronRight className="w-4 h-4 text-muted-foreground/40 shrink-0 group-hover:text-muted-foreground transition-colors" />
+                    <ChevronRight className="size-4 text-muted-foreground/40 shrink-0 group-hover:text-muted-foreground transition-colors" />
                   </div>
                 ))}
               </div>
@@ -707,8 +707,8 @@ export default function AdminLeads() {
       {(confirmDelete === "all" || confirmDelete === "selected") && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6">
-            <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4 mx-auto">
-              <Trash2 className="w-5 h-5 text-destructive" />
+            <div className="size-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4 mx-auto">
+              <Trash2 className="size-5 text-destructive" />
             </div>
             <h3 className="font-heading font-semibold text-lg text-center mb-2">
               {confirmDelete === "selected" ? `Elimina ${selectedIds.size} lead` : "Elimina tutti i lead"}
@@ -724,7 +724,7 @@ export default function AdminLeads() {
                 onClick={() => confirmDelete === "selected" ? deleteSelectedMutation.mutate() : deleteAllMutation.mutate()}
                 disabled={deleteAllMutation.isPending || deleteSelectedMutation.isPending}
                 className="flex-1 bg-destructive hover:bg-destructive/90 text-white gap-2">
-                {(deleteAllMutation.isPending || deleteSelectedMutation.isPending) && <Loader2 className="w-4 h-4 animate-spin" />}
+                {(deleteAllMutation.isPending || deleteSelectedMutation.isPending) && <Loader2 className="size-4 animate-spin" />}
                 {confirmDelete === "selected" ? "Elimina selezionati" : "Elimina tutto"}
               </Button>
             </div>

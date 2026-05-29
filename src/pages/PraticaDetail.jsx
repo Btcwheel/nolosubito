@@ -125,8 +125,8 @@ export default function PraticaDetail() {
     <div className="min-h-screen bg-background pt-8 pb-16 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Back */}
-        <button onClick={() => navigate(backPath)} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-electric transition-colors mb-6">
-          <ArrowLeft className="w-4 h-4" /> Torna alla lista
+        <button type="button" onClick={() => navigate(backPath)} className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-electric transition-colors mb-6">
+          <ArrowLeft className="size-4" /> Torna alla lista
         </button>
 
         {/* Header */}
@@ -325,7 +325,7 @@ export default function PraticaDetail() {
         {profile?.role !== "cliente" && profile?.role !== "agente" && (
           <div className="bg-card border border-border/50 rounded-2xl p-5 mb-6">
             <h2 className="font-heading font-semibold text-base mb-3 flex items-center gap-2">
-              <Users className="w-4 h-4 text-electric" /> Operatore responsabile
+              <Users className="size-4 text-electric" /> Operatore responsabile
             </h2>
             {profile?.role === "admin" ? (
               <Select
@@ -362,7 +362,7 @@ export default function PraticaDetail() {
         {pratica.agente_id && profile?.role !== "cliente" && (
           <div className="bg-card border border-border/50 rounded-2xl p-5 mb-6">
             <h2 className="font-heading font-semibold text-base mb-4 flex items-center gap-2">
-              <Euro className="w-4 h-4 text-electric" /> Provvigione Agente
+              <Euro className="size-4 text-electric" /> Provvigione Agente
             </h2>
 
             {/* Stato attuale */}
@@ -380,8 +380,8 @@ export default function PraticaDetail() {
               <div>
                 {pratica.provvigione != null && (
                   pratica.provvigione_pagata
-                    ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-50 border border-green-200 rounded-full px-2.5 py-1"><CheckCircle2 className="w-3 h-3" /> Pagata</span>
-                    : <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1"><Clock className="w-3 h-3" /> Da pagare</span>
+                    ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-50 border border-green-200 rounded-full px-2.5 py-1"><CheckCircle2 className="size-3" /> Pagata</span>
+                    : <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1"><Clock className="size-3" /> Da pagare</span>
                 )}
               </div>
             </div>
@@ -442,12 +442,12 @@ export default function PraticaDetail() {
                   <span className="text-xs text-muted-foreground capitalize">{n.autore_ruolo}</span>
                   {n.visibile_cliente && (
                     <span className="ml-auto flex items-center gap-1 text-xs text-green-600">
-                      <Eye className="w-3 h-3" /> Visibile al cliente
+                      <Eye className="size-3" /> Visibile al cliente
                     </span>
                   )}
                   {!n.visibile_cliente && n.autore_ruolo !== "cliente" && (
                     <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
-                      <Lock className="w-3 h-3" /> Interna
+                      <Lock className="size-3" /> Interna
                     </span>
                   )}
                 </div>
@@ -476,7 +476,7 @@ export default function PraticaDetail() {
                     onChange={e => setNotaVisibile(e.target.checked)}
                     className="rounded"
                   />
-                  <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                  <Eye className="size-3.5 text-muted-foreground" />
                   Visibile al cliente
                 </label>
                 <Button
@@ -485,7 +485,7 @@ export default function PraticaDetail() {
                   size="sm"
                   className="bg-electric hover:bg-electric/90 text-white gap-1.5"
                 >
-                  <Send className="w-3.5 h-3.5" /> Invia Nota
+                  <Send className="size-3.5" /> Invia Nota
                 </Button>
               </div>
             </div>

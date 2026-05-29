@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export const REQUIRED_DOCS = {
+const REQUIRED_DOCS = {
   "Privato": [
     { id: "buste_paga", label: "Ultime 2 buste paga", required: true },
     { id: "cud", label: "CUD (Certificazione Unica)", required: true },
@@ -114,12 +114,12 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                <div className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${
                   file ? "bg-green-100" : "bg-muted"
                 }`}>
                   {file
-                    ? <CheckCircle2 className="w-4 h-4 text-green-600" />
-                    : <FileText className="w-4 h-4 text-muted-foreground" />
+                    ? <CheckCircle2 className="size-4 text-green-600" />
+                    : <FileText className="size-4 text-muted-foreground" />
                   }
                 </div>
                 <div className="min-w-0">
@@ -134,11 +134,11 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
 
               <div className="flex items-center gap-2 shrink-0">
                 {file ? (
-                  <button
+                  <button type="button"
                     onClick={() => removeFile(doc.id)}
                     className="p-1.5 rounded-lg hover:bg-red-100 text-red-400 hover:text-red-600 transition-colors cursor-pointer"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="size-4" />
                   </button>
                 ) : (
                   <>
@@ -159,9 +159,9 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
                       }`}
                     >
                       {isUploading ? (
-                        <><Loader2 className="w-3 h-3 animate-spin" /> Caricamento…</>
+                        <><Loader2 className="size-3 animate-spin" /> Caricamento…</>
                       ) : (
-                        <><Upload className="w-3 h-3" /> Carica</>
+                        <><Upload className="size-3" /> Carica</>
                       )}
                     </label>
                   </>
@@ -192,9 +192,9 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
           className="w-full border-electric/30 text-electric hover:bg-electric/5 font-semibold cursor-pointer"
         >
           {verifying ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifica in corso…</>
+            <><Loader2 className="size-4 mr-2 animate-spin" /> Verifica in corso…</>
           ) : (
-            <><ShieldCheck className="w-4 h-4 mr-2" /> Verifica Documenti</>
+            <><ShieldCheck className="size-4 mr-2" /> Verifica Documenti</>
           )}
         </Button>
       )}
@@ -216,11 +216,11 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
           >
             <div className="flex items-center gap-2">
               {verificationResult.status === "COMPLETO" ? (
-                <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" />
+                <CheckCircle2 className="size-5 text-green-600 shrink-0" />
               ) : verificationResult.status === "PARZIALE" ? (
-                <AlertTriangle className="w-5 h-5 text-yellow-600 shrink-0" />
+                <AlertTriangle className="size-5 text-yellow-600 shrink-0" />
               ) : (
-                <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+                <AlertCircle className="size-5 text-red-600 shrink-0" />
               )}
               <Badge className={
                 verificationResult.status === "COMPLETO"
@@ -247,7 +247,7 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
                 <ul className="space-y-1">
                   {verificationResult.missing.map((m, i) => (
                     <li key={i} className="flex items-start gap-1.5 text-xs text-red-700">
-                      <X className="w-3 h-3 shrink-0 mt-0.5" /> {m}
+                      <X className="size-3 shrink-0 mt-0.5" /> {m}
                     </li>
                   ))}
                 </ul>
@@ -260,7 +260,7 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
                 <ul className="space-y-1">
                   {verificationResult.ok.map((o, i) => (
                     <li key={i} className="flex items-start gap-1.5 text-xs text-green-700">
-                      <CheckCircle2 className="w-3 h-3 shrink-0 mt-0.5" /> {o}
+                      <CheckCircle2 className="size-3 shrink-0 mt-0.5" /> {o}
                     </li>
                   ))}
                 </ul>
@@ -272,7 +272,7 @@ export default function DocumentUploader({ clientType, onDocumentsChange }) {
               onClick={verifyDocuments}
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
-              <RefreshCw className="w-3 h-3" /> Ri-verifica
+              <RefreshCw className="size-3" /> Ri-verifica
             </button>
           </motion.div>
         )}

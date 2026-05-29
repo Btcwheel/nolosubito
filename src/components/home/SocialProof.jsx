@@ -34,7 +34,7 @@ function StarRating({ count = 5 }) {
   return (
     <div className="flex gap-0.5">
       {Array(count).fill(0).map((_, i) => (
-        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+        <Star key={i} className="size-4 fill-yellow-400 text-yellow-400" />
       ))}
     </div>
   );
@@ -83,7 +83,7 @@ export default function SocialProof() {
               transition={{ duration: 0.4, delay: i * 0.1 }}
               className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/[0.08] transition-colors duration-300"
             >
-              <Quote className="w-8 h-8 text-electric/40 mb-4" />
+              <Quote className="size-8 text-electric/40 mb-4" />
               <p className="text-white/70 text-sm leading-relaxed mb-5">"{t.text}"</p>
               <div className="flex items-center justify-between">
                 <div>

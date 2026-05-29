@@ -81,7 +81,7 @@ function PromoSlide({ promo, imgY }) {
       {/* ── Left: contenuto ── */}
       <div className="space-y-4 sm:space-y-6 z-10">
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-red-400 animate-pulse" />
+          <div className="size-1.5 sm:w-2 sm:h-2 rounded-full bg-red-400 animate-pulse" />
           <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">
             Offerta Esclusiva · Tempo Limitato
           </span>
@@ -111,8 +111,8 @@ function PromoSlide({ promo, imgY }) {
                   <span className="text-white/30 line-through text-base sm:text-lg tabular-nums">
                     {originalDisplay.toLocaleString("it-IT")}€/mese
                   </span>
-                  <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1">
-                    <Tag className="w-2.5 h-2.5" />
+                  <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide flex items-center gap-1">
+                    <Tag className="size-2.5" />
                     -{discountPct}%
                   </span>
                 </div>
@@ -150,10 +150,10 @@ function PromoSlide({ promo, imgY }) {
 
           <Link
             to={`/vehicle/${encodeURIComponent(promo.make)}/${encodeURIComponent(promo.model)}`}
-            className="group inline-flex items-center gap-2 bg-[#71BAED] hover:bg-[#5aa8df] text-white font-bold px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/20 text-sm sm:text-base"
+            className="group inline-flex items-center gap-2 bg-[#71BAED] hover:bg-[#5aa8df] text-[#0f0f23] font-bold px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/20 text-sm sm:text-base"
           >
             Scopri l'offerta
-            <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-1" />
+            <ArrowRight className="size-4 text-[#0f0f23] transition-transform duration-200 group-hover:translate-x-1" />
           </Link>
         </div>
       </div>
@@ -174,7 +174,7 @@ function PromoSlide({ promo, imgY }) {
             initial={{ scale: 0, rotate: 12 }}
             animate={{ scale: 1, rotate: 12 }}
             transition={{ delay: 0.5, type: "spring", stiffness: 240, damping: 16 }}
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-500 text-white flex flex-col items-center justify-center shadow-xl shadow-red-500/40"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 size-12 sm:w-16 sm:h-16 rounded-full bg-red-600 text-white flex flex-col items-center justify-center shadow-xl shadow-red-600/40"
           >
             <span className="text-[8px] sm:text-[10px] font-bold uppercase leading-none">PROMO</span>
             <span className="text-base sm:text-xl font-black leading-none">-{Math.round(discountPct)}%</span>
@@ -255,16 +255,16 @@ export default function PromoHero() {
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
             style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }}
           />
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 right-1/3 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 left-1/4 size-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 right-1/3 size-64 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
 
           {/* Pulsante chiusura X */}
-          <button
+          <button type="button"
             onClick={dismiss}
             aria-label="Chiudi offerta"
-            className="absolute top-[68px] sm:top-4 right-3 sm:right-4 z-30 w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors duration-200 cursor-pointer"
+            className="absolute top-[68px] sm:top-4 right-3 sm:right-4 z-30 size-9 sm:w-8 sm:h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors duration-200 cursor-pointer"
           >
-            <X className="w-4 h-4 text-white/70" />
+            <X className="size-4 text-white/70" />
           </button>
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
@@ -276,13 +276,16 @@ export default function PromoHero() {
             {promos.length > 1 && (
               <div className="flex justify-center gap-2 mt-8">
                 {promos.map((_, i) => (
-                  <button
+                  <button type="button"
                     key={i}
                     onClick={() => setIdx(i)}
-                    className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                    aria-label={`Vai alla slide ${i + 1}`}
+                    className="w-6 h-6 flex items-center justify-center cursor-pointer transition-colors duration-200"
+                  >
+                    <span className={`h-2 rounded-full transition-all duration-300 ${
                       i === idx ? "bg-white w-5" : "bg-white/30 w-2 hover:bg-white/50"
-                    }`}
-                  />
+                    }`} />
+                  </button>
                 ))}
               </div>
             )}

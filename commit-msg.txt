@@ -1,6 +1,0 @@
-fix: aumenta qualità PDF render (scale 2.5, JPEG 0.95) per leggere servizi piccoli
-
-Cloud Vision legge meglio le tabelle e i font piccoli con immagini ad alta qualità.
-Questo dovrebbe risolvere la mancata lettura dei servizi nei preventivi broker.
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>

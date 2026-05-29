@@ -36,10 +36,10 @@ function PermessoToggle({ modulo, checked, onChange, isDefault }) {
       ${checked ? 'border-electric/30 bg-electric/5' : 'border-border/40 bg-muted/20 opacity-60'}`}>
       <div
         onClick={() => onChange(!checked)}
-        className={`mt-0.5 w-4 h-4 rounded flex items-center justify-center shrink-0 border-2 transition-colors
+        className={`mt-0.5 size-4 rounded flex items-center justify-center shrink-0 border-2 transition-colors
           ${checked ? 'bg-electric border-electric' : 'border-muted-foreground/30'}`}
       >
-        {checked && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
+        {checked && <CheckCircle2 className="size-2.5 text-white" />}
       </div>
       <div>
         <p className="text-sm font-medium text-foreground leading-tight">{modulo.label}</p>
@@ -95,7 +95,7 @@ function EditPermissionsDialog({ member, open, onClose, onSave }) {
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Ruolo base</p>
             <div className="flex gap-2 flex-wrap">
               {RUOLI_BASE.map(r => (
-                <button
+                <button type="button"
                   key={r.id}
                   onClick={() => handleRuoloChange(r.id)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all
@@ -146,7 +146,7 @@ function MemberCard({ member, onEdit, onToggleActive }) {
     <div className={`bg-card border rounded-xl transition-all ${!member.is_active ? 'opacity-50 border-border/30' : 'border-border/50'}`}>
       <div className="flex items-center gap-4 p-4">
         {/* Avatar */}
-        <div className="w-9 h-9 rounded-full bg-electric/10 flex items-center justify-center shrink-0">
+        <div className="size-9 rounded-full bg-electric/10 flex items-center justify-center shrink-0">
           <span className="text-sm font-bold text-electric">
             {(member.full_name || member.email)[0].toUpperCase()}
           </span>
@@ -173,26 +173,26 @@ function MemberCard({ member, onEdit, onToggleActive }) {
 
         {/* Azioni */}
         <div className="flex items-center gap-1 shrink-0">
-          <button
+          <button type="button"
             onClick={() => setExpanded(v => !v)}
             className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
           >
-            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
           </button>
-          <button
+          <button type="button"
             onClick={() => onEdit(member)}
             className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
           >
-            <Edit2 className="w-4 h-4" />
+            <Edit2 className="size-4" />
           </button>
-          <button
+          <button type="button"
             onClick={() => onToggleActive(member)}
             className={`p-1.5 rounded-lg transition-colors ${member.is_active
               ? 'text-muted-foreground hover:text-destructive hover:bg-destructive/5'
               : 'text-muted-foreground hover:text-green-600 hover:bg-green-50'}`}
             title={member.is_active ? 'Disattiva account' : 'Riattiva account'}
           >
-            {member.is_active ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
+            {member.is_active ? <PowerOff className="size-4" /> : <Power className="size-4" />}
           </button>
         </div>
       </div>
@@ -206,8 +206,8 @@ function MemberCard({ member, onEdit, onToggleActive }) {
               <div key={m.id} className={`flex items-center gap-2 text-xs px-2.5 py-1.5 rounded-lg
                 ${perms[m.id] ? 'text-green-700 bg-green-50' : 'text-muted-foreground/50 bg-muted/30'}`}>
                 {perms[m.id]
-                  ? <CheckCircle2 className="w-3 h-3 shrink-0" />
-                  : <XCircle className="w-3 h-3 shrink-0" />}
+                  ? <CheckCircle2 className="size-3 shrink-0" />
+                  : <XCircle className="size-3 shrink-0" />}
                 {m.label}
               </div>
             ))}
@@ -326,14 +326,14 @@ export default function AdminTeam() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <Users className="w-5 h-5 text-muted-foreground" /> Team backoffice
+            <Users className="size-5 text-muted-foreground" /> Team backoffice
           </h2>
           <p className="text-sm text-muted-foreground mt-0.5">
             {operatori.length} operator{operatori.length === 1 ? 'e' : 'i'} · invita e gestisci i permessi
           </p>
         </div>
         <Button onClick={() => setShowInvite(v => !v)} className="gap-2">
-          <UserPlus className="w-4 h-4" />
+          <UserPlus className="size-4" />
           Invita operatore
         </Button>
       </div>
@@ -395,7 +395,7 @@ export default function AdminTeam() {
           </div>
 
           <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-            <Mail className="w-4 h-4 text-blue-500 shrink-0" />
+            <Mail className="size-4 text-blue-500 shrink-0" />
             <p className="text-xs text-blue-700">
               L'operatore riceverà un'email con il link per impostare la sua password e accedere al backoffice.
             </p>
@@ -417,7 +417,7 @@ export default function AdminTeam() {
         <div className="space-y-3">
           {operatori.length === 0 && !showInvite && (
             <div className="text-center py-12 text-muted-foreground">
-              <Shield className="w-8 h-8 mx-auto mb-2 opacity-30" />
+              <Shield className="size-8 mx-auto mb-2 opacity-30" />
               <p className="text-sm">Nessun operatore ancora.</p>
               <p className="text-xs mt-1">Clicca "Invita operatore" per aggiungere il primo membro del team.</p>
             </div>
@@ -440,8 +440,8 @@ export default function AdminTeam() {
           <div className="space-y-2">
             {admins.map(m => (
               <div key={m.id} className="flex items-center gap-3 px-4 py-3 bg-muted/20 rounded-xl border border-border/30">
-                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
-                  <Shield className="w-4 h-4 text-purple-600" />
+                <div className="size-8 rounded-full bg-purple-100 flex items-center justify-center">
+                  <Shield className="size-4 text-purple-600" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">{m.full_name || m.email}</p>

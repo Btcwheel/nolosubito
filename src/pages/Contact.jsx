@@ -61,8 +61,8 @@ export default function Contact() {
               <h2 className="font-heading font-bold text-xl text-navy">Informazioni di Contatto</h2>
               {contactInfo.map((c) => (
                 <div key={c.label} className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
-                    <c.icon className="w-5 h-5 text-electric" />
+                  <div className="size-10 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
+                    <c.icon className="size-5 text-electric" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">{c.label}</p>
@@ -116,8 +116,8 @@ export default function Contact() {
               {offices.map((office) => (
                 <div key={office.name} className="bg-white border border-frame rounded-2xl p-5 shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)]">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-electric/10 flex items-center justify-center shrink-0">
-                      <MapPin className="w-5 h-5 text-electric" />
+                    <div className="size-10 rounded-xl bg-electric/10 flex items-center justify-center shrink-0">
+                      <MapPin className="size-5 text-electric" />
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-heading font-semibold text-lg text-navy-dark">

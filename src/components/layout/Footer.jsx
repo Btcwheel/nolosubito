@@ -47,18 +47,18 @@ export default function Footer() {
             <h4 className="font-heading font-semibold text-white mb-4">Contatti</h4>
             <ul className="space-y-3 text-sm">
               <li className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-electric" />
+                <Mail className="size-4 text-electric" />
                 <a href="mailto:info@nolosubito.it" className="hover:text-electric transition-colors duration-200">info@nolosubito.it</a>
               </li>
               <li className="flex items-center gap-2">
-                <Phone className="w-4 h-4 text-electric" />
+                <Phone className="size-4 text-electric" />
                 <a href="tel:+390640049490" className="hover:text-electric transition-colors duration-200">
                   +39 06 4004 9490 <br /> +39 3454300936
 
                 </a>
               </li>
               <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 text-electric" />
+                <MapPin className="size-4 text-electric" />
                 <div className="leading-relaxed">
                   <p className="font-medium text-white">Sede legale</p>
                   <p className="text-white/60">Via Nuova Poggioreale, 60L</p>

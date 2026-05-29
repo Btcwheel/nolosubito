@@ -31,7 +31,7 @@ export default function StatusTimeline({ currentStatus }) {
                   initial={false}
                   animate={isCurrent ? { scale: [1, 1.12, 1] } : { scale: 1 }}
                   transition={{ duration: 0.6, repeat: isCurrent ? Infinity : 0, repeatDelay: 2 }}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                  className={`size-8 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
                     isDone
                       ? "style={{backgroundColor:'#71BAED'}} style={{borderColor:'#71BAED'}}"
                       : isCurrent
@@ -40,11 +40,11 @@ export default function StatusTimeline({ currentStatus }) {
                   }`}
                 >
                   {isDone ? (
-                    <Check className="w-4 h-4 text-white" strokeWidth={2.5} />
+                    <Check className="size-4 text-white" strokeWidth={2.5} />
                   ) : isCurrent ? (
-                    <div className="w-2.5 h-2.5 rounded-full bg-electric" />
+                    <div className="size-2.5 rounded-full bg-electric" />
                   ) : (
-                    <div className="w-2.5 h-2.5 rounded-full bg-border/60" />
+                    <div className="size-2.5 rounded-full bg-border/60" />
                   )}
                 </motion.div>
 

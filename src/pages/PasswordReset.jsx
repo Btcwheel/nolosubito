@@ -134,7 +134,7 @@ export default function PasswordReset() {
   if (tokenValid === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-4 border-t-electric border-electric/20 rounded-full animate-spin" />
+        <div className="size-8 border-4 border-t-electric border-electric/20 rounded-full animate-spin" />
       </div>
     );
   }
@@ -144,7 +144,7 @@ export default function PasswordReset() {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="max-w-sm w-full bg-card border border-border rounded-2xl shadow-lg p-6">
           <div className="flex items-center gap-3 mb-4 text-red-600">
-            <AlertCircle className="w-5 h-5" />
+            <AlertCircle className="size-5" />
             <h1 className="text-lg font-bold">Link non valido</h1>
           </div>
           <p className="text-sm text-muted-foreground mb-6">
@@ -185,7 +185,7 @@ export default function PasswordReset() {
                   onClick={() => setShowPw(!showPw)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
             </div>
@@ -204,7 +204,7 @@ export default function PasswordReset() {
 
             {/* Submit */}
             <Button type="submit" disabled={loading} className="w-full mt-6">
-              {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              {loading && <Loader2 className="size-4 animate-spin mr-2" />}
               {loading ? "Aggiornamento..." : "Aggiorna Password"}
             </Button>
           </form>
@@ -212,7 +212,7 @@ export default function PasswordReset() {
 
         <p className="text-xs text-center text-muted-foreground">
           Ricordati la tua password?{" "}
-          <button
+          <button type="button"
             onClick={() => navigate("/accedi", { replace: true })}
             className="text-electric hover:text-electric/80 font-medium transition-colors"
           >

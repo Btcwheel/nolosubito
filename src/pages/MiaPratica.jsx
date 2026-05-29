@@ -66,7 +66,7 @@ function SetPasswordDialog({ open, onClose }) {
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <KeyRound className="w-5 h-5 text-electric" />
+            <KeyRound className="size-5 text-electric" />
             Imposta la tua password
           </DialogTitle>
         </DialogHeader>
@@ -86,7 +86,7 @@ function SetPasswordDialog({ open, onClose }) {
               onClick={() => setShow((s) => !s)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
             >
-              {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
             </button>
           </div>
           <Input
@@ -100,7 +100,7 @@ function SetPasswordDialog({ open, onClose }) {
             onClick={handleSave}
             disabled={saving}
           >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            {saving ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
             Salva password
           </Button>
           <button
@@ -244,7 +244,7 @@ function NuovaRichiestaDialog({ open, onClose, praticaId, clienteNome }) {
               size="sm"
               className="bg-electric hover:bg-electric/90 text-white"
             >
-              {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
+              {sending ? <Loader2 className="size-3.5 animate-spin mr-1.5" /> : null}
               Invia richiesta
             </Button>
           </div>
@@ -306,7 +306,7 @@ function PreventiviCliente({ praticaId, clienteNome }) {
       <div className="bg-card border border-border/50 rounded-2xl overflow-hidden shadow-sm">
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/40 bg-muted/20">
           <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-muted-foreground" />
+            <FileText className="size-4 text-muted-foreground" />
             <p className="font-semibold text-foreground text-sm">
               Preventivi ({visibili.length})
             </p>
@@ -317,7 +317,7 @@ function PreventiviCliente({ praticaId, clienteNome }) {
             onClick={() => setShowNuovaRichiesta(true)}
             className="gap-1.5 text-xs"
           >
-            <Plus className="w-3 h-3" />
+            <Plus className="size-3" />
             Richiedi altro
           </Button>
         </div>
@@ -406,9 +406,9 @@ function PreventiviCliente({ praticaId, clienteNome }) {
                         className="flex-1 bg-fuel-ev hover:bg-fuel-ev/90 text-white h-10 gap-2"
                       >
                         {accettaMut.isPending ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <Loader2 className="size-4 animate-spin" />
                         ) : (
-                          <CheckCircle2 className="w-4 h-4" />
+                          <CheckCircle2 className="size-4" />
                         )}
                         Accetto
                       </Button>
@@ -418,7 +418,7 @@ function PreventiviCliente({ praticaId, clienteNome }) {
                         variant="outline"
                         className="flex-1 h-10 gap-2 border-border/50"
                       >
-                        <XCircle className="w-4 h-4" />
+                        <XCircle className="size-4" />
                         Non mi interessa
                       </Button>
                     </div>
@@ -433,14 +433,14 @@ function PreventiviCliente({ praticaId, clienteNome }) {
                       invalidate();
                     }}
                   >
-                    <FileText className="w-3.5 h-3.5" />
+                    <FileText className="size-3.5" />
                     Apri preventivo
                   </Button>
                 </div>
 
                 {isAccettato && (
                   <div className="flex items-center gap-2 text-fuel-ev text-sm font-medium pt-3 border-t border-fuel-ev/20">
-                    <CheckCircle2 className="w-4 h-4" />
+                    <CheckCircle2 className="size-4" />
                     Hai accettato questo preventivo
                   </div>
                 )}
@@ -518,7 +518,7 @@ export default function MiaPratica() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(37,99,235,0.25)_0%,_transparent_60%)]" />
         <div className="w-full max-w-2xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-xs font-medium px-3 py-1.5 rounded-full border border-white/15 mb-5">
-            <div className="w-1.5 h-1.5 rounded-full bg-electric animate-pulse" />
+            <div className="size-1.5 rounded-full bg-electric animate-pulse" />
             Tracciamento in tempo reale
           </div>
           <h1 className="font-heading font-bold text-3xl md:text-5xl text-white mb-4 leading-tight px-2">
@@ -537,7 +537,7 @@ export default function MiaPratica() {
             <p className="text-sm font-medium text-foreground mb-3">Email utilizzata per la richiesta</p>
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
                   type="email"
                   value={email}
@@ -548,7 +548,7 @@ export default function MiaPratica() {
                 />
               </div>
               <Button type="submit" className="bg-electric hover:bg-electric/90 text-white h-11 px-6 gap-2 w-full sm:w-auto">
-                <Search className="w-4 h-4" /> Cerca
+                <Search className="size-4" /> Cerca
               </Button>
             </div>
           </form>
@@ -572,8 +572,8 @@ export default function MiaPratica() {
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 className="bg-card border border-border/50 rounded-2xl p-10 text-center"
               >
-                <div className="w-14 h-14 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto mb-4">
-                  <AlertCircle className="w-7 h-7 text-muted-foreground/50" />
+                <div className="size-14 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto mb-4">
+                  <AlertCircle className="size-7 text-muted-foreground/50" />
                 </div>
                 <p className="font-semibold text-foreground text-lg mb-2">Nessuna pratica trovata</p>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
@@ -617,8 +617,8 @@ export default function MiaPratica() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {(p.veicolo_marca || p.veicolo_modello) && (
                             <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-xl border border-border/30">
-                              <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
-                                <Car className="w-4 h-4 text-electric" />
+                              <div className="size-8 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
+                                <Car className="size-4 text-electric" />
                               </div>
                               <div>
                                 <p className="text-xs text-muted-foreground mb-0.5">Veicolo richiesto</p>
@@ -632,8 +632,8 @@ export default function MiaPratica() {
 
                           {p.agente_nome && (
                             <div className="flex items-start gap-3 p-4 bg-muted/30 rounded-xl border border-border/30">
-                              <div className="w-8 h-8 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
-                                <User className="w-4 h-4 text-electric" />
+                              <div className="size-8 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
+                                <User className="size-4 text-electric" />
                               </div>
                               <div>
                                 <p className="text-xs text-muted-foreground mb-0.5">Agente assegnato</p>
@@ -652,7 +652,7 @@ export default function MiaPratica() {
                         {/* Documenti richiesti banner */}
                         {p.status === "Documenti Richiesti" && (
                           <div className="bg-fuel-petrol/10 border border-fuel-petrol/25 rounded-xl px-4 py-3.5 flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 text-fuel-petrol shrink-0 mt-0.5" />
+                            <AlertCircle className="size-5 text-fuel-petrol shrink-0 mt-0.5" />
                             <div>
                               <p className="text-sm font-semibold text-fuel-petrol">Documenti richiesti</p>
                               <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
@@ -667,12 +667,12 @@ export default function MiaPratica() {
                         {showNotes && (
                           <div className="border-t border-border/40 pt-5">
                             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-4 flex items-center gap-1.5">
-                              <MessageSquare className="w-3.5 h-3.5" /> Comunicazioni dal team
+                              <MessageSquare className="size-3.5" /> Comunicazioni dal team
                             </p>
                             <div className="space-y-3">
                               {notePerPratica.map((n) => (
                                 <div key={n.id} className="flex gap-3">
-                                  <div className="w-7 h-7 rounded-full bg-electric/15 flex items-center justify-center shrink-0 mt-0.5">
+                                  <div className="size-7 rounded-full bg-electric/15 flex items-center justify-center shrink-0 mt-0.5">
                                     <span className="text-electric font-bold text-xs">NS</span>
                                   </div>
                                   <div className="flex-1 bg-electric/5 border border-electric/10 rounded-xl px-4 py-3">

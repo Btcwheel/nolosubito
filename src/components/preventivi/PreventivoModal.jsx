@@ -122,7 +122,7 @@ export default function PreventivoModal({ preventivo, clienteNome, open, onClose
           {/* Intestatario */}
           {clienteNome && (
             <div className="bg-[#F4F6FB] rounded-xl px-4 py-3 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#36389D]/10 flex items-center justify-center shrink-0">
+              <div className="size-8 rounded-full bg-[#36389D]/10 flex items-center justify-center shrink-0">
                 <span className="text-[#36389D] font-bold text-sm">{clienteNome.charAt(0).toUpperCase()}</span>
               </div>
               <div>
@@ -152,7 +152,7 @@ export default function PreventivoModal({ preventivo, clienteNome, open, onClose
             disabled={downloading}
             className="flex-1 bg-[#36389D] hover:bg-[#36389D]/90 text-white gap-2"
           >
-            <Download className="w-4 h-4" />
+            <Download className="size-4" />
             {downloading ? "Generazione…" : "Scarica PDF"}
           </Button>
         </div>

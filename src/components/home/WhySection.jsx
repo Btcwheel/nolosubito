@@ -42,7 +42,7 @@ export default function WhySection() {
             transition={{ duration: 0.5 }}
             className="lg:col-span-2 flex flex-col justify-between bg-navy rounded-2xl p-8 sm:p-10 min-h-[280px]"
           >
-            <PRIMARY.icon className="w-10 h-10 text-electric" />
+            <PRIMARY.icon className="size-10 text-electric" />
             <div>
               <h3 className="font-heading font-bold text-xl text-white mb-3">{PRIMARY.title}</h3>
               <p className="text-white/60 text-sm leading-relaxed">{PRIMARY.desc}</p>
@@ -60,7 +60,7 @@ export default function WhySection() {
                 transition={{ duration: 0.4, delay: i * 0.07 }}
                 className="flex flex-col gap-4 bg-card border border-border/50 rounded-xl p-5"
               >
-                <f.icon className="w-5 h-5 text-electric" />
+                <f.icon className="size-5 text-electric" />
                 <div>
                   <h3 className="font-heading font-semibold text-sm text-foreground mb-1">{f.title}</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>

@@ -91,7 +91,7 @@ export default function DocumentUploadSection({ praticaId }) {
   return (
     <div className="bg-card border border-border/50 rounded-2xl p-5">
       <h2 className="font-heading font-semibold text-base mb-4 flex items-center gap-2">
-        <FileText className="w-4 h-4 text-electric" />
+        <FileText className="size-4 text-electric" />
         Documenti
       </h2>
 
@@ -111,7 +111,7 @@ export default function DocumentUploadSection({ praticaId }) {
           disabled={uploading}
           className="gap-2"
         >
-          <Upload className="w-4 h-4" /> Scegli file
+          <Upload className="size-4" /> Scegli file
         </Button>
         <input
           ref={inputRef}
@@ -137,7 +137,7 @@ export default function DocumentUploadSection({ praticaId }) {
       >
         {uploading ? (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 text-electric animate-spin" />
+            <Loader2 className="size-8 text-electric animate-spin" />
             <p className="text-sm text-muted-foreground">
               Caricamento in corso…
             </p>
@@ -149,8 +149,8 @@ export default function DocumentUploadSection({ praticaId }) {
           </div>
         ) : (
           <>
-            <div className="w-12 h-12 rounded-2xl bg-electric/10 flex items-center justify-center mb-3">
-              <Upload className="w-6 h-6 text-electric" />
+            <div className="size-12 rounded-2xl bg-electric/10 flex items-center justify-center mb-3">
+              <Upload className="size-6 text-electric" />
             </div>
             <p className="font-semibold text-sm text-foreground mb-1">
               {isDragging ? "Rilascia qui i file" : "Trascina qui i documenti"}
@@ -179,11 +179,11 @@ export default function DocumentUploadSection({ praticaId }) {
                   exit={{ opacity: 0, x: 20 }}
                   className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border border-border/30 group"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                  <div className="size-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
                     {isImage(doc.nome_file) ? (
-                      <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                      <ImageIcon className="size-4 text-muted-foreground" />
                     ) : (
-                      <FileText className="w-4 h-4 text-muted-foreground" />
+                      <FileText className="size-4 text-muted-foreground" />
                     )}
                   </div>
 
@@ -204,24 +204,24 @@ export default function DocumentUploadSection({ praticaId }) {
 
                   {/* Stato verifica */}
                   <span className={`hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${stato.bg}`}>
-                    <StatoIcon className={`w-3 h-3 ${stato.color}`} />
+                    <StatoIcon className={`size-3 ${stato.color}`} />
                     <span className={stato.color}>{doc.stato_verifica}</span>
                   </span>
 
                   {/* Actions */}
                   <div className="flex items-center gap-1 shrink-0">
                     <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                      <Button size="icon" variant="ghost" className="w-7 h-7">
-                        <ExternalLink className="w-3.5 h-3.5" />
+                      <Button size="icon" variant="ghost" className="size-7">
+                        <ExternalLink className="size-3.5" />
                       </Button>
                     </a>
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="w-7 h-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="size-7 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={() => deleteDoc(doc)}
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="size-3.5" />
                     </Button>
                   </div>
                 </motion.div>

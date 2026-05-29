@@ -56,7 +56,7 @@ export default function WorkWithUs() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
               <div className="inline-flex items-center gap-2 bg-electric/10 border border-electric/20 rounded-full px-4 py-2 mb-6">
-                <Building2 className="w-4 h-4 text-electric" />
+                <Building2 className="size-4 text-electric" />
                 <span className="text-sm text-electric font-medium">Partner Program</span>
               </div>
               <h1 className="font-heading font-bold text-4xl sm:text-5xl text-navy leading-tight">
@@ -77,7 +77,7 @@ export default function WorkWithUs() {
                   onClick={openForm}
                   className="h-12 px-8 bg-electric hover:bg-electric/90 text-white font-semibold rounded-xl text-base cursor-pointer"
                 >
-                  Diventa Partner <ArrowRight className="w-4 h-4 ml-2" />
+                  Diventa Partner <ArrowRight className="size-4 ml-2" />
                 </Button>
                 <Button
                   variant="outline"
@@ -141,8 +141,8 @@ export default function WorkWithUs() {
                 transition={{ duration: 0.3, delay: i * 0.07 }}
                 className="group p-6 bg-card rounded-2xl border border-border/50 hover:border-electric/30 hover:shadow-lg transition-all duration-300"
               >
-                <div className="w-12 h-12 rounded-xl bg-electric/10 flex items-center justify-center mb-4 group-hover:bg-electric/20 transition-colors">
-                  <b.icon className="w-6 h-6 text-electric" />
+                <div className="size-12 rounded-xl bg-electric/10 flex items-center justify-center mb-4 group-hover:bg-electric/20 transition-colors">
+                  <b.icon className="size-6 text-electric" />
                 </div>
                 <h3 className="font-heading font-semibold text-foreground mb-2">{b.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{b.desc}</p>
@@ -191,7 +191,7 @@ export default function WorkWithUs() {
                   <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
                 </div>
                 {i < steps.length - 1 && (
-                  <ChevronRight className="hidden lg:block absolute top-1/2 -right-3 -translate-y-1/2 w-5 h-5 text-electric/30 z-10" />
+                  <ChevronRight className="hidden lg:block absolute top-1/2 -right-3 -translate-y-1/2 size-5 text-electric/30 z-10" />
                 )}
               </motion.div>
             ))}
@@ -218,7 +218,7 @@ export default function WorkWithUs() {
                 >
                   <div className="flex gap-1 mb-3">
                     {Array(t.rating).fill(0).map((_, j) => (
-                      <Star key={j} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <Star key={j} className="size-4 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
                   <p className="text-sm text-muted-foreground leading-relaxed mb-4">"{t.text}"</p>
@@ -244,7 +244,7 @@ export default function WorkWithUs() {
               className="bg-navy rounded-3xl p-10 sm:p-16 text-center relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-electric/10 to-transparent pointer-events-none" />
-              <UserCheck className="w-12 h-12 text-electric mx-auto mb-5" />
+              <UserCheck className="size-12 text-electric mx-auto mb-5" />
               <h2 className="font-heading font-bold text-3xl sm:text-4xl text-white mb-4">
                 Pronto a Iniziare?
               </h2>
@@ -255,7 +255,7 @@ export default function WorkWithUs() {
                 onClick={openForm}
                 className="h-14 px-10 bg-electric hover:bg-electric/90 text-white font-bold rounded-xl text-lg cursor-pointer"
               >
-                Candidati ora — è gratuito <ArrowRight className="w-5 h-5 ml-2" />
+                Candidati ora — è gratuito <ArrowRight className="size-5 ml-2" />
               </Button>
             </motion.div>
           )}

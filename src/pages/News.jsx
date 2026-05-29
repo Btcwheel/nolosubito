@@ -33,7 +33,7 @@ export default function News() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-1 overflow-x-auto py-3 scrollbar-hide">
             {CATEGORIES.map(cat => (
-              <button
+              <button type="button"
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={`whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium transition-all duration-150 cursor-pointer flex-shrink-0 ${
@@ -67,7 +67,7 @@ export default function News() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-24">
-            <Newspaper className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
+            <Newspaper className="size-12 text-muted-foreground/30 mx-auto mb-4" />
             <p className="text-muted-foreground text-lg">Nessun articolo in questa categoria.</p>
           </div>
         ) : (

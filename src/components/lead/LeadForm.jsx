@@ -225,8 +225,8 @@ export default function LeadForm({ prefilledConfig }) {
         transition={{ duration: 0.3 }}
         className="py-8 px-2"
       >
-        <div className="w-16 h-16 rounded-2xl bg-fuel-ev/10 flex items-center justify-center mx-auto mb-5">
-          <Mail className="w-8 h-8 text-fuel-ev" />
+        <div className="size-16 rounded-2xl bg-fuel-ev/10 flex items-center justify-center mx-auto mb-5">
+          <Mail className="size-8 text-fuel-ev" />
         </div>
         <h3 className="font-heading font-bold text-xl text-foreground text-center mb-2">
           Controlla la tua email!
@@ -269,7 +269,7 @@ export default function LeadForm({ prefilledConfig }) {
                   : "border-border text-foreground hover:style={{borderColor:'#71BAED'}}/40 hover:style={{backgroundColor:'#71BAED'}}/5"
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="size-4" />
               {label}
             </button>
           ))}
@@ -625,13 +625,13 @@ export default function LeadForm({ prefilledConfig }) {
       >
         {sending ? (
           <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            <Loader2 className="size-4 mr-2 animate-spin" />
             Invio in corso…
           </>
         ) : (
           <>
             Richiedi Preventivo Veloce
-            <ArrowRight className="w-4 h-4 ml-2" />
+            <ArrowRight className="size-4 ml-2" />
           </>
         )}
       </Button>

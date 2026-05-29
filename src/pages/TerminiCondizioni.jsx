@@ -14,7 +14,7 @@ export default function TerminiCondizioni() {
     <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16">
         <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-8 group transition-colors">
-          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-transform" />
           Torna al sito
         </Link>
 

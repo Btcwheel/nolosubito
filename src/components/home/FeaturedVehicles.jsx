@@ -43,7 +43,7 @@ function FilterSelect({ label, value, options, onChange }) {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
-        <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
       </div>
     </div>
   );
@@ -62,7 +62,7 @@ function Toggle({ checked, onChange }) {
         checked ? "bg-electric" : "bg-gray-200"
       }`}
     >
-      <span className={`inline-block w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 mt-1 ${
+      <span className={`inline-block size-4 rounded-full bg-white shadow transition-transform duration-200 mt-1 ${
         checked ? "translate-x-6" : "translate-x-1"
       }`} />
     </button>
@@ -221,12 +221,12 @@ export default function FeaturedVehicles() {
                 onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-[#2D2E82]/10 flex items-center justify-center">
-                    <Search className="w-4 h-4 text-[#2D2E82]" />
+                  <div className="size-8 rounded-xl bg-[#2D2E82]/10 flex items-center justify-center">
+                    <Search className="size-4 text-[#2D2E82]" />
                   </div>
                   <span className="text-sm font-bold text-[#2D2E82]">Ricerca avanzata veicoli</span>
                 </div>
-                <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${isMobileFiltersOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`size-5 text-gray-500 transition-transform ${isMobileFiltersOpen ? 'rotate-180' : ''}`} />
               </div>
 
               <div className={`grid grid-cols-2 gap-3 sm:flex sm:flex-row items-end sm:gap-2.5 mt-4 sm:mt-0 ${isMobileFiltersOpen ? 'block' : 'hidden sm:flex'}`}>
@@ -285,7 +285,7 @@ export default function FeaturedVehicles() {
                     onClick={() => { resetPage(); setIsMobileFiltersOpen(false); scrollToResults(); }}
                     className="flex items-center justify-center gap-2 bg-navy hover:bg-navy/90 text-white font-bold rounded-xl px-5 py-2.5 text-sm transition-colors cursor-pointer whitespace-nowrap shadow-md"
                   >
-                    <Car className="w-4 h-4" />
+                    <Car className="size-4" />
                     Trova Offerte
                   </button>
                 </div>
@@ -304,9 +304,9 @@ export default function FeaturedVehicles() {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm text-gray-500 font-medium">Filtri rapidi:</span>
               {QUICK_FILTERS.map(f => (
-                <button
+                <button type="button"
                   key={f}
-                  type="button"
+                 
                   onClick={() => handleQuick(f)}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
                     quickFilter === f
@@ -370,7 +370,7 @@ export default function FeaturedVehicles() {
                       <Skeleton className="h-8 w-32" />
                       <Skeleton className="h-3 w-24 mt-1" />
                     </div>
-                    <Skeleton className="h-12 w-12 rounded-xl shrink-0" />
+                    <Skeleton className="size-12 rounded-xl shrink-0" />
                   </div>
                 </div>
               </div>
@@ -392,18 +392,18 @@ export default function FeaturedVehicles() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-10 flex-wrap">
-            <button
+            <button type="button"
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-600 disabled:opacity-40 hover:bg-white cursor-pointer transition-colors"
+              className="size-9 flex items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-600 disabled:opacity-40 hover:bg-white cursor-pointer transition-colors"
             >
               ‹
             </button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-              <button
+              <button type="button"
                 key={n}
                 onClick={() => setCurrentPage(n)}
-                className={`w-9 h-9 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
+                className={`size-9 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
                   currentPage === n
                     ? "bg-navy text-white"
                     : "border border-gray-200 hover:bg-white text-gray-700"
@@ -412,10 +412,10 @@ export default function FeaturedVehicles() {
                 {n}
               </button>
             ))}
-            <button
+            <button type="button"
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-600 disabled:opacity-40 hover:bg-white cursor-pointer transition-colors"
+              className="size-9 flex items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-600 disabled:opacity-40 hover:bg-white cursor-pointer transition-colors"
             >
               ›
             </button>

@@ -44,7 +44,7 @@ export default function NewsCard({ post, index = 0 }) {
                 </span>
               )}
               <span className="flex items-center gap-1 text-xs text-muted-foreground ml-auto">
-                <Calendar className="w-3 h-3" />
+                <Calendar className="size-3" />
                 {post.published_date
                   ? format(new Date(post.published_date), "d MMM yyyy", { locale: it })
                   : ""}
@@ -61,7 +61,7 @@ export default function NewsCard({ post, index = 0 }) {
 
             <div className="flex items-center gap-1 mt-4 text-electric text-sm font-semibold">
               Leggi l'articolo
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" />
+              <ArrowRight className="size-3.5 group-hover:translate-x-1 transition-transform duration-200" />
             </div>
           </div>
         </div>

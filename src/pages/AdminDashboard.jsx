@@ -232,8 +232,8 @@ export default function AdminDashboard() {
             ))}
             <div className="ml-auto hidden sm:block">
               <Link to="/cms">
-                <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/8 border border-white/10 text-white/70 hover:text-white hover:bg-white/12 text-xs font-semibold transition-all cursor-pointer">
-                  <Layers className="w-3.5 h-3.5" /> Gestione CMS
+                <button type="button" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/8 border border-white/10 text-white/70 hover:text-white hover:bg-white/12 text-xs font-semibold transition-all cursor-pointer">
+                  <Layers className="size-3.5" /> Gestione CMS
                 </button>
               </Link>
             </div>
@@ -249,7 +249,7 @@ export default function AdminDashboard() {
           {TABS.map(({ id, label, icon: Icon }) => {
             const count = id === "pratiche" ? pratiche.length : id === "catalogo" ? offers.length : null;
             return (
-              <button
+              <button type="button"
                 key={id}
                 onClick={() => setActiveTab(id)}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
@@ -258,7 +258,7 @@ export default function AdminDashboard() {
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="size-4" />
                 {label}
                 {count !== null && (
                   <span className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
@@ -278,7 +278,7 @@ export default function AdminDashboard() {
             {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-3 mb-5">
               <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
                   placeholder="Cerca per nome, email o codice…"
                   value={search}
@@ -304,7 +304,7 @@ export default function AdminDashboard() {
                   onClick={() => setConfirmDeletePraticheMode("selected")}
                   className="h-11 gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive rounded-xl"
                 >
-                  <Trash2 className="w-4 h-4" /> Elimina selezionati ({selectedPraticheIds.size})
+                  <Trash2 className="size-4" /> Elimina selezionati ({selectedPraticheIds.size})
                 </Button>
               )}
               {filteredPratiche.length > 0 && (
@@ -314,7 +314,7 @@ export default function AdminDashboard() {
                   onClick={() => setConfirmDeletePraticheMode("all")}
                   className="h-11 gap-2 text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive rounded-xl"
                 >
-                  <Trash2 className="w-4 h-4" /> Elimina tutto
+                  <Trash2 className="size-4" /> Elimina tutto
                 </Button>
               )}
             </div>
@@ -327,7 +327,7 @@ export default function AdminDashboard() {
                 </div>
               ) : filteredPratiche.length === 0 ? (
                 <div className="py-20 text-center">
-                  <ClipboardList className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+                  <ClipboardList className="size-10 text-muted-foreground/30 mx-auto mb-3" />
                   <p className="text-muted-foreground text-sm">Nessuna pratica trovata.</p>
                 </div>
               ) : (
@@ -338,7 +338,7 @@ export default function AdminDashboard() {
                         <th className="px-4 py-3 w-10">
                           <input
                             type="checkbox"
-                            className="w-4 h-4 rounded border-border cursor-pointer"
+                            className="size-4 rounded border-border cursor-pointer"
                             checked={filteredPratiche.length > 0 && filteredPratiche.every(p => selectedPraticheIds.has(p.id))}
                             onChange={e => {
                               if (e.target.checked) setSelectedPraticheIds(new Set(filteredPratiche.map(p => p.id)));
@@ -370,7 +370,7 @@ export default function AdminDashboard() {
                             <td className="px-4 py-3.5 w-10">
                               <input
                                 type="checkbox"
-                                className="w-4 h-4 rounded border-border cursor-pointer"
+                                className="size-4 rounded border-border cursor-pointer"
                                 checked={selectedPraticheIds.has(p.id)}
                                 onChange={e => {
                                   const next = new Set(selectedPraticheIds);
@@ -409,7 +409,7 @@ export default function AdminDashboard() {
                             {/* Stato */}
                             <td className="px-4 py-3.5">
                               <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border whitespace-nowrap ${statusCfg.badge}`}>
-                                <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
+                                <span className={`size-1.5 rounded-full ${statusCfg.dot}`} />
                                 {p.status}
                               </span>
                             </td>
@@ -438,8 +438,8 @@ export default function AdminDashboard() {
                             {/* Action */}
                             <td className="px-4 py-3.5 text-right">
                               <Link to={`/admin/pratica/${p.id}`}>
-                                <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer group-hover:text-electric">
-                                  Apri <ChevronRight className="w-3.5 h-3.5" />
+                                <button type="button" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-all cursor-pointer group-hover:text-electric">
+                                  Apri <ChevronRight className="size-3.5" />
                                 </button>
                               </Link>
                             </td>
@@ -468,7 +468,7 @@ export default function AdminDashboard() {
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
             <div className="flex flex-col sm:flex-row gap-3 mb-5">
               <div className="relative flex-1">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
                   placeholder="Cerca marca o modello…"
                   value={searchAuto}
@@ -478,7 +478,7 @@ export default function AdminDashboard() {
               </div>
               <Link to="/cms">
                 <Button variant="outline" className="h-11 gap-2 rounded-xl">
-                  <Layers className="w-4 h-4" /> Gestisci nel CMS
+                  <Layers className="size-4" /> Gestisci nel CMS
                 </Button>
               </Link>
             </div>
@@ -520,7 +520,7 @@ export default function AdminDashboard() {
                       )}
                     </div>
 
-                    <button
+                    <button type="button"
                       onClick={() => toggleActive.mutate({ id: o.id, is_active: !o.is_active })}
                       className={`w-full py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                         o.is_active
@@ -537,10 +537,10 @@ export default function AdminDashboard() {
                         {/* Header */}
                         <div className="flex items-center justify-between">
                           <p className="text-xs font-bold text-orange-700 flex items-center gap-1.5">
-                            <Tag className="w-3.5 h-3.5" /> Imposta Promozione
+                            <Tag className="size-3.5" /> Imposta Promozione
                           </p>
-                          <button onClick={() => setPromoEditId(null)} className="text-orange-400 hover:text-orange-600 cursor-pointer">
-                            <X className="w-3.5 h-3.5" />
+                          <button type="button" onClick={() => setPromoEditId(null)} className="text-orange-400 hover:text-orange-600 cursor-pointer">
+                            <X className="size-3.5" />
                           </button>
                         </div>
 
@@ -553,9 +553,9 @@ export default function AdminDashboard() {
                               { value: "piva",     label: "P.IVA" },
                               { value: "privati",  label: "Privati" },
                             ].map(opt => (
-                              <button
+                              <button type="button"
                                 key={opt.value}
-                                type="button"
+                               
                                 onClick={() => setPromoSegment(opt.value)}
                                 className={`flex-1 py-1.5 text-[11px] font-bold rounded-lg border transition-all cursor-pointer ${
                                   promoSegment === opt.value
@@ -605,9 +605,9 @@ export default function AdminDashboard() {
                           />
                           <div className="flex gap-1.5 flex-wrap">
                             {[1, 3, 7, 10, 15, 30].map(n => (
-                              <button
+                              <button type="button"
                                 key={n}
-                                type="button"
+                               
                                 onClick={() => quickDays(n)}
                                 className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-100 text-orange-700 hover:bg-orange-200 cursor-pointer border border-orange-200"
                               >
@@ -631,7 +631,7 @@ export default function AdminDashboard() {
                               promo_services: promoServices.trim() || null,
                             })}
                           >
-                            {savePromo.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : "Salva Promo"}
+                            {savePromo.isPending ? <Loader2 className="size-3 animate-spin" /> : "Salva Promo"}
                           </Button>
                           {(o.promo_expires_at || o.promo_discount_pct) && (
                             <Button
@@ -647,7 +647,7 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     ) : (
-                      <button
+                      <button type="button"
                         onClick={() => openPromoEdit(o)}
                         className={`mt-2 w-full py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
                           o.promo_expires_at && new Date(o.promo_expires_at) > new Date()
@@ -655,7 +655,7 @@ export default function AdminDashboard() {
                             : "bg-muted/50 text-muted-foreground border-border hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200"
                         }`}
                       >
-                        <Tag className="w-3 h-3" />
+                        <Tag className="size-3" />
                         {o.promo_expires_at && new Date(o.promo_expires_at) > new Date()
                           ? o.promo_discount_pct > 0 ? `🔥 Promo attiva -${Math.round(o.promo_discount_pct)}%` : "🔥 Promo attiva"
                           : "Aggiungi Promo"}
@@ -693,8 +693,8 @@ export default function AdminDashboard() {
       {(confirmDeletePraticheMode || confirmDeletePratiche) && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-sm p-6">
-            <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4 mx-auto">
-              <Trash2 className="w-5 h-5 text-destructive" />
+            <div className="size-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4 mx-auto">
+              <Trash2 className="size-5 text-destructive" />
             </div>
             <h3 className="font-heading font-semibold text-lg text-center mb-2">
               {confirmDeletePraticheMode === "selected"
@@ -713,7 +713,7 @@ export default function AdminDashboard() {
                 disabled={deleteAllPraticheMutation.isPending || deleteSelectedPraticheMutation.isPending}
                 className="flex-1 bg-destructive hover:bg-destructive/90 text-white gap-2"
               >
-                {(deleteAllPraticheMutation.isPending || deleteSelectedPraticheMutation.isPending) && <Loader2 className="w-4 h-4 animate-spin" />}
+                {(deleteAllPraticheMutation.isPending || deleteSelectedPraticheMutation.isPending) && <Loader2 className="size-4 animate-spin" />}
                 {confirmDeletePraticheMode === "selected" ? "Elimina selezionati" : "Elimina tutto"}
               </Button>
             </div>

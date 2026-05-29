@@ -20,7 +20,10 @@
       "Bash(git -C \"c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo\" show 4c79d11:src/App.jsx)",
       "Bash(git -C \"c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo\" log --oneline 4c79d11..HEAD -- src/App.jsx)",
       "Bash(git -C \"c:\\\\\\\\Users\\\\\\\\Quixel\\\\\\\\Downloads\\\\\\\\fleet-flow-nolo\" branch -a --contains 4c79d11)",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\" -Directory)",
+      "Bash(grep -E \"\\\\.\\(jsx|tsx|js|ts\\)$\")",
+      "Bash(xargs grep -l \"CREATE TABLE\\\\|create table\")"
     ],
     "additionalDirectories": [
       "c:\\Users\\Quixel\\.claude\\projects\\c--Users-Quixel-Downloads-fleet-flow-nolo\\memory"

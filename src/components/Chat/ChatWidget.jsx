@@ -7,13 +7,13 @@ import useChat from '@/hooks/useChat';
 function EscalationChoiceButtons({ onChoice }) {
   return (
     <div className="flex gap-2 mt-1 flex-wrap">
-      <button
+      <button type="button"
         onClick={() => onChoice('wait')}
         className="px-3 py-1.5 text-xs rounded-xl border border-electric/40 text-electric hover:bg-electric/10 transition-colors cursor-pointer"
       >
         Aspetto ancora
       </button>
-      <button
+      <button type="button"
         onClick={() => onChoice('contact')}
         className="px-3 py-1.5 text-xs rounded-xl bg-electric text-white hover:bg-electric/90 transition-colors cursor-pointer"
       >
@@ -71,7 +71,7 @@ function TypingIndicator() {
   return (
     <div className="flex gap-2.5 items-end">
       <div className="shrink-0">
-        <div className="rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-sm w-7 h-7">
+        <div className="rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-sm size-7">
           <span className="font-bold text-white text-[11px]">L</span>
         </div>
       </div>
@@ -79,7 +79,7 @@ function TypingIndicator() {
         {[0, 1, 2].map(i => (
           <motion.div
             key={i}
-            className="w-2 h-2 rounded-full bg-muted-foreground/50"
+            className="size-2 rounded-full bg-muted-foreground/50"
             animate={{ y: [0, -5, 0] }}
             transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.15, ease: 'easeInOut' }}
           />
@@ -108,8 +108,9 @@ export default function ChatWidget() {
 
   useEffect(() => {
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 300);
+      const t = setTimeout(() => inputRef.current?.focus(), 300);
       setUnread(false);
+      return () => clearTimeout(t);
     }
   }, [open]);
 
@@ -156,15 +157,15 @@ export default function ChatWidget() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white leading-none">Luca — Consulente NLT</p>
                 <p className="text-[11px] text-white/45 mt-0.5 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
+                  <span className="size-1.5 rounded-full bg-green-400 inline-block" />
                   Online — risposta immediata
                 </p>
               </div>
-              <button
+              <button type="button"
                 onClick={() => setOpen(false)}
                 className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="size-4" />
               </button>
             </div>
 
@@ -197,14 +198,14 @@ export default function ChatWidget() {
                   className="flex-1 resize-none bg-muted/40 border border-border/50 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-electric/50 focus:ring-1 focus:ring-electric/20 transition-all max-h-24 leading-relaxed"
                   style={{ minHeight: '42px' }}
                 />
-                <button
+                <button type="button"
                   onClick={handleSend}
                   disabled={!input.trim() || typing || escalated}
-                  className="w-10 h-10 rounded-xl bg-electric disabled:bg-muted flex items-center justify-center text-white transition-all hover:bg-electric/90 active:scale-95 cursor-pointer disabled:cursor-not-allowed shrink-0"
+                  className="size-10 rounded-xl bg-electric disabled:bg-muted flex items-center justify-center text-white transition-all hover:bg-electric/90 active:scale-95 cursor-pointer disabled:cursor-not-allowed shrink-0"
                 >
                   {typing
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <Send className="w-4 h-4" />
+                    ? <Loader2 className="size-4 animate-spin" />
+                    : <Send className="size-4" />
                   }
                 </button>
               </div>
@@ -225,16 +226,16 @@ export default function ChatWidget() {
             className="bg-white rounded-2xl shadow-xl border border-border/50 p-3.5 max-w-[220px] relative cursor-pointer"
             onClick={() => setOpen(true)}
           >
-            <button
+            <button type="button"
               onClick={e => { e.stopPropagation(); setUnread(false); }}
               className="absolute top-2 right-2 text-muted-foreground hover:text-foreground cursor-pointer"
             >
-              <X className="w-3 h-3" />
+              <X className="size-3" />
             </button>
             <p className="text-sm font-semibold text-foreground pr-4">Hai domande sul Noleggio Lungo Termine?</p>
             <p className="text-xs text-muted-foreground mt-0.5">Luca risponde subito!</p>
             <div className="absolute -bottom-2 right-7 w-4 h-2 overflow-hidden">
-              <div className="w-3 h-3 bg-white border-r border-b border-border/50 rotate-45 translate-y-[-50%] translate-x-[2px]" />
+              <div className="size-3 bg-white border-r border-b border-border/50 rotate-45 translate-y-[-50%] translate-x-[2px]" />
             </div>
           </motion.div>
         )}
@@ -244,7 +245,7 @@ export default function ChatWidget() {
         onClick={() => setOpen(v => !v)}
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.95 }}
-        className="w-14 h-14 rounded-full bg-navy shadow-lg shadow-navy/30 flex items-center justify-center cursor-pointer relative"
+        className="size-14 rounded-full bg-navy shadow-lg shadow-navy/30 flex items-center justify-center cursor-pointer relative"
         aria-label="Apri assistente AI"
       >
         {!open && (
@@ -258,12 +259,12 @@ export default function ChatWidget() {
           {open
             ? (
               <motion.div key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                <X className="w-6 h-6 text-white" />
+                <X className="size-6 text-white" />
               </motion.div>
             )
             : (
               <motion.div key="chat" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                <MessageCircle className="w-6 h-6 text-white" />
+                <MessageCircle className="size-6 text-white" />
               </motion.div>
             )
           }

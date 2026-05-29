@@ -154,7 +154,7 @@ export default function CmsOffers() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="font-heading font-bold text-xl text-foreground">Configurazioni Prezzi</h2>
         <Button onClick={openNew} className="bg-electric hover:bg-electric/90 text-white gap-2">
-          <Plus className="w-4 h-4" /> Nuova Config
+          <Plus className="size-4" /> Nuova Config
         </Button>
       </div>
 
@@ -165,8 +165,8 @@ export default function CmsOffers() {
               <h3 className="font-heading font-semibold text-lg">
                 {editing === "new" ? "Nuova Configurazione" : "Modifica Configurazione"}
               </h3>
-              <button onClick={() => setEditing(null)} className="p-1.5 rounded-lg hover:bg-muted">
-                <X className="w-4 h-4" />
+              <button type="button" onClick={() => setEditing(null)} className="p-1.5 rounded-lg hover:bg-muted">
+                <X className="size-4" />
               </button>
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -217,7 +217,7 @@ export default function CmsOffers() {
             <div className="flex gap-3 mt-6">
               <Button variant="outline" onClick={() => setEditing(null)} className="flex-1">Annulla</Button>
               <Button onClick={handleSave} disabled={saveMutation.isPending} className="flex-1 bg-electric hover:bg-electric/90 text-white">
-                <Check className="w-4 h-4 mr-1" /> Salva
+                <Check className="size-4 mr-1" /> Salva
               </Button>
             </div>
           </div>
@@ -227,8 +227,8 @@ export default function CmsOffers() {
       {/* ── Quick Create Re-Use ──────────────────────────────────────────── */}
       <div className="bg-card border border-teal-200 rounded-2xl p-5 mb-6">
         <div className="flex items-center gap-2.5 mb-4">
-          <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
-            <RefreshCw className="w-4 h-4 text-teal-600" />
+          <div className="size-8 rounded-lg bg-teal-100 flex items-center justify-center">
+            <RefreshCw className="size-4 text-teal-600" />
           </div>
           <div>
             <h3 className="font-heading font-semibold text-foreground text-sm">Quick Create Re-Use</h3>
@@ -256,7 +256,7 @@ export default function CmsOffers() {
               disabled={reuseSaving || !reuseMake || !reuseModel || !Object.values(reuseRents).some(v => Number(v) > 0)}
               className="w-full bg-teal-600 hover:bg-teal-700 text-white cursor-pointer h-10"
             >
-              {reuseSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Zap className="w-4 h-4 mr-2" />}
+              {reuseSaving ? <Loader2 className="size-4 animate-spin mr-2" /> : <Zap className="size-4 mr-2" />}
               Crea config
             </Button>
           </div>
@@ -292,7 +292,7 @@ export default function CmsOffers() {
         {/* Search bar */}
         <div className="flex gap-3 items-center p-4 border-b border-border/50 bg-muted/20">
           <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -351,9 +351,9 @@ export default function CmsOffers() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => openEdit(o)}><Pencil className="w-3.5 h-3.5" /></Button>
+                        <Button size="sm" variant="ghost" onClick={() => openEdit(o)}><Pencil className="size-3.5" /></Button>
                         <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => deleteMutation.mutate(o.id)}>
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="size-3.5" />
                         </Button>
                       </div>
                     </td>

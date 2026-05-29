@@ -40,8 +40,8 @@ export default function FleetSolutions() {
                 transition={{ duration: 0.3, delay: i * 0.08 }}
                 className="p-6 bg-card rounded-2xl border border-border/50"
               >
-                <div className="w-12 h-12 rounded-xl bg-electric/10 flex items-center justify-center mb-4">
-                  <f.icon className="w-6 h-6 text-electric" />
+                <div className="size-12 rounded-xl bg-electric/10 flex items-center justify-center mb-4">
+                  <f.icon className="size-6 text-electric" />
                 </div>
                 <h3 className="font-heading font-semibold text-foreground mb-2">{f.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
@@ -57,7 +57,7 @@ export default function FleetSolutions() {
               {/* Text side */}
               <div className="p-8 sm:p-12 flex flex-col justify-center">
                 <div className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-3 py-1.5 mb-6 w-fit">
-                  <Truck className="w-4 h-4 text-electric" />
+                  <Truck className="size-4 text-electric" />
                   <span className="text-xs text-white/70 font-medium">Veicoli Commerciali</span>
                 </div>
                 <h2 className="font-heading font-bold text-3xl sm:text-4xl text-white mb-4">
@@ -74,8 +74,8 @@ export default function FleetSolutions() {
                     { icon: Wrench, label: "Allestimenti", desc: "Frigo, sponda, officina mobile" },
                   ].map((item) => (
                     <div key={item.label} className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                        <item.icon className="w-4 h-4 text-electric" />
+                      <div className="size-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                        <item.icon className="size-4 text-electric" />
                       </div>
                       <div>
                         <p className="text-white text-sm font-semibold">{item.label}</p>
@@ -86,7 +86,7 @@ export default function FleetSolutions() {
                 </div>
                 <Link to="/contact">
                   <Button className="bg-electric hover:bg-electric/90 text-white font-semibold cursor-pointer w-fit">
-                    Richiedi Preventivo Commerciali <ArrowRight className="w-4 h-4 ml-1" />
+                    Richiedi Preventivo Commerciali <ArrowRight className="size-4 ml-1" />
                   </Button>
                 </Link>
               </div>
@@ -129,7 +129,7 @@ export default function FleetSolutions() {
                 <ul className="mt-6 space-y-3">
                   {tier.features.map(f => (
                     <li key={f} className={`text-sm flex items-center gap-2 ${tier.highlight ? "text-white/80" : "text-foreground"}`}>
-                      <div className={`w-1.5 h-1.5 rounded-full ${tier.highlight ? "style={{backgroundColor:'#71BAED'}}" : "style={{backgroundColor:'#71BAED'}}"}`} />
+                      <div className={`size-1.5 rounded-full ${tier.highlight ? "style={{backgroundColor:'#71BAED'}}" : "style={{backgroundColor:'#71BAED'}}"}`} />
                       {f}
                     </li>
                   ))}
@@ -142,7 +142,7 @@ export default function FleetSolutions() {
                         : "bg-secondary text-foreground hover:bg-secondary/80"
                     }`}
                   >
-                    Richiedi Preventivo <ArrowRight className="w-4 h-4 ml-1" />
+                    Richiedi Preventivo <ArrowRight className="size-4 ml-1" />
                   </Button>
                 </Link>
               </motion.div>

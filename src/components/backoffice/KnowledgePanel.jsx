@@ -55,7 +55,7 @@ function TypingDots() {
       {[0, 1, 2].map(i => (
         <span
           key={i}
-          className="w-1.5 h-1.5 rounded-full bg-muted-foreground/40 animate-bounce"
+          className="size-1.5 rounded-full bg-muted-foreground/40 animate-bounce"
           style={{ animationDelay: `${i * 0.15}s` }}
         />
       ))}
@@ -168,8 +168,8 @@ function TrainingChat({ currentUserId, onKbUpdated }) {
           <p className="text-sm font-semibold text-foreground">Chat di addestramento con Luca</p>
           <p className="text-xs text-muted-foreground">Testa le risposte e correggi gli errori — ogni correzione viene salvata in KB</p>
         </div>
-        <button onClick={reset} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors" title="Ricomincia">
-          <RotateCcw className="w-4 h-4" />
+        <button type="button" onClick={reset} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors" title="Ricomincia">
+          <RotateCcw className="size-4" />
         </button>
       </div>
 
@@ -197,17 +197,17 @@ function TrainingChat({ currentUserId, onKbUpdated }) {
             {/* Pulsanti feedback solo su risposte di Luca senza feedback ancora */}
             {msg.role === 'assistant' && i > 0 && msg.feedback === null && correcting !== i && (
               <div className="flex gap-1.5 mt-1">
-                <button
+                <button type="button"
                   onClick={() => markCorrect(i)}
                   className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg text-green-600 hover:bg-green-50 border border-green-200 transition-colors"
                 >
-                  <ThumbsUp className="w-3 h-3" /> Corretto
+                  <ThumbsUp className="size-3" /> Corretto
                 </button>
-                <button
+                <button type="button"
                   onClick={() => startCorrect(i)}
                   className="flex items-center gap-1 text-xs px-2 py-1 rounded-lg text-red-600 hover:bg-red-50 border border-red-200 transition-colors"
                 >
-                  <ThumbsDown className="w-3 h-3" /> Correggi
+                  <ThumbsDown className="size-3" /> Correggi
                 </button>
               </div>
             )}
@@ -255,12 +255,12 @@ function TrainingChat({ currentUserId, onKbUpdated }) {
             disabled={typing}
             className="flex-1 bg-muted/40 border border-border/50 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-electric/50 disabled:opacity-50"
           />
-          <button
+          <button type="button"
             onClick={sendMessage}
             disabled={!input.trim() || typing}
-            className="w-9 h-9 rounded-xl bg-electric disabled:bg-muted flex items-center justify-center text-white transition-colors hover:bg-electric/90 disabled:cursor-not-allowed shrink-0"
+            className="size-9 rounded-xl bg-electric disabled:bg-muted flex items-center justify-center text-white transition-colors hover:bg-electric/90 disabled:cursor-not-allowed shrink-0"
           >
-            <Send className="w-3.5 h-3.5" />
+            <Send className="size-3.5" />
           </button>
         </div>
       </div>
@@ -290,7 +290,7 @@ function DocumentCard({ doc, onDelete }) {
   return (
     <div className="bg-card border border-border/50 rounded-xl overflow-hidden">
       <div className="flex items-center gap-3 px-4 py-3">
-        <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+        <FileText className="size-4 text-muted-foreground shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-foreground truncate">{doc.title}</p>
           <p className="text-xs text-muted-foreground">
@@ -300,17 +300,17 @@ function DocumentCard({ doc, onDelete }) {
           </p>
         </div>
         <div className="flex items-center gap-1">
-          <button
+          <button type="button"
             onClick={() => setExpanded(v => !v)}
             className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
           >
-            {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
           </button>
-          <button
+          <button type="button"
             onClick={() => onDelete(doc.id)}
             className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive transition-colors"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="size-4" />
           </button>
         </div>
       </div>
@@ -429,7 +429,7 @@ export default function KnowledgePanel({ currentUserId, onKbUpdated }) {
           <p className="text-xs text-muted-foreground">Documenti e risposte che Luca usa per rispondere</p>
         </div>
         <Button size="sm" onClick={() => setShowForm(v => !v)}>
-          <Plus className="w-3.5 h-3.5 mr-1.5" />
+          <Plus className="size-3.5 mr-1.5" />
           Aggiungi documento
         </Button>
       </div>
@@ -441,10 +441,10 @@ export default function KnowledgePanel({ currentUserId, onKbUpdated }) {
             <div className="flex items-center gap-2">
               {uploadedFile && (
                 <span className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 rounded-md px-2 py-1">
-                  <FileText className="w-3 h-3" />
+                  <FileText className="size-3" />
                   {uploadedFile.name}
-                  <button onClick={() => { setUploadedFile(null); setContent(''); }} className="ml-1 hover:text-destructive">
-                    <X className="w-3 h-3" />
+                  <button type="button" onClick={() => { setUploadedFile(null); setContent(''); }} className="ml-1 hover:text-destructive">
+                    <X className="size-3" />
                   </button>
                 </span>
               )}
@@ -462,9 +462,9 @@ export default function KnowledgePanel({ currentUserId, onKbUpdated }) {
                 disabled={extracting}
               >
                 {extracting ? (
-                  <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Estrazione...</>
+                  <><Loader2 className="size-3.5 mr-1.5 animate-spin" />Estrazione...</>
                 ) : (
-                  <><Paperclip className="w-3.5 h-3.5 mr-1.5" />Carica PDF / immagine</>
+                  <><Paperclip className="size-3.5 mr-1.5" />Carica PDF / immagine</>
                 )}
               </Button>
             </div>
@@ -504,7 +504,7 @@ export default function KnowledgePanel({ currentUserId, onKbUpdated }) {
 
       {!loading && docs.length === 0 && !showForm && (
         <div className="text-center py-12 text-muted-foreground">
-          <BookOpen className="w-8 h-8 mx-auto mb-2 text-muted-foreground/40" />
+          <BookOpen className="size-8 mx-auto mb-2 text-muted-foreground/40" />
           <p className="text-sm">Nessun documento nella knowledge base</p>
           <p className="text-xs mt-1">Aggiungi condizioni contrattuali, FAQ o altri testi per addestrare Luca</p>
         </div>

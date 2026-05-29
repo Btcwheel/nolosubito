@@ -39,7 +39,7 @@ function StepLabel({ n, children }) {
   return (
     <div className="flex items-center gap-2 mb-2.5">
       <span
-        className="w-4 h-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center shrink-0"
+        className="size-4 rounded-full text-white text-[9px] font-bold flex items-center justify-center shrink-0"
         style={{ backgroundColor: ACCENT }}
       >
         {n}
@@ -57,7 +57,7 @@ function OptionButton({ selected, available = true, onClick, children }) {
       : "border-border/30 text-muted-foreground/30 cursor-not-allowed line-through";
 
   return (
-    <button
+    <button type="button"
       onClick={onClick}
       disabled={!available}
       className={`relative py-2.5 rounded-xl text-sm font-bold border-2 transition-all duration-150 cursor-pointer ${cls}`}
@@ -65,7 +65,7 @@ function OptionButton({ selected, available = true, onClick, children }) {
     >
       {children}
       <span
-        className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full transition-opacity duration-150"
+        className="absolute -top-1 -right-1 size-2.5 rounded-full transition-opacity duration-150"
         style={{ backgroundColor: ACCENT, opacity: selected ? 1 : 0, pointerEvents: 'none' }}
       />
     </button>
@@ -74,16 +74,6 @@ function OptionButton({ selected, available = true, onClick, children }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChange, onRequestQuote }) {
-
-  if (segment === "ReUse") {
-    return (
-      <ReUseQuoteBox
-        fixedMake={fixedMake}
-        fixedModel={fixedModel}
-        onRequestQuote={onRequestQuote}
-      />
-    );
-  }
 
   const [selectedMake, setSelectedMake] = useState(fixedMake || "");
   const [selectedModel, setSelectedModel] = useState(fixedModel || "");
@@ -206,7 +196,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
 
   useEffect(() => {
     if (vehicleConfigs.length && !availableDurations.has(duration)) {
-      const sorted = [...availableDurations].sort((a, b) => a - b);
+      const sorted = availableDurations.toSorted((a, b) => a - b);
       if (sorted[0]) setDuration(sorted[0]);
     }
   }, [vehicleConfigs, availableDurations, duration]);
@@ -244,6 +234,16 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
     });
   }, [onRequestQuote, selectedMake, selectedModel, exactConfig, activeSegment, duration, annualKm, advance, computedRent]);
 
+  if (segment === "ReUse") {
+    return (
+      <ReUseQuoteBox
+        fixedMake={fixedMake}
+        fixedModel={fixedModel}
+        onRequestQuote={onRequestQuote}
+      />
+    );
+  }
+
   const vehicleLink = selectedMake && selectedModel
     ? `/vehicle/${encodeURIComponent(selectedMake)}/${encodeURIComponent(selectedModel)}`
     : null;
@@ -261,12 +261,12 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
       {/* Header */}
       <div className="relative overflow-hidden px-5 sm:px-6 pt-5 pb-6" style={{ backgroundColor: NAVY }}>
         <div
-          className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
+          className="absolute -top-8 -right-8 size-32 rounded-full pointer-events-none"
           style={{ backgroundColor: `${ACCENT}20`, filter: "blur(24px)" }}
         />
         <div className="flex items-center gap-2.5 mb-1 relative z-10">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${ACCENT}20` }}>
-            <Calculator className="w-4 h-4" style={{ color: ACCENT }} />
+          <div className="size-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${ACCENT}20` }}>
+            <Calculator className="size-4" style={{ color: ACCENT }} />
           </div>
           <h3 className="font-heading font-bold text-white text-lg">Configura il Canone</h3>
         </div>
@@ -280,7 +280,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
             <React.Fragment key={s.n}>
               <div className="flex items-center gap-1.5">
                 <div
-                  className="w-5 h-5 rounded-full flex items-center justify-center"
+                  className="size-5 rounded-full flex items-center justify-center"
                   style={{ backgroundColor: `${ACCENT}20`, borderColor: `${ACCENT}40`, borderWidth: 1 }}
                 >
                   <span className="text-[10px] font-bold" style={{ color: ACCENT }}>{s.n}</span>
@@ -395,7 +395,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
             <StepLabel n={3}>Anticipo</StepLabel>
             {isModifiedAdvance && (
               <span className="text-[10px] flex items-center gap-1" style={{ color: `${ACCENT}B3` }}>
-                <Info className="w-3 h-3" /> Canone ricalcolato
+                <Info className="size-3" /> Canone ricalcolato
               </span>
             )}
           </div>
@@ -444,15 +444,15 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
                 {/* Config summary */}
                 <div className="flex items-center justify-center gap-3 text-[11px] text-white/30 mb-2">
                   <span>{duration} mesi</span>
-                  <span className="w-1 h-1 rounded-full bg-white/20" />
+                  <span className="size-1 rounded-full bg-white/20" />
                   <span>{annualKm.toLocaleString("it-IT")} km/anno</span>
-                  <span className="w-1 h-1 rounded-full bg-white/20" />
+                  <span className="size-1 rounded-full bg-white/20" />
                   <span>anticipo €{advance.toLocaleString("it-IT")}</span>
                 </div>
 
                 {isListPrice && (
                   <div className="flex items-center justify-center gap-1">
-                    <CheckCircle2 className="w-3 h-3 text-green-400" />
+                    <CheckCircle2 className="size-3 text-green-400" />
                     <span className="text-green-400 text-[10px] font-medium">Prezzo di listino confermato</span>
                   </div>
                 )}
@@ -479,18 +479,18 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
             className={`${ctaClass} disabled:opacity-40`}
             style={ctaStyle}
           >
-            Richiedi Offerta Personalizzata <ArrowRight className="w-4 h-4 ml-2" />
+            Richiedi Offerta Personalizzata <ArrowRight className="size-4 ml-2" />
           </Button>
         ) : vehicleLink ? (
           <Link to={vehicleLink} className="block">
             <Button className={ctaClass} style={ctaStyle}>
-              Vedi Dettagli e Prezzi <ArrowRight className="w-4 h-4 ml-2" />
+              Vedi Dettagli e Prezzi <ArrowRight className="size-4 ml-2" />
             </Button>
           </Link>
         ) : (
           <Link to="/contact">
             <Button className={ctaClass} style={ctaStyle}>
-              Richiedi Offerta <ArrowRight className="w-4 h-4 ml-2" />
+              Richiedi Offerta <ArrowRight className="size-4 ml-2" />
             </Button>
           </Link>
         )}
@@ -498,11 +498,11 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
         {/* Trust micro-copy */}
         <div className="flex items-center justify-center gap-4 pt-1">
           <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-            <Clock className="w-3 h-3" /> Risposta entro 24h
+            <Clock className="size-3" /> Risposta entro 24h
           </span>
-          <span className="w-1 h-1 rounded-full bg-border" />
+          <span className="size-1 rounded-full bg-border" />
           <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-            <Shield className="w-3 h-3" /> Nessun impegno
+            <Shield className="size-3" /> Nessun impegno
           </span>
         </div>
       </div>

@@ -43,8 +43,8 @@ function OptionRow({ item, onSave, onDelete }) {
             placeholder="Etichetta visibile"
           />
         )}
-        <button onClick={handleSave} className="text-green-600 hover:text-green-700"><Check className="w-4 h-4" /></button>
-        <button onClick={() => setEditing(false)} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
+        <button type="button" onClick={handleSave} className="text-green-600 hover:text-green-700"><Check className="size-4" /></button>
+        <button type="button" onClick={() => setEditing(false)} className="text-muted-foreground hover:text-foreground"><X className="size-4" /></button>
       </div>
     );
   }
@@ -54,8 +54,8 @@ function OptionRow({ item, onSave, onDelete }) {
       <span className="text-sm font-medium w-36">{item.value}</span>
       {needsLabel && <span className="text-sm text-muted-foreground w-36">{item.label}</span>}
       <div className="ml-auto flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button onClick={() => setEditing(true)} className="text-muted-foreground hover:text-foreground"><Pencil className="w-3.5 h-3.5" /></button>
-        <button onClick={() => onDelete(item.id)} className="text-destructive/70 hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></button>
+        <button type="button" onClick={() => setEditing(true)} className="text-muted-foreground hover:text-foreground"><Pencil className="size-3.5" /></button>
+        <button type="button" onClick={() => onDelete(item.id)} className="text-destructive/70 hover:text-destructive"><Trash2 className="size-3.5" /></button>
       </div>
     </div>
   );
@@ -156,7 +156,7 @@ function OptionSection({ type, label, hint }) {
           disabled={!canAdd || create.isPending}
           className="h-8 px-3"
         >
-          {create.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+          {create.isPending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
         </Button>
       </div>
     </div>

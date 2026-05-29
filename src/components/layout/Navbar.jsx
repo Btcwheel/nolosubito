@@ -98,12 +98,12 @@ export default function Navbar() {
 
             {/* Offerte Dropdown — CSS-only animation */}
             <div className="relative" ref={dropdownRef}>
-              <button
+              <button type="button"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${isOffersActive ? linkActive : linkBase}`}
               >
                 Offerte Noleggio
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`} />
+                <ChevronDown className={`size-4 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`} />
               </button>
 
               <div
@@ -157,12 +157,12 @@ export default function Navbar() {
             </Link>
           </div>
 
-          <button
+          <button type="button"
             onClick={() => setIsOpen(!isOpen)}
             className={`md:hidden p-2 ${isLight ? "text-foreground" : "text-white"}`}
             aria-label={isOpen ? "Chiudi menu" : "Apri menu"}
           >
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}
           </button>
         </div>
       </div>
@@ -185,12 +185,12 @@ export default function Navbar() {
 
             {/* Mobile Offerte accordion */}
             <div>
-              <button
+              <button type="button"
                 onClick={() => setMobileOffersOpen(!mobileOffersOpen)}
                 className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${isOffersActive ? linkActiveBg : linkBase}`}
               >
                 Offerte Noleggio
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${mobileOffersOpen ? "rotate-180" : ""}`} />
+                <ChevronDown className={`size-4 transition-transform duration-200 ${mobileOffersOpen ? "rotate-180" : ""}`} />
               </button>
               <div
                 style={{ display: "grid", gridTemplateRows: mobileOffersOpen ? "1fr" : "0fr", transition: "grid-template-rows 150ms ease" }}

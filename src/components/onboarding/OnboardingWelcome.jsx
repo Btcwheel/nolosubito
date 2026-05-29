@@ -96,17 +96,17 @@ export default function OnboardingWelcome({ profile }) {
             <div className="bg-card border border-border/60 rounded-3xl shadow-2xl w-full max-w-md p-8 pointer-events-auto relative">
 
               {/* Close */}
-              <button
+              <button type="button"
                 onClick={dismiss}
                 className="absolute top-5 right-5 p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="size-4" />
               </button>
 
               {/* Header */}
               <div className="mb-7">
                 <div className={`inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest rounded-full px-3 py-1 border mb-4 ${cfg.color}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                  <span className={`size-1.5 rounded-full ${cfg.dot}`} />
                   {role.charAt(0).toUpperCase() + role.slice(1)}
                 </div>
                 <h2 className="font-heading font-bold text-2xl text-foreground leading-tight">
@@ -127,8 +127,8 @@ export default function OnboardingWelcome({ profile }) {
                     transition={{ delay: 0.15 + i * 0.08 }}
                     className="flex items-start gap-3.5"
                   >
-                    <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center shrink-0 mt-0.5">
-                      <Icon className="w-4 h-4 text-foreground/60" />
+                    <div className="size-9 rounded-xl bg-muted flex items-center justify-center shrink-0 mt-0.5">
+                      <Icon className="size-4 text-foreground/60" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-foreground leading-none">{title}</p>

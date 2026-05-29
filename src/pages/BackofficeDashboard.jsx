@@ -39,8 +39,8 @@ const ALL_TABS = [
 function StatCard({ label, value, icon: Icon, colorClass }) {
   return (
     <div className="bg-card border border-border/50 rounded-xl p-4">
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${colorClass}`}>
-        <Icon className="w-4 h-4" />
+      <div className={`size-8 rounded-lg flex items-center justify-center mb-2 ${colorClass}`}>
+        <Icon className="size-4" />
       </div>
       <div className="text-2xl font-bold text-foreground">{value}</div>
       <div className="text-xs text-muted-foreground mt-0.5 leading-tight">{label}</div>
@@ -83,13 +83,13 @@ function PraticaRow({ p, basePath }) {
           )}
           {prevNonLetti.length > 0 && (
             <span className="flex items-center gap-1 text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full w-fit">
-              <EyeOff className="w-3 h-3" />
+              <EyeOff className="size-3" />
               Preventivo non aperto
             </span>
           )}
           {prevLetti.length > 0 && prevNonLetti.length === 0 && (
             <span className="flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full w-fit">
-              <Eye className="w-3 h-3" />
+              <Eye className="size-3" />
               Preventivo letto
             </span>
           )}
@@ -109,7 +109,7 @@ function PraticaRow({ p, basePath }) {
       <td className="px-4 py-3 text-right">
         <Link to={`${basePath}/pratica/${p.id}`}>
           <Button size="sm" variant="ghost" className="h-8 gap-1 text-xs">
-            <Eye className="w-3.5 h-3.5" /> Apri
+            <Eye className="size-3.5" /> Apri
           </Button>
         </Link>
       </td>
@@ -192,14 +192,14 @@ export default function BackofficeDashboard() {
         {/* Tabs */}
         <div className="flex gap-1 bg-muted/50 rounded-xl p-1 mb-6 w-fit">
           {TABS.map(({ id, label, icon: Icon }) => (
-            <button
+            <button type="button"
               key={id}
               onClick={() => setActiveTab(id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                 activeTab === id ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="size-4" />
               {label}
               {id === "documenti" && stats.docsInAttesa > 0 && (
                 <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
@@ -216,7 +216,7 @@ export default function BackofficeDashboard() {
             {/* Filtri */}
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
               <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
@@ -272,7 +272,7 @@ export default function BackofficeDashboard() {
           <div>
             {docDaVerificare.length === 0 ? (
               <div className="bg-card border border-border/50 rounded-2xl py-16 text-center">
-                <CheckCircle2 className="w-10 h-10 text-green-500 mx-auto mb-3" />
+                <CheckCircle2 className="size-10 text-green-500 mx-auto mb-3" />
                 <p className="font-semibold text-foreground">Tutto verificato!</p>
                 <p className="text-sm text-muted-foreground mt-1">Nessun documento in attesa di verifica.</p>
               </div>
@@ -292,7 +292,7 @@ export default function BackofficeDashboard() {
                         </div>
                         <Link to={`/backoffice/pratica/${p.id}`}>
                           <Button size="sm" variant="ghost" className="h-8 gap-1 text-xs">
-                            Apri pratica <ChevronRight className="w-3.5 h-3.5" />
+                            Apri pratica <ChevronRight className="size-3.5" />
                           </Button>
                         </Link>
                       </div>

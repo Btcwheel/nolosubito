@@ -32,14 +32,14 @@ export default function CmsDashboard() {
         {/* Tabs */}
         <div className="flex gap-1 bg-muted/50 rounded-xl p-1 mb-8 w-fit">
           {TABS.map(({ id, label, icon: Icon }) => (
-            <button
+            <button type="button"
               key={id}
               onClick={() => setTab(id)}
               className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
                 tab === id ? "bg-white shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="size-4" />
               {label}
             </button>
           ))}

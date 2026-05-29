@@ -24,7 +24,7 @@ export default function Usato() {
         </iframe>
 
         <div className="mt-8 flex items-center justify-center gap-2 text-xs text-muted-foreground/50">
-          <span className="w-2 h-2 rounded-full bg-[#FF6600]" />
+          <span className="size-2 rounded-full bg-[#FF6600]" />
           Annunci forniti da{" "}
           <a
             href="https://www.autoscout24.it/concessionari/nolosubito-srl"

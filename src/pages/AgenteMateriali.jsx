@@ -59,12 +59,12 @@ export default function AgenteMateriali() {
         {/* Filtri */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Cerca materiale…" className="pl-9" />
           </div>
           <div className="flex gap-2 flex-wrap">
-            <button
+            <button type="button"
               onClick={() => setFilterTipo("tutti")}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
                 filterTipo === "tutti" ? "bg-navy text-white border-navy" : "border-border text-muted-foreground hover:border-navy/50"
@@ -73,7 +73,7 @@ export default function AgenteMateriali() {
               Tutti
             </button>
             {tipi.map(t => (
-              <button key={t} onClick={() => setFilterTipo(filterTipo === t ? "tutti" : t)}
+              <button type="button" key={t} onClick={() => setFilterTipo(filterTipo === t ? "tutti" : t)}
                 className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
                   filterTipo === t ? "bg-navy text-white border-navy" : "border-border text-muted-foreground hover:border-navy/50"
                 }`}
@@ -91,7 +91,7 @@ export default function AgenteMateriali() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="bg-card border border-border/50 rounded-2xl py-16 text-center">
-            <FileText className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
+            <FileText className="size-10 text-muted-foreground/30 mx-auto mb-3" />
             <p className="font-semibold text-foreground">Nessun materiale disponibile</p>
             <p className="text-sm text-muted-foreground mt-1">I materiali condivisi dalla direzione appariranno qui.</p>
           </div>
@@ -106,7 +106,7 @@ export default function AgenteMateriali() {
                 <div key={m.id} className="bg-card border border-border/50 rounded-2xl p-5 hover:border-navy/30 transition-colors group">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-xl bg-navy/8 flex items-center justify-center text-lg">
+                      <div className="size-9 rounded-xl bg-navy/8 flex items-center justify-center text-lg">
                         {TIPO_ICONS[m.tipo] || "📄"}
                       </div>
                       <div>
@@ -117,7 +117,7 @@ export default function AgenteMateriali() {
                     </div>
                     {expiresSoon && (
                       <span className="flex items-center gap-1 text-[10px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
-                        <Clock className="w-3 h-3" /> Scade presto
+                        <Clock className="size-3" /> Scade presto
                       </span>
                     )}
                   </div>
@@ -142,7 +142,7 @@ export default function AgenteMateriali() {
                       rel="noopener noreferrer"
                       style={{color:'#71BAED'}} className="flex items-center gap-1.5 text-xs font-semibold  hover:text-electric/80 transition-colors"
                     >
-                      <Download className="w-3.5 h-3.5" />
+                      <Download className="size-3.5" />
                       Scarica
                     </a>
                   </div>

@@ -62,6 +62,24 @@ export default defineConfig({
       mangle: { toplevel: true },
       format: { comments: false },
     },
+    modulePreload: {
+      resolveDependencies(filename, deps, { hostId, hostType }) {
+        if (hostType === 'html') {
+          return deps.filter(dep => {
+            const isNonCritical = 
+              dep.includes('charts') || 
+              dep.includes('pdf-render') || 
+              dep.includes('pdf-libs') || 
+              dep.includes('canvas') ||
+              dep.includes('supabase') ||
+              dep.includes('radix') ||
+              dep.includes('motion');
+            return !isNonCritical;
+          });
+        }
+        return deps;
+      }
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {

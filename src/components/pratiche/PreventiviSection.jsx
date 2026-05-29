@@ -173,12 +173,12 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
           {prev.status === 'Inviato' && (
             prev.letto_at ? (
               <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
-                <Eye className="w-3.5 h-3.5" />
+                <Eye className="size-3.5" />
                 Letto {format(new Date(prev.letto_at), "d MMM HH:mm", { locale: it })}
               </span>
             ) : (
               <span className="flex items-center gap-1 text-xs text-muted-foreground/60">
-                <EyeOff className="w-3.5 h-3.5" />
+                <EyeOff className="size-3.5" />
                 Non ancora aperto
               </span>
             )
@@ -231,7 +231,7 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 text-xs text-electric hover:underline w-fit"
         >
-          <FileText className="w-3.5 h-3.5" />
+          <FileText className="size-3.5" />
           {prev.documento_broker_nome || "Preventivo broker originale"}
         </a>
       )}
@@ -252,7 +252,7 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
         )}
         {prev.accettato_at && (
           <span className="text-fuel-ev font-medium">
-            <CheckCircle2 className="w-3 h-3 inline mr-0.5" />
+            <CheckCircle2 className="size-3 inline mr-0.5" />
             Accettato: {format(new Date(prev.accettato_at), "d MMM yyyy HH:mm", { locale: it })}
           </span>
         )}
@@ -266,7 +266,7 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
           onClick={() => setPreview(true)}
           className="gap-1.5 text-muted-foreground"
         >
-          <FileText className="w-3.5 h-3.5" />
+          <FileText className="size-3.5" />
           Anteprima
         </Button>
         <Button
@@ -276,7 +276,7 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
           disabled={downloading}
           className="gap-1.5 text-muted-foreground"
         >
-          {downloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+          {downloading ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
           PDF
         </Button>
         {prev.status === "Bozza" && (
@@ -287,7 +287,7 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
               disabled={isLoading}
               className="bg-electric hover:bg-electric/90 text-white gap-1.5 flex-1"
             >
-              {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+              {isLoading ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
               Invia al Cliente
             </Button>
             <Button
@@ -297,7 +297,7 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
               disabled={isLoading}
               className="border-destructive/30 text-destructive hover:bg-destructive/5"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="size-3.5" />
             </Button>
           </>
         )}
@@ -309,18 +309,18 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
             disabled={isLoading}
             className="gap-1.5 text-muted-foreground"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="size-3.5" />
             Reinvia email
           </Button>
         )}
         {prev.status === "Accettato" && (
           <div className="flex items-center gap-1.5 text-fuel-ev text-xs font-medium">
-            <CheckCircle2 className="w-4 h-4" /> Cliente ha accettato
+            <CheckCircle2 className="size-4" /> Cliente ha accettato
           </div>
         )}
         {prev.status === "Rifiutato" && (
           <div className="flex items-center gap-1.5 text-destructive text-xs font-medium">
-            <XCircle className="w-4 h-4" /> Cliente ha rifiutato
+            <XCircle className="size-4" /> Cliente ha rifiutato
           </div>
         )}
       </div>
@@ -632,7 +632,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
       {/* Section header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Car className="w-4 h-4 text-muted-foreground" />
+          <Car className="size-4 text-muted-foreground" />
           <h2 className="font-heading font-semibold text-base">Preventivi</h2>
           {preventivi.length > 0 && (
             <span className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground">
@@ -656,9 +656,9 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
             className="gap-1.5 text-xs"
           >
             {extracting ? (
-              <><Sparkles className="w-3.5 h-3.5 animate-pulse text-electric" />Analisi AI...</>
+              <><Sparkles className="size-3.5 animate-pulse text-electric" />Analisi AI...</>
             ) : (
-              <><Paperclip className="w-3.5 h-3.5" />Carica preventivo broker</>
+              <><Paperclip className="size-3.5" />Carica preventivo broker</>
             )}
           </Button>
           <Button
@@ -668,9 +668,9 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
             className={showForm ? "" : "gap-1.5"}
           >
             {showForm ? (
-              <><ChevronUp className="w-3.5 h-3.5" /> Annulla</>
+              <><ChevronUp className="size-3.5" /> Annulla</>
             ) : (
-              <><Plus className="w-3.5 h-3.5" /> Nuovo</>
+              <><Plus className="size-3.5" /> Nuovo</>
             )}
           </Button>
         </div>
@@ -915,7 +915,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
                         type="checkbox"
                         checked
                         onChange={() => set("servizi", form.servizi.filter((_, i) => i !== idx))}
-                        className="w-3.5 h-3.5 accent-electric"
+                        className="size-3.5 accent-electric"
                       />
                       <span className="text-foreground">{display}</span>
                     </label>
@@ -960,7 +960,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
                               set("servizi_richiesti", [...(form.servizi_richiesti || []), { codice, richiesto: true, prezzo: null }]);
                             }
                           }}
-                          className="w-3.5 h-3.5 accent-amber-600"
+                          className="size-3.5 accent-amber-600"
                         />
                         <span className="text-foreground">{nome}</span>
                       </label>
@@ -1001,7 +1001,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
               disabled={!canSubmit || createMut.isPending}
               className="bg-navy hover:bg-navy-dark text-white gap-1.5"
             >
-              {createMut.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+              {createMut.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Plus className="size-3.5" />}
               Salva bozza
             </Button>
           </div>
@@ -1017,7 +1017,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
         </div>
       ) : preventivi.length === 0 ? (
         <div className="text-center py-8">
-          <Car className="w-8 h-8 text-muted-foreground/30 mx-auto mb-2" />
+          <Car className="size-8 text-muted-foreground/30 mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">Nessun preventivo ancora.</p>
           <p className="text-xs text-muted-foreground/60 mt-1">
             Clicca "Nuovo Preventivo" per crearne uno.

@@ -116,7 +116,7 @@ function EscalationCard({ session, onResolve, currentUserId }) {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-foreground leading-snug">{session.user_question}</p>
           <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-            <Clock className="w-3 h-3" />
+            <Clock className="size-3" />
             {elapsed < 1 ? 'Adesso' : `${elapsed} min fa`}
             {' · '}
             {format(new Date(session.created_at), 'HH:mm', { locale: it })}
@@ -135,11 +135,11 @@ function EscalationCard({ session, onResolve, currentUserId }) {
         </div>
       )}
 
-      <button
+      <button type="button"
         onClick={() => setExpanded(v => !v)}
         className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
       >
-        <MessageSquare className="w-3 h-3" />
+        <MessageSquare className="size-3" />
         {expanded ? 'Nascondi chat' : 'Vedi chat completa'}
       </button>
 
@@ -167,7 +167,7 @@ function EscalationCard({ session, onResolve, currentUserId }) {
               onChange={e => setAddToKb(e.target.checked)}
               className="rounded"
             />
-            <BookOpen className="w-3 h-3" />
+            <BookOpen className="size-3" />
             Aggiungi alla knowledge base di Luca
           </label>
           <Button
@@ -176,7 +176,7 @@ function EscalationCard({ session, onResolve, currentUserId }) {
             disabled={!answer.trim() || saving === 'sending'}
             className="w-full"
           >
-            <Send className="w-3.5 h-3.5 mr-1.5" />
+            <Send className="size-3.5 mr-1.5" />
             {saving === 'sending' ? 'Invio...' : 'Invia risposta al cliente'}
           </Button>
         </div>
@@ -184,7 +184,7 @@ function EscalationCard({ session, onResolve, currentUserId }) {
 
       {session.status === 'resolved' && session.operator_answer && (
         <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-xs text-green-800">
-          <CheckCircle2 className="w-3.5 h-3.5 inline mr-1" />
+          <CheckCircle2 className="size-3.5 inline mr-1" />
           {session.operator_answer}
         </div>
       )}
@@ -261,7 +261,7 @@ export default function EscalationPanel({ currentUserId }) {
           <p className="text-xs text-muted-foreground">Sessioni dove Luca ha chiesto aiuto</p>
         </div>
         <div className="flex gap-2">
-          <button
+          <button type="button"
             onClick={() => setFilter('active')}
             className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
               filter === 'active'
@@ -271,7 +271,7 @@ export default function EscalationPanel({ currentUserId }) {
           >
             Attive
           </button>
-          <button
+          <button type="button"
             onClick={() => setFilter('all')}
             className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
               filter === 'all'
@@ -287,7 +287,7 @@ export default function EscalationPanel({ currentUserId }) {
       {waiting.length > 0 && (
         <div className="space-y-3">
           <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse inline-block" />
+            <span className="size-2 rounded-full bg-amber-400 animate-pulse inline-block" />
             In attesa di risposta ({waiting.length})
           </p>
           {waiting.map(s => (
@@ -320,7 +320,7 @@ export default function EscalationPanel({ currentUserId }) {
 
       {sessions.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
-          <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-green-400" />
+          <CheckCircle2 className="size-8 mx-auto mb-2 text-green-400" />
           <p className="text-sm">Nessuna chat in escalation</p>
         </div>
       )}

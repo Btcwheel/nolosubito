@@ -92,14 +92,14 @@ export default function AgenteDashboard() {
                 { id: "pipeline", label: "Pipeline", icon: Zap },
                 { id: "stats", label: "Statistiche", icon: BarChart2 },
               ].map(({ id, label, icon: Icon }) => (
-                <button
+                <button type="button"
                   key={id}
                   onClick={() => setView(id)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${
                     view === id ? "bg-white text-navy shadow-sm" : "text-white/60 hover:text-white"
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="size-3.5" />
                   {label}
                 </button>
               ))}
@@ -153,8 +153,8 @@ export default function AgenteDashboard() {
               className="bg-card border border-border/60 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className={`w-9 h-9 rounded-xl ${kpi.bg} flex items-center justify-center`}>
-                  {React.createElement(kpi.icon, { className: `w-5 h-5 ${kpi.color}` })}
+                <div className={`size-9 rounded-xl ${kpi.bg} flex items-center justify-center`}>
+                  {React.createElement(kpi.icon, { className: `size-5 ${kpi.color}` })}
                 </div>
                 <span className="text-xs text-muted-foreground font-medium">{kpi.trend}</span>
               </div>
@@ -171,14 +171,14 @@ export default function AgenteDashboard() {
             if (!count) return null;
             const cfg = PRATICA_STATUS_COLORS[s] ?? DEFAULT_STATUS_COLOR;
             return (
-              <button
+              <button type="button"
                 key={s}
                 onClick={() => setFilterStatus(filterStatus === s ? "tutti" : s)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
                   filterStatus === s ? cfg.badge + " shadow-sm scale-105" : "bg-muted/50 text-muted-foreground border-border/40 hover:border-border"
                 }`}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                <span className={`size-1.5 rounded-full ${cfg.dot}`} />
                 {s} <span className="opacity-70">·</span> {count}
               </button>
             );
@@ -195,7 +195,7 @@ export default function AgenteDashboard() {
             {/* Search + filter */}
             <div className="flex flex-col sm:flex-row gap-3 mb-5">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                 <Input
                   placeholder="Cerca per cliente, veicolo o codice…"
                   value={search}
@@ -223,8 +223,8 @@ export default function AgenteDashboard() {
               </div>
             ) : filtered.length === 0 ? (
               <div className="py-20 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto mb-4">
-                  <ClipboardList className="w-7 h-7 text-muted-foreground/40" />
+                <div className="size-14 rounded-2xl bg-muted/60 flex items-center justify-center mx-auto mb-4">
+                  <ClipboardList className="size-7 text-muted-foreground/40" />
                 </div>
                 <p className="font-semibold text-foreground">Nessuna pratica trovata</p>
                 <p className="text-sm text-muted-foreground mt-1">Prova a modificare i filtri di ricerca.</p>
@@ -269,8 +269,8 @@ export default function AgenteDashboard() {
 
                         {/* Veicolo */}
                         <div className="col-span-3 hidden md:flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                            <Car className="w-3.5 h-3.5 text-muted-foreground" />
+                          <div className="size-7 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                            <Car className="size-3.5 text-muted-foreground" />
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-foreground truncate">
@@ -285,7 +285,7 @@ export default function AgenteDashboard() {
                         {/* Stato */}
                         <div className="col-span-2">
                           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.badge}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                            <span className={`size-1.5 rounded-full ${cfg.dot}`} />
                             {p.status}
                           </span>
                         </div>
@@ -298,7 +298,7 @@ export default function AgenteDashboard() {
                               variant="ghost"
                               className="gap-1 text-muted-foreground hover:text-foreground group-hover:bg-muted h-8"
                             >
-                              Apri <ChevronRight className="w-3.5 h-3.5" />
+                              Apri <ChevronRight className="size-3.5" />
                             </Button>
                           </Link>
                         </div>

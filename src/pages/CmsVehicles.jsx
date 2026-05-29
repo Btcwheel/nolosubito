@@ -98,7 +98,7 @@ function TagInput({ tags, onChange, placeholder = "Scrivi e premi Invio…" }) {
         <span key={f} className="inline-flex items-center gap-1 bg-navy text-white text-xs px-2 py-0.5 rounded-full">
           {f}
           <button type="button" onClick={() => remove(f)} className="hover:text-electric transition-colors">
-            <X className="w-3 h-3" />
+            <X className="size-3" />
           </button>
         </span>
       ))}
@@ -162,8 +162,8 @@ function ImageUpload({ value, onChange, make, model }) {
         ) : (
           <div className="aspect-[16/9] flex flex-col items-center justify-center gap-2 text-muted-foreground">
             {uploading
-              ? <Loader2 className="w-8 h-8 animate-spin text-electric" />
-              : <><ImageIcon className="w-8 h-8" /><p className="text-sm">Clicca o trascina qui la foto</p><p className="text-xs">JPG, PNG, WebP · max 5 MB</p></>
+              ? <Loader2 className="size-8 animate-spin text-electric" />
+              : <><ImageIcon className="size-8" /><p className="text-sm">Clicca o trascina qui la foto</p><p className="text-xs">JPG, PNG, WebP · max 5 MB</p></>
             }
           </div>
         )}
@@ -179,7 +179,7 @@ function ImageUpload({ value, onChange, make, model }) {
         {preview && (
           <button type="button" onClick={() => { setPreview(""); onChange(""); }}
             className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-            <X className="w-4 h-4" />
+            <X className="size-4" />
           </button>
         )}
       </div>
@@ -230,7 +230,7 @@ function GalleryImagesInput({ images, onChange, make, model }) {
               <img src={url} alt={`gallery ${i + 1}`} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <button type="button" onClick={() => remove(i)} className="bg-white/20 hover:bg-red-500 text-white p-1.5 rounded-full transition-colors">
-                  <X className="w-3.5 h-3.5" />
+                  <X className="size-3.5" />
                 </button>
               </div>
             </div>
@@ -238,7 +238,7 @@ function GalleryImagesInput({ images, onChange, make, model }) {
           {list.length < GALLERY_MAX && (
             <button type="button" onClick={() => !uploading && inputRef.current?.click()} disabled={uploading}
               className="aspect-video border-2 border-dashed border-border hover:border-electric/40 rounded-lg flex items-center justify-center text-muted-foreground hover:text-electric transition-colors disabled:opacity-50">
-              {uploading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
+              {uploading ? <Loader2 className="size-5 animate-spin" /> : <Plus className="size-5" />}
             </button>
           )}
         </div>
@@ -246,7 +246,7 @@ function GalleryImagesInput({ images, onChange, make, model }) {
       {list.length === 0 && (
         <button type="button" onClick={() => !uploading && inputRef.current?.click()} disabled={uploading}
           className="w-full border-2 border-dashed border-border hover:border-electric/40 rounded-xl p-5 flex flex-col items-center gap-2 text-muted-foreground hover:text-electric transition-colors disabled:opacity-50">
-          {uploading ? <Loader2 className="w-6 h-6 animate-spin" /> : <><ImageIcon className="w-6 h-6" /><p className="text-sm">Clicca per aggiungere foto gallery</p><p className="text-xs opacity-70">Max {GALLERY_MAX} foto · JPG/WebP · max 3 MB</p></>}
+          {uploading ? <Loader2 className="size-6 animate-spin" /> : <><ImageIcon className="size-6" /><p className="text-sm">Clicca per aggiungere foto gallery</p><p className="text-xs opacity-70">Max {GALLERY_MAX} foto · JPG/WebP · max 3 MB</p></>}
         </button>
       )}
       <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={e => { handleFile(e.target.files[0]); e.target.value = ""; }} />
@@ -256,7 +256,7 @@ function GalleryImagesInput({ images, onChange, make, model }) {
           placeholder="oppure incolla URL foto…" className="text-xs" disabled={list.length >= GALLERY_MAX} />
         <Button type="button" size="sm" variant="outline" onClick={addUrl}
           disabled={!urlDraft.trim() || list.length >= GALLERY_MAX} className="shrink-0">
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="size-3.5" />
         </Button>
       </div>
     </div>
@@ -355,13 +355,13 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
                 type="button"
                 onClick={() => toggleFeatured(row._key)}
                 title={row.is_featured ? "Rimuovi da vetrina" : "Imposta come canone vetrina per questo segmento"}
-                className={`h-7 w-7 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
+                className={`size-7 flex items-center justify-center rounded-lg transition-colors cursor-pointer ${
                   row.is_featured
                     ? "text-amber-500 hover:text-amber-700"
                     : "text-muted-foreground/30 hover:text-amber-400"
                 }`}
               >
-                <Star className="w-3.5 h-3.5" fill={row.is_featured ? "currentColor" : "none"} />
+                <Star className="size-3.5" fill={row.is_featured ? "currentColor" : "none"} />
               </button>
 
               {/* Segmento */}
@@ -413,18 +413,18 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
                 type="button"
                 onClick={() => duplicateRow(row)}
                 title={row.segment === "P.IVA" ? "Duplica come Privati" : row.segment === "Privati" ? "Duplica come P.IVA" : "Duplica riga"}
-                className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-blue-50 text-muted-foreground hover:text-blue-600 transition-colors cursor-pointer"
+                className="size-8 flex items-center justify-center rounded-lg hover:bg-blue-50 text-muted-foreground hover:text-blue-600 transition-colors cursor-pointer"
               >
-                <Copy className="w-3.5 h-3.5" />
+                <Copy className="size-3.5" />
               </button>
 
               {/* Elimina riga */}
               <button
                 type="button"
                 onClick={() => removeRow(row._key)}
-                className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+                className="size-8 flex items-center justify-center rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="size-3.5" />
               </button>
             </div>
           ))}
@@ -437,7 +437,7 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
         onClick={addRow}
         className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-border hover:border-electric/40 rounded-xl py-2.5 text-sm text-muted-foreground hover:text-electric transition-colors cursor-pointer"
       >
-        <Plus className="w-4 h-4" />
+        <Plus className="size-4" />
         Aggiungi configurazione canone
       </button>
     </div>
@@ -459,7 +459,7 @@ function SeoSection({ form, set }) {
           <span className="text-xs font-semibold text-foreground">SEO &amp; Metatag</span>
           <span className="text-[10px] text-muted-foreground font-normal">Ottimizzazione motori di ricerca</span>
         </div>
-        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+        {open ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
       </button>
 
       {open && (
@@ -560,8 +560,8 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
           <h3 className="font-heading font-semibold text-lg">
             {isNew ? "Nuovo Veicolo" : `Modifica — ${initial.make} ${initial.model}`}
           </h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-            <X className="w-4 h-4" />
+          <button type="button" onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+            <X className="size-4" />
           </button>
         </div>
 
@@ -626,7 +626,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
                   {SEGMENTS_OPTIONS.map(({ value, label, color }) => {
                     const active = (form.segments || []).includes(value);
                     return (
-                      <button key={value} type="button"
+                      <button type="button" key={value}
                         onClick={() => {
                           const current = form.segments || [];
                           set("segments", active ? current.filter(s => s !== value) : [...current, value]);
@@ -635,10 +635,10 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
                           active ? `${color} border-current` : "bg-muted/40 text-muted-foreground border-border hover:bg-muted"
                         }`}
                       >
-                        <span className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-colors ${
+                        <span className={`size-3.5 rounded border flex items-center justify-center shrink-0 transition-colors ${
                           active ? "bg-current border-current" : "border-muted-foreground/40"
                         }`}>
-                          {active && <Check className="w-2.5 h-2.5 text-white" />}
+                          {active && <Check className="size-2.5 text-white" />}
                         </span>
                         {label}
                       </button>
@@ -678,7 +678,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
                     onClick={() => set("description", normalizeVehicleDescription(form.description || ""))}
                     style={{color:'#71BAED'}} className="inline-flex items-center gap-1.5 text-[11px] font-semibold  hover:text-electric/80 transition-colors"
                   >
-                    <Wand2 className="w-3.5 h-3.5" />
+                    <Wand2 className="size-3.5" />
                     Formatta testo
                   </button>
                 </div>
@@ -705,7 +705,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
               <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">
                 Configurazioni Canoni
               </p>
-              {loadingConfigs && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
+              {loadingConfigs && <Loader2 className="size-3.5 animate-spin text-muted-foreground" />}
             </div>
             <PricingConfigsEditor
               rows={pricingRows}
@@ -727,7 +727,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
               <label className="flex items-center gap-3 cursor-pointer select-none">
                 <button type="button" onClick={() => set("is_active", !form.is_active)}
                   className={`transition-colors ${form.is_active ? "style={{color:'#71BAED'}}" : "text-muted-foreground"}`}>
-                  {form.is_active ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                  {form.is_active ? <ToggleRight className="size-8" /> : <ToggleLeft className="size-8" />}
                 </button>
                 <div>
                   <p className="text-sm font-medium text-foreground">{form.is_active ? "Attivo" : "Disattivo"}</p>
@@ -739,7 +739,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
               <label className="flex items-center gap-3 cursor-pointer select-none">
                 <button type="button" onClick={() => set("is_featured", !form.is_featured)}
                   className={`transition-colors ${form.is_featured ? "text-amber-500" : "text-muted-foreground"}`}>
-                  {form.is_featured ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                  {form.is_featured ? <ToggleRight className="size-8" /> : <ToggleLeft className="size-8" />}
                 </button>
                 <div>
                   <p className="text-sm font-medium text-foreground">{form.is_featured ? "In evidenza" : "Non in evidenza"}</p>
@@ -751,7 +751,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
               <label className="flex items-center gap-3 cursor-pointer select-none">
                 <button type="button" onClick={() => set("is_ready_delivery", !form.is_ready_delivery)}
                   className={`transition-colors ${form.is_ready_delivery ? "text-emerald-500" : "text-muted-foreground"}`}>
-                  {form.is_ready_delivery ? <ToggleRight className="w-8 h-8" /> : <ToggleLeft className="w-8 h-8" />}
+                  {form.is_ready_delivery ? <ToggleRight className="size-8" /> : <ToggleLeft className="size-8" />}
                 </button>
                 <div>
                   <p className="text-sm font-medium text-foreground">{form.is_ready_delivery ? "Pronta consegna" : "Non pronta consegna"}</p>
@@ -776,7 +776,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
             disabled={!canSave || isSaving}
             className="flex-1 bg-electric hover:bg-electric/90 text-white gap-2"
           >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            {isSaving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
             {isNew ? "Crea Veicolo" : "Salva Modifiche"}
           </Button>
         </div>
@@ -905,7 +905,7 @@ export default function CmsVehicles() {
           <Input value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Cerca marca o modello…" className="w-48" />
           <Button onClick={() => setModal({})} className="bg-electric hover:bg-electric/90 text-white gap-2 shrink-0">
-            <Plus className="w-4 h-4" /> Nuovo Veicolo
+            <Plus className="size-4" /> Nuovo Veicolo
           </Button>
         </div>
       </div>
@@ -937,7 +937,7 @@ export default function CmsVehicles() {
                 <div className="w-20 h-12 rounded-lg bg-muted overflow-hidden shrink-0 border border-border/30">
                   {v.vehicle_image
                     ? <img src={v.vehicle_image} alt={`${v.make} ${v.model}`} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center"><ImageIcon className="w-5 h-5 text-muted-foreground/40" /></div>
+                    : <div className="w-full h-full flex items-center justify-center"><ImageIcon className="size-5 text-muted-foreground/40" /></div>
                   }
                 </div>
                 <div className="flex-1 min-w-0">
@@ -964,7 +964,7 @@ export default function CmsVehicles() {
                     )}
                   </div>
                 </div>
-                <button
+                <button type="button"
                   onClick={() => toggleActive.mutate({ id: v.id, is_active: !v.is_active })}
                   className={`text-xs font-medium px-2.5 py-1 rounded-full transition-colors cursor-pointer ${
                     v.is_active ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-gray-100 text-gray-500 hover:bg-gray-200"
@@ -973,12 +973,12 @@ export default function CmsVehicles() {
                   {v.is_active ? "Attivo" : "Disattivo"}
                 </button>
                 <div className="flex items-center gap-1">
-                  <Button size="sm" variant="ghost" onClick={() => setModal(v)} className="h-8 w-8 p-0 hover:bg-muted">
-                    <Pencil className="w-3.5 h-3.5" />
+                  <Button size="sm" variant="ghost" onClick={() => setModal(v)} className="size-8 p-0 hover:bg-muted">
+                    <Pencil className="size-3.5" />
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setDelConfirm(v)}
-                    className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/8">
-                    <Trash2 className="w-3.5 h-3.5" />
+                    className="size-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/8">
+                    <Trash2 className="size-3.5" />
                   </Button>
                 </div>
               </div>
@@ -1013,7 +1013,7 @@ export default function CmsVehicles() {
               <Button variant="outline" onClick={() => setDelConfirm(null)} className="flex-1">Annulla</Button>
               <Button onClick={() => deleteMutation.mutate(delConfirm.id)} disabled={deleteMutation.isPending}
                 className="flex-1 bg-destructive hover:bg-destructive/90 text-white gap-2">
-                {deleteMutation.isPending && <Loader2 className="w-4 h-4 animate-spin" />}
+                {deleteMutation.isPending && <Loader2 className="size-4 animate-spin" />}
                 Elimina
               </Button>
             </div>

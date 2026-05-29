@@ -15,7 +15,7 @@ const READ_DELAY = () => 1500 + Math.random() * 1500; // 1.5-3s per "leggere" il
 
 // Avatar umano di Luca
 const LucaAvatar = ({ size = "sm" }) => (
-  <div className={`rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-sm ${size === "sm" ? "w-7 h-7" : "w-9 h-9"}`}>
+  <div className={`rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-sm ${size === "sm" ? "size-7" : "size-9"}`}>
     <span className={`font-bold text-white ${size === "sm" ? "text-[11px]" : "text-sm"}`}>L</span>
   </div>
 );
@@ -137,8 +137,9 @@ export default function AIChatWidget() {
   // Focus input all'apertura
   useEffect(() => {
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 300);
+      const t = setTimeout(() => inputRef.current?.focus(), 300);
       setUnread(false);
+      return () => clearTimeout(t);
     }
   }, [open]);
 
@@ -241,15 +242,15 @@ export default function AIChatWidget() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white leading-none">Assistente Nolosubito</p>
                 <p className="text-[11px] text-white/45 mt-0.5 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
+                  <span className="size-1.5 rounded-full bg-green-400 inline-block" />
                   Online — risposta immediata
                 </p>
               </div>
-              <button
+              <button type="button"
                 onClick={() => setOpen(false)}
                 className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="size-4" />
               </button>
             </div>
 
@@ -258,8 +259,8 @@ export default function AIChatWidget() {
               {messages.map((msg, i) => (
                 msg.role === "user" ? (
                   <div key={i} className="flex gap-2.5 flex-row-reverse">
-                    <div className="w-7 h-7 rounded-full bg-electric/15 flex items-center justify-center shrink-0 mt-0.5">
-                      <User className="w-3.5 h-3.5 text-electric" />
+                    <div className="size-7 rounded-full bg-electric/15 flex items-center justify-center shrink-0 mt-0.5">
+                      <User className="size-3.5 text-electric" />
                     </div>
                     <div className="max-w-[80%] px-3.5 py-2.5 rounded-2xl rounded-tr-sm bg-electric text-white text-sm leading-relaxed whitespace-pre-wrap">
                       {msg.content}
@@ -287,7 +288,7 @@ export default function AIChatWidget() {
                     {[0, 1, 2].map(i => (
                       <motion.div
                         key={i}
-                        className="w-2 h-2 rounded-full bg-muted-foreground/50"
+                        className="size-2 rounded-full bg-muted-foreground/50"
                         animate={{ y: [0, -5, 0] }}
                         transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
                       />
@@ -300,7 +301,7 @@ export default function AIChatWidget() {
               {leadSaved && (
                 <div className="mx-auto text-center">
                   <span className="inline-flex items-center gap-1.5 text-xs text-green-600 bg-green-50 border border-green-100 rounded-full px-3 py-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                    <span className="size-1.5 rounded-full bg-green-500" />
                     Dati salvati — un consulente ti contatterà presto
                   </span>
                 </div>
@@ -322,14 +323,14 @@ export default function AIChatWidget() {
                   className="flex-1 resize-none bg-muted/40 border border-border/50 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-electric/50 focus:ring-1 focus:ring-electric/20 transition-all max-h-24 leading-relaxed"
                   style={{ minHeight: "42px" }}
                 />
-                <button
+                <button type="button"
                   onClick={sendMessage}
                   disabled={!input.trim() || typing}
-                  className="w-10 h-10 rounded-xl bg-electric disabled:bg-muted flex items-center justify-center text-white transition-all hover:bg-electric/90 active:scale-95 cursor-pointer disabled:cursor-not-allowed shrink-0"
+                  className="size-10 rounded-xl bg-electric disabled:bg-muted flex items-center justify-center text-white transition-all hover:bg-electric/90 active:scale-95 cursor-pointer disabled:cursor-not-allowed shrink-0"
                 >
                   {typing
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <Send className="w-4 h-4" />
+                    ? <Loader2 className="size-4 animate-spin" />
+                    : <Send className="size-4" />
                   }
                 </button>
               </div>
@@ -351,16 +352,16 @@ export default function AIChatWidget() {
             className="bg-white rounded-2xl shadow-xl border border-border/50 p-3.5 max-w-[220px] relative cursor-pointer"
             onClick={() => setOpen(true)}
           >
-            <button
+            <button type="button"
               onClick={e => { e.stopPropagation(); setUnread(false); }}
               className="absolute top-2 right-2 text-muted-foreground hover:text-foreground cursor-pointer"
             >
-              <X className="w-3 h-3" />
+              <X className="size-3" />
             </button>
             <p className="text-sm font-semibold text-foreground pr-4">Hai domande sul Noleggio Lungo Termine?</p>
             <p className="text-xs text-muted-foreground mt-0.5">Il nostro consulente risponde subito!</p>
             <div className="absolute -bottom-2 right-7 w-4 h-2 overflow-hidden">
-              <div className="w-3 h-3 bg-white border-r border-b border-border/50 rotate-45 translate-y-[-50%] translate-x-[2px]" />
+              <div className="size-3 bg-white border-r border-b border-border/50 rotate-45 translate-y-[-50%] translate-x-[2px]" />
             </div>
           </motion.div>
         )}
@@ -371,7 +372,7 @@ export default function AIChatWidget() {
         onClick={() => setOpen(v => !v)}
         whileHover={{ scale: 1.06 }}
         whileTap={{ scale: 0.95 }}
-        className="w-14 h-14 rounded-full bg-navy shadow-lg shadow-navy/30 flex items-center justify-center cursor-pointer relative"
+        className="size-14 rounded-full bg-navy shadow-lg shadow-navy/30 flex items-center justify-center cursor-pointer relative"
         aria-label="Apri assistente AI"
       >
         {/* Pulse quando chiuso */}
@@ -385,10 +386,10 @@ export default function AIChatWidget() {
         <AnimatePresence mode="wait">
           {open
             ? <motion.div key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                <X className="w-6 h-6 text-white" />
+                <X className="size-6 text-white" />
               </motion.div>
             : <motion.div key="chat" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                <MessageCircle className="w-6 h-6 text-white" />
+                <MessageCircle className="size-6 text-white" />
               </motion.div>
           }
         </AnimatePresence>

@@ -18,18 +18,18 @@ export function Pagination({ current, total, onChange }) {
   const pages = Array.from({ length: total }, (_, i) => i + 1);
   return (
     <div className="flex items-center justify-center gap-2 mt-10 flex-wrap">
-      <button
+      <button type="button"
         onClick={() => onChange(Math.max(1, current - 1))}
         disabled={current === 1}
-        className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-600 disabled:opacity-40 hover:bg-white cursor-pointer transition-colors"
+        className="size-9 flex items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-600 disabled:opacity-40 hover:bg-white cursor-pointer transition-colors"
       >
         ‹
       </button>
       {pages.map(n => (
-        <button
+        <button type="button"
           key={n}
           onClick={() => onChange(n)}
-          className={`w-9 h-9 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
+          className={`size-9 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
             current === n
               ? "bg-navy text-white"
               : "border border-gray-200 hover:bg-white text-gray-700"
@@ -38,10 +38,10 @@ export function Pagination({ current, total, onChange }) {
           {n}
         </button>
       ))}
-      <button
+      <button type="button"
         onClick={() => onChange(Math.min(total, current + 1))}
         disabled={current === total}
-        className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-600 disabled:opacity-40 hover:bg-white cursor-pointer transition-colors"
+        className="size-9 flex items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-600 disabled:opacity-40 hover:bg-white cursor-pointer transition-colors"
       >
         ›
       </button>
@@ -66,7 +66,7 @@ export function NativeSelect({ label, value, options, onChange }) {
             <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
       </div>
     </div>
   );
@@ -87,7 +87,7 @@ export function CardSkeleton() {
         </div>
         <div className="flex items-end justify-between">
           <Skeleton className="h-8 w-32" />
-          <Skeleton className="h-12 w-12 rounded-xl" />
+          <Skeleton className="size-12 rounded-xl" />
         </div>
       </div>
     </div>
@@ -123,7 +123,7 @@ export function FilterBar({ children, onSearch, searchValue, searchPlaceholder =
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Cerca</label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
               <input
                 type="text"
                 placeholder={searchPlaceholder}

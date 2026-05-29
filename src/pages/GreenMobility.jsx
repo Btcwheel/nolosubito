@@ -45,7 +45,7 @@ export default function GreenMobility() {
                 transition={{ duration: 0.3, delay: i * 0.08 }}
                 className="bg-white border border-frame rounded-2xl p-4 text-center shadow-[0px_4px_20px_0px_rgba(45,46,130,0.06)]"
               >
-                <s.icon className="w-5 h-5 text-electric mx-auto mb-2" />
+                <s.icon className="size-5 text-electric mx-auto mb-2" />
                 <p className="font-heading font-bold text-xl text-navy">{s.value}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
               </motion.div>

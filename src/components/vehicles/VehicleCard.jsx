@@ -26,7 +26,7 @@ const SEGMENT_LABEL = {
 function SpecBox({ icon: Icon, label }) {
   return (
     <div className="flex flex-col items-center justify-center gap-1.5 bg-spec rounded-[8px] p-2 min-h-[56px]">
-      <Icon className="w-4 h-4 text-navy/60" />
+      <Icon className="size-4 text-navy/60" />
       <span className="text-[10px] font-bold text-[#464651] leading-none text-center">{label}</span>
     </div>
   );
@@ -40,7 +40,7 @@ function BrandLogo({ make }) {
     <img
       src={`/brands/${logoName}.svg`}
       alt={make}
-      className="w-8 h-8 object-contain opacity-80"
+      className="size-8 object-contain opacity-80"
       onError={() => setFailed(true)}
     />
   );
@@ -53,7 +53,7 @@ function PromoCountdownBadge({ expiresAt, discountPct, compact = false }) {
 
   if (compact) {
     return (
-      <span className="text-[11px] font-semibold text-red-500 tabular-nums">
+      <span className="text-[11px] font-semibold text-red-700 tabular-nums">
         Scade in {label}
       </span>
     );
@@ -63,9 +63,9 @@ function PromoCountdownBadge({ expiresAt, discountPct, compact = false }) {
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-red-500 text-white rounded-[8px] px-2.5 py-[5px] shadow-lg shadow-red-500/30"
+      className="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-red-600 text-white rounded-[8px] px-2.5 py-[5px] shadow-lg shadow-red-600/30"
     >
-      <Tag className="w-3 h-3 shrink-0" />
+      <Tag className="size-3 shrink-0" />
       <span className="text-[10px] font-bold uppercase tracking-wide leading-none">
         {discountPct > 0 ? `-${Math.round(discountPct)}% · ` : ""}{label}
       </span>
@@ -114,7 +114,7 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
   const badge = (() => {
     if (vehicle.is_ready_delivery) return { icon: Truck,     text: "Pronta Consegna",            color: "text-emerald-700", border: "border-emerald-200" };
     if (vehicle.is_featured)       return { icon: Flame,     text: "Top Seller questa settimana", color: "text-[#ba1a1a]",   border: "border-[rgba(186,26,26,0.2)]" };
-    if (isReUse)                   return { icon: RefreshCw, text: "Re-Use certificato",          color: "text-teal-600",    border: "border-teal-200" };
+    if (isReUse)                   return { icon: RefreshCw, text: "Re-Use certificato",          color: "text-teal-700",    border: "border-teal-200" };
     if (isElectric)                return { icon: Zap,       text: "0 Emissioni CO₂",             color: "text-green-700",   border: "border-green-200" };
     if (isHybrid)                  return { icon: Leaf,      text: "Ibrido plug-in",              color: "text-lime-700",    border: "border-lime-200" };
     return null;
@@ -179,7 +179,7 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
 
             {badge && (
               <div className={`absolute top-3 right-3 flex items-center gap-1.5 bg-white/90 backdrop-blur-sm border ${badge.border} rounded-[8px] px-3 py-[5px] max-w-[calc(100%-24px)]`}>
-                <badge.icon className={`w-3 h-3 shrink-0 ${badge.color}`} />
+                <badge.icon className={`size-3 shrink-0 ${badge.color}`} />
                 <span className={`text-[10px] font-bold uppercase tracking-wide leading-none ${badge.color} truncate`}>
                   {badge.text}
                 </span>
@@ -193,7 +193,7 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
             {/* Label + Title + Subtitle */}
             <div className="mb-4">
               <div className="flex items-center justify-between gap-2 mb-[5px]">
-                <p className="text-[12px] font-bold text-[#777682] uppercase tracking-[1.2px] leading-none">
+                <p className="text-[12px] font-bold text-[#55545e] uppercase tracking-[1.2px] leading-none">
                   {segmentLabel}
                 </p>
                 <BrandLogo make={vehicle.make} />
@@ -220,7 +220,7 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
             {/* Price + CTA */}
             <div className={`flex items-end justify-between gap-3 ${isInPromo ? "mb-4" : ""}`}>
               <div className="min-w-0">
-                <p className="text-[12px] font-medium text-[#777682] leading-none mb-1">Da soli</p>
+                <p className="text-[12px] font-medium text-[#55545e] leading-none mb-1">Da soli</p>
                 <div className="flex items-baseline gap-0.5 flex-wrap">
                   <span className={`font-bold leading-none ${isInPromo && promoDisplay ? "text-[22px] sm:text-[24px] text-[#999] line-through" : "text-[28px] sm:text-[32px] text-navy-dark"}`}>
                     {displayPrice ? `${displayPrice.toLocaleString("it-IT")}€` : "Su richiesta"}
@@ -234,10 +234,10 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
                     <span className="text-[28px] sm:text-[32px] font-bold text-red-600 leading-none">
                       {promoDisplay.toLocaleString("it-IT")}€
                     </span>
-                    <span className="text-[14px] font-medium text-red-400">/mese</span>
+                    <span className="text-[14px] font-medium text-red-600">/mese</span>
                   </div>
                 )}
-                <p className="text-[10px] italic text-[#777682] mt-1">
+                <p className="text-[10px] italic text-[#55545e] mt-1">
                   {isVatIncludedForDisplay({
                     segment: effectiveSegment,
                     vehicleCategory: vehicle.category,
@@ -246,8 +246,8 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
                 </p>
               </div>
 
-              <div className="w-12 h-12 bg-electric rounded-xl flex items-center justify-center shrink-0 transition-colors group-hover:bg-electric/85">
-                <ArrowRight className="w-4 h-4 text-white" />
+              <div className="size-12 bg-electric rounded-xl flex items-center justify-center shrink-0 transition-colors group-hover:bg-electric/85">
+                <ArrowRight className="size-4 text-[#0f0f23]" />
               </div>
             </div>
 
@@ -255,8 +255,8 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
             {isInPromo && (
               <div className="-mx-6 bg-red-50 border-t border-red-100">
                 <div className="flex items-center justify-between gap-2 px-6 py-2">
-                  <span className="flex items-center gap-1.5 text-[11px] font-bold text-red-600 uppercase tracking-wide">
-                    <Tag className="w-3 h-3 shrink-0" />
+                  <span className="flex items-center gap-1.5 text-[11px] font-bold text-red-700 uppercase tracking-wide">
+                    <Tag className="size-3 shrink-0" />
                     {vehicle.promo_discount_pct > 0 ? `-${Math.round(vehicle.promo_discount_pct)}% Offerta` : "Offerta Speciale"}
                   </span>
                   <PromoCountdownBadge

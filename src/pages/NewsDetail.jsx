@@ -111,7 +111,7 @@ export default function NewsDetail() {
           to="/news"
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-electric transition-colors duration-200 mb-8"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="size-4" />
           Tutte le Notizie
         </Link>
 
@@ -131,13 +131,13 @@ export default function NewsDetail() {
         <div className="flex flex-wrap items-center gap-3 mb-4">
           {post.category && (
             <span className="flex items-center gap-1.5 text-xs font-semibold text-electric bg-electric/10 px-3 py-1.5 rounded-full">
-              <Tag className="w-3 h-3" />
+              <Tag className="size-3" />
               {post.category}
             </span>
           )}
           {post.published_date && (
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Calendar className="w-3.5 h-3.5" />
+              <Calendar className="size-3.5" />
               {format(new Date(post.published_date), "d MMMM yyyy", { locale: it })}
             </span>
           )}
@@ -170,7 +170,7 @@ export default function NewsDetail() {
         <div className="mt-12 pt-8 border-t border-border/50">
           <Link to="/news">
             <Button variant="outline" className="gap-2">
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="size-4" />
               Torna alle Notizie
             </Button>
           </Link>

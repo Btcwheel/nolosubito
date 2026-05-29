@@ -35,12 +35,12 @@ export default function WhatsAppButton() {
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             className="bg-white rounded-2xl shadow-2xl border border-border/50 p-4 max-w-[220px] sm:max-w-[240px] relative"
           >
-            <button
+            <button type="button"
               onClick={() => setDismissed(true)}
               className="absolute top-2 right-2 text-muted-foreground hover:text-foreground cursor-pointer"
               aria-label="Chiudi"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="size-3.5" />
             </button>
             <p className="text-sm font-semibold text-foreground pr-4">
               Hai domande sul Noleggio Lungo Termine?
@@ -50,7 +50,7 @@ export default function WhatsAppButton() {
             </p>
             {/* Triangle */}
             <div className="absolute -bottom-2 right-6 w-4 h-2 overflow-hidden">
-              <div className="w-3 h-3 bg-white border-r border-b border-border/50 rotate-45 translate-y-[-50%] translate-x-[2px]" />
+              <div className="size-3 bg-white border-r border-b border-border/50 rotate-45 translate-y-[-50%] translate-x-[2px]" />
             </div>
           </motion.div>
         )}
@@ -63,7 +63,7 @@ export default function WhatsAppButton() {
         whileTap={{ scale: 0.95 }}
         onHoverStart={() => setShowTooltip(true)}
         onHoverEnd={() => {}}
-        className="w-14 h-14 rounded-full bg-[#25D366] shadow-lg shadow-[#25D366]/30 flex items-center justify-center cursor-pointer relative"
+        className="size-14 rounded-full bg-[#25D366] shadow-lg shadow-[#25D366]/30 flex items-center justify-center cursor-pointer relative"
         aria-label="Contattaci su WhatsApp"
       >
         {/* Pulse ring */}
@@ -72,7 +72,7 @@ export default function WhatsAppButton() {
           animate={{ scale: [1, 1.4, 1.4], opacity: [0.6, 0, 0] }}
           transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
         />
-        <MessageCircle className="w-7 h-7 text-white fill-white" />
+        <MessageCircle className="size-7 text-white fill-white" />
       </motion.button>
     </div>
   );

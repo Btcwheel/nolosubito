@@ -54,10 +54,10 @@ function GigiImagePicker({ onSelect, onClose }) {
     <div className="fixed inset-0 z-[60] bg-black/60 flex items-center justify-center p-4">
       <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
         <div className="flex items-center gap-3 p-4 border-b border-border">
-          <FolderOpen className="w-4 h-4 text-violet-500" />
+          <FolderOpen className="size-4 text-violet-500" />
           <h3 className="font-semibold text-sm">Archivio immagini</h3>
           <div className="flex-1 relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
             <input
               autoFocus
               value={search}
@@ -67,7 +67,7 @@ function GigiImagePicker({ onSelect, onClose }) {
             />
           </div>
           <span className="text-xs text-muted-foreground shrink-0">{filtered.length} risultati</span>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted"><X className="w-4 h-4" /></button>
+          <button type="button" onClick={onClose} className="p-1.5 rounded-lg hover:bg-muted"><X className="size-4" /></button>
         </div>
 
         <div className="overflow-y-auto flex-1 p-4">
@@ -80,7 +80,7 @@ function GigiImagePicker({ onSelect, onClose }) {
               {visible.map(src => {
                 const storageUrl = toStorageUrl(src);
                 return (
-                  <button
+                  <button type="button"
                     key={src}
                     onClick={() => { onSelect(storageUrl); onClose(); }}
                     className="aspect-square rounded-lg overflow-hidden border border-border hover:border-electric hover:scale-105 transition-all duration-150 bg-muted"
@@ -145,7 +145,7 @@ function SeoSection({ form, set }) {
           <span className="text-xs font-semibold text-foreground">SEO &amp; Metatag</span>
           <span className="text-[10px] text-muted-foreground font-normal">Ottimizzazione motori di ricerca</span>
         </div>
-        {open ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+        {open ? <ChevronUp className="size-4 text-muted-foreground" /> : <ChevronDown className="size-4 text-muted-foreground" />}
       </button>
       {open && (
         <div className="px-4 pb-4 pt-1 space-y-4 border-t border-border/50">
@@ -269,11 +269,11 @@ function GenerateArticleModal({ onClose, onSuccess }) {
       <div className="bg-card border border-border rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-lg flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-violet-500" />
+            <Sparkles className="size-5 text-violet-500" />
             Genera Articolo con AI
           </h3>
-          <button onClick={onClose} className="p-1 rounded hover:bg-muted">
-            <X className="w-4 h-4" />
+          <button type="button" onClick={onClose} className="p-1 rounded hover:bg-muted">
+            <X className="size-4" />
           </button>
         </div>
 
@@ -322,12 +322,12 @@ function GenerateArticleModal({ onClose, onSuccess }) {
           >
             {generating ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                <Loader2 className="size-4 animate-spin mr-2" />
                 Generando...
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="size-4 mr-2" />
                 Genera Articolo
               </>
             )}
@@ -355,7 +355,7 @@ function AiDraftCard({ draft, onAccept, onReject, onEdit }) {
             {draft.source_title && (
               <a href={draft.source_url} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                <ExternalLink className="w-3 h-3" /> {draft.source_title}
+                <ExternalLink className="size-3" /> {draft.source_title}
               </a>
             )}
           </div>
@@ -371,18 +371,18 @@ function AiDraftCard({ draft, onAccept, onReject, onEdit }) {
       )}
 
       <div className="flex items-center gap-2 flex-wrap">
-        <button onClick={() => setExpanded(e => !e)} className="text-xs text-violet-600 hover:text-violet-800 underline underline-offset-2">
+        <button type="button" onClick={() => setExpanded(e => !e)} className="text-xs text-violet-600 hover:text-violet-800 underline underline-offset-2">
           {expanded ? "Nascondi anteprima" : "Leggi anteprima"}
         </button>
         <div className="ml-auto flex gap-2">
           <Button size="sm" variant="outline" onClick={() => onEdit(draft)} className="h-7 text-xs gap-1">
-            <Pencil className="w-3 h-3" /> Modifica
+            <Pencil className="size-3" /> Modifica
           </Button>
           <Button size="sm" variant="outline" onClick={() => onReject(draft.id)} className="h-7 text-xs gap-1 border-red-200 text-red-600 hover:bg-red-50">
-            <XCircle className="w-3 h-3" /> Scarta
+            <XCircle className="size-3" /> Scarta
           </Button>
           <Button size="sm" onClick={() => onAccept(draft)} className="h-7 text-xs gap-1 bg-green-600 hover:bg-green-700 text-white">
-            <CheckCircle2 className="w-3 h-3" /> Pubblica
+            <CheckCircle2 className="size-3" /> Pubblica
           </Button>
         </div>
       </div>
@@ -453,14 +453,14 @@ function AiDraftsSection({ onEditDraft }) {
     <div className="mb-8">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-violet-500" />
+          <Sparkles className="size-4 text-violet-500" />
           <h3 className="font-semibold text-sm text-foreground">Bozze AI</h3>
           {drafts.length > 0 && (
             <Badge className="bg-violet-500 text-white text-xs">{drafts.length}</Badge>
           )}
         </div>
         <Button size="sm" variant="outline" onClick={handleGenerate} disabled={generating} className="h-7 text-xs gap-1.5 border-violet-200 text-violet-700 hover:bg-violet-50">
-          <RefreshCw className={`w-3 h-3 ${generating ? "animate-spin" : ""}`} />
+          <RefreshCw className={`size-3 ${generating ? "animate-spin" : ""}`} />
           {generating ? "Generazione…" : "Genera ora"}
         </Button>
       </div>
@@ -644,10 +644,10 @@ export default function CmsNews() {
         <h2 className="font-heading font-bold text-xl text-foreground">News & Articoli</h2>
         <div className="flex gap-2">
           <Button onClick={() => setShowGeneratorModal(true)} className="bg-violet-600 hover:bg-violet-700 text-white gap-2">
-            <Sparkles className="w-4 h-4" /> Genera con AI
+            <Sparkles className="size-4" /> Genera con AI
           </Button>
           <Button onClick={openNew} className="bg-electric hover:bg-electric/90 text-white gap-2">
-            <Plus className="w-4 h-4" /> Nuovo Articolo
+            <Plus className="size-4" /> Nuovo Articolo
           </Button>
         </div>
       </div>
@@ -668,9 +668,9 @@ export default function CmsNews() {
               <h3 className="font-heading font-semibold text-lg">{editing === "new" ? "Nuovo Articolo" : "Modifica Articolo"}</h3>
               <div className="flex items-center gap-2">
                 <Button size="sm" variant="outline" onClick={() => setPreviewMode(p => !p)}>
-                  {previewMode ? <><EyeOff className="w-3.5 h-3.5 mr-1" /> Modifica</> : <><Eye className="w-3.5 h-3.5 mr-1" /> Anteprima</>}
+                  {previewMode ? <><EyeOff className="size-3.5 mr-1" /> Modifica</> : <><Eye className="size-3.5 mr-1" /> Anteprima</>}
                 </Button>
-                <button onClick={() => setEditing(null)} className="p-1.5 rounded-lg hover:bg-muted"><X className="w-4 h-4" /></button>
+                <button type="button" onClick={() => setEditing(null)} className="p-1.5 rounded-lg hover:bg-muted"><X className="size-4" /></button>
               </div>
             </div>
 
@@ -705,10 +705,10 @@ export default function CmsNews() {
                     <Input value={form.cover_image_url} onChange={e => set("cover_image_url", e.target.value)} placeholder="https://… oppure carica un file" />
                     <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
                     <Button type="button" size="sm" variant="outline" className="shrink-0 gap-1.5 text-xs" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
-                      {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}{uploading ? "Upload…" : "Carica"}
+                      {uploading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}{uploading ? "Upload…" : "Carica"}
                     </Button>
                     <Button type="button" size="sm" variant="outline" onClick={() => setShowPicker(true)} className="shrink-0 gap-1.5 text-xs">
-                      <FolderOpen className="w-3.5 h-3.5" /> Archivio
+                      <FolderOpen className="size-3.5" /> Archivio
                     </Button>
                   </div>
                   {form.cover_image_url && <img src={form.cover_image_url} alt="" className="mt-2 h-28 object-cover rounded-xl border border-border w-full" onError={e => e.target.style.display='none'} />}
@@ -737,7 +737,7 @@ export default function CmsNews() {
             <div className="flex gap-3 mt-6">
               <Button variant="outline" onClick={() => setEditing(null)} className="flex-1">Annulla</Button>
               <Button onClick={handleSave} disabled={saveMutation.isPending} className="flex-1 bg-electric hover:bg-electric/90 text-white">
-                <Check className="w-4 h-4 mr-1" /> Salva
+                <Check className="size-4 mr-1" /> Salva
               </Button>
             </div>
           </div>
@@ -776,10 +776,10 @@ export default function CmsNews() {
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <Button size="sm" variant="ghost" onClick={() => togglePublished.mutate({ id: p.id, val: !p.is_published })}>
-                    {p.is_published ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    {p.is_published ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => openEdit(p)}><Pencil className="w-3.5 h-3.5" /></Button>
-                  <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => deleteMutation.mutate(p.id)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                  <Button size="sm" variant="ghost" onClick={() => openEdit(p)}><Pencil className="size-3.5" /></Button>
+                  <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => deleteMutation.mutate(p.id)}><Trash2 className="size-3.5" /></Button>
                 </div>
               </div>
             ))}

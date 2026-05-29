@@ -78,8 +78,8 @@ export default function PartnerApplicationForm({ onCancel }) {
         animate={{ opacity: 1, scale: 1 }}
         className="text-center py-16 max-w-lg mx-auto"
       >
-        <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-          <CheckCircle className="w-10 h-10 text-green-600" />
+        <div className="size-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+          <CheckCircle className="size-10 text-green-600" />
         </div>
         <h3 className="font-heading font-bold text-2xl text-foreground mb-3">Candidatura Inviata!</h3>
         <p className="text-muted-foreground">
@@ -100,8 +100,8 @@ export default function PartnerApplicationForm({ onCancel }) {
           <h2 className="font-heading font-bold text-2xl sm:text-3xl text-foreground">Candidatura Partner</h2>
           <p className="text-muted-foreground mt-1">Compila il form — ti risponderemo entro 48 ore.</p>
         </div>
-        <button onClick={onCancel} className="p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
-          <X className="w-5 h-5 text-muted-foreground" />
+        <button type="button" onClick={onCancel} className="p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
+          <X className="size-5 text-muted-foreground" />
         </button>
       </div>
 
@@ -212,12 +212,12 @@ export default function PartnerApplicationForm({ onCancel }) {
               <label className={`mt-1.5 flex flex-col items-center justify-center gap-2 h-24 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${cvFile ? "style={{borderColor:'#71BAED'}}/50 style={{backgroundColor:'#71BAED'}}/5" : "border-border/50 hover:style={{borderColor:'#71BAED'}}/30 hover:bg-muted/50"}`}>
                 {cvFile ? (
                   <>
-                    <FileText className="w-5 h-5 text-electric" />
+                    <FileText className="size-5 text-electric" />
                     <span className="text-xs text-electric font-medium truncate max-w-[160px]">{cvFile.name}</span>
                   </>
                 ) : (
                   <>
-                    <Upload className="w-5 h-5 text-muted-foreground" />
+                    <Upload className="size-5 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">Carica CV (PDF, DOC)</span>
                   </>
                 )}
@@ -229,12 +229,12 @@ export default function PartnerApplicationForm({ onCancel }) {
               <label className={`mt-1.5 flex flex-col items-center justify-center gap-2 h-24 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${coverFile ? "style={{borderColor:'#71BAED'}}/50 style={{backgroundColor:'#71BAED'}}/5" : "border-border/50 hover:style={{borderColor:'#71BAED'}}/30 hover:bg-muted/50"}`}>
                 {coverFile ? (
                   <>
-                    <FileText className="w-5 h-5 text-electric" />
+                    <FileText className="size-5 text-electric" />
                     <span className="text-xs text-electric font-medium truncate max-w-[160px]">{coverFile.name}</span>
                   </>
                 ) : (
                   <>
-                    <Upload className="w-5 h-5 text-muted-foreground" />
+                    <Upload className="size-5 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">Carica lettera (PDF, DOC)</span>
                   </>
                 )}
@@ -250,9 +250,9 @@ export default function PartnerApplicationForm({ onCancel }) {
           className="w-full h-14 bg-electric hover:bg-electric/90 text-white font-bold rounded-xl text-base cursor-pointer"
         >
           {sending ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Invio in corso…</>
+            <><Loader2 className="size-4 mr-2 animate-spin" /> Invio in corso…</>
           ) : (
-            <><Send className="w-4 h-4 mr-2" /> Invia Candidatura</>
+            <><Send className="size-4 mr-2" /> Invia Candidatura</>
           )}
         </Button>
       </form>

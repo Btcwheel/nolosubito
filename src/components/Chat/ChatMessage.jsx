@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
 
 const LucaAvatar = ({ size = 'sm' }) => (
-  <div className={`rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-sm ${size === 'sm' ? 'w-7 h-7' : 'w-9 h-9'}`}>
+  <div className={`rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-sm ${size === 'sm' ? 'size-7' : 'size-9'}`}>
     <span className={`font-bold text-white ${size === 'sm' ? 'text-[11px]' : 'text-sm'}`}>L</span>
   </div>
 );
@@ -30,8 +30,8 @@ export default function ChatMessage({ message }) {
   return (
     <div className={`flex gap-2.5 ${isUser ? 'flex-row-reverse' : ''}`}>
       {isUser ? (
-        <div className="w-7 h-7 rounded-full bg-electric/15 flex items-center justify-center shrink-0 mt-0.5">
-          <User className="w-3.5 h-3.5 text-electric" />
+        <div className="size-7 rounded-full bg-electric/15 flex items-center justify-center shrink-0 mt-0.5">
+          <User className="size-3.5 text-electric" />
         </div>
       ) : (
         <div className="shrink-0 mt-0.5">

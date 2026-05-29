@@ -66,14 +66,14 @@ export default function AgentePipelineView({ pratiche, isLoading }) {
                   >
                     <Link to={`/agente/pratica/${p.id}`}>
                       <div className="bg-card border border-border/50 rounded-xl p-3 hover:shadow-md hover:border-border transition-all cursor-pointer group">
-                        <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot} mb-2`} />
+                        <div className={`size-1.5 rounded-full ${cfg.dot} mb-2`} />
                         <p className="font-mono text-xs font-bold text-electric mb-1 truncate">
                           {p.codice || `#${p.id.slice(0, 8).toUpperCase()}`}
                         </p>
                         <p className="text-xs font-semibold text-foreground truncate">{p.cliente_nome}</p>
                         {(p.veicolo_marca || p.veicolo_modello) && (
                           <div className="flex items-center gap-1 mt-1.5">
-                            <Car className="w-3 h-3 text-muted-foreground shrink-0" />
+                            <Car className="size-3 text-muted-foreground shrink-0" />
                             <p className="text-xs text-muted-foreground truncate">{p.veicolo_marca} {p.veicolo_modello}</p>
                           </div>
                         )}

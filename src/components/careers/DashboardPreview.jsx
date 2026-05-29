@@ -50,9 +50,9 @@ export default function DashboardPreview() {
       {/* Browser chrome */}
       <div className="bg-muted/60 border-b border-border/50 px-4 py-3 flex items-center gap-3">
         <div className="flex gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-red-400" />
-          <div className="w-3 h-3 rounded-full bg-yellow-400" />
-          <div className="w-3 h-3 rounded-full bg-green-400" />
+          <div className="size-3 rounded-full bg-red-400" />
+          <div className="size-3 rounded-full bg-yellow-400" />
+          <div className="size-3 rounded-full bg-green-400" />
         </div>
         <div className="flex-1 bg-background/80 rounded-md px-3 py-1 text-xs text-muted-foreground text-center">
           partner.nolosubito.it/dashboard
@@ -64,15 +64,15 @@ export default function DashboardPreview() {
         {/* Sidebar */}
         <div className="w-56 bg-navy shrink-0 p-4 flex flex-col hidden sm:flex">
           <div className="flex items-center gap-2 px-2 mb-6 mt-1">
-            <div className="w-7 h-7 rounded-lg bg-electric flex items-center justify-center">
-              <Car className="w-4 h-4 text-white" />
+            <div className="size-7 rounded-lg bg-electric flex items-center justify-center">
+              <Car className="size-4 text-white" />
             </div>
             <span className="font-heading font-bold text-white text-sm">Nolosubito</span>
           </div>
 
           <nav className="space-y-1">
             {TABS.map(tab => (
-              <button
+              <button type="button"
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
@@ -81,7 +81,7 @@ export default function DashboardPreview() {
                     : "text-white/50 hover:text-white hover:bg-white/5"
                 }`}
               >
-                <tab.icon className="w-4 h-4 shrink-0" />
+                <tab.icon className="size-4 shrink-0" />
                 {tab.label}
               </button>
             ))}
@@ -91,7 +91,7 @@ export default function DashboardPreview() {
             <div className="p-3 bg-white/5 rounded-xl border border-white/10">
               <div className="text-xs text-white/40 mb-1">Partner Level</div>
               <div className="flex items-center gap-2">
-                <Award className="w-4 h-4 text-yellow-400" />
+                <Award className="size-4 text-yellow-400" />
                 <span className="text-white font-semibold text-sm">Silver</span>
               </div>
               <div className="mt-2 h-1.5 bg-white/10 rounded-full">
@@ -110,14 +110,14 @@ export default function DashboardPreview() {
           {/* Mobile tabs */}
           <div className="flex gap-2 mb-5 sm:hidden overflow-x-auto pb-1">
             {TABS.map(tab => (
-              <button
+              <button type="button"
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
                   activeTab === tab.id ? "style={{backgroundColor:'#71BAED'}} text-white" : "bg-muted text-muted-foreground"
                 }`}
               >
-                <tab.icon className="w-3.5 h-3.5" /> {tab.label}
+                <tab.icon className="size-3.5" /> {tab.label}
               </button>
             ))}
           </div>
@@ -129,9 +129,9 @@ export default function DashboardPreview() {
                   <h2 className="font-heading font-bold text-foreground text-lg">Ciao, Marco 👋</h2>
                   <p className="text-xs text-muted-foreground">Aprile 2026 · 3 notifiche in attesa</p>
                 </div>
-                <button className="relative p-2 rounded-lg bg-muted cursor-pointer">
-                  <Bell className="w-4 h-4 text-muted-foreground" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-electric rounded-full" />
+                <button type="button" className="relative p-2 rounded-lg bg-muted cursor-pointer">
+                  <Bell className="size-4 text-muted-foreground" />
+                  <span className="absolute top-1 right-1 size-2 bg-electric rounded-full" />
                 </button>
               </div>
 
@@ -144,8 +144,8 @@ export default function DashboardPreview() {
                   { label: "Clienti Attivi", value: "27", icon: Users, color: "text-purple-500", bg: "bg-purple-50" },
                 ].map(kpi => (
                   <div key={kpi.label} className="bg-card border border-border/50 rounded-xl p-4">
-                    <div className={`w-8 h-8 rounded-lg ${kpi.bg} flex items-center justify-center mb-2`}>
-                      <kpi.icon className={`w-4 h-4 ${kpi.color}`} />
+                    <div className={`size-8 rounded-lg ${kpi.bg} flex items-center justify-center mb-2`}>
+                      <kpi.icon className={`size-4 ${kpi.color}`} />
                     </div>
                     <div className="font-heading font-bold text-xl text-foreground">{kpi.value}</div>
                     <div className="text-xs text-muted-foreground mt-0.5">{kpi.label}</div>
@@ -157,7 +157,7 @@ export default function DashboardPreview() {
               <div className="bg-card border border-border/50 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-sm text-foreground">Ultime Pratiche</h3>
-                  <button className="text-xs text-electric font-medium cursor-pointer">Vedi tutte →</button>
+                  <button type="button" className="text-xs text-electric font-medium cursor-pointer">Vedi tutte →</button>
                 </div>
                 <div className="space-y-2">
                   {pratiche.slice(0, 3).map(p => (
@@ -181,8 +181,8 @@ export default function DashboardPreview() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-heading font-bold text-foreground text-lg">Gestione Pratiche</h2>
-                <button className="flex items-center gap-1.5 text-xs bg-electric text-white px-3 py-2 rounded-lg font-medium cursor-pointer">
-                  <Plus className="w-3.5 h-3.5" /> Nuova Pratica
+                <button type="button" className="flex items-center gap-1.5 text-xs bg-electric text-white px-3 py-2 rounded-lg font-medium cursor-pointer">
+                  <Plus className="size-3.5" /> Nuova Pratica
                 </button>
               </div>
               <div className="space-y-3">
@@ -195,8 +195,8 @@ export default function DashboardPreview() {
                     className="flex items-center justify-between p-4 bg-card border border-border/50 rounded-xl hover:border-electric/30 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
-                        <Car className="w-4 h-4 text-electric" />
+                      <div className="size-9 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
+                        <Car className="size-4 text-electric" />
                       </div>
                       <div>
                         <div className="font-medium text-sm text-foreground">{p.cliente}</div>
@@ -216,7 +216,7 @@ export default function DashboardPreview() {
                 <div className="grid grid-cols-2 gap-2">
                   {mandati.map(m => (
                     <div key={m.nome} className={`p-3 rounded-lg border flex items-center gap-2 ${m.attivo ? "bg-card border-border/50" : "bg-muted/30 border-dashed border-border/30"}`}>
-                      <div className={`w-8 h-8 rounded-md flex items-center justify-center text-xs font-bold ${m.attivo ? "style={{backgroundColor:'#71BAED'}} text-white" : "bg-muted text-muted-foreground"}`}>
+                      <div className={`size-8 rounded-md flex items-center justify-center text-xs font-bold ${m.attivo ? "style={{backgroundColor:'#71BAED'}} text-white" : "bg-muted text-muted-foreground"}`}>
                         {m.logo}
                       </div>
                       <div>
@@ -238,7 +238,7 @@ export default function DashboardPreview() {
                   <div className="text-xs text-green-600 font-medium mb-1">Mese Corrente</div>
                   <div className="font-heading font-bold text-2xl text-green-700">€ 4.800</div>
                   <div className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" /> +22% vs mese scorso
+                    <TrendingUp className="size-3" /> +22% vs mese scorso
                   </div>
                 </div>
                 <div className="bg-card border border-border/50 rounded-xl p-4">
@@ -275,8 +275,8 @@ export default function DashboardPreview() {
               <p className="text-sm text-muted-foreground mb-5">Completa i corsi per sbloccare nuovi mandati e aumentare le commissioni.</p>
 
               <div className="mb-4 p-4 bg-electric/5 border border-electric/20 rounded-xl flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
-                  <Award className="w-5 h-5 text-electric" />
+                <div className="size-10 rounded-lg bg-electric/10 flex items-center justify-center shrink-0">
+                  <Award className="size-5 text-electric" />
                 </div>
                 <div className="flex-1">
                   <div className="text-sm font-semibold text-foreground">Certificazione Silver attiva</div>
@@ -294,10 +294,10 @@ export default function DashboardPreview() {
                     className="p-4 bg-card border border-border/50 rounded-xl flex items-center justify-between gap-3"
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${c.completato ? "bg-green-100" : "bg-muted"}`}>
+                      <div className={`size-8 rounded-lg flex items-center justify-center shrink-0 ${c.completato ? "bg-green-100" : "bg-muted"}`}>
                         {c.completato
-                          ? <CheckCircle className="w-4 h-4 text-green-600" />
-                          : <BookOpen className="w-4 h-4 text-muted-foreground" />
+                          ? <CheckCircle className="size-4 text-green-600" />
+                          : <BookOpen className="size-4 text-muted-foreground" />
                         }
                       </div>
                       <div>
@@ -316,7 +316,7 @@ export default function DashboardPreview() {
                           </div>
                         </div>
                       ) : (
-                        <button className="text-[10px] px-3 py-1.5 bg-electric/10 text-electric rounded-lg font-medium cursor-pointer hover:bg-electric/20 transition-colors">Inizia</button>
+                        <button type="button" className="text-[10px] px-3 py-1.5 bg-electric/10 text-electric rounded-lg font-medium cursor-pointer hover:bg-electric/20 transition-colors">Inizia</button>
                       )}
                     </div>
                   </motion.div>

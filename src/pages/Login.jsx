@@ -228,7 +228,7 @@ export default function Login({ context = "internal" }) {
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
             <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-electric tracking-widest uppercase bg-electric/10 border border-electric/20 rounded-full px-3 py-1 mb-6">
-              <Zap className="w-3 h-3" /> {cfg.badge}
+              <Zap className="size-3" /> {cfg.badge}
             </span>
 
             <h2 className="font-heading font-bold text-[42px] leading-[1.15] text-white">
@@ -255,8 +255,8 @@ export default function Login({ context = "internal" }) {
                 transition={{ delay: 0.4 + i * 0.1, duration: 0.4 }}
                 className="flex items-center gap-3.5 bg-white/[0.04] border border-white/[0.06] rounded-2xl px-4 py-3.5 backdrop-blur-sm"
               >
-                <div className="w-8 h-8 rounded-xl bg-electric/15 flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4 text-electric" />
+                <div className="size-8 rounded-xl bg-electric/15 flex items-center justify-center shrink-0">
+                  <Icon className="size-4 text-electric" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white leading-none">{title}</p>
@@ -271,7 +271,7 @@ export default function Login({ context = "internal" }) {
         <div className="relative z-10 px-10 pb-8 flex items-center justify-between">
           <p className="text-xs text-white/20">© 2025 Nolosubito</p>
           <div className="flex items-center gap-1.5 text-xs text-white/25">
-            <Shield className="w-3 h-3" /> Connessione sicura SSL
+            <Shield className="size-3" /> Connessione sicura SSL
           </div>
         </div>
       </div>
@@ -287,8 +287,8 @@ export default function Login({ context = "internal" }) {
 
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-10">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-navy mb-4">
-              <Zap className="w-5 h-5 text-electric" />
+            <div className="inline-flex items-center justify-center size-12 rounded-2xl bg-navy mb-4">
+              <Zap className="size-5 text-electric" />
             </div>
             <h1 className="font-heading font-bold text-2xl text-foreground">{cfg.mobileTitle}</h1>
             <p className="text-muted-foreground text-sm mt-1">Nolosubito</p>
@@ -315,7 +315,7 @@ export default function Login({ context = "internal" }) {
               }}
             />
             {[{ id: "password", label: "Password" }, { id: "otp", label: "Codice OTP" }].map(({ id, label }) => (
-              <button
+              <button type="button"
                 key={id}
                 onClick={() => { setMode(id); setOtpSent(false); setOtpDigits(["", "", "", "", "", ""]); }}
                 className={`relative z-10 flex-1 py-2.5 text-sm font-semibold transition-colors duration-200 cursor-pointer rounded-[10px] ${
@@ -396,7 +396,7 @@ export default function Login({ context = "internal" }) {
                     tabIndex={-1}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                   >
-                    {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                   </button>
                 </div>
 
@@ -406,8 +406,8 @@ export default function Login({ context = "internal" }) {
                   className="w-full h-13 bg-navy hover:bg-navy-light text-white font-semibold rounded-xl cursor-pointer transition-all duration-200 mt-1 shadow-lg shadow-navy/20 py-3.5"
                 >
                   {loading
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <span className="flex items-center gap-2"><LogIn className="w-4 h-4" /> Accedi</span>
+                    ? <Loader2 className="size-4 animate-spin" />
+                    : <span className="flex items-center gap-2"><LogIn className="size-4" /> Accedi</span>
                   }
                 </Button>
 
@@ -422,7 +422,7 @@ export default function Login({ context = "internal" }) {
                     disabled={resetLoading}
                     className="w-full text-center text-xs text-muted-foreground hover:text-electric transition-colors pt-1 cursor-pointer"
                   >
-                    {resetLoading ? <Loader2 className="w-3 h-3 animate-spin inline" /> : "Password dimenticata?"}
+                    {resetLoading ? <Loader2 className="size-3 animate-spin inline" /> : "Password dimenticata?"}
                   </button>
                 )}
               </motion.form>
@@ -471,8 +471,8 @@ export default function Login({ context = "internal" }) {
                   className="w-full h-13 bg-navy hover:bg-navy-light text-white font-semibold rounded-xl cursor-pointer transition-all duration-200 shadow-lg shadow-navy/20 py-3.5"
                 >
                   {loading
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <span className="flex items-center gap-2"><LogIn className="w-4 h-4" /> Verifica e accedi</span>
+                    ? <Loader2 className="size-4 animate-spin" />
+                    : <span className="flex items-center gap-2"><LogIn className="size-4" /> Verifica e accedi</span>
                   }
                 </Button>
 
@@ -522,7 +522,7 @@ export default function Login({ context = "internal" }) {
                 </div>
 
                 <div className="flex items-start gap-2.5 bg-electric/5 border border-electric/15 rounded-xl px-4 py-3">
-                  <Zap className="w-3.5 h-3.5 text-electric shrink-0 mt-0.5" />
+                  <Zap className="size-3.5 text-electric shrink-0 mt-0.5" />
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     Ricevi un codice a 6 cifre via email — funziona su qualsiasi browser, anche in azienda.
                   </p>
@@ -534,8 +534,8 @@ export default function Login({ context = "internal" }) {
                   className="w-full h-13 bg-navy hover:bg-navy-light text-white font-semibold rounded-xl cursor-pointer transition-all duration-200 shadow-lg shadow-navy/20 py-3.5"
                 >
                   {loading
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <span className="flex items-center gap-2"><Mail className="w-4 h-4" /> Invia codice OTP</span>
+                    ? <Loader2 className="size-4 animate-spin" />
+                    : <span className="flex items-center gap-2"><Mail className="size-4" /> Invia codice OTP</span>
                   }
                 </Button>
               </motion.form>
@@ -547,7 +547,7 @@ export default function Login({ context = "internal" }) {
               to="/"
               className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors group w-fit"
             >
-              <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
+              <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-1" />
               Torna al sito
             </Link>
           </div>
