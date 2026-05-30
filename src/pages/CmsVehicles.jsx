@@ -857,6 +857,8 @@ export default function CmsVehicles() {
       qc.invalidateQueries({ queryKey: ["cms-vehicles"] });
       qc.invalidateQueries({ queryKey: ["cms-offers"] });
       qc.invalidateQueries({ queryKey: ["vehicle-configs-edit"] });
+      // Invalida tutte le listing pubbliche (home + segmenti) per riflettere i canoni aggiornati
+      qc.invalidateQueries({ predicate: q => String(q.queryKey[0]).startsWith("offers") });
       toast({ title: form.id ? "Veicolo aggiornato" : "Veicolo creato" });
       setModal(null);
     },

@@ -170,42 +170,37 @@ export const offersService = {
   },
 
   // Veicoli con prezzo per le pagine listing.
-  // Usa il canone "vetrina" (is_featured) se disponibile per il segmento; fallback al minimo.
+  // Usa RPC get_vehicle_prices() per aggregare featured/min lato DB,
+  // evitando il limite di 1000 righe di PostgREST su offer_configs.
   async listWithMinPrice(segment) {
-    let configQuery = supabase
-      .from('offer_configs')
-      .select('make,model,monthly_rent,segment,is_featured')
-      .eq('is_active', true)
-      .limit(5000);
+    const normKey = (make, model) => `${make?.trim().toUpperCase()}|${model?.trim().toUpperCase()}`;
 
-    if (segment) configQuery = configQuery.eq('segment', segment);
-
-    const [offersRes, configsRes] = await Promise.all([
+    const [offersRes, pricesRes] = await Promise.all([
       supabase.from('offers').select('*').eq('is_active', true).order('make'),
-      configQuery,
+      supabase.rpc('get_vehicle_prices', segment ? { p_segment: segment } : {}),
     ]);
 
     if (offersRes.error) throw offersRes.error;
-    if (configsRes.error) throw configsRes.error;
+    if (pricesRes.error) throw pricesRes.error;
 
     // Mappa: key → { featured: rent | null, min: rent }
     const priceMap = {};
-    configsRes.data?.forEach(c => {
-      const key = `${c.make}|${c.model}`;
-      if (!priceMap[key]) priceMap[key] = { featured: null, min: null };
-      const rent = Number(c.monthly_rent);
-      if (c.is_featured) priceMap[key].featured = rent;
-      if (priceMap[key].min === null || rent < priceMap[key].min) priceMap[key].min = rent;
+    pricesRes.data?.forEach(c => {
+      const key = normKey(c.make, c.model);
+      priceMap[key] = {
+        featured: c.featured_rent != null ? Number(c.featured_rent) : null,
+        min:      c.min_rent    != null ? Number(c.min_rent)    : null,
+      };
     });
 
     return offersRes.data
       ?.filter(o => {
         const hasSegmentFlag = !segment || (Array.isArray(o.segments) && o.segments.includes(segment));
-        const hasConfig = priceMap[`${o.make}|${o.model}`] != null;
+        const hasConfig = priceMap[normKey(o.make, o.model)] != null;
         return hasSegmentFlag || hasConfig;
       })
       .map(o => {
-        const p = priceMap[`${o.make}|${o.model}`];
+        const p = priceMap[normKey(o.make, o.model)];
         return {
           ...o,
           monthly_rent: p ? (p.featured ?? p.min) : null,
