@@ -183,13 +183,14 @@ export const offersService = {
     if (offersRes.error) throw offersRes.error;
     if (pricesRes.error) throw pricesRes.error;
 
-    // Mappa: key → { featured: rent | null, min: rent }
+    // Mappa: key → { featured: rent | null, min: rent, advance: advance_payment | null }
     const priceMap = {};
     pricesRes.data?.forEach(c => {
       const key = normKey(c.make, c.model);
       priceMap[key] = {
-        featured: c.featured_rent != null ? Number(c.featured_rent) : null,
-        min:      c.min_rent    != null ? Number(c.min_rent)    : null,
+        featured: c.featured_rent        != null ? Number(c.featured_rent)        : null,
+        min:      c.min_rent             != null ? Number(c.min_rent)             : null,
+        advance:  c.featured_advance_payment != null ? Number(c.featured_advance_payment) : null,
       };
     });
 
@@ -203,7 +204,8 @@ export const offersService = {
         const p = priceMap[normKey(o.make, o.model)];
         return {
           ...o,
-          monthly_rent: p ? (p.featured ?? p.min) : null,
+          monthly_rent:    p ? (p.featured ?? p.min) : null,
+          advance_payment: p ? (p.advance ?? 0)      : 0,
         };
       }) ?? [];
   },

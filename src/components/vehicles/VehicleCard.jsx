@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
-import { formatDisplayedRent, isVatIncludedForDisplay, resolvePricingSegment } from "@/lib/vehiclePricing";
+import { formatDisplayedRent, formatAdvanceAmount, isVatIncludedForDisplay, resolvePricingSegment } from "@/lib/vehiclePricing";
 import { useCountdown } from "@/hooks/useCountdown";
 
 const FUEL_IT = {
@@ -242,7 +242,7 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
                     segment: effectiveSegment,
                     vehicleCategory: vehicle.category,
                     vehicleSegments: vehicle.segments || [],
-                  }) ? "IVA Inclusa" : "IVA Esclusa"} · Anticipo 0€
+                  }) ? "IVA Inclusa" : "IVA Esclusa"} · Anticipo {formatAdvanceAmount(vehicle.advance_payment ?? 0)}
                 </p>
               </div>
 
