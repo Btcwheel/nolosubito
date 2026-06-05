@@ -64,10 +64,6 @@ function RecoveryHandler() {
 }
 
 const AppRoutes = () => {
-  const { isLoadingAuth } = useAuth();
-
-  if (isLoadingAuth) return <PageLoader />;
-
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
