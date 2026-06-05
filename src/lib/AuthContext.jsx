@@ -9,12 +9,16 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [authError, setAuthError] = useState(null);
   const fetchedFor = useRef(null);
+  const profileRef = useRef(null);
+
+  // Keep ref in sync so fetchProfile can read current profile without depending on state
+  useEffect(() => { profileRef.current = profile; }, [profile]);
 
   const fetchProfile = useCallback(async (userId, { force = false } = {}) => {
     if (!userId) return null;
     if (!force && fetchedFor.current === userId) {
       console.log('[Auth] fetchProfile → skip (già fetched per questo utente)');
-      return profile;
+      return profileRef.current;
     }
     setAuthError(null);
     try {
@@ -46,7 +50,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoadingAuth(false);
     }
-  }, [profile]);
+  }, []); // stabile — legge profile tramite ref, non come dipendenza
 
   // Espone diagnostica in console per debug
   useEffect(() => {
