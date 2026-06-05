@@ -3,38 +3,9 @@ import { defineConfig } from 'vite'
 import path from 'path'
 import compression from 'vite-plugin-compression'
 
-/**
- * Plugin che converte i tag CSS render-blocking in caricamento asincrono.
- * Usa il trick: media="print" onload="this.media='all'"
- * È il metodo più affidabile per caricare CSS in modo non bloccante senza FOUC pesante.
- */
-function deferCssPlugin() {
-  return {
-    name: 'defer-non-critical-css',
-    transformIndexHtml: {
-      order: 'post',
-      handler(html) {
-        // Match any stylesheet link (Vite assets or Google Fonts)
-        return html.replace(
-          /<link [^>]*rel="stylesheet"[^>]*href="([^"]+)"[^>]*>/g,
-          (match, href) => {
-            // Apply defer only to CSS files or Fonts
-            if (href.includes('.css') || href.includes('fonts.googleapis.com')) {
-              return `<link rel="stylesheet" href="${href}" media="print" onload="this.media='all'">` +
-                     `<noscript><link rel="stylesheet" href="${href}"></noscript>`;
-            }
-            return match;
-          }
-        );
-      },
-    },
-  };
-}
-
 export default defineConfig({
   plugins: [
     react(),
-    deferCssPlugin(),
     // Genera file .gz e .br pre-compressi durante il build
     compression({ algorithm: 'gzip', ext: '.gz' }),
     compression({ algorithm: 'brotliCompress', ext: '.br' }),
@@ -65,17 +36,13 @@ export default defineConfig({
     modulePreload: {
       resolveDependencies(filename, deps, { hostId, hostType }) {
         if (hostType === 'html') {
-          return deps.filter(dep => {
-            const isNonCritical = 
-              dep.includes('charts') || 
-              dep.includes('pdf-render') || 
-              dep.includes('pdf-libs') || 
-              dep.includes('canvas') ||
-              dep.includes('supabase') ||
-              dep.includes('radix') ||
-              dep.includes('motion');
-            return !isNonCritical;
-          });
+          // Escludi solo chunk pesanti usati solo in backoffice/admin
+          return deps.filter(dep =>
+            !dep.includes('charts') &&
+            !dep.includes('pdf-render') &&
+            !dep.includes('pdf-libs') &&
+            !dep.includes('canvas')
+          );
         }
         return deps;
       }
