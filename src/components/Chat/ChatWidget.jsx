@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, Loader2, ChevronDown } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 import useChat from '@/hooks/useChat';
+import useScrollDirection from '@/hooks/useScrollDirection';
 
 function EscalationChoiceButtons({ onChoice }) {
   return (
@@ -98,7 +99,8 @@ export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const inputRef = useRef(null);
-  const fabVisible = true;
+  const scrollingUp = useScrollDirection();
+  const fabVisible = scrollingUp || open;
 
   useEffect(() => {
     const rafId = requestAnimationFrame(() => {
@@ -135,11 +137,10 @@ export default function ChatWidget() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-            className="pointer-events-auto fixed inset-0 z-[60] sm:relative sm:inset-auto sm:w-[380px] bg-background sm:border sm:border-border/60 sm:rounded-2xl sm:shadow-2xl flex flex-col overflow-hidden"
+            className="pointer-events-auto fixed inset-0 z-[60] sm:relative sm:inset-auto sm:w-[380px] h-[100dvh] sm:h-auto sm:max-h-[calc(100vh-6rem)] bg-background sm:border sm:border-border/60 sm:rounded-2xl sm:shadow-2xl flex flex-col overflow-hidden"
             style={{
               paddingTop: 'env(safe-area-inset-top)',
               paddingBottom: 'env(safe-area-inset-bottom)',
-              height: '100dvh',
             }}
           >
             <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
