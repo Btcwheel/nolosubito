@@ -8,5 +8,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
+    // Bypassa il Web Locks API cross-tab: evita il loop di furti del lock
+    // tra tab multiple. Nessun impatto funzionale su questo sito.
+    lock: (_name, _acquireTimeout, fn) => fn(),
   },
 });
