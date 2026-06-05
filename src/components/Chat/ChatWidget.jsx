@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Loader2 } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, ChevronDown } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 import useChat from '@/hooks/useChat';
 
@@ -96,8 +96,9 @@ export default function ChatWidget() {
   } = useChat();
 
   const [open, setOpen] = useState(false);
-  const [unread, setUnread] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const inputRef = useRef(null);
+  const fabVisible = true;
 
   useEffect(() => {
     const rafId = requestAnimationFrame(() => {
@@ -109,17 +110,9 @@ export default function ChatWidget() {
   useEffect(() => {
     if (open) {
       const t = setTimeout(() => inputRef.current?.focus(), 300);
-      setUnread(false);
       return () => clearTimeout(t);
     }
   }, [open]);
-
-  useEffect(() => {
-    if (!open) {
-      const t = setTimeout(() => setUnread(true), 8000);
-      return () => clearTimeout(t);
-    }
-  }, []);
 
   const handleSend = useCallback(() => {
     if (!input.trim() || typing || escalated) return;
@@ -134,17 +127,24 @@ export default function ChatWidget() {
   }, [handleSend]);
 
   return (
-    <div className="fixed bottom-6 right-4 sm:right-6 z-50 flex flex-col items-end gap-3">
+    <div className="fixed inset-0 sm:inset-auto sm:bottom-6 sm:right-6 sm:z-50 z-[60] pointer-events-none flex flex-col sm:items-end sm:gap-3">
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 16 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 16 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
             transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-            className="w-[340px] sm:w-[380px] bg-background border border-border/60 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-            style={{ height: '520px' }}
+            className="pointer-events-auto fixed inset-0 z-[60] sm:relative sm:inset-auto sm:w-[380px] bg-background sm:border sm:border-border/60 sm:rounded-2xl sm:shadow-2xl flex flex-col overflow-hidden"
+            style={{
+              paddingTop: 'env(safe-area-inset-top)',
+              paddingBottom: 'env(safe-area-inset-bottom)',
+              height: '100dvh',
+            }}
           >
+            <div className="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
+              <div className="w-9 h-1 rounded-full bg-white/30" />
+            </div>
             <div className="bg-navy px-4 py-3.5 flex items-center gap-3 shrink-0">
               <img
                 src="/logo-bianco.png"
@@ -163,9 +163,12 @@ export default function ChatWidget() {
               </div>
               <button type="button"
                 onClick={() => setOpen(false)}
-                className="p-1.5 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                className="p-2 sm:p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors cursor-pointer flex items-center gap-1.5"
+                aria-label="Chiudi chat"
               >
-                <X className="size-4" />
+                <span className="hidden sm:inline text-xs">Chiudi</span>
+                <ChevronDown className="size-5 sm:hidden" />
+                <X className="size-4 hidden sm:block" />
               </button>
             </div>
 
@@ -218,17 +221,18 @@ export default function ChatWidget() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {!open && unread && (
+        {!open && hovered && (
           <motion.div
             initial={{ opacity: 0, scale: 0.85, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.85, y: 8 }}
-            className="bg-white rounded-2xl shadow-xl border border-border/50 p-3.5 max-w-[220px] relative cursor-pointer"
+            className="hidden sm:block pointer-events-auto bg-white rounded-2xl shadow-xl border border-border/50 p-3.5 max-w-[220px] relative cursor-pointer"
             onClick={() => setOpen(true)}
           >
             <button type="button"
-              onClick={e => { e.stopPropagation(); setUnread(false); }}
+              onClick={e => { e.stopPropagation(); setHovered(false); }}
               className="absolute top-2 right-2 text-muted-foreground hover:text-foreground cursor-pointer"
+              aria-label="Chiudi suggerimento"
             >
               <X className="size-3" />
             </button>
@@ -241,35 +245,43 @@ export default function ChatWidget() {
         )}
       </AnimatePresence>
 
-      <motion.button
-        onClick={() => setOpen(v => !v)}
-        whileHover={{ scale: 1.06 }}
-        whileTap={{ scale: 0.95 }}
-        className="size-14 rounded-full bg-navy shadow-lg shadow-navy/30 flex items-center justify-center cursor-pointer relative"
-        aria-label="Apri assistente AI"
+      <motion.div
+        animate={{ y: fabVisible || open ? 0 : 96, opacity: fabVisible || open ? 1 : 0 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="pointer-events-auto fixed bottom-4 right-4 sm:static sm:bottom-auto sm:right-auto z-[55] sm:z-auto"
       >
-        {!open && (
-          <motion.div
-            className="absolute inset-0 rounded-full bg-electric"
-            animate={{ scale: [1, 1.4, 1.4], opacity: [0.4, 0, 0] }}
-            transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 2 }}
-          />
-        )}
-        <AnimatePresence mode="wait">
-          {open
-            ? (
-              <motion.div key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                <X className="size-6 text-white" />
-              </motion.div>
-            )
-            : (
-              <motion.div key="chat" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                <MessageCircle className="size-6 text-white" />
-              </motion.div>
-            )
-          }
-        </AnimatePresence>
-      </motion.button>
+        <motion.button
+          onClick={() => setOpen(v => !v)}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
+          whileHover={{ scale: 1.06 }}
+          whileTap={{ scale: 0.95 }}
+          className="size-14 rounded-full bg-navy shadow-lg shadow-navy/30 flex items-center justify-center cursor-pointer relative"
+          aria-label="Apri assistente AI"
+        >
+          {!open && (
+            <motion.div
+              className="absolute inset-0 rounded-full bg-electric"
+              animate={{ scale: [1, 1.4, 1.4], opacity: [0.4, 0, 0] }}
+              transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 2 }}
+            />
+          )}
+          <AnimatePresence mode="wait">
+            {open
+              ? (
+                <motion.div key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                  <X className="size-6 text-white" />
+                </motion.div>
+              )
+              : (
+                <motion.div key="chat" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                  <MessageCircle className="size-6 text-white" />
+                </motion.div>
+              )
+            }
+          </AnimatePresence>
+        </motion.button>
+      </motion.div>
     </div>
   );
 }

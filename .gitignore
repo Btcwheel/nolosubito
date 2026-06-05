@@ -42,3 +42,7 @@ _backup_inutili/
 lighthouse-*.json
 lighthouse-report.html
 
+# Google Cloud SDK
+google-cloud-sdk/
+google-cloud-cli-darwin-x86_64.tar.gz
+

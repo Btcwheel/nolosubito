@@ -105,6 +105,7 @@ const NAV_BY_ROLE = {
     links: [
       { path: "/admin",        label: "Dashboard",    icon: LayoutDashboard, exact: true },
       { path: "/admin/leads",  label: "Lead",         icon: Users,           exact: true },
+      { path: "/backoffice",   label: "Backoffice",   icon: ClipboardList,   exact: true },
       { path: "/cms",          label: "CMS",          icon: Layers,          exact: true },
     ],
   },

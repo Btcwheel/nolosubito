@@ -15,8 +15,10 @@ const CORS = {
 };
 
 const MODEL = "claude-haiku-4-5-20251001";
+const VERSION = "chat-ai v2.1-pre-guard";
 
 Deno.serve(async (req: Request) => {
+  console.log(`[${VERSION}] request received`);
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: CORS });
 
@@ -32,6 +34,97 @@ Deno.serve(async (req: Request) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     const lastUserMessage = (messages[messages.length - 1]?.content ?? "").slice(0, 200);
+
+    // ── PRE-GUARD: detect "termine sconosciuto" PRIMA di chiamare Anthropic ─────
+    // Se l'utente cita un termine che sembra un prodotto/offerta/marchio/sigla,
+    // NON chiamare il modello: escalation diretta, senza possibilità di scappatoie.
+    const SUSPICIOUS_TERM_PATTERNS = [
+      /"[^"]{2,}"/,                                  // "BE FREE BIZ"
+      /'[^']{2,}'/,                                  // 'X1 PRO'
+      /[A-Z]{2,}[A-Z0-9]*(?:\s+[A-Z][A-Z0-9]*){1,}/, // BE FREE BIZ, X1 PRO, GOLD 2024
+      /\b\w*(?:promo|biz|pack|gold|platinum|premium|plus|special|exclusive|vip|club|edition)\w*\b/i,
+      /\b(?:codice\s*promo(?:zionale)?|codice\s*sconto|pacchetto|tariffa|abbonamento|listino)\b/i,
+      /\b(?:offerta|promo|sconto)\s+\w+/i,          // "offerta X" (X di qualsiasi lunghezza)
+    ];
+
+    // ── PAROLE CHIAVE LETTERALI (super-aggressivo) ────────────────────────────
+    const SUSPICIOUS_KEYWORDS = [
+      // BE FREE
+      "be free", "be-free", "befree", "be free biz", "be free pro", "be free gold",
+      // X1 / X2 / X3
+      "x1 promo", "x1 pro", "x2 promo", "x3 pro", "x1 pro",
+      // PACCHETTI
+      "pacchetto premium", "pacchetto gold", "pacchetto plat",
+      // OFFERTE
+      "offerta be", "offerta free", "offerta x1", "offerta special",
+      "offerta sul sito", "offerta sul vostro sito",
+      "ho visto l'offerta", "ho visto una promo", "ho visto un codice",
+      "l'offerta che", "la promo che", "lo sconto che",
+      // CODICI
+      "codice promo", "codice sconto", "codice promozionale",
+      // GENERICI PRODOTTO/SERVIZIO (broad)
+      "vostro prodotto", "vostro servizio", "vostra offerta",
+      "un vostro", "una vostra", "uno vostro",
+      // DOMANDE SU OFFERTE SPECIFICHE
+      "come funziona", "mi spieghi", "mi spiega", "spiegami", "spiegate",
+      "in cosa consiste", "cosa include", "cosa prevede",
+    ];
+
+    const userMsgRaw = lastUserMessage || "";
+    const userMsgLower = userMsgRaw.toLowerCase();
+
+    let hasSuspiciousTerm = false;
+    let matchesPattern = false;
+    let matchesKeyword = false;
+    try {
+      matchesPattern = SUSPICIOUS_TERM_PATTERNS.some(rx => rx.test(userMsgRaw));
+      matchesKeyword = SUSPICIOUS_KEYWORDS.some(kw => userMsgLower.includes(kw));
+      hasSuspiciousTerm = matchesPattern || matchesKeyword;
+    } catch (e) {
+      console.error(`[${VERSION}] pre-guard error:`, e);
+      hasSuspiciousTerm = false;
+    }
+
+    console.log(`[${VERSION}] pre-guard: msg="${userMsgRaw.slice(0,80)}" pattern=${matchesPattern} keyword=${matchesKeyword} → suspicious=${hasSuspiciousTerm}`);
+
+    if (hasSuspiciousTerm) {
+      try {
+        await supabase.from("escalated_sessions").insert({
+          session_id: sessionId,
+          user_question: userMsgRaw,
+          chat_history: messages,
+          status: "waiting",
+          reason: "pre_guard_suspicious_term",
+        });
+      } catch (e) {
+        console.error("pre-guard: insert failed", e);
+      }
+      return new Response(JSON.stringify({
+        reply: ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"],
+        offerLink: null, leadSaved: false, escalated: true,
+        session_id: sessionId,
+      }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
+    }
+
+    // ── TAKE-OVER GUARD: se la sessione è già in mano all'operatore, NON rispondo ────
+    // L'operatore sta scrivendo nella tabella operator_chat_messages, Luca sta zitto.
+    const { data: takeover } = await supabase
+      .from("escalated_sessions")
+      .select("status, operator_id")
+      .eq("session_id", sessionId)
+      .in("status", ["operator_joined", "waiting"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (takeover?.operator_id && takeover.status === "operator_joined") {
+      console.log(`[${VERSION}] takeover-active: skip ai response for session ${sessionId}`);
+      return new Response(JSON.stringify({
+        reply: [],
+        offerLink: null, leadSaved: false, escalated: true,
+        takeover: true, session_id: sessionId,
+      }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
+    }
 
     const [offersRes, configsRes, kbRes] = await Promise.all([
       supabase.from("offers").select("make, model, category, fuel_type, segments").eq("is_active", true),
@@ -70,11 +163,33 @@ Deno.serve(async (req: Request) => {
     const systemPrompt = `Sei Luca, consulente NLT di Nolosubito (${SITE_URL}). Professionista preparato, cordiale e diretto.
 Ora corrente in Italia: ${now} — usa questa info per i saluti (buongiorno/buon pomeriggio/buonasera).
 
+## ⚠️ REGOLA N°1 — QUANDO NON SAI RISPONDERE, ESCALA SUBITO ⚠️
+Questa è la regola più importante. Ha la precedenza su TUTTO il resto.
+
+Se NON hai una visione completa e certa al 100% della risposta, DEVI chiamare IMMEDIATAMENTE il tool escalate_to_operator. Non rispondere MAI con un messaggio testuale se non sei certo al 100% di cosa stai dicendo.
+
+VIETATO assolutamente:
+- Dire "non è un prodotto/servizio che offriamo" → ESCALA, non fare affermazioni su cosa esiste o non esiste
+- Dire "non mi è chiaro", "cosa intende", "mi dice meglio" → ESCALA
+- Proporre alternative dal catalogo quando la domanda non riguarda il catalogo → ESCALA
+- Rispondere con "posso aiutarla con..." quando non hai capito la domanda → ESCALA
+- Inventare, supporre, interpretare, generalizzare, approssimare → ESCALA SEMPRE
+
+Casi che RICHIEDONO SEMPRE escalation (lista non esaustiva):
+- Termini sconosciuti, prodotti, marchi, codici promo, sigle, nomi commerciali (es: "BE FREE BIZ", "X1 PROMO", "Pacchetto Premium Gold")
+- Clausole contrattuali (recesso, penali, subentro, danni, fine contratto, franchigie, rivalsa)
+- Condizioni particolari (disabili, neopatentati, conduzioni multiple, estero, secondo conducente)
+- Situazioni anomale (protesti, crisi aziendali, deroghe, sinistri, problemi assicurativi)
+- Qualsiasi prezzo, disponibilità o tempistica non esplicitamente nel catalogo/KB
+- Stato di una pratica, tempi di consegna specifici
+
+RISPONDI SOLO se la risposta è completa e certa al 100% e riguarda: catalogo veicoli, canoni medi, durate NLT standard, requisiti base, saluti, lead capture.
+
 ## PRIMA DI RISPONDERE — OBBLIGATORIO
 Ragionamento interno silenzioso:
 1. Cosa so già del cliente? (tipo, esigenze, nome, contatto)
 2. Cosa ho già chiesto/detto? (non ripetere)
-3. Qual è il passo logico successivo?
+3. HO LA RISPOSTA COMPLETA E CERTA AL 100%? Se no → ESCALA. Se sì → rispondi.
 
 ## TONO
 - Inizia con "Lei". Se il cliente usa "tu", adattati al "tu" per tutta la conversazione.
@@ -83,7 +198,7 @@ Ragionamento interno silenzioso:
 - Grammatica italiana corretta: "il SUV" / "i SUV" (NON "gli SUV"), "il NLT", "i km".
 - NON usare mai markdown nel testo: niente **grassetto**, niente *corsivo*, niente elenchi con trattini. Solo testo normale come in un messaggio WhatsApp.
 
-## OBIETTIVI
+## OBIETTIVI (solo se la risposta è certa al 100%)
 1. Capire se Privato, P.IVA o Azienda — UNA SOLA VOLTA.
 2. Verificare requisiti (CUD / 2 bilanci) solo quando c'è interesse concreto.
 3. Ottenere nome e cognome + email + numero di telefono → chiama save_lead.
@@ -113,14 +228,13 @@ Parla SOLO dei veicoli in lista. Includi sempre link completo e prezzo.
 
 ${knowledgeSection}
 
-## QUANDO NON SAI RISPONDERE
-Se la domanda riguarda argomenti non coperti dalla tua conoscenza (clausole contrattuali specifiche, condizioni particolari, situazioni fuori dal normale, ecc.), chiama IMMEDIATAMENTE escalate_to_operator.
-NON inventare risposte. NON fare supposizioni. Chiama il tool e basta — il messaggio al cliente viene gestito automaticamente.
-
 ## FORMATO
 - 2-3 messaggi separati da ||
 - Ogni segmento: 1-2 frasi, naturale
-- NON scrivere note o istruzioni tra parentesi`;
+- NON scrivere note o istruzioni tra parentesi
+
+## ⚠️ RICHIAMO FINALE ⚠️
+Se stai per scrivere un messaggio testuale invece di chiamare escalate_to_operator, FERMATI. Ricontrolla: ho la risposta certa al 100%? Se NO → chiama escalate_to_operator. Il cliente non resta mai senza risposta, verrà contattato da un consulente umano.`;
 
     const ESCALATE_TOOL = {
       name: "escalate_to_operator",
@@ -204,7 +318,7 @@ NON inventare risposte. NON fare supposizioni. Chiama il tool e basta — il mes
         });
       } catch (_) { /* ignora errore insert */ }
       escalated = true;
-      replyParts = ["Se mi dà un minuto le trovo le informazioni che cerca."];
+      replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
     }
 
     // Gestisci tool_use (save_lead)
@@ -263,6 +377,63 @@ NON inventare risposte. NON fare supposizioni. Chiama il tool e basta — il mes
       const raw = textBlock?.text || "";
       const clean = raw.replace(/^\(.*\)\s*$/gm, "").trim();
       replyParts = clean ? clean.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
+    }
+
+    // ── GUARD SERVER-SIDE: forza escalation se il modello ha barato ────────────
+    // Se il modello ha risposto con un "soft refusal" o ha fatto affermazioni
+    // su prodotti/servizi che non può conoscere, convertiamo in escalation.
+    if (!escalated && !leadSaved && replyParts.length > 0) {
+      const fullReply = replyParts.join(" ").toLowerCase();
+      const userMsg = (lastUserMessage || "").toLowerCase();
+
+      // Pattern di "soft refusal" o affermazioni non verificate sul OUTPUT
+      const softRefusalPatterns = [
+        /non\s+(?:è|sono|abbiamo|offriamo|facciamo|trattiamo|disponiamo|dispongo|disponiamo)/i,
+        /non\s+(?:mi\s+)?(?:è|risulta)\s+(?:chiaro|noto|familiare|possibile)/i,
+        /non\s+ho\s+(?:informazioni|notizie|accesso|dati|modo|strumenti)/i,
+        /non\s+posso\s+(?:accedere|verificare|consultare|trovare|rispondere)/i,
+        /non\s+riesco\s+a\s+(?:capire|rispondere|trovare|verificare)/i,
+        /non\s+mi\s+risulta/i,
+        /non\s+dispongo/i,
+        /non\s+sono\s+in\s+grado/i,
+        /cosa\s+intende/i,
+        /mi\s+(?:dice|dica|spiega)\s+meglio/i,
+        /può\s+specificare/i,
+        /purtroppo/i,
+        /mi\s+dispiace,?\s+ma/i,
+        /pagine\s+specifiche/i,
+        /non\s+ho\s+diretto/i,
+      ];
+
+      // Pattern di termini "prodotto-like" nel messaggio utente (codici, marchi, sigle)
+      const productLikePatterns = [
+        /"[^"]{2,}"/,                                 // "qualcosa tra virgolette"
+        /'[^']{2,}'/,                                 // 'qualcosa tra apici singoli'
+        /\b[A-Z]{2,}(?:[\s\-_]+[A-Z0-9]+){0,3}\b/,    // BE FREE, X1 PRO, GOLD 2024, BE-FREE-BIZ
+        /\b\w*(?:promo|biz|pack|gold|platinum|premium|plus|special|exclusive|vip|club)\w*\b/i,
+        /\b\w*pro\w*\b/i,                             // catch "proposte", "X1 Pro", ecc. (attenzione: match aggressivo)
+        /\b(?:codice|codice\s+promo(?:zionale)?|codice\s+sconto|abbonamento|offerta\s+\w+)\b/i,
+        /\b(?:listino|preventivo\s+personalizzato|tariffa|canone\s+\w+)\b/i,
+      ];
+
+      const isSoftRefusal = softRefusalPatterns.some(rx => rx.test(fullReply));
+      const userHasProductTerm = productLikePatterns.some(rx => rx.test(userMsg));
+
+      if (isSoftRefusal || userHasProductTerm) {
+        try {
+          await supabase.from("escalated_sessions").insert({
+            session_id: sessionId,
+            user_question: lastUserMessage,
+            chat_history: messages,
+            status: "waiting",
+            reason: userHasProductTerm ? "product_term_detected" : "soft_refusal_detected",
+          });
+        } catch (e) {
+          console.error("guard: insert escalated_sessions failed", e);
+        }
+        escalated = true;
+        replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
+      }
     }
 
     if (replyParts.length === 0) replyParts = ["Ho ricevuto la sua richiesta, un attimo."];

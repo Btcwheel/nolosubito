@@ -6,7 +6,7 @@ import NewsCard from "@/components/news/NewsCard";
 import { Newspaper } from "lucide-react";
 import { PageHeader } from "@/components/layout/ListingLayout";
 
-const CATEGORIES = ["Tutti", "Notizie", "Approfondimenti", "Offerte", "Green Mobility", "Azienda"];
+const CATEGORIES = ["Tutti", "Notizie", "Approfondimenti", "Offerte", "Green Mobility"];
 
 export default function News() {
   const [activeCategory, setActiveCategory] = useState("Tutti");

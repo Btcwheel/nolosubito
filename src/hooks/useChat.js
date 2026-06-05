@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 
 const STORAGE_KEY = 'nolosubito_chat';
 const STORAGE_TTL = 24 * 60 * 60 * 1000; // 24 ore
-const ESCALATION_TIMEOUT_MS = 2 * 60 * 1000; // 2 minuti
+const ESCALATION_TIMEOUT_MS = 1 * 60 * 1000; // 1 minuto
 
 const WELCOME = {
   role: 'assistant',
@@ -53,10 +53,13 @@ export default function useChat() {
   const [leadSaved, setLeadSaved] = useState(stored?.leadSaved ?? false);
   const [escalated, setEscalated] = useState(false);
   const [escalationPhase, setEscalationPhase] = useState(null); // null | 'waiting' | 'ask_wait' | 'ask_contact'
+  const [operatorTyping, setOperatorTyping] = useState(false);
+  const [operatorName, setOperatorName] = useState(null);
   const [sessionId] = useState(() => stored?.sessionId ?? generateSessionId());
   const bottomRef = useRef(null);
   const escalationTimerRef = useRef(null);
-  const realtimeChannelRef = useRef(null);
+  const escalationChannelRef = useRef(null);
+  const takeoverChannelRef = useRef(null);
 
   useEffect(() => {
     saveToStorage(messages, leadSaved, sessionId);
@@ -66,9 +69,8 @@ export default function useChat() {
   useEffect(() => {
     return () => {
       clearTimeout(escalationTimerRef.current);
-      if (realtimeChannelRef.current) {
-        supabase.removeChannel(realtimeChannelRef.current);
-      }
+      if (escalationChannelRef.current) supabase.removeChannel(escalationChannelRef.current);
+      if (takeoverChannelRef.current) supabase.removeChannel(takeoverChannelRef.current);
     };
   }, []);
 
@@ -85,14 +87,26 @@ export default function useChat() {
     }
   }, []);
 
-  const subscribeToOperatorReply = useCallback((sid) => {
-    // Evita doppie sottoscrizioni
-    if (realtimeChannelRef.current) {
-      supabase.removeChannel(realtimeChannelRef.current);
+  // ── TAKE-OVER MODE: ascolto continuo su operator_chat_messages ─────────────
+  const subscribeToOperatorTakeover = useCallback((sid) => {
+    if (takeoverChannelRef.current) {
+      supabase.removeChannel(takeoverChannelRef.current);
     }
 
     const channel = supabase
-      .channel(`escalation_${sid}`)
+      .channel(`op_takeover_${sid}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'operator_chat_messages',
+        filter: `session_id=eq.${sid}`,
+      }, (payload) => {
+        const row = payload.new;
+        if (row.sender === 'operator') {
+          setMessages(prev => [...prev, { role: 'assistant', content: row.content, operatorMessage: true }]);
+          setOperatorTyping(false);
+        }
+      })
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
@@ -100,29 +114,52 @@ export default function useChat() {
         filter: `session_id=eq.${sid}`,
       }, (payload) => {
         const row = payload.new;
-        if (row.operator_answer && row.status === 'resolved') {
-          clearTimeout(escalationTimerRef.current);
+        if (row.status === 'resolved' && row.operator_id) {
+          // L'operatore ha chiuso la conversazione → torna a Luca
           setEscalated(false);
           setEscalationPhase(null);
-          setTyping(false);
-          setMessages(prev => [...prev, {
-            role: 'assistant',
-            content: row.operator_answer,
-          }]);
-          supabase.removeChannel(channel);
-          realtimeChannelRef.current = null;
+          setOperatorTyping(false);
+          clearTimeout(escalationTimerRef.current);
+          if (takeoverChannelRef.current) {
+            supabase.removeChannel(takeoverChannelRef.current);
+            takeoverChannelRef.current = null;
+          }
         }
       })
       .subscribe();
 
-    realtimeChannelRef.current = channel;
+    takeoverChannelRef.current = channel;
+  }, []);
+
+  // ── Vecchio canale escalation UPDATE: lo teniamo come fallback ─────────────
+  const subscribeToEscalationStatus = useCallback((sid) => {
+    if (escalationChannelRef.current) {
+      supabase.removeChannel(escalationChannelRef.current);
+    }
+
+    const channel = supabase
+      .channel(`escalation_status_${sid}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'escalated_sessions',
+        filter: `session_id=eq.${sid}`,
+      }, (payload) => {
+        const row = payload.new;
+        if (row.operator_id) setOperatorName(row.operator_id);
+        if (row.status === 'operator_joined') {
+          setOperatorTyping(true);
+        }
+      })
+      .subscribe();
+
+    escalationChannelRef.current = channel;
   }, []);
 
   const startEscalationTimer = useCallback((sid) => {
     setEscalationPhase('waiting');
 
     escalationTimerRef.current = setTimeout(async () => {
-      // 2 minuti senza risposta — Luca chiede se aspettare
       setTyping(true);
       await new Promise(r => setTimeout(r, 2000));
       setTyping(false);
@@ -133,12 +170,12 @@ export default function useChat() {
       setEscalationPhase('ask_wait');
     }, ESCALATION_TIMEOUT_MS);
 
-    subscribeToOperatorReply(sid);
-  }, [subscribeToOperatorReply]);
+    subscribeToOperatorTakeover(sid);
+    subscribeToEscalationStatus(sid);
+  }, [subscribeToOperatorTakeover, subscribeToEscalationStatus]);
 
   const handleEscalationChoice = useCallback(async (choice) => {
     if (choice === 'wait') {
-      // Ricomincia il timer
       clearTimeout(escalationTimerRef.current);
       setEscalationPhase('waiting');
       setTyping(true);
@@ -177,9 +214,13 @@ export default function useChat() {
     clearTimeout(escalationTimerRef.current);
     setEscalated(false);
     setEscalationPhase(null);
-    if (realtimeChannelRef.current) {
-      supabase.removeChannel(realtimeChannelRef.current);
-      realtimeChannelRef.current = null;
+    if (escalationChannelRef.current) {
+      supabase.removeChannel(escalationChannelRef.current);
+      escalationChannelRef.current = null;
+    }
+    if (takeoverChannelRef.current) {
+      supabase.removeChannel(takeoverChannelRef.current);
+      takeoverChannelRef.current = null;
     }
     setTyping(true);
     await new Promise(r => setTimeout(r, 1800));
@@ -193,11 +234,19 @@ export default function useChat() {
   const sendMessage = useCallback(async (text) => {
     if (!text.trim() || typing || escalated) return;
 
-    const userMsg = { role: 'user', content: text.trim() };
-    const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
+    const text_clean = text.trim();
+    const userMsg = { role: 'user', content: text_clean };
+    setMessages(prev => [...prev, userMsg]);
     setInput('');
 
+    // ── TAKE-OVER MODE: scrivo direttamente su operator_chat_messages ─────
+    if (escalated) {
+      await chatService.sendCustomerMessage(sessionId, text_clean);
+      return;
+    }
+
+    // ── NORMAL MODE: chiamo l'edge function ──────────────────────────────
+    const newMessages = [...messages, userMsg];
     await new Promise(r => setTimeout(r, READ_DELAY()));
     setTyping(true);
 
@@ -213,7 +262,6 @@ export default function useChat() {
         setEscalated(true);
         setTyping(false);
         await deliverMessages(data.reply);
-        // Avvia i pallini di attesa e il timer
         setTyping(true);
         startEscalationTimer(data.session_id || sessionId);
         return;
@@ -237,9 +285,13 @@ export default function useChat() {
   const reset = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     clearTimeout(escalationTimerRef.current);
-    if (realtimeChannelRef.current) {
-      supabase.removeChannel(realtimeChannelRef.current);
-      realtimeChannelRef.current = null;
+    if (escalationChannelRef.current) {
+      supabase.removeChannel(escalationChannelRef.current);
+      escalationChannelRef.current = null;
+    }
+    if (takeoverChannelRef.current) {
+      supabase.removeChannel(takeoverChannelRef.current);
+      takeoverChannelRef.current = null;
     }
     setMessages([WELCOME]);
     setInput('');
@@ -247,6 +299,8 @@ export default function useChat() {
     setLeadSaved(false);
     setEscalated(false);
     setEscalationPhase(null);
+    setOperatorTyping(false);
+    setOperatorName(null);
   }, []);
 
   return {
@@ -257,6 +311,9 @@ export default function useChat() {
     leadSaved,
     escalated,
     escalationPhase,
+    operatorTyping,
+    operatorName,
+    sessionId,
     bottomRef,
     sendMessage,
     handleEscalationChoice,

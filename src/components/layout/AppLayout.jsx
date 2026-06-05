@@ -12,7 +12,7 @@ export default function AppLayout() {
     <div className="min-h-screen flex flex-col">
       <ScrollToTop />
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 pt-16 md:pt-20">
         <Outlet />
       </main>
       <Footer />

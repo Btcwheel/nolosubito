@@ -1,7 +1,8 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, MessageCircle } from "lucide-react";
 import LeadForm from "../components/lead/LeadForm";
+import { useIsMobile } from "../hooks/use-mobile";
 
 const contactInfo = [
   { icon: Mail, label: "Email", value: "info@nolosubito.it", href: "mailto:info@nolosubito.it" },
@@ -9,6 +10,17 @@ const contactInfo = [
   { icon: MapPin, label: "Indirizzo", value: "Presenza su tutto il territorio nazionale" },
   { icon: Clock, label: "Orari", value: "Lun–Ven: 9:00–18:00" },
 ];
+
+// In Italia i cellulari iniziano con 3 (dopo +39), i fissi con 0
+function isMobilePhone(phone) {
+  return phone.replace(/\D/g, "").startsWith("393");
+}
+function telHref(phone) {
+  return `tel:${phone.replace(/\s+/g, "")}`;
+}
+function waHref(phone) {
+  return `https://wa.me/${phone.replace(/\D/g, "")}`;
+}
 
 const offices = [
   {
@@ -38,7 +50,50 @@ const offices = [
   },
 ];
 
+function PhoneLink({ phone, isMobile }) {
+  const mobile = isMobilePhone(phone);
+  if (isMobile) {
+    return (
+      <a
+        href={mobile ? waHref(phone) : telHref(phone)}
+        target={mobile ? "_blank" : undefined}
+        rel={mobile ? "noopener noreferrer" : undefined}
+        className="block text-sm font-medium text-foreground hover:text-electric transition-colors"
+      >
+        {phone}
+      </a>
+    );
+  }
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-sm font-medium text-foreground">{phone}</span>
+      {mobile ? (
+        <a
+          href={waHref(phone)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Chat WhatsApp ${phone}`}
+          className="inline-flex items-center gap-1 text-xs font-medium text-[#25D366] hover:text-[#1ebe5b] transition-colors"
+        >
+          <MessageCircle className="size-3.5" />
+          WhatsApp
+        </a>
+      ) : (
+        <span
+          title="Chiama da cellulare"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground"
+        >
+          <Phone className="size-3.5" />
+          Chiama da cellulare
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function Contact() {
+  const isMobile = useIsMobile();
+
   return (
     <div className="bg-surface min-h-screen">
       <div className="bg-white border-b border-gray-100">
@@ -67,9 +122,13 @@ export default function Contact() {
                   <div>
                     <p className="text-xs text-muted-foreground">{c.label}</p>
                     {c.href ? (
-                      <a href={c.href} className="text-sm font-medium text-foreground hover:text-electric transition-colors duration-200">
-                        {c.value}
-                      </a>
+                      c.label === "Telefono" ? (
+                        <PhoneLink phone={c.value} isMobile={isMobile} />
+                      ) : (
+                        <a href={c.href} className="text-sm font-medium text-foreground hover:text-electric transition-colors duration-200">
+                          {c.value}
+                        </a>
+                      )
                     ) : (
                       <p className="text-sm font-medium text-foreground">{c.value}</p>
                     )}
@@ -130,13 +189,7 @@ export default function Contact() {
                       </address>
                       <div className="mt-4 space-y-1">
                         {office.phones.map((phone) => (
-                          <a
-                            key={phone}
-                            href={`tel:${phone.replace(/\s+/g, "")}`}
-                            className="block text-sm font-medium text-foreground hover:text-electric transition-colors"
-                          >
-                            {phone}
-                          </a>
+                          <PhoneLink key={phone} phone={phone} isMobile={isMobile} />
                         ))}
                       </div>
                     </div>
