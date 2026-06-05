@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { User } from 'lucide-react';
 
@@ -24,7 +25,7 @@ function linkify(text) {
   });
 }
 
-export default function ChatMessage({ message }) {
+export default memo(function ChatMessage({ message }) {
   const isUser = message.role === 'user';
 
   return (
@@ -49,4 +50,4 @@ export default function ChatMessage({ message }) {
       </div>
     </div>
   );
-}
+});

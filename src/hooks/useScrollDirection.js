@@ -6,29 +6,32 @@ export default function useScrollDirection({ threshold = 4, topOffset = 80 } = {
   const idleTimer = useRef(null);
 
   useEffect(() => {
+    let rafId = null;
+
     const onScroll = () => {
-      const y = window.scrollY;
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const y = window.scrollY;
 
-      if (y < topOffset) {
-        setVisible(true);
-        lastY.current = y;
-        return;
-      }
+        if (y < topOffset) {
+          setVisible(true);
+          lastY.current = y;
+          return;
+        }
 
-      const delta = y - lastY.current;
-      if (Math.abs(delta) > threshold) {
-        setVisible(delta < 0);
-        lastY.current = y;
-      }
-
-      clearTimeout(idleTimer.current);
-      idleTimer.current = setTimeout(() => {}, 1000);
+        const delta = y - lastY.current;
+        if (Math.abs(delta) > threshold) {
+          setVisible(delta < 0);
+          lastY.current = y;
+        }
+      });
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', onScroll);
-      clearTimeout(idleTimer.current);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, [threshold, topOffset]);
 

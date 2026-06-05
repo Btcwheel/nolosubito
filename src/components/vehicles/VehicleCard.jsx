@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -73,7 +73,7 @@ function PromoCountdownBadge({ expiresAt, discountPct, compact = false }) {
   );
 }
 
-export default function VehicleCard({ vehicle, index = 0, segment, compact = false }) {
+export default memo(function VehicleCard({ vehicle, index = 0, segment, compact = false }) {
   const imgSrc    = getVehicleImage(vehicle);
   const imgPos    = getVehicleImagePosition(vehicle);
   const effectiveSegment = resolvePricingSegment({
@@ -277,4 +277,4 @@ export default function VehicleCard({ vehicle, index = 0, segment, compact = fal
       </Link>
     </motion.div>
   );
-}
+});
