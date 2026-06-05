@@ -2,7 +2,7 @@ import React, { memo } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  ArrowRight, Settings2, Fuel, Zap, Gauge, Leaf, Flame, RefreshCw, Truck, Tag,
+  ArrowRight, Settings2, Fuel, Zap, Gauge, Leaf, Flame, RefreshCw, Truck, Tag, Calendar, Route,
 } from "lucide-react";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
@@ -244,6 +244,22 @@ export default memo(function VehicleCard({ vehicle, index = 0, segment, compact 
                     vehicleSegments: vehicle.segments || [],
                   }) ? "IVA Inclusa" : "IVA Esclusa"} · Anticipo {formatAdvanceAmount(vehicle.advance_payment ?? 0)}
                 </p>
+                {(vehicle.duration_months || vehicle.annual_km) && (
+                  <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                    {vehicle.duration_months && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#55545e] bg-spec rounded-md px-2 py-[3px]">
+                        <Calendar className="size-[10px]" />
+                        {vehicle.duration_months} mesi
+                      </span>
+                    )}
+                    {vehicle.annual_km && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-[#55545e] bg-spec rounded-md px-2 py-[3px]">
+                        <Route className="size-[10px]" />
+                        {(vehicle.annual_km / 1000).toLocaleString("it-IT")}k km/anno
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="size-12 bg-electric rounded-xl flex items-center justify-center shrink-0 transition-colors group-hover:bg-electric/85">

@@ -20,11 +20,7 @@ export const chatService = {
   },
 
   async saveContact(sessionId, { name, phone, email }) {
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient(
-      import.meta.env.VITE_SUPABASE_URL,
-      import.meta.env.VITE_SUPABASE_ANON_KEY
-    );
+    const { supabase } = await import('@/lib/supabase');
     return supabase
       .from('escalated_sessions')
       .update({

@@ -188,9 +188,11 @@ export const offersService = {
     pricesRes.data?.forEach(c => {
       const key = normKey(c.make, c.model);
       priceMap[key] = {
-        featured: c.featured_rent        != null ? Number(c.featured_rent)        : null,
-        min:      c.min_rent             != null ? Number(c.min_rent)             : null,
-        advance:  c.featured_advance_payment != null ? Number(c.featured_advance_payment) : null,
+        featured: c.featured_rent             != null ? Number(c.featured_rent)             : null,
+        min:      c.min_rent                  != null ? Number(c.min_rent)                  : null,
+        advance:  c.featured_advance_payment  != null ? Number(c.featured_advance_payment)  : null,
+        duration: c.featured_duration_months  != null ? Number(c.featured_duration_months)  : null,
+        km:       c.featured_annual_km        != null ? Number(c.featured_annual_km)        : null,
       };
     });
 
@@ -206,6 +208,8 @@ export const offersService = {
           ...o,
           monthly_rent:    p ? (p.featured ?? p.min) : null,
           advance_payment: p ? (p.advance ?? 0)      : 0,
+          duration_months: p?.duration ?? null,
+          annual_km:       p?.km       ?? null,
         };
       }) ?? [];
   },
