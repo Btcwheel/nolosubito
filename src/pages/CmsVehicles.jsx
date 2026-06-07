@@ -954,7 +954,7 @@ export default function CmsVehicles() {
                     {v.segments?.map(s => {
                       const opt = SEGMENTS_OPTIONS.find(o => o.value === s);
                       return opt ? (
-                        <span key={s} className={`text-[10px] font-semibold px-1.5 py-0 rounded-full border ${opt.color}`}>{s}</span>
+                        <span key={s} className={`text-[10px] font-semibold px-1.5 py-0 rounded-full border ${opt.color}`}>{opt.label}</span>
                       ) : null;
                     })}
                     {v.is_featured && (
