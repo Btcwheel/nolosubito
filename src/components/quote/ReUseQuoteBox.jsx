@@ -219,6 +219,17 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
 
   const activeConfigs = reuseConfigs;
 
+  // Quando i configs arrivano, posizionati sulla featured (o prima disponibile) — mai sul fallback hardcoded
+  useEffect(() => {
+    if (featuredInitialized.current) return;
+    if (activeConfigs.length === 0) return;
+    const target = activeConfigs.find(c => c.is_featured) || activeConfigs[0];
+    setDuration(target.duration_months);
+    setAnnualKm(target.annual_km);
+    setAdvance(Number(target.advance_payment ?? 0));
+    featuredInitialized.current = true;
+  }, [activeConfigs]);
+
   const availableDurations = useMemo(
     () => new Set(activeConfigs.map(c => c.duration_months)),
     [activeConfigs],
@@ -268,17 +279,6 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
       if (sorted[0]) setDuration(sorted[0]);
     }
   }, [activeConfigs, availableDurations, duration]);
-
-  useEffect(() => {
-    if (featuredInitialized.current) return;
-    const featured = activeConfigs.find(c => c.is_featured);
-    if (featured) {
-      setDuration(featured.duration_months);
-      setAnnualKm(featured.annual_km);
-      setAdvance(Number(featured.advance_payment ?? 0));
-      featuredInitialized.current = true;
-    }
-  }, [activeConfigs]);
 
   useEffect(() => {
     setDuration(12);

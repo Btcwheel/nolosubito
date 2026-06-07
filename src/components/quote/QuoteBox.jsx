@@ -208,16 +208,15 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
   useEffect(() => { if (fixedMake) setSelectedMake(fixedMake); }, [fixedMake]);
   useEffect(() => { if (fixedModel) setSelectedModel(fixedModel); }, [fixedModel]);
 
-  // Pre-seleziona durata e km del canone vetrina quando cambia segmento o si caricano i configs
+  // Pre-seleziona featured (o prima disponibile) quando i configs caricano — mai sul fallback hardcoded
   useEffect(() => {
     if (featuredInitialized.current) return;
-    const featured = activeConfigs.find(c => c.is_featured);
-    if (featured) {
-      setDuration(featured.duration_months);
-      setAnnualKm(featured.annual_km);
-      setAdvance(Number(featured.advance_payment ?? 0));
-      featuredInitialized.current = true;
-    }
+    if (activeConfigs.length === 0) return;
+    const target = activeConfigs.find(c => c.is_featured) || activeConfigs[0];
+    setDuration(target.duration_months);
+    setAnnualKm(target.annual_km);
+    setAdvance(Number(target.advance_payment ?? 0));
+    featuredInitialized.current = true;
   }, [activeConfigs]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
