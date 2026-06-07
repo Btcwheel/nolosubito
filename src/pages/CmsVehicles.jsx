@@ -45,8 +45,8 @@ const SEGMENTS_OPTIONS = [
   { value: "Green",    label: "Green Mobility",         color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   { value: "Moto",     label: "Offerte Moto",           color: "bg-rose-100 text-rose-700 border-rose-200" },
   { value: "ReUse",    label: "Re-Use (generico)",      color: "bg-teal-100 text-teal-700 border-teal-200" },
-  { value: "ReUse-Privati",   label: "Re-Use Privati",  color: "bg-teal-100 text-teal-700 border-teal-200" },
-  { value: "ReUse-Business",  label: "Re-Use Business", color: "bg-teal-100 text-teal-700 border-teal-200" },
+  { value: "ReUse-Privati",   label: "ReUse P",         color: "bg-teal-100 text-teal-700 border-teal-200" },
+  { value: "ReUse-Business",  label: "ReUse B",         color: "bg-teal-100 text-teal-700 border-teal-200" },
 ];
 
 const PRICE_SEGMENTS = ["P.IVA", "Privati", "Veicoli Commerciali", "Moto", "ReUse", "ReUse-Privati", "ReUse-Business"];
