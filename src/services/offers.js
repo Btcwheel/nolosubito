@@ -173,17 +173,21 @@ export const offersService = {
   // Usa RPC get_vehicle_prices() per aggregare featured/min lato DB,
   // evitando il limite di 1000 righe di PostgREST su offer_configs.
   // Accetta:
-  //   - string: segmento singolo (es. "P.IVA"). Le varianti ReUse-* vengono
-  //     aggiunte automaticamente per mostrare i veicoli usati nella listing.
-  //   - array:  lista esplicita di segmenti. Utile per /reuse che mostra tutto.
+  //   - string: "P.IVA" | "Privati" | "ReUse" — segmenti di listing mutuamente esclusivi.
+  //     Le varianti "ReUse-Privati" / "ReUse-Business" sono etichette del canone (QuoteBox + IVA)
+  //     e NON fanno listing nelle pagine Privati/P.IVA: un veicolo ReUse sta SOLO in /reuse.
+  //   - array:  lista esplicita di segmenti. Utile per /reuse che mostra tutte le varianti.
   //   - null/undefined: tutti i segmenti.
   async listWithMinPrice(segmentOrSegments) {
     const normKey = (make, model) => `${make?.trim().toUpperCase()}|${model?.trim().toUpperCase()}`;
 
+    // Segmenti di listing (mutuamente esclusivi). Le varianti ReUse-Privati /
+    // ReUse-Business sono solo etichette del canone (QuoteBox + IVA) e non
+    // fanno listing nelle pagine Privati/P.IVA: un veicolo ReUse sta SOLO in /reuse.
     const SEGMENT_GROUPS = {
-      'P.IVA':        ['P.IVA', 'ReUse', 'ReUse-Business'],
-      'Privati':      ['Privati', 'ReUse', 'ReUse-Privati'],
-      'ReUse':        ['ReUse', 'ReUse-Privati', 'ReUse-Business'],
+      'P.IVA':   ['P.IVA'],
+      'Privati': ['Privati'],
+      'ReUse':   ['ReUse', 'ReUse-Privati', 'ReUse-Business'],
     };
 
     let segments;
