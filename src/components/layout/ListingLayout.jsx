@@ -98,7 +98,7 @@ export function CardSkeleton() {
 export function PageHeader({ eyebrow, title, description }) {
   return (
     <div className="bg-white border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-4 pb-8">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
           {eyebrow && (
             <p className="text-xs font-bold text-electric uppercase tracking-widest mb-2">{eyebrow}</p>

@@ -183,7 +183,7 @@ export default function FeaturedVehicles() {
     <section className="bg-surface min-h-screen">
 
       {/* ── HERO ───────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 sm:pt-28 pb-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-4">
         <div className="flex flex-col sm:block relative w-full">
 
           {/* ── Immagine & Testo ── */}

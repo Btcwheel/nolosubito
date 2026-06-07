@@ -73,12 +73,19 @@ function OptionButton({ selected, available = true, onClick, children }) {
 
 /* ── Card UI (solo stock) ──────────────────────────────────────────────────── */
 
-function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequestQuote }) {
+function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequestQuote, reuseSegment = "ReUse" }) {
   const [selected, setSelected] = React.useState(null);
 
   React.useEffect(() => {
     setSelected(null);
   }, [fixedMake, fixedModel]);
+
+  // Segmento "logico" per IVA derivato dal segmento della config (non dal tab).
+  // ReUse-Privati -> Privati (IVA inclusa), ReUse-Business -> P.IVA (+IVA), ReUse -> +IVA
+  const logicalFromConfigSeg = (seg) =>
+    seg === "ReUse-Privati" ? "Privati" :
+    seg === "ReUse-Business" ? "P.IVA" :
+    seg;
 
   const handleSelect = (duration, km) => {
     setSelected({ duration, km });
@@ -90,7 +97,7 @@ function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequest
     onRequestQuote?.({
       make: fixedMake,
       model: fixedModel,
-      segment: "ReUse",
+      segment: reuseSegment,
       duration: selected.duration,
       annualKm: selected.km,
       advance: 0,
@@ -98,15 +105,14 @@ function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequest
     });
   };
 
-  const selectedRent = selected
-    ? options[`${selected.duration}|${selected.km}`]?.monthly_rent
-    : null;
+  const selectedConfig = selected ? options[`${selected.duration}|${selected.km}`] : null;
+  const selectedRent = selectedConfig?.monthly_rent ?? null;
 
-  const displayRent = selectedRent
+  const displayRent = selectedRent != null
     ? formatDisplayedRent(Number(selectedRent), {
-        segment: "ReUse",
+        segment: logicalFromConfigSeg(selectedConfig?.segment ?? reuseSegment),
         vehicleCategory: null,
-        vehicleSegments: ["ReUse"],
+        vehicleSegments: [logicalFromConfigSeg(selectedConfig?.segment ?? reuseSegment)],
       })
     : null;
 
@@ -120,11 +126,12 @@ function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequest
             {STOCK_KM.map(km => {
               const config = options[`${duration}|${km}`];
               const available = !!config;
+              const cardLogical = logicalFromConfigSeg(config?.segment ?? reuseSegment);
               const display = config
                 ? formatDisplayedRent(Number(config.monthly_rent), {
-                    segment: "ReUse",
+                    segment: cardLogical,
                     vehicleCategory: null,
-                    vehicleSegments: ["ReUse"],
+                    vehicleSegments: [cardLogical],
                   })
                 : null;
               const isSelected = selected?.duration === duration && selected?.km === km;
@@ -160,7 +167,7 @@ function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequest
                     <span className="text-[10px] text-muted-foreground">/mese</span>
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-0.5">
-                    Anticipo €0 · + IVA 22%
+                    Anticipo €0 · {cardLogical === "Privati" ? "IVA inclusa" : "+ IVA 22%"}
                   </p>
                 </motion.button>
               );
@@ -180,7 +187,11 @@ function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequest
               </span>
               <span className="text-white/40 text-sm">/mese</span>
             </div>
-            <p className="text-white/30 text-[11px] mt-1">+ IVA 22% · Anticipo €0</p>
+            <p className="text-white/30 text-[11px] mt-1">
+              {logicalFromConfigSeg(selectedConfig?.segment ?? reuseSegment) === "Privati"
+                ? "IVA inclusa · Anticipo €0"
+                : "+ IVA 22% · Anticipo €0"}
+            </p>
           </div>
         </div>
       )}
@@ -200,7 +211,7 @@ function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequest
 
 /* ── QuoteBox UI (config extra presenti) ───────────────────────────────────── */
 
-function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuote }) {
+function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuote, reuseSegment }) {
   const [duration, setDuration] = useState(12);
   const [annualKm, setAnnualKm] = useState(10000);
   const [advance, setAdvance] = useState(0);
@@ -223,6 +234,13 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
     [activeConfigs, duration, annualKm],
   );
 
+  // Segmento "logico" per IVA derivato dal segmento della config (non dal tab).
+  // ReUse-Privati -> Privati (IVA inclusa), ReUse-Business -> P.IVA (+IVA), ReUse -> +IVA
+  const logicalFromConfigSeg = (seg) =>
+    seg === "ReUse-Privati" ? "Privati" :
+    seg === "ReUse-Business" ? "P.IVA" :
+    seg;
+
   const computedRent = useMemo(() => {
     if (!exactConfig) return null;
     const diff = advance - Number(exactConfig.advance_payment ?? 0);
@@ -231,9 +249,9 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
 
   const displayRent = computedRent
     ? formatDisplayedRent(computedRent, {
-        segment: "ReUse",
+        segment: logicalFromConfigSeg(exactConfig?.segment ?? reuseSegment),
         vehicleCategory: null,
-        vehicleSegments: ["ReUse"],
+        vehicleSegments: [logicalFromConfigSeg(exactConfig?.segment ?? reuseSegment)],
       })
     : null;
 
@@ -274,13 +292,13 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
     onRequestQuote?.({
       make: fixedMake,
       model: fixedModel,
-      segment: "ReUse",
+      segment: reuseSegment,
       duration,
       annualKm,
       advance,
       monthlyRent: computedRent,
     });
-  }, [onRequestQuote, fixedMake, fixedModel, duration, annualKm, advance, computedRent]);
+  }, [onRequestQuote, fixedMake, fixedModel, duration, annualKm, advance, computedRent, reuseSegment]);
 
   const ctaClass = "w-full h-13 font-bold rounded-xl text-base py-3.5 cursor-pointer transition-all duration-200";
 
@@ -385,7 +403,9 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
                   </span>
                   <span className="text-white/40 text-sm">/mese</span>
                 </div>
-                <p className="text-white/30 text-[11px] mt-1">+ IVA 22%</p>
+                <p className="text-white/30 text-[11px] mt-1">
+                  {logicalFromConfigSeg(exactConfig?.segment ?? reuseSegment) === "Privati" ? "IVA inclusa" : "+ IVA 22%"}
+                </p>
               </div>
 
               <div className="flex items-center justify-center gap-3 text-[11px] text-white/30 mb-2">
@@ -437,7 +457,7 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
 
 /* ── Main component ────────────────────────────────────────────────────────── */
 
-export default function ReUseQuoteBox({ fixedMake, fixedModel, onRequestQuote }) {
+export default function ReUseQuoteBox({ fixedMake, fixedModel, onRequestQuote, segment: reuseSegment = "ReUse" }) {
   const { data: configs = [], isLoading } = useQuery({
     queryKey: ["offer-configs", fixedMake, fixedModel, "ReUse"],
     queryFn: () => offersService.getConfigs(fixedMake, fixedModel),
@@ -446,8 +466,14 @@ export default function ReUseQuoteBox({ fixedMake, fixedModel, onRequestQuote })
   });
 
   const reuseConfigs = useMemo(
-    () => configs.filter(c => c.segment === "ReUse" && c.is_active),
-    [configs],
+    () => configs.filter(c => {
+      if (!c.is_active) return false;
+      if (c.segment === reuseSegment) return true;
+      // Tolleranza: segmento "ReUse" (legacy) accetta anche le varianti ReUse-Privati / ReUse-Business
+      if (reuseSegment === "ReUse" && (c.segment === "ReUse-Privati" || c.segment === "ReUse-Business")) return true;
+      return false;
+    }),
+    [configs, reuseSegment],
   );
 
   const options = useMemo(() => {
@@ -494,8 +520,8 @@ export default function ReUseQuoteBox({ fixedMake, fixedModel, onRequestQuote })
           </div>
         ) : (
           hasNonStock
-            ? <ConfigQuoteBoxView reuseConfigs={reuseConfigs} fixedMake={fixedMake} fixedModel={fixedModel} onRequestQuote={onRequestQuote} />
-            : <StockCardView reuseConfigs={reuseConfigs} options={options} fixedMake={fixedMake} fixedModel={fixedModel} onRequestQuote={onRequestQuote} />
+            ? <ConfigQuoteBoxView reuseConfigs={reuseConfigs} fixedMake={fixedMake} fixedModel={fixedModel} onRequestQuote={onRequestQuote} reuseSegment={reuseSegment} />
+            : <StockCardView reuseConfigs={reuseConfigs} options={options} fixedMake={fixedMake} fixedModel={fixedModel} onRequestQuote={onRequestQuote} reuseSegment={reuseSegment} />
         )}
 
         {/* Trust — solo per stock */}

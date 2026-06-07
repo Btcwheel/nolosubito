@@ -26,7 +26,7 @@ export default function HeroSection({ variant = "default" } = {}) {
           alt=""
           aria-hidden="true"
           loading="eager"
-          fetchpriority="high"
+          fetchPriority="high"
           className="h-full w-full object-cover object-[68%_center] scale-110 sm:object-center sm:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-navy/65 via-navy/25 to-transparent" />

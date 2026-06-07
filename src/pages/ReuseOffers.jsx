@@ -16,7 +16,7 @@ export default function ReuseOffers() {
 
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["offers-reuse"],
-    queryFn:  () => offersService.listWithMinPrice("ReUse"),
+    queryFn:  () => offersService.listWithMinPrice(["ReUse", "ReUse-Privati", "ReUse-Business"]),
     staleTime: 5 * 60 * 1000,
   });
 

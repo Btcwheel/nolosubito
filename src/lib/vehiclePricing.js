@@ -18,16 +18,18 @@ export function resolvePricingSegment({ segment, vehicleCategory, vehicleSegment
   const hasPiva = segments.includes("P.IVA");
   const hasPrivati = segments.includes("Privati");
   const hasReuse = segments.includes("ReUse");
+  // ReUse-Privati / ReUse-Business sono varianti "etichetta" del canone, non sezioni separate.
+  // Mappate al rispettivo tab (Privati / P.IVA) per non duplicare la UI.
+  const hasReusePrivati = segments.includes("ReUse-Privati");
+  const hasReuseBusiness = segments.includes("ReUse-Business");
 
   if (isMotoCategory(vehicleCategory)) {
     return "Moto";
   }
 
   if (hasReuse) return "ReUse";
-  if (hasPiva && !hasPrivati) return "P.IVA";
-  if (hasPrivati && !hasPiva) return "Privati";
-  if (hasPiva) return "P.IVA";
-  if (hasPrivati) return "Privati";
+  if (hasPiva || hasReuseBusiness) return "P.IVA";
+  if (hasPrivati || hasReusePrivati) return "Privati";
   return null;
 }
 

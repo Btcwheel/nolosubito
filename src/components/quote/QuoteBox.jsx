@@ -152,7 +152,11 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
     const base = vehicleConfigs.filter(c => c.is_active);
     
     if (!effectiveSegment || effectiveSegment === "all") return base;
-    const filtered = base.filter(c => c.segment === effectiveSegment);
+    // Match diretto + variante ReUse (es. tab "Privati" matcha anche "ReUse-Privati")
+    const matched = effectiveSegment === "Privati" ? "ReUse-Privati"
+                  : effectiveSegment === "P.IVA"  ? "ReUse-Business"
+                  : null;
+    const filtered = base.filter(c => c.segment === effectiveSegment || (matched && c.segment === matched));
     // Fallback: se il segmento risolto non ha config, mostra tutte le config attive del veicolo
     return filtered.length > 0 ? filtered : base;
   }, [vehicleConfigs, activeSegment, currentVehicle]);
@@ -240,6 +244,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
         fixedMake={fixedMake}
         fixedModel={fixedModel}
         onRequestQuote={onRequestQuote}
+        segment={segment}
       />
     );
   }

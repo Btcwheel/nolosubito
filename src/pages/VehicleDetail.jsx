@@ -187,10 +187,18 @@ export default function VehicleDetail() {
     if (preferredSegment && !activeSegment) setActiveSegment(preferredSegment);
   }, [preferredSegment]);
 
-  // Segmenti disponibili (P.IVA, Privati e/o ReUse) per mostrare i tab
+  // Segmenti disponibili per i tab: solo P.IVA / Privati / ReUse.
+  // Le varianti ReUse-Privati / ReUse-Business sono etichette del canone
+  // (config.segment) e vengono mappate al rispettivo tab da resolvePricingSegment.
   const availableSegments = useMemo(() => {
     const segs = vehicle?.segments || [];
-    return ["P.IVA", "Privati", "ReUse"].filter(s => segs.includes(s));
+    const hasReuseVariant = segs.includes("ReUse-Privati") || segs.includes("ReUse-Business");
+    const hasLegacyReuse = segs.includes("ReUse");
+    const visible = [];
+    if (segs.includes("P.IVA") || segs.includes("ReUse-Business")) visible.push("P.IVA");
+    if (segs.includes("Privati") || segs.includes("ReUse-Privati")) visible.push("Privati");
+    if (hasLegacyReuse && !hasReuseVariant) visible.push("ReUse");
+    return visible;
   }, [vehicle]);
 
   const currentSegment = activeSegment || preferredSegment;
@@ -289,7 +297,7 @@ export default function VehicleDetail() {
   // ── Loading ──
   if (isLoading) {
     return (
-      <div className="bg-background pt-24 min-h-screen">
+      <div className="bg-background pt-2 sm:pt-4 min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
           <Skeleton className="h-5 w-48 mb-6" />
           <Skeleton className="h-8 w-64 mb-3" />
@@ -364,7 +372,7 @@ export default function VehicleDetail() {
           {/* Sottile accent bar in cima */}
           <div className="absolute top-0 left-0 right-0 h-px" style={{ background: "linear-gradient(90deg, transparent, #71BAED 40%, #2D2E82 70%, transparent)" }} />
 
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-4 pb-8">
 
             {/* Breadcrumb */}
             <nav className="flex items-center gap-1.5 text-[11px] text-gray-400 mb-7 tracking-wide">

@@ -194,7 +194,7 @@ export default function PromoHero() {
   const [idx, setIdx]       = useState(0);
   const [paused, setPaused] = useState(false);
 
-  const { data: vehicles = [] } = useQuery({
+  const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["offers-home-catalog"],
     queryFn:  () => offersService.listWithMinPrice(),
     staleTime: 5 * 60 * 1000,
@@ -235,12 +235,23 @@ export default function PromoHero() {
   });
   const imgY = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
 
+  if (dismissed) return null;
+
+  if (isLoading) {
+    return (
+      <section
+        aria-hidden="true"
+        className="relative w-full overflow-hidden min-h-[560px] sm:min-h-[500px] lg:min-h-[520px]"
+        style={{ background: "linear-gradient(135deg, #0f0f23 0%, #1a1a3e 40%, #0d1f3c 100%)" }}
+      />
+    );
+  }
+
   if (promos.length === 0) return null;
 
   return (
     <AnimatePresence>
-      {!dismissed && (
-        <motion.section
+      <motion.section
           ref={containerRef}
           key="promo-hero"
           initial={{ opacity: 1 }}
@@ -267,7 +278,7 @@ export default function PromoHero() {
             <X className="size-4 text-white/70" />
           </button>
 
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:pt-6 sm:pb-12 lg:pt-8 lg:pb-16">
             <AnimatePresence mode="wait">
               <PromoSlide key={promos[idx]?.id} promo={promos[idx]} imgY={imgY} />
             </AnimatePresence>
@@ -293,8 +304,7 @@ export default function PromoHero() {
 
           {/* Bottom divider */}
           <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-        </motion.section>
-      )}
+      </motion.section>
     </AnimatePresence>
   );
 }

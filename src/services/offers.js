@@ -172,33 +172,65 @@ export const offersService = {
   // Veicoli con prezzo per le pagine listing.
   // Usa RPC get_vehicle_prices() per aggregare featured/min lato DB,
   // evitando il limite di 1000 righe di PostgREST su offer_configs.
-  async listWithMinPrice(segment) {
+  // Accetta:
+  //   - string: segmento singolo (es. "P.IVA"). Le varianti ReUse-* vengono
+  //     aggiunte automaticamente per mostrare i veicoli usati nella listing.
+  //   - array:  lista esplicita di segmenti. Utile per /reuse che mostra tutto.
+  //   - null/undefined: tutti i segmenti.
+  async listWithMinPrice(segmentOrSegments) {
     const normKey = (make, model) => `${make?.trim().toUpperCase()}|${model?.trim().toUpperCase()}`;
+
+    const SEGMENT_GROUPS = {
+      'P.IVA':        ['P.IVA', 'ReUse', 'ReUse-Business'],
+      'Privati':      ['Privati', 'ReUse', 'ReUse-Privati'],
+      'ReUse':        ['ReUse', 'ReUse-Privati', 'ReUse-Business'],
+    };
+
+    let segments;
+    if (segmentOrSegments == null) {
+      segments = null;
+    } else if (Array.isArray(segmentOrSegments)) {
+      segments = segmentOrSegments;
+    } else {
+      segments = SEGMENT_GROUPS[segmentOrSegments] ?? [segmentOrSegments];
+    }
 
     const [offersRes, pricesRes] = await Promise.all([
       supabase.from('offers').select('*').eq('is_active', true).order('make'),
-      supabase.rpc('get_vehicle_prices', segment ? { p_segment: segment } : {}),
+      supabase.rpc('get_vehicle_prices', segments ? { p_segments: segments } : {}),
     ]);
 
     if (offersRes.error) throw offersRes.error;
     if (pricesRes.error) throw pricesRes.error;
 
-    // Mappa: key → { featured: rent | null, min: rent, advance: advance_payment | null }
+    // Mappa: key → { featured, min, advance, segment, ... }
+    // Se uno stesso (make, model) ha piu' segmenti (es. ReUse-Privati + Privati)
+    // vince quello con prezzo "featured" non-null, altrimenti il minimo.
     const priceMap = {};
     pricesRes.data?.forEach(c => {
       const key = normKey(c.make, c.model);
-      priceMap[key] = {
+      const incoming = {
         featured: c.featured_rent             != null ? Number(c.featured_rent)             : null,
         min:      c.min_rent                  != null ? Number(c.min_rent)                  : null,
         advance:  c.featured_advance_payment  != null ? Number(c.featured_advance_payment)  : null,
         duration: c.featured_duration_months  != null ? Number(c.featured_duration_months)  : null,
         km:       c.featured_annual_km        != null ? Number(c.featured_annual_km)        : null,
+        segment:  c.segment,
       };
+      const prev = priceMap[key];
+      if (!prev) {
+        priceMap[key] = incoming;
+      } else {
+        const incomingScore = (incoming.featured != null ? 2 : 0) + (incoming.min != null ? 1 : 0);
+        const prevScore     = (prev.featured     != null ? 2 : 0) + (prev.min     != null ? 1 : 0);
+        if (incomingScore >= prevScore) priceMap[key] = incoming;
+      }
     });
 
+    const segmentsFilter = segments;
     return offersRes.data
       ?.filter(o => {
-        const hasSegmentFlag = !segment || (Array.isArray(o.segments) && o.segments.includes(segment));
+        const hasSegmentFlag = !segmentsFilter || (Array.isArray(o.segments) && o.segments.some(s => segmentsFilter.includes(s)));
         const hasConfig = priceMap[normKey(o.make, o.model)] != null;
         return hasSegmentFlag || hasConfig;
       })
@@ -210,6 +242,7 @@ export const offersService = {
           advance_payment: p ? (p.advance ?? 0)      : 0,
           duration_months: p?.duration ?? null,
           annual_km:       p?.km       ?? null,
+          config_segment:  p?.segment  ?? null,
         };
       }) ?? [];
   },

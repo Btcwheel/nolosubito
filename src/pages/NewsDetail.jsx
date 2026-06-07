@@ -71,7 +71,7 @@ export default function NewsDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pt-28 pb-16">
+      <div className="min-h-screen bg-background pt-2 sm:pt-4 pb-16">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <Skeleton className="h-6 w-32 mb-8" />
           <Skeleton className="aspect-video w-full rounded-2xl mb-8" />
@@ -89,7 +89,7 @@ export default function NewsDetail() {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-background pt-28 flex items-center justify-center">
+      <div className="min-h-screen bg-background pt-2 sm:pt-4 flex items-center justify-center">
         <div className="text-center px-4">
           <h1 className="font-heading font-bold text-3xl text-foreground mb-4">Articolo non trovato</h1>
           <p className="text-muted-foreground mb-8">L'articolo che cerchi non esiste o è stato rimosso.</p>
@@ -104,7 +104,7 @@ export default function NewsDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-background pt-24 pb-16">
+    <div className="min-h-screen bg-background pt-2 sm:pt-4 pb-16">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
         {/* Back */}
         <Link

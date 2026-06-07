@@ -44,10 +44,12 @@ const SEGMENTS_OPTIONS = [
   { value: "Veicoli Commerciali", label: "Veicoli Commerciali",    color: "bg-amber-100 text-amber-700 border-amber-200" },
   { value: "Green",    label: "Green Mobility",         color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   { value: "Moto",     label: "Offerte Moto",           color: "bg-rose-100 text-rose-700 border-rose-200" },
-  { value: "ReUse",    label: "Offerte Re-Use",         color: "bg-teal-100 text-teal-700 border-teal-200" },
+  { value: "ReUse",    label: "Re-Use (generico)",      color: "bg-teal-100 text-teal-700 border-teal-200" },
+  { value: "ReUse-Privati",   label: "Re-Use Privati",  color: "bg-teal-100 text-teal-700 border-teal-200" },
+  { value: "ReUse-Business",  label: "Re-Use Business", color: "bg-teal-100 text-teal-700 border-teal-200" },
 ];
 
-const PRICE_SEGMENTS = ["P.IVA", "Privati", "Veicoli Commerciali", "Moto", "ReUse"];
+const PRICE_SEGMENTS = ["P.IVA", "Privati", "Veicoli Commerciali", "Moto", "ReUse", "ReUse-Privati", "ReUse-Business"];
 const DURATE = [12, 24, 36, 48, 60];
 const KM_OPTIONS = [10000, 15000, 20000, 25000, 30000, 40000];
 const KM_OPTIONS_MOTO = [5000, 8000, 10000, 12000];
