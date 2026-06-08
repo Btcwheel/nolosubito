@@ -20,6 +20,7 @@ export const newsDraftsService = {
       content:         draft.content,
       cover_image_url: draft.cover_image_url,
       category:        draft.category,
+      gallery_images:  draft.gallery_images || [],
       is_published:    true,
       published_date:  new Date().toISOString(),
     });

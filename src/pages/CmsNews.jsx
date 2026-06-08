@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink, FolderOpen, Search, Upload, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink, FolderOpen, Search, Upload, Loader2, ChevronDown, ChevronUp, GripVertical, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import ReactMarkdown from "react-markdown";
@@ -199,6 +199,7 @@ const EMPTY_POST = {
   cover_image_url: "", category: "Notizie",
   published_date: new Date().toISOString().slice(0, 16), is_published: true,
   seo_title: "", seo_description: "", seo_keywords: [],
+  gallery_images: [],
 };
 
 function slugify(str) {
@@ -493,9 +494,12 @@ export default function CmsNews() {
   const [form, setForm] = useState(EMPTY_POST);
   const [previewMode, setPreviewMode] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [showGalleryPicker, setShowGalleryPicker] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [galleryUploading, setGalleryUploading] = useState(false);
   const [showGeneratorModal, setShowGeneratorModal] = useState(false);
   const fileInputRef = React.useRef(null);
+  const galleryFileRef = React.useRef(null);
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -531,6 +535,62 @@ export default function CmsNews() {
       setUploading(false);
       e.target.value = "";
     }
+  };
+
+  const GALLERY_MAX = 10;
+
+  const handleGalleryUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const remaining = GALLERY_MAX - (form.gallery_images || []).length;
+    if (files.length > remaining) {
+      toast({ title: "Limite raggiunto", description: `Massimo ${GALLERY_MAX} foto. Puoi aggiungerne altre ${remaining}.`, variant: "destructive" });
+      return;
+    }
+    setGalleryUploading(true);
+    try {
+      const urls = [];
+      for (const file of files) {
+        if (!file.type.startsWith("image/")) continue;
+        const webpBlob = await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            canvas.getContext("2d").drawImage(img, 0, 0);
+            canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("Conversione WebP fallita")), "image/webp", 0.85);
+          };
+          img.onerror = reject;
+          img.src = URL.createObjectURL(file);
+        });
+        const path = `news/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
+        const { error } = await supabase.storage.from('news-images').upload(path, webpBlob, { contentType: "image/webp" });
+        if (error) throw error;
+        const { data: { publicUrl } } = supabase.storage.from('news-images').getPublicUrl(path);
+        urls.push(publicUrl);
+      }
+      set("gallery_images", [...(form.gallery_images || []), ...urls]);
+      toast({ title: `${urls.length} foto aggiunte alla gallery` });
+    } catch (err) {
+      toast({ title: "Errore upload", description: err.message, variant: "destructive" });
+    } finally {
+      setGalleryUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const removeGalleryImage = (index) => {
+    const updated = [...(form.gallery_images || [])];
+    updated.splice(index, 1);
+    set("gallery_images", updated);
+  };
+
+  const moveGalleryImage = (from, to) => {
+    const updated = [...(form.gallery_images || [])];
+    const [item] = updated.splice(from, 1);
+    updated.splice(to, 0, item);
+    set("gallery_images", updated);
   };
 
   const { data: posts = [], isLoading } = useQuery({
@@ -713,6 +773,48 @@ export default function CmsNews() {
                   </div>
                   {form.cover_image_url && <img src={form.cover_image_url} alt="" className="mt-2 h-28 object-cover rounded-xl border border-border w-full" onError={e => e.target.style.display='none'} />}
                 </div>
+                <div>
+                  <Label className="text-xs">
+                    Gallery Immagini
+                    <span className="ml-2 text-[10px] font-normal text-muted-foreground">
+                      ({(form.gallery_images || []).length}/{GALLERY_MAX})
+                    </span>
+                  </Label>
+                  {(form.gallery_images || []).length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 mt-2">
+                      {(form.gallery_images || []).map((url, i) => (
+                        <div key={i} className="relative group aspect-video rounded-lg overflow-hidden border border-border/50 bg-muted">
+                          <img src={url} alt="" className="w-full h-full object-cover" loading="lazy" onError={e => { e.target.style.display='none'; }} />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                            {i > 0 && (
+                              <button type="button" onClick={() => moveGalleryImage(i, i - 1)} className="p-1 rounded bg-white/20 hover:bg-white/40 text-white transition-colors" title="Sposta a sinistra">
+                                <ChevronDown className="size-3 rotate-90" />
+                              </button>
+                            )}
+                            {i < (form.gallery_images || []).length - 1 && (
+                              <button type="button" onClick={() => moveGalleryImage(i, i + 1)} className="p-1 rounded bg-white/20 hover:bg-white/40 text-white transition-colors" title="Sposta a destra">
+                                <ChevronDown className="size-3 -rotate-90" />
+                              </button>
+                            )}
+                            <button type="button" onClick={() => removeGalleryImage(i)} className="p-1 rounded bg-red-500/60 hover:bg-red-500 text-white transition-colors" title="Rimuovi">
+                              <X className="size-3" />
+                            </button>
+                          </div>
+                          <span className="absolute bottom-0.5 left-0.5 text-[9px] text-white/70 bg-black/40 px-1 rounded">{i + 1}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2 mt-2">
+                    <input ref={galleryFileRef} type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} disabled={galleryUploading} />
+                    <Button type="button" size="sm" variant="outline" className="gap-1.5 text-xs" disabled={galleryUploading || (form.gallery_images || []).length >= GALLERY_MAX} onClick={() => galleryFileRef.current?.click()}>
+                      {galleryUploading ? <Loader2 className="size-3.5 animate-spin" /> : <Upload className="size-3.5" />}{galleryUploading ? "Upload…" : "Aggiungi foto"}
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => setShowGalleryPicker(true)} className="gap-1.5 text-xs" disabled={(form.gallery_images || []).length >= GALLERY_MAX}>
+                      <FolderOpen className="size-3.5" /> Da archivio
+                    </Button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-xs">Categoria</Label>
@@ -748,6 +850,18 @@ export default function CmsNews() {
         <GigiImagePicker
           onSelect={(src) => set("cover_image_url", src)}
           onClose={() => setShowPicker(false)}
+        />
+      )}
+
+      {showGalleryPicker && (
+        <GigiImagePicker
+          onSelect={(src) => {
+            const current = form.gallery_images || [];
+            if (current.length < GALLERY_MAX) {
+              set("gallery_images", [...current, src]);
+            }
+          }}
+          onClose={() => setShowGalleryPicker(false)}
         />
       )}
 

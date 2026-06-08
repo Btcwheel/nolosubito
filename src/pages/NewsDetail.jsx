@@ -116,7 +116,7 @@ export default function NewsDetail() {
         </Link>
 
         {/* Cover */}
-        <div className="aspect-video rounded-2xl overflow-hidden mb-8 bg-muted">
+        <div className="aspect-video rounded-2xl overflow-hidden mb-4 bg-muted">
           <img
             src={post.cover_image_url}
             alt={post.title}
@@ -126,6 +126,25 @@ export default function NewsDetail() {
             }}
           />
         </div>
+
+        {/* Gallery */}
+        {post.gallery_images && post.gallery_images.length > 0 && (
+          <div className="mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {post.gallery_images.map((url, i) => (
+                <div key={i} className="aspect-video rounded-xl overflow-hidden bg-muted">
+                  <img
+                    src={url}
+                    alt={`${post.title} - foto ${i + 1}`}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Meta */}
         <div className="flex flex-wrap items-center gap-3 mb-4">
