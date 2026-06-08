@@ -208,6 +208,10 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
   useEffect(() => { if (fixedMake) setSelectedMake(fixedMake); }, [fixedMake]);
   useEffect(() => { if (fixedModel) setSelectedModel(fixedModel); }, [fixedModel]);
 
+  useEffect(() => {
+    featuredInitialized.current = false;
+  }, [selectedMake, selectedModel]);
+
   // Pre-seleziona featured (o prima disponibile) quando i configs caricano — mai sul fallback hardcoded
   useEffect(() => {
     if (featuredInitialized.current) return;

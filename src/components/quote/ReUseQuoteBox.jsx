@@ -281,9 +281,6 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
   }, [activeConfigs, availableDurations, duration]);
 
   useEffect(() => {
-    setDuration(12);
-    setAnnualKm(10000);
-    setAdvance(0);
     featuredInitialized.current = false;
   }, [fixedMake, fixedModel]);
 

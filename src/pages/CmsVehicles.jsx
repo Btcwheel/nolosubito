@@ -45,11 +45,19 @@ const SEGMENTS_OPTIONS = [
   { value: "Green",    label: "Green Mobility",         color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
   { value: "Moto",     label: "Offerte Moto",           color: "bg-rose-100 text-rose-700 border-rose-200" },
   { value: "ReUse",    label: "Re-Use (generico)",      color: "bg-teal-100 text-teal-700 border-teal-200" },
-  { value: "ReUse-Privati",   label: "ReUse P",         color: "bg-teal-100 text-teal-700 border-teal-200" },
-  { value: "ReUse-Business",  label: "ReUse B",         color: "bg-teal-100 text-teal-700 border-teal-200" },
+  { value: "ReUse-Privati",   label: "Reuse Privati",   color: "bg-teal-100 text-teal-700 border-teal-200" },
+  { value: "ReUse-Business",  label: "Reuse Business",  color: "bg-teal-100 text-teal-700 border-teal-200" },
 ];
 
-const PRICE_SEGMENTS = ["P.IVA", "Privati", "Veicoli Commerciali", "Moto", "ReUse", "ReUse-Privati", "ReUse-Business"];
+const PRICE_SEGMENTS = [
+  { value: "P.IVA",               label: "P.IVA" },
+  { value: "Privati",             label: "Privati" },
+  { value: "Veicoli Commerciali", label: "Commerciali" },
+  { value: "Moto",                label: "Moto" },
+  { value: "ReUse",               label: "ReUse" },
+  { value: "ReUse-Privati",       label: "Reuse Privati" },
+  { value: "ReUse-Business",      label: "Reuse Business" },
+];
 const DURATE = [12, 24, 36, 48, 60];
 const KM_OPTIONS = [10000, 15000, 20000, 25000, 30000, 40000];
 const KM_OPTIONS_MOTO = [5000, 8000, 10000, 12000];
@@ -369,7 +377,7 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
               {/* Segmento */}
               <Select value={row.segment} onValueChange={v => updateRow(row._key, "segment", v)}>
                 <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>{PRICE_SEGMENTS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                <SelectContent>{PRICE_SEGMENTS.map(({ value, label }) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
               </Select>
 
               {/* Durata */}

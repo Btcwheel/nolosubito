@@ -65,8 +65,8 @@ function copyLeanPublicPlugin() {
   };
 }
 
-export default defineConfig({
-  publicDir: false,
+export default defineConfig(({ command }) => ({
+  publicDir: command === 'build' ? false : 'public',
   plugins: [
     react(),
     deferCssPlugin(),
@@ -126,4 +126,4 @@ export default defineConfig({
       }
     }
   }
-})
+}))

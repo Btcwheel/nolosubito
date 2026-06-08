@@ -209,7 +209,7 @@ export const offersService = {
 
     // Mappa: key → { featured, min, advance, segment, ... }
     // Se uno stesso (make, model) ha piu' segmenti (es. ReUse-Privati + Privati)
-    // vince quello con prezzo "featured" non-null, altrimenti il minimo.
+    // vince quello con prezzo "featured" non-null, con priorita' ai segmenti richiesti.
     const priceMap = {};
     pricesRes.data?.forEach(c => {
       const key = normKey(c.make, c.model);
@@ -225,9 +225,15 @@ export const offersService = {
       if (!prev) {
         priceMap[key] = incoming;
       } else {
-        const incomingScore = (incoming.featured != null ? 2 : 0) + (incoming.min != null ? 1 : 0);
-        const prevScore     = (prev.featured     != null ? 2 : 0) + (prev.min     != null ? 1 : 0);
-        if (incomingScore >= prevScore) priceMap[key] = incoming;
+        // Priorita': 1) segmento richiesto, 2) featured, 3) min
+        const inSeg = (seg) => !segments || segments.includes(seg);
+        const incomingSegScore = inSeg(incoming.segment) ? 4 : 0;
+        const prevSegScore     = inSeg(prev.segment)     ? 4 : 0;
+        const incomingFeatScore = (incoming.featured != null ? 2 : 0) + (incoming.min != null ? 1 : 0);
+        const prevFeatScore     = (prev.featured     != null ? 2 : 0) + (prev.min     != null ? 1 : 0);
+        const incomingTotal = incomingSegScore + incomingFeatScore;
+        const prevTotal     = prevSegScore + prevFeatScore;
+        if (incomingTotal > prevTotal) priceMap[key] = incoming;
       }
     });
 
