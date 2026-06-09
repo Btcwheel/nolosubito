@@ -73,7 +73,7 @@ function PromoCountdownBadge({ expiresAt, discountPct, compact = false }) {
   );
 }
 
-export default memo(function VehicleCard({ vehicle, index = 0, segment, compact = false }) {
+const VehicleCard = memo(function VehicleCard({ vehicle, index = 0, segment, compact = false }) {
   const imgSrc    = getVehicleImage(vehicle);
   const imgPos    = getVehicleImagePosition(vehicle);
   const effectiveSegment = resolvePricingSegment({
@@ -294,3 +294,5 @@ export default memo(function VehicleCard({ vehicle, index = 0, segment, compact 
     </motion.div>
   );
 });
+
+export default VehicleCard;

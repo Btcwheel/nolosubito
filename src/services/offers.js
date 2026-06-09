@@ -208,6 +208,12 @@ export const offersService = {
     if (pricesRes.error) throw pricesRes.error;
 
     // Mappa: key → { featured, min, advance, segment, ... }
+    // Usata SOLO per arricchire i veicoli gia' inclusi (prezzo/anticipo/durata).
+    // L'appartenenza a una listing è decisa esclusivamente da offers.segments
+    // (campo "Sezioni" nel CMS): usare anche il prezzo come fallback creava
+    // falsi positivi quando due veicoli diversi condividevano la stessa coppia
+    // make+model normalizzata (es. "C3 AIRCROSS" / "C3 AIRCROSS " con spazio finale),
+    // facendo "trapelare" il segmento dell'uno sull'altro.
     // Se uno stesso (make, model) ha piu' segmenti (es. ReUse-Privati + Privati)
     // vince quello con prezzo "featured" non-null, con priorita' ai segmenti richiesti.
     const priceMap = {};
@@ -239,11 +245,7 @@ export const offersService = {
 
     const segmentsFilter = segments;
     return offersRes.data
-      ?.filter(o => {
-        const hasSegmentFlag = !segmentsFilter || (Array.isArray(o.segments) && o.segments.some(s => segmentsFilter.includes(s)));
-        const hasConfig = priceMap[normKey(o.make, o.model)] != null;
-        return hasSegmentFlag || hasConfig;
-      })
+      ?.filter(o => !segmentsFilter || (Array.isArray(o.segments) && o.segments.some(s => segmentsFilter.includes(s))))
       .map(o => {
         const p = priceMap[normKey(o.make, o.model)];
         return {

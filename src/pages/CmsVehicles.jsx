@@ -540,6 +540,12 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
   });
 
   useEffect(() => {
+    pricingInitialized.current = false;
+    setPricingRows([]);
+    setDeletedConfigIds([]);
+  }, [initial?.id]);
+
+  useEffect(() => {
     if (existingConfigs && !pricingInitialized.current) {
       pricingInitialized.current = true;
       setPricingRows(existingConfigs.map(c => ({
@@ -802,7 +808,11 @@ export default function CmsVehicles() {
   const qc = useQueryClient();
   const { CATEGORIES, FUEL_TYPES, TRANSMISSIONS, ADVANCE_BRACKETS } = useVehicleOptions();
   const [modal, setModal]           = useState(null);
-  const [search, setSearch]         = useState("");
+  const [search, setSearch] = useState("");
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterFuel, setFilterFuel] = useState("");
+  const [filterTransmission, setFilterTransmission] = useState("");
+  const [filterSegment, setFilterSegment] = useState("");
   const [delConfirm, setDelConfirm] = useState(null);
 
   const { data: vehicles = [], isLoading } = useQuery({
@@ -813,10 +823,12 @@ export default function CmsVehicles() {
   const saveMutation = useMutation({
     mutationFn: async ({ form, pricingRows, deletedConfigIds }) => {
       // 1. Salva il veicolo
+      const make  = form.make.trim();
+      const model = form.model.trim();
       const payload = {
-        make:            form.make,
-        model:           form.model,
-        version:         form.version          || null,
+        make,
+        model,
+        version:         (form.version || "").trim() || null,
         category:        form.category,
         fuel_type:       form.fuel_type       || null,
         transmission:    form.transmission    || null,
@@ -842,8 +854,8 @@ export default function CmsVehicles() {
       for (const row of pricingRows) {
         if (!row.monthly_rent) continue;
         const configPayload = {
-          make:            form.make,
-          model:           form.model,
+          make,
+          model,
           segment:         row.segment,
           duration_months: Number(row.duration_months),
           annual_km:       Number(row.annual_km),
@@ -901,9 +913,16 @@ export default function CmsVehicles() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["cms-vehicles"] }),
   });
 
-  const filtered = vehicles.filter(v =>
-    !search || `${v.make} ${v.model}`.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = vehicles.filter(v => {
+    const matchSearch = !search || `${v.make} ${v.model}`.toLowerCase().includes(search.toLowerCase());
+    const matchCategory = !filterCategory || v.category === filterCategory;
+    const matchFuel = !filterFuel || v.fuel_type === filterFuel;
+    const matchTransmission = !filterTransmission || v.transmission === filterTransmission;
+    const matchSegment = !filterSegment || (v.segments || []).includes(filterSegment);
+    return matchSearch && matchCategory && matchFuel && matchTransmission && matchSegment;
+  });
+
+  const activeFiltersCount = [filterCategory, filterFuel, filterTransmission, filterSegment].filter(Boolean).length;
 
   return (
     <div>
@@ -911,11 +930,34 @@ export default function CmsVehicles() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h2 className="font-heading font-bold text-xl text-foreground">Catalogo Veicoli</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">{vehicles.length} veicoli nel catalogo</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {vehicles.length} veicoli{activeFiltersCount > 0 ? ` · ${filtered.length} mostrati` : ""}
+          </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           <Input value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Cerca marca o modello…" className="w-48" />
+            placeholder="Cerca marca o modello…" className="w-44" />
+          <Select value={filterCategory} onValueChange={v => setFilterCategory(v === "__all" ? "" : v)}>
+            <SelectTrigger className="w-36 h-9 text-xs"><SelectValue placeholder="Categoria" /></SelectTrigger>
+            <SelectContent><SelectItem value="__all">Tutte</SelectItem>{CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={filterFuel} onValueChange={v => setFilterFuel(v === "__all" ? "" : v)}>
+            <SelectTrigger className="w-36 h-9 text-xs"><SelectValue placeholder="Alimentazione" /></SelectTrigger>
+            <SelectContent><SelectItem value="__all">Tutte</SelectItem>{FUEL_TYPES.map(f => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={filterTransmission} onValueChange={v => setFilterTransmission(v === "__all" ? "" : v)}>
+            <SelectTrigger className="w-36 h-9 text-xs"><SelectValue placeholder="Cambio" /></SelectTrigger>
+            <SelectContent><SelectItem value="__all">Tutti</SelectItem>{TRANSMISSIONS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+          </Select>
+          <Select value={filterSegment} onValueChange={v => setFilterSegment(v === "__all" ? "" : v)}>
+            <SelectTrigger className="w-40 h-9 text-xs"><SelectValue placeholder="Segmento" /></SelectTrigger>
+            <SelectContent><SelectItem value="__all">Tutti</SelectItem>{SEGMENTS_OPTIONS.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+          </Select>
+          {activeFiltersCount > 0 && (
+            <Button size="sm" variant="ghost" onClick={() => { setFilterCategory(""); setFilterFuel(""); setFilterTransmission(""); setFilterSegment(""); }} className="h-8 text-xs text-muted-foreground">
+              <X className="size-3.5 mr-1" /> Reset
+            </Button>
+          )}
           <Button onClick={() => setModal({})} className="bg-electric hover:bg-electric/90 text-white gap-2 shrink-0">
             <Plus className="size-4" /> Nuovo Veicolo
           </Button>

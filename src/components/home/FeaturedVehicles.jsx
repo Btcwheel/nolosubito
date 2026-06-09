@@ -12,18 +12,18 @@ const PAGE_SIZE = 9;
 const DEFAULT_HERO_IMG = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=533&q=80&auto=format&fit=crop&crop=center";
 
 const TIPOLOGIA_OPTIONS = [
-  { value: "all",     label: "Tutti" },
-  { value: "P.IVA",   label: "Business / P.IVA" },
+  { value: "all", label: "Tutti" },
+  { value: "P.IVA", label: "Business / P.IVA" },
   { value: "Privati", label: "Privati" },
-  { value: "Moto",    label: "Moto & Scooter" },
+  { value: "Moto", label: "Moto & Scooter" },
 ];
 
 const BUDGET_OPTIONS = [
-  { value: "all",     label: "Tutti i prezzi" },
-  { value: "0-200",   label: "Fino a €200/mese" },
+  { value: "all", label: "Tutti i prezzi" },
+  { value: "0-200", label: "Fino a €200/mese" },
   { value: "200-400", label: "€200 – €400/mese" },
   { value: "400-600", label: "€400 – €600/mese" },
-  { value: "600+",    label: "Oltre €600/mese" },
+  { value: "600+", label: "Oltre €600/mese" },
 ];
 
 const QUICK_FILTERS = ["SUV", "Berlina", "Moto", "Scooter", "Elettriche", "Ibride"];
@@ -58,32 +58,30 @@ function Toggle({ checked, onChange }) {
       aria-checked={checked}
       aria-label="Mostra solo auto in pronta consegna"
       onClick={() => onChange(!checked)}
-      className={`relative inline-flex shrink-0 w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none ${
-        checked ? "bg-electric" : "bg-gray-200"
-      }`}
+      className={`relative inline-flex shrink-0 w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer focus:outline-none ${checked ? "bg-electric" : "bg-gray-200"
+        }`}
     >
-      <span className={`inline-block size-4 rounded-full bg-white shadow transition-transform duration-200 mt-1 ${
-        checked ? "translate-x-6" : "translate-x-1"
-      }`} />
+      <span className={`inline-block size-4 rounded-full bg-white shadow transition-transform duration-200 mt-1 ${checked ? "translate-x-6" : "translate-x-1"
+        }`} />
     </button>
   );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function FeaturedVehicles() {
-  const [tipologia,      setTipologia]      = useState("all");
-  const [makeFilter,     setMakeFilter]     = useState("all");
+  const [tipologia, setTipologia] = useState("all");
+  const [makeFilter, setMakeFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [budgetFilter,   setBudgetFilter]   = useState("all");
-  const [quickFilter,    setQuickFilter]    = useState(null);
+  const [budgetFilter, setBudgetFilter] = useState("all");
+  const [quickFilter, setQuickFilter] = useState(null);
   const [prontoConsegna, setProntoConsegna] = useState(false);
-  const [currentPage,    setCurrentPage]    = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const resultsRef = useRef(null);
 
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["offers-home-catalog"],
-    queryFn:  () => offersService.listWithMinPrice(),
+    queryFn: () => offersService.listWithMinPrice(),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -132,21 +130,21 @@ export default function FeaturedVehicles() {
       .filter(v => {
         if (budgetFilter === "all") return true;
         const p = v.monthly_rent ?? 0;
-        if (budgetFilter === "0-200")   return p < 200;
+        if (budgetFilter === "0-200") return p < 200;
         if (budgetFilter === "200-400") return p >= 200 && p < 400;
         if (budgetFilter === "400-600") return p >= 400 && p < 600;
-        if (budgetFilter === "600+")    return p >= 600;
+        if (budgetFilter === "600+") return p >= 600;
         return true;
       })
       .filter(v => {
         if (!quickFilter) return true;
         const cat = v.category?.trim();
         // Moto → matcha "Moto", "Moto e Scooter"
-        if (quickFilter === "Moto")    return ["Moto", "Moto e Scooter"].includes(cat);
+        if (quickFilter === "Moto") return ["Moto", "Moto e Scooter"].includes(cat);
         // Scooter → matcha "Scooter", "Moto e Scooter"
         if (quickFilter === "Scooter") return ["Scooter", "Moto e Scooter"].includes(cat);
         if (quickFilter === "SUV" || quickFilter === "Berlina") return cat === quickFilter;
-        if (quickFilter === "Ibride")     return v.fuel_type === "Hybrid";
+        if (quickFilter === "Ibride") return v.fuel_type === "Hybrid";
         if (quickFilter === "Elettriche") return v.fuel_type === "Electric";
         return true;
       })
@@ -160,7 +158,7 @@ export default function FeaturedVehicles() {
   }, [vehicles, makeFilter, tipologia, categoryFilter, budgetFilter, quickFilter, prontoConsegna]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated  = useMemo(
+  const paginated = useMemo(
     () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
     [filtered, currentPage],
   );
@@ -168,10 +166,10 @@ export default function FeaturedVehicles() {
   const resetPage = useCallback(() => setCurrentPage(1), []);
 
   const handleTipologia = (v) => { setTipologia(v); resetPage(); };
-  const handleMake      = (v) => { setMakeFilter(v); resetPage(); };
-  const handleCategory  = (v) => { setCategoryFilter(v); resetPage(); };
-  const handleBudget    = (v) => { setBudgetFilter(v);   resetPage(); };
-  const handleQuick     = (v) => { setQuickFilter(prev => prev === v ? null : v); resetPage(); };
+  const handleMake = (v) => { setMakeFilter(v); resetPage(); };
+  const handleCategory = (v) => { setCategoryFilter(v); resetPage(); };
+  const handleBudget = (v) => { setBudgetFilter(v); resetPage(); };
+  const handleQuick = (v) => { setQuickFilter(prev => prev === v ? null : v); resetPage(); };
 
   const scrollToResults = () => {
     requestAnimationFrame(() => {
@@ -208,15 +206,23 @@ export default function FeaturedVehicles() {
               >
                 Noleggiamo il Futuro
               </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="mt-1.5 sm:mt-2 max-w-md text-sm sm:text-base text-white/85 drop-shadow-md"
+              >
+                Canone chiaro, tutto incluso: zero pensieri, dovrai solo pensare a guidare.
+              </motion.p>
             </div>
           </div>
 
           {/* ── Barra filtri ── */}
           <div className="relative sm:absolute sm:top-0 sm:inset-x-0 sm:pt-12 px-2 sm:px-8 lg:px-10 z-20 mt-3 sm:mt-0">
             <div className="bg-white sm:bg-white/65 sm:backdrop-blur-xl rounded-2xl sm:rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] sm:shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 sm:border-white/60 p-4 sm:px-5 sm:py-4">
-              
+
               {/* MOBILE TOGGLE HEADER */}
-              <div 
+              <div
                 className="sm:hidden flex items-center justify-between cursor-pointer"
                 onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
               >
@@ -306,13 +312,12 @@ export default function FeaturedVehicles() {
               {QUICK_FILTERS.map(f => (
                 <button type="button"
                   key={f}
-                 
+
                   onClick={() => handleQuick(f)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${
-                    quickFilter === f
-                      ? "bg-electric text-white border-electric"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-electric/50 hover:text-navy"
-                  }`}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${quickFilter === f
+                    ? "bg-electric text-white border-electric"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-electric/50 hover:text-navy"
+                    }`}
                 >
                   {f}
                 </button>
@@ -403,11 +408,10 @@ export default function FeaturedVehicles() {
               <button type="button"
                 key={n}
                 onClick={() => setCurrentPage(n)}
-                className={`size-9 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
-                  currentPage === n
-                    ? "bg-navy text-white"
-                    : "border border-gray-200 hover:bg-white text-gray-700"
-                }`}
+                className={`size-9 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${currentPage === n
+                  ? "bg-navy text-white"
+                  : "border border-gray-200 hover:bg-white text-gray-700"
+                  }`}
               >
                 {n}
               </button>
