@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, Car, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -75,9 +75,10 @@ export default function FeaturedVehicles() {
   const [budgetFilter, setBudgetFilter] = useState("all");
   const [quickFilter, setQuickFilter] = useState(null);
   const [prontoConsegna, setProntoConsegna] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const resultsRef = useRef(null);
+  const sentinelRef = useRef(null);
 
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["offers-home-catalog"],
@@ -157,13 +158,21 @@ export default function FeaturedVehicles() {
       });
   }, [vehicles, makeFilter, tipologia, categoryFilter, budgetFilter, quickFilter, prontoConsegna]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = useMemo(
-    () => filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
-    [filtered, currentPage],
-  );
+  const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+  const hasMore = visibleCount < filtered.length;
 
-  const resetPage = useCallback(() => setCurrentPage(1), []);
+  const resetPage = useCallback(() => setVisibleCount(PAGE_SIZE), []);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting && hasMore) setVisibleCount(c => c + PAGE_SIZE); },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore]);
 
   const handleTipologia = (v) => { setTipologia(v); resetPage(); };
   const handleMake = (v) => { setMakeFilter(v); resetPage(); };
@@ -381,48 +390,23 @@ export default function FeaturedVehicles() {
               </div>
             ))}
           </div>
-        ) : paginated.length === 0 ? (
+        ) : visible.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <p className="text-lg font-semibold mb-2">Nessun veicolo trovato</p>
             <p className="text-sm">Prova a modificare i filtri di ricerca</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {paginated.map((v, i) => (
+            {visible.map((v, i) => (
               <VehicleCard key={v.id} vehicle={v} index={i} segment={tipologia === "all" ? undefined : tipologia} />
             ))}
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-10 flex-wrap">
-            <button type="button"
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="size-9 flex items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-600 disabled:opacity-40 hover:bg-white cursor-pointer transition-colors"
-            >
-              ‹
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-              <button type="button"
-                key={n}
-                onClick={() => setCurrentPage(n)}
-                className={`size-9 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${currentPage === n
-                  ? "bg-navy text-white"
-                  : "border border-gray-200 hover:bg-white text-gray-700"
-                  }`}
-              >
-                {n}
-              </button>
-            ))}
-            <button type="button"
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="size-9 flex items-center justify-center rounded-lg border border-gray-200 text-sm text-gray-600 disabled:opacity-40 hover:bg-white cursor-pointer transition-colors"
-            >
-              ›
-            </button>
+        {/* Sentinel infinite scroll */}
+        {hasMore && (
+          <div ref={sentinelRef} className="flex justify-center py-8">
+            <div className="w-6 h-6 rounded-full border-2 border-navy/30 border-t-navy animate-spin" />
           </div>
         )}
       </div>
