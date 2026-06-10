@@ -850,10 +850,10 @@ export default function CmsVehicles() {
         ? await offersService.update(form.id, payload)
         : await offersService.create(payload);
 
-      // 2. Salva ogni configurazione canone
-      for (const row of pricingRows) {
-        if (!row.monthly_rent) continue;
-        const configPayload = {
+      // 2. Salva ogni configurazione canone in parallelo
+      const upserts = pricingRows
+        .filter(row => row.monthly_rent)
+        .map(row => offersService.upsertConfig({
           make,
           model,
           segment:         row.segment,
@@ -864,14 +864,12 @@ export default function CmsVehicles() {
           is_active:       row.is_active ?? true,
           is_featured:     row.is_featured ?? false,
           ...(row.id ? { id: row.id } : {}),
-        };
-        await offersService.upsertConfig(configPayload);
-      }
+        }));
+      await Promise.all(upserts);
 
-      // 3. Elimina configurazioni rimosse
-      for (const id of deletedConfigIds) {
-        await offersService.deleteConfig(id);
-      }
+      // 3. Elimina configurazioni rimosse in parallelo
+      const deletes = deletedConfigIds.map(id => offersService.deleteConfig(id));
+      await Promise.all(deletes);
 
       return saved;
     },

@@ -549,9 +549,9 @@ export default function CmsNews() {
     }
     setGalleryUploading(true);
     try {
-      const urls = [];
-      for (const file of files) {
-        if (!file.type.startsWith("image/")) continue;
+      const uploadPromises = files.map(async (file) => {
+
+        if (!file.type.startsWith("image/")) return null;
         const webpBlob = await new Promise((resolve, reject) => {
           const img = new Image();
           img.onload = () => {
@@ -568,8 +568,9 @@ export default function CmsNews() {
         const { error } = await supabase.storage.from('news-images').upload(path, webpBlob, { contentType: "image/webp" });
         if (error) throw error;
         const { data: { publicUrl } } = supabase.storage.from('news-images').getPublicUrl(path);
-        urls.push(publicUrl);
-      }
+        return publicUrl;
+      });
+      const urls = (await Promise.all(uploadPromises)).filter(Boolean);
       set("gallery_images", [...(form.gallery_images || []), ...urls]);
       toast({ title: `${urls.length} foto aggiunte alla gallery` });
     } catch (err) {
@@ -602,9 +603,10 @@ export default function CmsNews() {
     mutationFn: async (data) => {
       const { _draft_id, ...postData } = data;
       if (editing === "new") {
-        await postsService.create(postData);
+        const p1 = postsService.create(postData);
         // Se viene da una bozza AI, segnala come accettata
-        if (_draft_id) await newsDraftsService.reject(_draft_id); // usa reject per rimuoverla dalla coda
+        const p2 = _draft_id ? newsDraftsService.reject(_draft_id) : Promise.resolve();
+        await Promise.all([p1, p2]); // usa reject per rimuoverla dalla coda
       } else {
         await postsService.update(editing.id, postData);
       }

@@ -163,21 +163,22 @@ export default function CmsSettings() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Salva SEO homepage
-      await supabase
-        .from("site_settings")
-        .upsert(
-          { key: "seo_homepage", value: { title: seoTitle, description: seoDescription, og_image_url: ogImageUrl } },
-          { onConflict: "key" }
-        );
-
-      // Salva Hero image
-      await supabase
-        .from("site_settings")
-        .upsert(
-          { key: "hero_image", value: { url: heroImageUrl } },
-          { onConflict: "key" }
-        );
+      await Promise.all([
+        // Salva SEO homepage
+        supabase
+          .from("site_settings")
+          .upsert(
+            { key: "seo_homepage", value: { title: seoTitle, description: seoDescription, og_image_url: ogImageUrl } },
+            { onConflict: "key" }
+          ),
+        // Salva Hero image
+        supabase
+          .from("site_settings")
+          .upsert(
+            { key: "hero_image", value: { url: heroImageUrl } },
+            { onConflict: "key" }
+          )
+      ]);
 
       queryClient.invalidateQueries(["site-settings"]);
       toast({ title: "Impostazioni salvate", description: "Le modifiche sono state applicate con successo." });
