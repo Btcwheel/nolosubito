@@ -850,10 +850,10 @@ export default function CmsVehicles() {
         ? await offersService.update(form.id, payload)
         : await offersService.create(payload);
 
-      // 2. Salva ogni configurazione canone in parallelo
-      const upserts = pricingRows
+      // 2. Salva ogni configurazione canone in un'unica operazione bulk
+      const configsToUpsert = pricingRows
         .filter(row => row.monthly_rent)
-        .map(row => offersService.upsertConfig({
+        .map(row => ({
           make,
           model,
           segment:         row.segment,
@@ -865,11 +865,10 @@ export default function CmsVehicles() {
           is_featured:     row.is_featured ?? false,
           ...(row.id ? { id: row.id } : {}),
         }));
-      await Promise.all(upserts);
+      await offersService.bulkUpsertConfigs(configsToUpsert);
 
-      // 3. Elimina configurazioni rimosse in parallelo
-      const deletes = deletedConfigIds.map(id => offersService.deleteConfig(id));
-      await Promise.all(deletes);
+      // 3. Elimina configurazioni rimosse in un'unica operazione
+      await offersService.bulkDeleteConfigs(deletedConfigIds);
 
       return saved;
     },

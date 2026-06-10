@@ -154,11 +154,22 @@ export const offersService = {
       // Nuova config — insert con upsert per evitare duplicati
       const { data, error } = await supabase
         .from('offer_configs')
-        .upsert(config, { onConflict: 'make,model,duration_months,annual_km,segment' })
+        .upsert(config, { onConflict: 'make,model,segment,duration_months,annual_km' })
         .select();
       if (error) throw error;
       return data?.[0] ?? null;
     }
+  },
+
+  async bulkUpsertConfigs(configs) {
+    if (!configs || configs.length === 0) return;
+    // Rimuoviamo l'id per garantire che tutti gli oggetti abbiano le stesse chiavi.
+    // L'upsert agirà sulle chiavi di business (make,model,segment,duration_months,annual_km).
+    const cleanConfigs = configs.map(({ id, ...rest }) => rest);
+    const { error } = await supabase
+      .from('offer_configs')
+      .upsert(cleanConfigs, { onConflict: 'make,model,segment,duration_months,annual_km' });
+    if (error) throw error;
   },
 
   async deleteConfig(id) {
@@ -166,6 +177,15 @@ export const offersService = {
       .from('offer_configs')
       .delete()
       .eq('id', id);
+    if (error) throw error;
+  },
+
+  async bulkDeleteConfigs(ids) {
+    if (!ids || ids.length === 0) return;
+    const { error } = await supabase
+      .from('offer_configs')
+      .delete()
+      .in('id', ids);
     if (error) throw error;
   },
 

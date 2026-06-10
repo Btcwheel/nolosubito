@@ -86,9 +86,9 @@ export default function CmsOffers() {
     }
     setReuseSaving(true);
     try {
-      const upserts = combosToSave.map(({ months, km }) => {
+      const configsToUpsert = combosToSave.map(({ months, km }) => {
         const key = `${months}|${km}`;
-        return offersService.upsertConfig({
+        return {
           make: reuseMake,
           model: reuseModel,
           segment: "ReUse",
@@ -97,9 +97,9 @@ export default function CmsOffers() {
           advance_payment: 0,
           monthly_rent: Number(reuseRents[key]),
           is_active: true,
-        });
+        };
       });
-      await Promise.all(upserts);
+      await offersService.bulkUpsertConfigs(configsToUpsert);
       qc.invalidateQueries(["cms-offers"]);
       toast({ title: `${combosToSave.length} config Re-Use create per ${reuseMake} ${reuseModel}` });
       setReuseRents({});
