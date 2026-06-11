@@ -23,7 +23,8 @@
       "Bash(git log *)",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Quixel\\\\Downloads\\\\fleet-flow-nolo\" -Directory)",
       "Bash(grep -E \"\\\\.\\(jsx|tsx|js|ts\\)$\")",
-      "Bash(xargs grep -l \"CREATE TABLE\\\\|create table\")"
+      "Bash(xargs grep -l \"CREATE TABLE\\\\|create table\")",
+      "Bash(graphify --version)"
     ],
     "additionalDirectories": [
       "c:\\Users\\Quixel\\.claude\\projects\\c--Users-Quixel-Downloads-fleet-flow-nolo\\memory"
