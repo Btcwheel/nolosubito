@@ -9,6 +9,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce',
+    // Bypassa il Web Locks API cross-tab: il lock nativo (navigator.locks)
+    // può restare "appeso" da una tab in background e bloccare getSession()/
+    // refreshSession() nella tab in foreground dopo il resume (freeze su /cms
+    // dopo background su Mac/Chrome). Nessun impatto funzionale su questo sito.
+    lock: (_name, _acquireTimeout, fn) => fn(),
   },
   global: {
     headers: {
