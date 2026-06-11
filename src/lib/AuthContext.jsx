@@ -99,19 +99,38 @@ export const AuthProvider = ({ children }) => {
       }
     });
 
-    // Quando la tab torna in foreground, forza il refresh del token.
-    // Firefox e Chrome congelano i timer JS nelle tab in background per 5+ minuti:
-    // il timer interno di Supabase non scatta e il token risulta "vecchio" al ritorno.
+    // Quando la tab torna in foreground, verifica se il token è prossimo alla scadenza.
+    // Firefox/Chrome congelano i timer JS nelle tab in background: il timer interno di
+    // Supabase non scatta e il token può scadere silenziosamente.
+    // ATTENZIONE: chiamare refreshSession() senza una sessione valida causa un logout
+    // a cascata con token corrotto → 400/403 sulle API. Quindi prima controlliamo.
+    let isRefreshing = false;
     const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'visible') {
-        console.log('[Auth] tab tornata visibile → refresh sessione');
-        const { data, error } = await supabase.auth.refreshSession();
-        if (!error && data.session) {
-          // onAuthStateChange riceverà l'evento TOKEN_REFRESHED automaticamente
-          console.log('[Auth] sessione rinnovata con successo');
-        } else if (error) {
-          console.warn('[Auth] impossibile rinnovare sessione:', error.message);
+      if (document.visibilityState !== 'visible' || isRefreshing) return;
+
+      // Legge la sessione corrente SENZA fare richieste di rete
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return; // Nessuna sessione attiva — non fare nulla
+
+      // Controlla se il token scade entro 10 minuti (o è già scaduto)
+      const expiresAt = (session.expires_at ?? 0) * 1000;
+      const tenMinutes = 10 * 60 * 1000;
+      if (Date.now() < expiresAt - tenMinutes) {
+        console.log('[Auth] tab visibile — token ancora valido, skip refresh');
+        return;
+      }
+
+      isRefreshing = true;
+      console.log('[Auth] tab visibile — token in scadenza, refresh in corso…');
+      try {
+        const { error } = await supabase.auth.refreshSession();
+        if (error) {
+          console.warn('[Auth] refresh fallito:', error.message);
+        } else {
+          console.log('[Auth] sessione rinnovata');
         }
+      } finally {
+        isRefreshing = false;
       }
     };
 
