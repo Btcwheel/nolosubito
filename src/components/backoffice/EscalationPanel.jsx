@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { chatService } from '@/services/chat';
 import { format } from 'date-fns';
@@ -325,7 +325,7 @@ export default function EscalationPanel({ currentUserId }) {
   const playSound = useNotificationSound();
   const prevCountRef = useRef(0);
 
-  async function fetchSessions() {
+  const fetchSessions = useCallback(async () => {
     const query = supabase
       .from('escalated_sessions')
       .select('*')
@@ -350,7 +350,7 @@ export default function EscalationPanel({ currentUserId }) {
       prevCountRef.current = waitingCount;
       setSessions(data);
     }
-  }
+  }, [filter, playSound]);
 
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
@@ -360,7 +360,7 @@ export default function EscalationPanel({ currentUserId }) {
     fetchSessions();
 
     const channel = supabase
-      .channel('escalation_panel')
+      .channel(`escalation_panel_${filter}`)
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
@@ -368,8 +368,8 @@ export default function EscalationPanel({ currentUserId }) {
       }, () => fetchSessions())
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
-  }, [filter]);
+    return () => { supabase.removeChannel(channel); };
+  }, [filter, fetchSessions]);
 
   async function handleTake(session) {
     await supabase
@@ -398,6 +398,7 @@ export default function EscalationPanel({ currentUserId }) {
     setActiveSession(null);
     fetchSessions();
   }
+
 
   const waiting = sessions.filter(s => s.status === 'waiting');
   const active = sessions.filter(s => s.status === 'operator_joined');

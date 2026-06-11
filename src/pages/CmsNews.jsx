@@ -399,7 +399,9 @@ function AiDraftsSection({ onEditDraft }) {
   const { data: drafts = [], isLoading } = useQuery({
     queryKey: ["news-drafts-pending"],
     queryFn: () => newsDraftsService.listPending(),
-    refetchInterval: 30_000,
+    refetchInterval: () =>
+      document.visibilityState === 'visible' ? 60_000 : false,
+    refetchIntervalInBackground: false,
   });
 
   const acceptMutation = useMutation({
