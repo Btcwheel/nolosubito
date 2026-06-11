@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
+import { usePageVisible } from '@/hooks/usePageVisible';
 
 const STATUS_LABELS = {
   waiting: { label: 'In attesa', color: 'bg-amber-100 text-amber-800' },
@@ -46,10 +47,12 @@ function useNotificationSound() {
 
 function useElapsed(startedAt) {
   const [, setTick] = useState(0);
+  const visible = usePageVisible();
   useEffect(() => {
+    if (!visible) return;
     const i = setInterval(() => setTick(t => t + 1), 30000);
     return () => clearInterval(i);
-  }, []);
+  }, [visible]);
   if (!startedAt) return 0;
   return Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000 / 60);
 }

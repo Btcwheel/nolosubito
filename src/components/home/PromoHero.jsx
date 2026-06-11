@@ -5,6 +5,7 @@ import { ArrowRight, Tag, X } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { offersService } from "@/services/offers";
 import { useCountdown } from "@/hooks/useCountdown";
+import { usePageVisible } from "@/hooks/usePageVisible";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing";
 
@@ -212,12 +213,13 @@ export default function PromoHero() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dismissed, promos.length]);
 
-  // Auto-slide carosello ogni 5s
+  // Auto-slide carosello ogni 5s (in pausa quando il tab è in background)
+  const visible = usePageVisible();
   useEffect(() => {
-    if (paused || promos.length <= 1 || dismissed) return;
+    if (paused || promos.length <= 1 || dismissed || !visible) return;
     const id = setInterval(() => setIdx(i => (i + 1) % promos.length), 5000);
     return () => clearInterval(id);
-  }, [paused, promos.length, dismissed]);
+  }, [paused, promos.length, dismissed, visible]);
 
   // Reset indice se le promo cambiano
   useEffect(() => {

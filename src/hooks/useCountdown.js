@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePageVisible } from "@/hooks/usePageVisible";
 
 function calcRemaining(expiresAt) {
   const diff = new Date(expiresAt).getTime() - Date.now();
@@ -16,12 +17,15 @@ export function useCountdown(expiresAt) {
     expiresAt ? calcRemaining(expiresAt) : null
   );
 
+  const visible = usePageVisible();
+
   useEffect(() => {
     if (!expiresAt) return;
     setState(calcRemaining(expiresAt));
+    if (!visible) return;
     const id = setInterval(() => setState(calcRemaining(expiresAt)), 1000);
     return () => clearInterval(id);
-  }, [expiresAt]);
+  }, [expiresAt, visible]);
 
   return state;
 }
