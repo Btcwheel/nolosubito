@@ -16,6 +16,11 @@ const FUEL_IT = {
   Petrol:   "Benzina",
 };
 
+const TRANSMISSION_IT = {
+  Automatic: "Automatico",
+  Manual: "Manuale",
+};
+
 const SEGMENT_LABEL = {
   "P.IVA":    "BUSINESS EXCLUSIVE",
   "Privati":  "PRIVATI NLT",
@@ -101,7 +106,7 @@ const VehicleCard = memo(function VehicleCard({ vehicle, index = 0, segment, com
   // 3 spec boxes
   const FuelIcon = isElectric ? Zap : Fuel;
   const specs = [
-    vehicle.transmission && { icon: Settings2, label: vehicle.transmission === "Automatico" ? "Autom." : "Manuale" },
+    vehicle.transmission && { icon: Settings2, label: (TRANSMISSION_IT[vehicle.transmission] || vehicle.transmission) === "Automatico" ? "Autom." : "Manuale" },
     vehicle.fuel_type    && { icon: FuelIcon,  label: FUEL_IT[vehicle.fuel_type] ?? vehicle.fuel_type },
     vehicle.power_hp
       ? { icon: Gauge, label: `${vehicle.power_hp} CV` }
@@ -203,7 +208,7 @@ const VehicleCard = memo(function VehicleCard({ vehicle, index = 0, segment, com
               </h3>
               {(vehicle.version || vehicle.fuel_type) && (
                 <p className="text-[15px] text-[#464651] leading-snug mt-0.5">
-                  {vehicle.version || [FUEL_IT[vehicle.fuel_type], vehicle.transmission].filter(Boolean).join(" ")}
+                  {vehicle.version || [FUEL_IT[vehicle.fuel_type], TRANSMISSION_IT[vehicle.transmission] || vehicle.transmission].filter(Boolean).join(" ")}
                 </p>
               )}
             </div>

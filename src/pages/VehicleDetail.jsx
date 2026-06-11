@@ -33,6 +33,11 @@ const FUEL_IT = {
   Petrol:   "Benzina",
 };
 
+const TRANSMISSION_IT = {
+  Automatic: "Automatico",
+  Manual: "Manuale",
+};
+
 const INCLUDED = [
   { icon: ShieldCheck, label: "Assicurazione RCA + Kasko" },
   { icon: Wrench,      label: "Manutenzione ordinaria e straordinaria" },
@@ -421,7 +426,7 @@ export default function VehicleDetail() {
                       bestOffer.category,
                       bestOffer.fuel_type ? FUEL_IT[bestOffer.fuel_type] || bestOffer.fuel_type : null,
                       bestOffer.power_hp ? `${bestOffer.power_hp} CV` : null,
-                      bestOffer.transmission,
+                      bestOffer.transmission ? TRANSMISSION_IT[bestOffer.transmission] || bestOffer.transmission : null,
                       bestOffer.year,
                     ].filter(Boolean).map((spec, i) => (
                       <span
@@ -595,7 +600,7 @@ export default function VehicleDetail() {
                   {[
                     { icon: isElectric ? Zap : isHybrid ? Leaf : Fuel, label: "Alimentazione", value: FUEL_IT[bestOffer.fuel_type] || bestOffer.fuel_type },
                     { icon: Gauge,    label: "Potenza",    value: bestOffer.power_hp ? `${bestOffer.power_hp} CV` : null },
-                    { icon: Settings2, label: "Cambio",   value: bestOffer.transmission },
+                    { icon: Settings2, label: "Cambio",   value: TRANSMISSION_IT[bestOffer.transmission] || bestOffer.transmission },
                     { icon: Leaf,     label: "CO₂",        value: bestOffer.co2_emissions != null ? (bestOffer.co2_emissions === 0 ? "0 g/km" : `${bestOffer.co2_emissions} g/km`) : null },
                     { icon: Car,      label: "Categoria",  value: bestOffer.category },
                     { icon: Calendar, label: "Anno",       value: bestOffer.year ? String(bestOffer.year) : null },
