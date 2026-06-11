@@ -161,18 +161,29 @@ export default function FeaturedVehicles() {
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   const hasMore = visibleCount < filtered.length;
 
+  // Ref per leggere hasMore dentro il callback senza ricreare l'observer
+  const hasMoreRef = useRef(hasMore);
+  useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
+
   const resetPage = useCallback(() => setVisibleCount(PAGE_SIZE), []);
 
+  // Observer creato UNA SOLA VOLTA — non dipende da hasMore
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
+
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting && hasMore) setVisibleCount(c => c + PAGE_SIZE); },
+      ([entry]) => {
+        if (entry.isIntersecting && hasMoreRef.current) {
+          setVisibleCount(c => c + PAGE_SIZE);
+        }
+      },
       { rootMargin: "200px" },
     );
+
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasMore]);
+  }, []); // Dipendenze vuote — observer stabile
 
   const handleTipologia = (v) => { setTipologia(v); resetPage(); };
   const handleMake = (v) => { setMakeFilter(v); resetPage(); };

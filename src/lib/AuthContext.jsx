@@ -3,6 +3,9 @@ import { supabase } from '@/lib/supabase';
 
 const AuthContext = createContext();
 
+// Timeout massimo per il caricamento auth (evita pagina bianca infinita)
+const AUTH_INIT_TIMEOUT = 8000;
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -10,9 +13,22 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
   const fetchedFor = useRef(null);
   const profileRef = useRef(null);
+  const initTimerRef = useRef(null);
 
   // Keep ref in sync so fetchProfile can read current profile without depending on state
   useEffect(() => { profileRef.current = profile; }, [profile]);
+
+  // Timeout di sicurezza: se isLoadingAuth resta true troppo a lungo, sblocca
+  useEffect(() => {
+    if (isLoadingAuth) {
+      clearTimeout(initTimerRef.current);
+      initTimerRef.current = setTimeout(() => {
+        console.warn('[Auth] INIT TIMEOUT — sblocco dopo', AUTH_INIT_TIMEOUT, 'ms');
+        setIsLoadingAuth(false);
+      }, AUTH_INIT_TIMEOUT);
+    }
+    return () => clearTimeout(initTimerRef.current);
+  }, [isLoadingAuth]);
 
   const fetchProfile = useCallback(async (userId, { force = false } = {}) => {
     if (!userId) return null;
@@ -50,7 +66,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoadingAuth(false);
     }
-  }, []); // stabile — legge profile tramite ref, non come dipendenza
+  }, []);
 
   // Espone diagnostica in console per debug
   useEffect(() => {
@@ -74,22 +90,50 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    // Init: controlla sessione con timeout
+    const initPromise = supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!mounted) return;
-      setUser(session?.user ?? null);
       if (session?.user) {
+        setUser(session.user);
         await fetchProfile(session.user.id, { force: true });
       } else {
+        setUser(null);
+        setProfile(null);
         setIsLoadingAuth(false);
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // Se getSession() si blocca, sblocca dopo 5s
+    const initTimeout = setTimeout(() => {
+      if (mounted && isLoadingAuth) {
+        console.warn('[Auth] getSession timeout — sblocco');
+        setIsLoadingAuth(false);
+      }
+    }, 5000);
+
+    initPromise.finally(() => clearTimeout(initTimeout));
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
-      console.log('[Auth] onAuthStateChange →', _event, session?.user?.email);
+      console.log('[Auth] onAuthStateChange →', event, session?.user?.email);
+
+      // Se l'evento indica che la sessione è scaduta o il refresh è fallito
+      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        setUser(null);
+        setProfile(null);
+        fetchedFor.current = null;
+        setIsLoadingAuth(false);
+        return;
+      }
+
+      if (event === 'TOKEN_REFRESHED' && session?.user) {
+        fetchedFor.current = null;
+        await fetchProfile(session.user.id, { force: true });
+        return;
+      }
+
       setUser(session?.user ?? null);
       if (session?.user) {
-        // Forza sempre il refetch dopo login/logout per evitare ruolo stale
         fetchedFor.current = null;
         await fetchProfile(session.user.id, { force: true });
       } else {
@@ -99,37 +143,68 @@ export const AuthProvider = ({ children }) => {
       }
     });
 
-    // Quando la tab torna in foreground, verifica se il token è prossimo alla scadenza.
-    // Firefox/Chrome congelano i timer JS nelle tab in background: il timer interno di
-    // Supabase non scatta e il token può scadere silenziosamente.
-    // ATTENZIONE: chiamare refreshSession() senza una sessione valida causa un logout
-    // a cascata con token corrotto → 400/403 sulle API. Quindi prima controlliamo.
+    // Quando la tab torna in foreground, forza un refresh della sessione
+    // se il token è scaduto o in scadenza. TIMEOUT aggressivo per evitare freeze.
     let isRefreshing = false;
+    let refreshTimeoutId = null;
     const handleVisibilityChange = async () => {
       if (document.visibilityState !== 'visible' || isRefreshing) return;
 
-      // Legge la sessione corrente SENZA fare richieste di rete
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return; // Nessuna sessione attiva — non fare nulla
-
-      // Controlla se il token scade entro 10 minuti (o è già scaduto)
-      const expiresAt = (session.expires_at ?? 0) * 1000;
-      const tenMinutes = 10 * 60 * 1000;
-      if (Date.now() < expiresAt - tenMinutes) {
-        console.log('[Auth] tab visibile — token ancora valido, skip refresh');
-        return;
-      }
-
       isRefreshing = true;
-      console.log('[Auth] tab visibile — token in scadenza, refresh in corso…');
+      console.log('[Auth] Tab in foreground — check sessione...');
+
+      // Timeout di sicurezza: se il check si blocca, pulisci tutto e redirect a login
+      refreshTimeoutId = setTimeout(() => {
+        console.warn('[Auth] visibility check TIMEOUT — pulizia forzata');
+        setUser(null);
+        setProfile(null);
+        fetchedFor.current = null;
+        setIsLoadingAuth(false);
+        isRefreshing = false;
+      }, 4000);
+
       try {
-        const { error } = await supabase.auth.refreshSession();
-        if (error) {
-          console.warn('[Auth] refresh fallito:', error.message);
-        } else {
-          console.log('[Auth] sessione rinnovata');
+        // getSession() legge da localStorage (no rete)
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (!session) {
+          console.log('[Auth] Nessuna sessione — redirect a login');
+          setUser(null);
+          setProfile(null);
+          setIsLoadingAuth(false);
+          return;
         }
+
+        const expiresAt = (session.expires_at ?? 0) * 1000;
+        const now = Date.now();
+
+        // Token già scaduto o scade entro 2 minuti
+        if (now >= expiresAt - 2 * 60 * 1000) {
+          console.log('[Auth] Token scaduto/in scadenza — refresh...');
+          const { data: { session: newSession }, error } = await supabase.auth.refreshSession();
+          if (error || !newSession) {
+            console.warn('[Auth] Refresh fallito:', error?.message || 'nessuna sessione');
+            setUser(null);
+            setProfile(null);
+            fetchedFor.current = null;
+            setIsLoadingAuth(false);
+            return;
+          }
+          console.log('[Auth] Sessione rinnovata');
+          setUser(newSession.user);
+          fetchedFor.current = null;
+          await fetchProfile(newSession.user.id, { force: true });
+        } else {
+          console.log('[Auth] Token valido (scade tra', Math.round((expiresAt - now) / 60000), 'min)');
+        }
+      } catch (e) {
+        console.warn('[Auth] Errore visibility change:', e.message);
+        setUser(null);
+        setProfile(null);
+        fetchedFor.current = null;
+        setIsLoadingAuth(false);
       } finally {
+        clearTimeout(refreshTimeoutId);
         isRefreshing = false;
       }
     };
@@ -139,6 +214,8 @@ export const AuthProvider = ({ children }) => {
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      clearTimeout(initTimerRef.current);
+      clearTimeout(refreshTimeoutId);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [fetchProfile]);
