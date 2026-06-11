@@ -158,6 +158,17 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
+      // supabase-js riemette SIGNED_IN ad ogni cambio di visibilità della tab
+      // (_onVisibilityChanged → _recoverAndRefresh, anche a sessione valida).
+      // Se è già lo stesso utente con profilo caricato, non rifare la fetch:
+      // eviterebbe una request a /rest/v1/profiles ad ogni cambio tab, che
+      // dopo il resume dal background a volte si blocca e causa freeze.
+      if (event === 'SIGNED_IN' && session?.user && fetchedFor.current === session.user.id) {
+        setUser(session.user);
+        setIsLoadingAuth(false);
+        return;
+      }
+
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchedFor.current = null;
