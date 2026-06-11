@@ -51,11 +51,20 @@ export const AuthProvider = ({ children }) => {
     }
     setAuthError(null);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
+      let data, error;
+      // Dopo il resume dal background a volte la prima query torna senza
+      // riga né errore (race con il refresh del token) — un retry risolve.
+      for (let attempt = 0; attempt <= 1; attempt++) {
+        ({ data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle());
+
+        if (error || data) break;
+        console.warn('[Auth] fetchProfile → nessun profile, retry tra 1s...', userId);
+        await new Promise(r => setTimeout(r, 1000));
+      }
 
       if (error) {
         console.error('[Auth] fetchProfile error →', error);
