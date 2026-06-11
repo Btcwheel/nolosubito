@@ -144,23 +144,33 @@ export const AuthProvider = ({ children }) => {
     });
 
     // Quando la tab torna in foreground, forza un refresh della sessione
-    // se il token è scaduto o in scadenza. TIMEOUT aggressivo per evitare freeze.
+    // se il token è scaduto o in scadenza. Se si blocca, reload della pagina.
     let isRefreshing = false;
     let refreshTimeoutId = null;
+    let lastReloadTime = 0;
+
+    // Funzione helper per reload sicuro (evita loop infinito)
+    const safeReload = () => {
+      const now = Date.now();
+      if (now - lastReloadTime < 10000) {
+        console.warn('[Auth] Reload già fatto recentemente, skip');
+        return;
+      }
+      lastReloadTime = now;
+      console.warn('[Auth] Reload pagina per resettare stato auth');
+      window.location.reload();
+    };
+
     const handleVisibilityChange = async () => {
       if (document.visibilityState !== 'visible' || isRefreshing) return;
 
       isRefreshing = true;
       console.log('[Auth] Tab in foreground — check sessione...');
 
-      // Timeout di sicurezza: se il check si blocca, pulisci tutto e redirect a login
+      // Timeout di sicurezza: se il check si blocca, reload della pagina
       refreshTimeoutId = setTimeout(() => {
-        console.warn('[Auth] visibility check TIMEOUT — pulizia forzata');
-        setUser(null);
-        setProfile(null);
-        fetchedFor.current = null;
-        setIsLoadingAuth(false);
-        isRefreshing = false;
+        console.warn('[Auth] visibility check TIMEOUT — reload pagina');
+        safeReload();
       }, 4000);
 
       try {
@@ -184,10 +194,8 @@ export const AuthProvider = ({ children }) => {
           const { data: { session: newSession }, error } = await supabase.auth.refreshSession();
           if (error || !newSession) {
             console.warn('[Auth] Refresh fallito:', error?.message || 'nessuna sessione');
-            setUser(null);
-            setProfile(null);
-            fetchedFor.current = null;
-            setIsLoadingAuth(false);
+            // Reload invece di pulire user (resetta tutto lo stato)
+            safeReload();
             return;
           }
           console.log('[Auth] Sessione rinnovata');
@@ -199,10 +207,8 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (e) {
         console.warn('[Auth] Errore visibility change:', e.message);
-        setUser(null);
-        setProfile(null);
-        fetchedFor.current = null;
-        setIsLoadingAuth(false);
+        // Reload invece di pulire user (resetta tutto lo stato)
+        safeReload();
       } finally {
         clearTimeout(refreshTimeoutId);
         isRefreshing = false;
