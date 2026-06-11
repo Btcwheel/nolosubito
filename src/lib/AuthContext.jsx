@@ -99,9 +99,28 @@ export const AuthProvider = ({ children }) => {
       }
     });
 
+    // Quando la tab torna in foreground, forza il refresh del token.
+    // Firefox e Chrome congelano i timer JS nelle tab in background per 5+ minuti:
+    // il timer interno di Supabase non scatta e il token risulta "vecchio" al ritorno.
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[Auth] tab tornata visibile → refresh sessione');
+        const { data, error } = await supabase.auth.refreshSession();
+        if (!error && data.session) {
+          // onAuthStateChange riceverà l'evento TOKEN_REFRESHED automaticamente
+          console.log('[Auth] sessione rinnovata con successo');
+        } else if (error) {
+          console.warn('[Auth] impossibile rinnovare sessione:', error.message);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [fetchProfile]);
 
