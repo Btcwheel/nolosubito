@@ -14,9 +14,22 @@ export const AuthProvider = ({ children }) => {
   const fetchedFor = useRef(null);
   const profileRef = useRef(null);
   const initTimerRef = useRef(null);
+  const lastReloadRef = useRef(0);
 
   // Keep ref in sync so fetchProfile can read current profile without depending on state
   useEffect(() => { profileRef.current = profile; }, [profile]);
+
+  // Reload sicuro: evita loop infiniti ricaricando al massimo una volta ogni 10s
+  const safeReload = useCallback(() => {
+    const now = Date.now();
+    if (now - lastReloadRef.current < 10000) {
+      console.warn('[Auth] Reload già fatto recentemente, skip');
+      return;
+    }
+    lastReloadRef.current = now;
+    console.warn('[Auth] Reload pagina per resettare stato auth');
+    window.location.reload();
+  }, []);
 
   // Timeout di sicurezza: se isLoadingAuth resta true troppo a lungo, sblocca
   useEffect(() => {
@@ -47,6 +60,8 @@ export const AuthProvider = ({ children }) => {
       if (error) {
         console.error('[Auth] fetchProfile error →', error);
         setAuthError(error.message);
+        // Probabile connessione "morta" dopo resume dal background — reload pulito
+        safeReload();
         return null;
       }
 
@@ -62,11 +77,13 @@ export const AuthProvider = ({ children }) => {
     } catch (e) {
       console.error('[Auth] fetchProfile exception →', e);
       setAuthError(String(e));
+      // Probabile connessione "morta" dopo resume dal background — reload pulito
+      safeReload();
       return null;
     } finally {
       setIsLoadingAuth(false);
     }
-  }, []);
+  }, [safeReload]);
 
   // Espone diagnostica in console per debug
   useEffect(() => {
@@ -147,19 +164,6 @@ export const AuthProvider = ({ children }) => {
     // se il token è scaduto o in scadenza. Se si blocca, reload della pagina.
     let isRefreshing = false;
     let refreshTimeoutId = null;
-    let lastReloadTime = 0;
-
-    // Funzione helper per reload sicuro (evita loop infinito)
-    const safeReload = () => {
-      const now = Date.now();
-      if (now - lastReloadTime < 10000) {
-        console.warn('[Auth] Reload già fatto recentemente, skip');
-        return;
-      }
-      lastReloadTime = now;
-      console.warn('[Auth] Reload pagina per resettare stato auth');
-      window.location.reload();
-    };
 
     const handleVisibilityChange = async () => {
       if (document.visibilityState !== 'visible' || isRefreshing) return;
@@ -224,7 +228,7 @@ export const AuthProvider = ({ children }) => {
       clearTimeout(refreshTimeoutId);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [fetchProfile]);
+  }, [fetchProfile, safeReload]);
 
   const signIn = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
