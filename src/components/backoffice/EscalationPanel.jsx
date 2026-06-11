@@ -19,7 +19,10 @@ const STATUS_LABELS = {
 function useNotificationSound() {
   const audioCtx = useRef(null);
 
-  const play = () => {
+  // useCallback con [] garantisce che `play` sia stabile tra i render.
+  // Senza questo, qualsiasi componente che dipende da `play` via useCallback
+  // ricreerebbe la funzione ad ogni render, causando loop infiniti.
+  const play = useCallback(() => {
     try {
       if (!audioCtx.current) {
         audioCtx.current = new AudioContext();
@@ -36,7 +39,7 @@ function useNotificationSound() {
       osc.start(ctx.currentTime);
       osc.stop(ctx.currentTime + 0.4);
     } catch {}
-  };
+  }, []);
 
   return play;
 }
