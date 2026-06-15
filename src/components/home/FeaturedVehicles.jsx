@@ -78,7 +78,7 @@ export default function FeaturedVehicles() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const resultsRef = useRef(null);
-  const sentinelRef = useRef(null);
+  const observerRef = useRef(null);
 
   const { data: vehicles = [], isLoading } = useQuery({
     queryKey: ["offers-home-catalog"],
@@ -167,23 +167,27 @@ export default function FeaturedVehicles() {
 
   const resetPage = useCallback(() => setVisibleCount(PAGE_SIZE), []);
 
-  // Observer creato UNA SOLA VOLTA — non dipende da hasMore
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && hasMoreRef.current) {
-          setVisibleCount(c => c + PAGE_SIZE);
-        }
-      },
-      { rootMargin: "200px" },
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []); // Dipendenze vuote — observer stabile
+  // Callback ref: il sentinel viene montato solo quando hasMore diventa true
+  // (cioè dopo il caricamento dei dati). Un useEffect con deps fisse non
+  // vedrebbe questo mount tardivo, quindi creiamo/distruggiamo l'observer
+  // direttamente quando il nodo del sentinel monta/smonta.
+  const sentinelRef = useCallback((node) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+    if (node) {
+      observerRef.current = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting && hasMoreRef.current) {
+            setVisibleCount(c => c + PAGE_SIZE);
+          }
+        },
+        { rootMargin: "200px" },
+      );
+      observerRef.current.observe(node);
+    }
+  }, []);
 
   const handleTipologia = (v) => { setTipologia(v); resetPage(); };
   const handleMake = (v) => { setMakeFilter(v); resetPage(); };
