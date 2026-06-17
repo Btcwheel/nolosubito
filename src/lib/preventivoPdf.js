@@ -1,6 +1,7 @@
 import { pdf } from '@react-pdf/renderer';
 import { createElement } from 'react';
 import { PreventivoPdfDoc } from './PreventivoPdfDoc.jsx';
+import { supabase } from './supabase';
 
 async function fetchAsDataUrl(path) {
   const res = await fetch(path, { cache: 'no-store' });
@@ -17,6 +18,31 @@ async function fetchAsDataUrl(path) {
   });
 }
 
+const normKey = (value) => String(value || '').trim().toUpperCase();
+
+// Recupera la foto del veicolo (senza sfondo) caricata in CMS su offers.vehicle_image
+async function fetchVehicleImage(marca, modello) {
+  if (!marca || !modello) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('offers')
+      .select('make, model, vehicle_image')
+      .not('vehicle_image', 'is', null);
+
+    if (error || !data) return null;
+
+    const match = data.find(
+      (o) => normKey(o.make) === normKey(marca) && normKey(o.model) === normKey(modello)
+    );
+    if (!match?.vehicle_image) return null;
+
+    return await fetchAsDataUrl(match.vehicle_image);
+  } catch {
+    return null;
+  }
+}
+
 export async function scaricaPreventivoPDF(prev, clienteNome) {
   const rif = `NS-${prev.id.slice(-6).toUpperCase()}`;
   const assetBase = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/');
@@ -26,7 +52,9 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
     (await fetchAsDataUrl(`${assetBase}logo-blu.png`)) ||
     null;
 
-  const doc = createElement(PreventivoPdfDoc, { prev, clienteNome, logoB64 });
+  const vehicleImageB64 = await fetchVehicleImage(prev.veicolo_marca, prev.veicolo_modello);
+
+  const doc = createElement(PreventivoPdfDoc, { prev, clienteNome, logoB64, vehicleImageB64 });
   const blob = await pdf(doc).toBlob();
 
   const url = URL.createObjectURL(blob);

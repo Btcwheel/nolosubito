@@ -29,6 +29,8 @@ const GREEN = '#2EAD64';
 
 const fmt = (n) => (n != null ? Number(n).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0,00');
 const fmtN = (n) => (n != null ? Number(n).toLocaleString('it-IT') : '—');
+// Rimuove eventuali codici colore/interni del costruttore (es. "252 GRIGIO MOONLIGHT META" -> "GRIGIO MOONLIGHT META")
+const stripLeadingCode = (value) => (value ? String(value).replace(/^\d{2,4}\s+/, '').trim() : value);
 
 const S = StyleSheet.create({
   page: {
@@ -171,7 +173,8 @@ const S = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: 'rgba(255, 197, 0, 0.18)',
+    backgroundColor: ORANGE,
+    opacity: 0.18,
   },
   vehicleLabel: {
     color: 'rgba(255,255,255,0.52)',
@@ -289,11 +292,13 @@ const S = StyleSheet.create({
   serviceTextWrap: { flex: 1 },
   serviceTitle: { fontSize: 8, fontWeight: 'bold', color: '#111827', marginBottom: 1 },
   serviceMeta: { fontSize: 7, color: '#374151', lineHeight: 1.15 },
+  serviceMetaHighlight: { color: GREEN, fontWeight: 'bold' },
 
-  p2TitleWrap: { marginTop: 2, marginBottom: 8 },
+  p2TitleWrap: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2, marginBottom: 8 },
   p2Hero: { fontSize: 13.8, lineHeight: 1.1, color: TEXT, fontWeight: 'bold', marginBottom: 1 },
   p2HeroBlue: { color: NAVY },
   p2HeroSub: { fontSize: 10.8, lineHeight: 1.1, color: TEXT, fontWeight: 'bold' },
+  vehiclePhoto: { width: 160, height: 90, objectFit: 'contain' },
 
   specsGrid: { flexDirection: 'row', gap: 18, marginBottom: 9 },
   specCol: { flex: 1 },
@@ -565,12 +570,12 @@ const WIcon = ({ type }) => {
   return <View>{map[type]}</View>;
 };
 
-const CheckItem = ({ nome, nota }) => (
+const CheckItem = ({ nome, nota, highlight }) => (
   <View style={S.serviceItem}>
     <SmallIcon type="check" />
     <View style={S.serviceTextWrap}>
       <Text style={S.serviceTitle}>{nome}</Text>
-      <Text style={S.serviceMeta}>{nota}</Text>
+      <Text style={[S.serviceMeta, highlight && S.serviceMetaHighlight]}>{nota}</Text>
     </View>
   </View>
 );
@@ -760,7 +765,7 @@ function parseServizi(noteOperative) {
   return nomi.map(n => SERVIZI_MAP[normalizeServiceKey(n)] || [n.replace(/\b\w/g, c => c.toUpperCase()), '']).filter(Boolean);
 }
 
-export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
+export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }) {
   const rif = `NS-${prev.id.slice(-6).toUpperCase()}`;
   const oggi = new Date().toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
   const scadenza = new Date(Date.now() + 5 * 86400000).toLocaleDateString('it-IT', { day: '2-digit', month: 'long', year: 'numeric' });
@@ -793,8 +798,8 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
     ['Potenza', prev.potenza || '—'],
   ];
   const specsRight = [
-    ['Colore esterno', prev.colore_esterno || 'A definire'],
-    ['Interni', prev.interni || 'A definire'],
+    ['Colore esterno', stripLeadingCode(prev.colore_esterno) || 'A definire'],
+    ['Interni', stripLeadingCode(prev.interni) || 'A definire'],
     ['Emissioni CO₂', prev.emissioni_co2 || '—'],
     ['Classe ambientale', prev.classe_ambientale || '—'],
     ['Deposito cauzionale', prev.deposito_cauzionale != null ? `€ ${fmt(prev.deposito_cauzionale)}` : '—'],
@@ -827,6 +832,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
     if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
       const mapped = SERVIZI_NOLOSUBITO_MAP[obj.codice];
       if (mapped) {
+        if (obj.penale === 0) return [mapped[0], 'Nessuna Penale', true];
         const nota = obj.penale != null ? `Penale € ${obj.penale}` : mapped[1];
         return [mapped[0], nota];
       }
@@ -902,7 +908,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
         <Text style={S.intro}>
           Gentile <Text style={S.introBold}>{clienteNome || 'Cliente'}</Text>, abbiamo il piacere di trasmetterle l'offerta a Lei dedicata
           <Text style={S.introRef}>(1)</Text>. La ringraziamo per la preferenza accordataci e restiamo a Sua disposizione per qualsiasi chiarimento.
-          Tutti i servizi inclusi nel canone mensile sono pensati per garantirLe una mobilità completa, sicura e senza pensieri.
+          Tutti i servizi inclusi nel canone mensile sono pensati per garantirLe una mobilità{' '}completa, sicura e senza pensieri.
         </Text>
 
         <View style={S.cardGrid}>
@@ -1017,9 +1023,9 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
         ) : null}
 
         <View style={S.servicesGrid}>
-          <View style={S.servicesCol}>{col1.map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
-          <View style={S.servicesCol}>{col2.map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
-          <View style={S.servicesCol}>{col3.map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
+          <View style={S.servicesCol}>{col1.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} />)}</View>
+          <View style={S.servicesCol}>{col2.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} />)}</View>
+          <View style={S.servicesCol}>{col3.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} />)}</View>
         </View>
 
         {serviziRichiedibili.length > 0 && (
@@ -1050,24 +1056,29 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
       >
         <Text style={S.eyebrow}>DETTAGLI TECNICI</Text>
         <View style={S.p2TitleWrap}>
-          <Text style={S.p2Hero}>
-            <Text style={S.p2HeroBlue}>Caratteristiche del veicolo</Text>
-          </Text>
-          <Text style={S.p2HeroSub}>
-            {prev.veicolo_marca} {prev.veicolo_modello}{prev.veicolo_versione ? ` ${prev.veicolo_versione}` : ''}
-          </Text>
+          <View>
+            <Text style={S.p2Hero}>
+              <Text style={S.p2HeroBlue}>Caratteristiche del veicolo</Text>
+            </Text>
+            <Text style={S.p2HeroSub}>
+              {prev.veicolo_marca} {prev.veicolo_modello}{prev.veicolo_versione ? ` ${prev.veicolo_versione}` : ''}
+            </Text>
+          </View>
+          {vehicleImageB64 ? <Image src={vehicleImageB64} style={S.vehiclePhoto} /> : null}
         </View>
 
-        <View style={{ marginBottom: 10 }}>
+        <View style={[S.sectionTitleRow, { marginBottom: 8 }]}>
           <Text style={S.sectionTitle}>DATI TECNICI VEICOLO</Text>
+          <View style={S.sectionRule} />
         </View>
         <View style={S.specsGrid}>
           <View style={S.specCol}>{specsLeft.map(([k, v]) => <SpecRow key={k} k={k} v={v} />)}</View>
           <View style={S.specCol}>{specsRight.map(([k, v]) => <SpecRow key={k} k={k} v={v} />)}</View>
         </View>
 
-        <View style={{ marginBottom: 10 }}>
+        <View style={[S.sectionTitleRow, { marginBottom: 8 }]}>
           <Text style={S.sectionTitle}>VALORE DEL VEICOLO</Text>
+          <View style={S.sectionRule} />
         </View>
         <View style={S.valueGrid}>
           <View style={S.valueBox}>
@@ -1088,8 +1099,9 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64 }) {
           </View>
         </View>
 
-        <View style={{ marginBottom: 10 }}>
-          <Text style={S.sectionTitle}>PERCHÉ SCEGLIERE NOLOSUBITO</Text>
+        <View style={[S.sectionTitleRow, { marginBottom: 8 }]}>
+          <Text style={S.sectionTitle}>PERCHÉ{' '}SCEGLIERE NOLOSUBITO</Text>
+          <View style={S.sectionRule} />
         </View>
         <View style={S.whyGrid}>
           {[
