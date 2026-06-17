@@ -27,17 +27,17 @@ async function fetchVehicleImage(marca, modello) {
   try {
     const { data, error } = await supabase
       .from('offers')
-      .select('make, model, vehicle_image')
-      .not('vehicle_image', 'is', null);
+      .select('make, model, foto_prev')
+      .not('foto_prev', 'is', null);
 
     if (error || !data) return null;
 
     const match = data.find(
       (o) => normKey(o.make) === normKey(marca) && normKey(o.model) === normKey(modello)
     );
-    if (!match?.vehicle_image) return null;
+    if (!match?.foto_prev) return null;
 
-    return await fetchAsDataUrl(match.vehicle_image);
+    return await fetchAsDataUrl(match.foto_prev);
   } catch {
     return null;
   }

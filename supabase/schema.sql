@@ -52,6 +52,7 @@ create table if not exists offers (
   power_hp        integer,
   co2_emissions   integer,
   vehicle_image   text,
+  foto_prev       text,
   features        text[] default '{}',
   description     text,
   is_active       boolean default true,

@@ -77,7 +77,7 @@ const EMPTY_PRICE_ROW = {
 const EMPTY_VEHICLE = {
   make: "", model: "", version: "", category: "", fuel_type: "",
   transmission: "", power_hp: "", co2_emissions: "",
-  vehicle_image: "", gallery_images: [], description: "", features: [],
+  vehicle_image: "", foto_prev: "", gallery_images: [], description: "", features: [],
   segments: [], is_active: true, is_featured: false, is_ready_delivery: false,
   // SEO
   seo_title: "", seo_description: "", seo_keywords: [],
@@ -681,6 +681,13 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
 
               <div>
                 <Label className="text-xs font-semibold mb-1.5 block">
+                  Foto preventivo <span className="text-muted-foreground font-normal">(PNG 800×450 px, appare nel PDF preventivo)</span>
+                </Label>
+                <ImageUpload value={form.foto_prev} onChange={url => set("foto_prev", url)} make={form.make} model={form.model} />
+              </div>
+
+              <div>
+                <Label className="text-xs font-semibold mb-1.5 block">
                   Foto gallery <span className="text-muted-foreground font-normal">(foto aggiuntive nella pagina dettaglio)</span>
                 </Label>
                 <GalleryImagesInput images={form.gallery_images || []} onChange={urls => set("gallery_images", urls)} make={form.make} model={form.model} />
@@ -835,6 +842,7 @@ export default function CmsVehicles() {
         power_hp:        form.power_hp        ? Number(form.power_hp)      : null,
         co2_emissions:   form.co2_emissions   ? Number(form.co2_emissions) : null,
         vehicle_image:   form.vehicle_image   || null,
+        foto_prev:       form.foto_prev       || null,
         description:     normalizeVehicleDescription(form.description || "") || null,
         features:        form.features        || [],
         segments:        form.segments        || [],
