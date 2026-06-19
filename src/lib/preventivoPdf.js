@@ -32,9 +32,13 @@ async function fetchVehicleImage(marca, modello) {
 
     if (error || !data) return null;
 
-    const match = data.find(
-      (o) => normKey(o.make) === normKey(marca) && normKey(o.model) === normKey(modello)
-    );
+    const normMarca = normKey(marca);
+    const normModello = normKey(modello);
+    const match = data.find((o) => {
+      if (normKey(o.make) !== normMarca) return false;
+      const normOfferModel = normKey(o.model);
+      return normModello.startsWith(normOfferModel) || normOfferModel.startsWith(normModello);
+    });
     if (!match?.foto_prev) return null;
 
     return await fetchAsDataUrl(match.foto_prev);

@@ -130,6 +130,7 @@ function ImageUpload({ value, onChange, make, model }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview]     = useState(value || "");
+  const [expanded, setExpanded]   = useState(false);
   const { toast } = useToast();
 
   const handleFile = async (file) => {
@@ -151,6 +152,24 @@ function ImageUpload({ value, onChange, make, model }) {
       toast({ title: "Errore upload", description: err.message, variant: "destructive" });
     } finally { setUploading(false); }
   };
+
+  if (!expanded) {
+    return (
+      <div className="flex items-center gap-3 border border-border rounded-xl p-2">
+        <div className="w-16 h-10 rounded-lg overflow-hidden bg-muted shrink-0 border border-border/50 flex items-center justify-center">
+          {preview
+            ? <img src={preview} alt="preview" className="w-full h-full object-cover" />
+            : <ImageIcon className="size-4 text-muted-foreground/40" />
+          }
+        </div>
+        <p className="text-xs text-muted-foreground flex-1 truncate">{preview ? "Foto caricata" : "Nessuna foto"}</p>
+        <button type="button" onClick={() => setExpanded(true)}
+          className="text-xs font-medium text-electric hover:underline shrink-0">
+          Cambia
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -192,6 +211,12 @@ function ImageUpload({ value, onChange, make, model }) {
             <X className="size-4" />
           </button>
         )}
+        {preview && (
+          <button type="button" onClick={() => setExpanded(false)}
+            className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors text-xs font-medium whitespace-nowrap">
+            Comprimi
+          </button>
+        )}
       </div>
     </div>
   );
@@ -205,6 +230,7 @@ function GalleryImagesInput({ images, onChange, make, model }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
   const [urlDraft, setUrlDraft] = useState("");
+  const [expanded, setExpanded] = useState(false);
   const { toast } = useToast();
 
   const handleFile = async (file) => {
@@ -230,6 +256,34 @@ function GalleryImagesInput({ images, onChange, make, model }) {
 
   const remove = (i) => onChange((images || []).filter((_, idx) => idx !== i));
   const list = images || [];
+
+  if (!expanded) {
+    return (
+      <div className="flex items-center gap-3 border border-border rounded-xl p-2">
+        <div className="flex -space-x-2 shrink-0">
+          {list.length > 0
+            ? list.slice(0, 3).map((url, i) => (
+                <div key={i} className="w-10 h-10 rounded-lg overflow-hidden border-2 border-background bg-muted">
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                </div>
+              ))
+            : (
+                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                  <ImageIcon className="size-4 text-muted-foreground/40" />
+                </div>
+              )
+          }
+        </div>
+        <p className="text-xs text-muted-foreground flex-1 truncate">
+          {list.length > 0 ? `${list.length} foto` : "Nessuna foto"}
+        </p>
+        <button type="button" onClick={() => setExpanded(true)}
+          className="text-xs font-medium text-electric hover:underline shrink-0">
+          {list.length > 0 ? "Gestisci" : "Aggiungi"}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -268,6 +322,12 @@ function GalleryImagesInput({ images, onChange, make, model }) {
           disabled={!urlDraft.trim() || list.length >= GALLERY_MAX} className="shrink-0">
           <Plus className="size-3.5" />
         </Button>
+        {list.length > 0 && (
+          <button type="button" onClick={() => setExpanded(false)}
+            className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors text-xs font-medium whitespace-nowrap">
+            Comprimi
+          </button>
+        )}
       </div>
     </div>
   );
