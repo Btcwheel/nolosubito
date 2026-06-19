@@ -622,8 +622,7 @@ const Header = ({ rif, oggi, scadenza, logoSrc }) => (
     <View style={S.headerLeft}>
       {logoSrc ? <Image src={logoSrc} style={S.logoImg} /> : <LogoFallback />}
       <View style={S.tagWrap}>
-        <Text style={S.tagLine}>NOLEGGIO A</Text>
-        <Text style={S.tagLine}>LUNGO TERMINE</Text>
+        <Text style={S.tagLine}>NOLEGGIAMO IL FUTURO</Text>
       </View>
     </View>
     <View style={S.headerRight}>
@@ -822,7 +821,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
     ...(prev.alimentazione ? [{ label: prev.alimentazione, icon: 'gas' }] : []),
     { label: `${prev.durata_mesi} mesi`, icon: 'calendar' },
     { label: `${fmtN(prev.km_annui)} km/anno`, icon: 'speed' },
-    ...(prev.cambio ? [{ label: prev.cambio, icon: 'gear' }] : []),
+    ...(prev.cambio ? [{ label: prev.cambio, hot: true }] : []),
   ];
 
   // Normalizza servizi — supporta sia nuovo formato {codice, penale, originale}
@@ -913,7 +912,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
 
         <Text style={S.eyebrow}>PROPOSTA PERSONALIZZATA</Text>
         <Text style={S.h1}>
-          <Text style={S.h1Blue}>Preventivo noleggio veicolo a lungo termine</Text>
+          <Text style={S.h1Blue}>Preventivo noleggio a lungo termine</Text>
         </Text>
         <Text style={S.intro}>
           Gentile <Text style={S.introBold}>{clienteNome || 'Cliente'}</Text>, abbiamo il piacere di trasmetterle l'offerta a Lei dedicata
@@ -971,7 +970,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
             {chips.map((c, i) => (
               c.hot ? (
                 <View key={i} style={S.chipHot}>
-                  <SmallIcon type="check" />
+                  <SmallIcon type={c.icon || 'check'} />
                   <Text style={S.chipHotText}>{c.label}</Text>
                 </View>
               ) : (
