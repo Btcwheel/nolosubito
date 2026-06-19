@@ -809,7 +809,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
   const specsRight = [
     ['Colore esterno', stripLeadingCode(prev.colore_esterno) || 'A definire'],
     ['Interni', stripLeadingCode(prev.interni) || 'A definire'],
-    ['Emissioni CO₂', prev.emissioni_co2 || '—'],
+    ['Emissioni CO2', prev.emissioni_co2 || '—'],
     ['Classe ambientale', prev.classe_ambientale || '—'],
     ['Deposito cauzionale', prev.deposito_cauzionale != null ? `€ ${fmt(prev.deposito_cauzionale)}` : '—'],
     ['Durata contratto', `${prev.durata_mesi} mesi`],
@@ -1148,7 +1148,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
             <Text style={{ color: NAVY, fontWeight: 'bold' }}>(2)</Text> Le dotazioni del veicolo saranno quelle previste dalla Casa Costruttrice al momento della produzione. I valori sono quelli comunicati dal Costruttore al momento dell'offerta. Nolosubito non risponde della correttezza dei medesimi così come di eventuali variazioni comunicate successivamente all'offerta.
           </Text>
           <Text style={S.legalBlock}>
-            <Text style={{ color: NAVY, fontWeight: 'bold' }}>* </Text>Si informa che il valore di CO₂ esposto è soggetto a possibili variazioni in base alle metodologie WLTP. R.C.A.: Responsabilità Civile Auto, prevede un massimale e/o una penale. Manutenzione ordinaria: controlli obbligatori periodici. Copertura Danni: garanzia per i danni subiti dal veicolo indipendentemente dalla responsabilità del conducente, salvo dolo o colpa grave, in caso di urto, uscita di strada, ribaltamento, incendio, tentato furto, eventi sociopolitici o atti vandalici.
+            <Text style={{ color: NAVY, fontWeight: 'bold' }}>* </Text>Si informa che il valore di CO2 esposto è soggetto a possibili variazioni in base alle metodologie WLTP. R.C.A.: Responsabilità Civile Auto, prevede un massimale e/o una penale. Manutenzione ordinaria: controlli obbligatori periodici. Copertura Danni: garanzia per i danni subiti dal veicolo indipendentemente dalla responsabilità del conducente, salvo dolo o colpa grave, in caso di urto, uscita di strada, ribaltamento, incendio, tentato furto, eventi sociopolitici o atti vandalici.
           </Text>
 
           <Text style={S.legalSection}>INFORMATIVA PRIVACY</Text>
