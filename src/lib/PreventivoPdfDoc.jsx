@@ -845,7 +845,8 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
         const nota = obj.penale != null ? `Penale € ${obj.penale}` : mapped[1];
         return [mapped[0], nota];
       }
-      return ['Servizio', ''];
+      const nome = obj.originale || 'Servizio';
+      return [nome, obj.penale != null ? `Penale € ${obj.penale}` : ''];
     }
     // Vecchio formato [canonical, original]
     const [canonical, original] = Array.isArray(s) ? s : [s, null];
