@@ -479,8 +479,8 @@ const SmallIcon = ({ type }) => {
   if (type === 'plus') {
     return (
       <Svg width={15} height={15} viewBox="0 0 15 15">
-        <Circle cx="7.5" cy="7.5" r="7.5" fill="#FEF6E2" />
-        <Path d="M7.5 4.3v6.4M4.3 7.5h6.4" stroke={ORANGE} strokeWidth="1.4" fill="none" strokeLinecap="round" />
+        <Rect x="0.75" y="0.75" width="13.5" height="13.5" rx="3" stroke={NAVY} strokeWidth="1" fill="none" />
+        <Path d="M7.5 4.3v6.4M4.3 7.5h6.4" stroke={NAVY} strokeWidth="1.2" fill="none" strokeLinecap="round" />
       </Svg>
     );
   }
@@ -1109,7 +1109,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
         </View>
 
         <View style={[S.sectionTitleRow, { marginBottom: 8 }]}>
-          <Text style={S.sectionTitle}>PERCHÉ{' '}SCEGLIERE NOLOSUBITO</Text>
+          <Text style={[S.sectionTitle, { letterSpacing: 0 }]}>PERCHÉ SCEGLIERE NOLOSUBITO</Text>
           <View style={S.sectionRule} />
         </View>
         <View style={S.whyGrid}>
