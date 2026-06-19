@@ -130,6 +130,7 @@ const SERVICE_GROUPS = [
     "eventi atmosferici", "eventi atmosferici penale 250", "eventi atmosferici penale 500",
   ]},
   { canonical: "Immatricolazione", aliases: ["immatricolazione"]},
+  { canonical: "Servizio Clienti", aliases: ["servizio clienti", "assistenza clienti"]},
 ];
 
 const SERVIZI_TO_CODE: Record<string, string> = {
@@ -151,6 +152,7 @@ const SERVIZI_TO_CODE: Record<string, string> = {
   "Fatturazione Elettronica": "FATTURAZIONE",
   "Eventi Atmosferici": "ATMOSFERICI",
   "Immatricolazione": "IMMATRICOLAZIONE",
+  "Servizio Clienti": "SERVIZIO_CLIENTI",
 };
 
 const SERVICE_ALIAS_ENTRIES = SERVICE_GROUPS
