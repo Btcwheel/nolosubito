@@ -476,6 +476,15 @@ const SmallIcon = ({ type }) => {
     );
   }
 
+  if (type === 'plus') {
+    return (
+      <Svg width={15} height={15} viewBox="0 0 15 15">
+        <Circle cx="7.5" cy="7.5" r="7.5" fill="#FEF6E2" />
+        <Path d="M7.5 4.3v6.4M4.3 7.5h6.4" stroke={ORANGE} strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      </Svg>
+    );
+  }
+
   if (type === 'shield') {
     return (
       <Svg width={12} height={12} viewBox="0 0 12 12">
@@ -570,9 +579,9 @@ const WIcon = ({ type }) => {
   return <View>{map[type]}</View>;
 };
 
-const CheckItem = ({ nome, nota, highlight }) => (
+const CheckItem = ({ nome, nota, highlight, icon = 'check' }) => (
   <View style={S.serviceItem}>
-    <SmallIcon type="check" />
+    <SmallIcon type={icon} />
     <View style={S.serviceTextWrap}>
       <Text style={S.serviceTitle}>{nome}</Text>
       <Text style={[S.serviceMeta, highlight && S.serviceMetaHighlight]}>{nota}</Text>
@@ -1038,9 +1047,9 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
               </View>
             </View>
             <View style={S.servicesGrid}>
-              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 0).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
-              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 1).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
-              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 2).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} />)}</View>
+              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 0).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} />)}</View>
+              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 1).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} />)}</View>
+              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 2).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} />)}</View>
             </View>
           </>
         )}
