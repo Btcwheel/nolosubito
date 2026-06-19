@@ -104,6 +104,7 @@ const SERVICE_GROUPS = [
   { canonical: "Auto Sostitutiva", aliases: [
     "auto sostitutiva", "veicolo sostitutivo", "sostitutiva z",
     "auto piccola dopo 24h", "auto sostitutiva auto piccola dopo 24h",
+    "sostitutiva",
   ]},
   { canonical: "Telematica", aliases: [
     "telematica", "gps", "blackbox", "telematica basic",
