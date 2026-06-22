@@ -190,7 +190,7 @@ const S = StyleSheet.create({
     opacity: 0.18,
   },
   vehicleLabel: {
-    color: 'rgba(255,255,255,0.52)',
+    color: 'rgba(255,255,255,0.62)',
     fontSize: 7.6,
     letterSpacing: 1.6,
     fontWeight: 'bold',
@@ -205,7 +205,7 @@ const S = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.16)',
   },
   vehicleName: { color: '#FFFFFF', fontSize: 15.2, lineHeight: 1.12, fontWeight: 'bold', marginBottom: 3, maxWidth: 410 },
-  vehicleSub: { color: 'rgba(255,255,255,0.72)', fontSize: 8.2, marginBottom: 8 },
+  vehicleSub: { color: 'rgba(255,255,255,0.78)', fontSize: 8.2, marginBottom: 8 },
   chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 5 },
   chipHot: {
     backgroundColor: ORANGE,
@@ -227,7 +227,7 @@ const S = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
   },
-  chipText: { color: 'rgba(255,255,255,0.9)', fontSize: 7.3, fontWeight: 'bold' },
+  chipText: { color: 'rgba(255,255,255,0.92)', fontSize: 7.3, fontWeight: 'bold' },
 
   quoteRow: { flexDirection: 'row', gap: 10, marginBottom: 8 },
   quoteTable: { flex: 1.6, borderRadius: 12, overflow: 'hidden', borderWidth: 1, borderColor: BORDER },
@@ -248,12 +248,12 @@ const S = StyleSheet.create({
     paddingBottom: 10,
     justifyContent: 'space-between',
   },
-  priceLabel: { color: 'rgba(255,255,255,0.55)', fontSize: 7.4, letterSpacing: 1.4, fontWeight: 'bold', maxWidth: 120 },
+  priceLabel: { color: 'rgba(255,255,255,0.64)', fontSize: 7.4, letterSpacing: 1.4, fontWeight: 'bold', maxWidth: 120 },
   priceRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, marginTop: 8 },
   priceCurrency: { color: ORANGE, fontSize: 16, fontWeight: 'bold', lineHeight: 1 },
   priceValue: { color: '#FFFFFF', fontSize: 28, lineHeight: 1, fontWeight: 'bold' },
-  pricePer: { color: 'rgba(255,255,255,0.68)', fontSize: 9, lineHeight: 1.5, marginBottom: 1 },
-  priceSub: { color: 'rgba(255,255,255,0.72)', fontSize: 7.1, lineHeight: 1.35, marginTop: 6, marginBottom: 8 },
+  pricePer: { color: 'rgba(255,255,255,0.74)', fontSize: 9, lineHeight: 1.5, marginBottom: 1 },
+  priceSub: { color: 'rgba(255,255,255,0.78)', fontSize: 7.1, lineHeight: 1.35, marginTop: 6, marginBottom: 8 },
   priceBottom: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -263,7 +263,7 @@ const S = StyleSheet.create({
     borderTopColor: 'rgba(255,255,255,0.16)',
     borderTopStyle: 'dashed',
   },
-  priceBottomLabel: { color: 'rgba(255,255,255,0.72)', fontSize: 7.6, fontWeight: 'bold' },
+  priceBottomLabel: { color: 'rgba(255,255,255,0.78)', fontSize: 7.6, fontWeight: 'bold' },
   priceAnt: {
     backgroundColor: ORANGE,
     borderRadius: 999,
@@ -344,7 +344,7 @@ const S = StyleSheet.create({
     minHeight: 60,
     justifyContent: 'space-between',
   },
-  valueTotalLabel: { fontSize: 7.1, color: 'rgba(255,255,255,0.55)', letterSpacing: 1.1, fontWeight: 'bold' },
+  valueTotalLabel: { fontSize: 7.1, color: 'rgba(255,255,255,0.64)', letterSpacing: 1.1, fontWeight: 'bold' },
   valueTotalValue: { fontSize: 10.8, color: '#F8C12B', fontWeight: 'bold' },
 
   whyGrid: { flexDirection: 'row', gap: 7, marginBottom: 10 },
