@@ -307,11 +307,11 @@ const S = StyleSheet.create({
   serviceMeta: { fontSize: 7, color: '#374151', lineHeight: 1.15 },
   serviceMetaHighlight: { color: GREEN, fontWeight: 'bold' },
 
-  p2TitleWrap: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2, marginBottom: 8 },
+  p2TitleWrap: { marginTop: 2, marginBottom: 8 },
   p2Hero: { fontSize: 13.8, lineHeight: 1.1, color: TEXT, fontWeight: 'bold', marginBottom: 1 },
   p2HeroBlue: { color: NAVY },
   p2HeroSub: { fontSize: 10.8, lineHeight: 1.1, color: TEXT, fontWeight: 'bold' },
-  vehiclePhoto: { width: 160, height: 90, objectFit: 'contain' },
+  vehiclePhotoLarge: { width: '100%', height: 210, objectFit: 'contain', marginBottom: 10 },
 
   specsGrid: { flexDirection: 'row', gap: 18, marginBottom: 9 },
   specCol: { flex: 1 },
@@ -392,11 +392,6 @@ const S = StyleSheet.create({
     justifyContent: 'center',
   },
   ctaBtnTxt: { fontSize: 7.2, fontWeight: 'bold', color: '#FFFFFF' },
-
-  signGrid: { flexDirection: 'row', gap: 24, marginBottom: 8 },
-  signBlock: { flex: 1, borderTopWidth: 1.4, borderTopColor: TEXT, paddingTop: 4 },
-  signLabel: { fontSize: 7.2, color: '#374151', letterSpacing: 1.2, fontWeight: 'bold', marginBottom: 1 },
-  signName: { fontSize: 7.8, color: '#111827' },
 
   legal: { fontSize: 6.2, lineHeight: 1.35, color: '#111827' },
   legalSection: { fontSize: 8, color: NAVY, fontWeight: 'bold', letterSpacing: 1.2, marginTop: 2, marginBottom: 2 },
@@ -1082,16 +1077,15 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
       >
         <Text style={S.eyebrow}>DETTAGLI TECNICI</Text>
         <View style={S.p2TitleWrap}>
-          <View>
-            <Text style={S.p2Hero}>
-              <Text style={S.p2HeroBlue}>Caratteristiche del veicolo</Text>
-            </Text>
-            <Text style={S.p2HeroSub}>
-              {prev.veicolo_marca} {prev.veicolo_modello}{prev.veicolo_versione ? ` ${prev.veicolo_versione}` : ''}
-            </Text>
-          </View>
-          {vehicleImageB64 ? <Image src={vehicleImageB64} style={S.vehiclePhoto} /> : null}
+          <Text style={S.p2Hero}>
+            <Text style={S.p2HeroBlue}>Caratteristiche del veicolo</Text>
+          </Text>
+          <Text style={S.p2HeroSub}>
+            {prev.veicolo_marca} {prev.veicolo_modello}{prev.veicolo_versione ? ` ${prev.veicolo_versione}` : ''}
+          </Text>
         </View>
+
+        {vehicleImageB64 ? <Image src={vehicleImageB64} style={S.vehiclePhotoLarge} /> : null}
 
         <View style={[S.sectionTitleRow, { marginBottom: 8 }]}>
           <Text style={S.sectionTitle}>DATI TECNICI VEICOLO</Text>
@@ -1142,17 +1136,6 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
               <Text style={S.whyText}>{p}</Text>
             </View>
           ))}
-        </View>
-
-        <View style={S.signGrid}>
-          <View style={S.signBlock}>
-            <Text style={S.signLabel}>PER IL CLIENTE</Text>
-            <Text style={S.signName}>{clienteNome || 'Cliente'} · firma per accettazione</Text>
-          </View>
-          <View style={S.signBlock}>
-            <Text style={S.signLabel}>PER NOLOSUBITO S.R.L.</Text>
-            <Text style={S.signName}>Il consulente di vendita</Text>
-          </View>
         </View>
 
         <View style={S.legal}>
