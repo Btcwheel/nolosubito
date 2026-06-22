@@ -20,6 +20,24 @@ async function fetchAsDataUrl(path) {
 
 const normKey = (value) => String(value || '').trim().toUpperCase();
 
+// @react-pdf/renderer supporta solo PNG/JPEG: le foto caricate via CMS sono WebP
+// (compressImageToWebP in services/offers.js), quindi vanno riconvertite per il PDF.
+function convertToPngDataUrl(dataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve(null);
+    img.src = dataUrl;
+  });
+}
+
 // Recupera la foto del veicolo (senza sfondo) caricata in CMS su offers.vehicle_image
 async function fetchVehicleImage(marca, modello) {
   if (!marca || !modello) return null;
@@ -41,7 +59,9 @@ async function fetchVehicleImage(marca, modello) {
     });
     if (!match?.foto_prev) return null;
 
-    return await fetchAsDataUrl(match.foto_prev);
+    const dataUrl = await fetchAsDataUrl(match.foto_prev);
+    if (dataUrl?.startsWith('data:image/webp')) return await convertToPngDataUrl(dataUrl);
+    return dataUrl;
   } catch {
     return null;
   }
