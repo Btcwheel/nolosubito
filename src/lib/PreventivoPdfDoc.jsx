@@ -311,7 +311,7 @@ const S = StyleSheet.create({
   p2Hero: { fontSize: 13.8, lineHeight: 1.1, color: TEXT, fontWeight: 'bold', marginBottom: 1 },
   p2HeroBlue: { color: NAVY },
   p2HeroSub: { fontSize: 10.8, lineHeight: 1.1, color: TEXT, fontWeight: 'bold' },
-  vehiclePhotoLarge: { width: '100%', height: 210, objectFit: 'contain', marginBottom: 10 },
+  vehiclePhotoLarge: { width: '100%', height: 130, objectFit: 'contain', marginBottom: 8 },
 
   specsGrid: { flexDirection: 'row', gap: 18, marginBottom: 9 },
   specCol: { flex: 1 },
