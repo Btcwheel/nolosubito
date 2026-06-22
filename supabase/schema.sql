@@ -47,7 +47,7 @@ create table if not exists offers (
   category        text not null
                     check (category in ('Business Sedan','Business SUV','Electric Exec',
                                         'Electric SUV','Commercial Van','Premium Sedan','Compact Business')),
-  fuel_type       text check (fuel_type in ('Diesel','Petrol','Electric','Hybrid')),
+  fuel_type       text check (fuel_type in ('Diesel','Petrol','Electric','Hybrid','GPL')),
   transmission    text check (transmission in ('Automatic','Manual')),
   power_hp        integer,
   co2_emissions   integer,

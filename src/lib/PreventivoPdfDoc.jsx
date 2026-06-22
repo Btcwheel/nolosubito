@@ -237,8 +237,8 @@ const S = StyleSheet.create({
   },
   priceLabel: { color: 'rgba(255,255,255,0.55)', fontSize: 7.4, letterSpacing: 1.4, fontWeight: 'bold', maxWidth: 120 },
   priceRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 3, marginTop: 8 },
-  priceCurrency: { color: ORANGE, fontSize: 13.5, fontWeight: 'bold', lineHeight: 1 },
-  priceValue: { color: '#FFFFFF', fontSize: 22, lineHeight: 1, fontWeight: 'bold' },
+  priceCurrency: { color: ORANGE, fontSize: 16, fontWeight: 'bold', lineHeight: 1 },
+  priceValue: { color: '#FFFFFF', fontSize: 28, lineHeight: 1, fontWeight: 'bold' },
   pricePer: { color: 'rgba(255,255,255,0.68)', fontSize: 9, lineHeight: 1.5, marginBottom: 1 },
   priceSub: { color: 'rgba(255,255,255,0.72)', fontSize: 7.1, lineHeight: 1.35, marginTop: 6, marginBottom: 8 },
   priceBottom: {
@@ -250,14 +250,14 @@ const S = StyleSheet.create({
     borderTopColor: 'rgba(255,255,255,0.16)',
     borderTopStyle: 'dashed',
   },
-  priceBottomLabel: { color: 'rgba(255,255,255,0.72)', fontSize: 7.6 },
+  priceBottomLabel: { color: 'rgba(255,255,255,0.72)', fontSize: 7.6, fontWeight: 'bold' },
   priceAnt: {
-    backgroundColor: '#D39C3D',
+    backgroundColor: ORANGE,
     borderRadius: 999,
-    paddingVertical: 3,
-    paddingHorizontal: 9,
+    paddingVertical: 4,
+    paddingHorizontal: 11,
   },
-  priceAntTxt: { color: '#F4D06A', fontWeight: 'bold', fontSize: 7.8 },
+  priceAntTxt: { color: '#3C2B00', fontWeight: 'bold', fontSize: 8.2 },
 
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 5 },
   sectionTitle: { fontSize: 7.9, color: NAVY, fontWeight: 'bold', letterSpacing: 1.2 },
@@ -946,6 +946,10 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
             <View style={S.contactRow}>
               <SmallIcon type="phone" />
               <Text style={S.contactText}>+39 06 400 49490</Text>
+            </View>
+            <View style={S.contactRow}>
+              <SmallIcon type="phone" />
+              <Text style={S.contactText}>+39 345 430 0936</Text>
             </View>
             <View style={S.contactRow}>
               <SmallIcon type="mail" />
