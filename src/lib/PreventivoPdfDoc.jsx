@@ -13,7 +13,20 @@ import {
   Image,
 } from '@react-pdf/renderer';
 
-// Skip external font registration - use system Helvetica
+// Helvetica (font standard PDF) ha metriche/glifi incompleti per caratteri estesi
+// (accentate, alcune cifre in contesti di wrap) in @react-pdf/renderer: causava spazi
+// scartati dopo É/à/ò e cifre mal renderizzate. Si registra Inter (già nel sito) come fix.
+const FONT_BASE = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/');
+Font.register({
+  family: 'Inter',
+  fonts: [
+    { src: `${FONT_BASE}fonts/Inter-Regular.ttf`, fontWeight: 400 },
+    { src: `${FONT_BASE}fonts/Inter-Medium.ttf`, fontWeight: 500 },
+    { src: `${FONT_BASE}fonts/Inter-Bold.ttf`, fontWeight: 700 },
+    { src: `${FONT_BASE}fonts/Inter-Bold.ttf`, fontWeight: 'bold' },
+    { src: `${FONT_BASE}fonts/Inter-ExtraBold.ttf`, fontWeight: 800 },
+  ],
+});
 
 const NAVY = '#36389D';
 const ORANGE = '#F6B000';
@@ -35,7 +48,7 @@ const stripLeadingCode = (value) => (value ? String(value).replace(/^\d{2,4}\s+/
 const S = StyleSheet.create({
   page: {
     backgroundColor: PAGE_BG,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Inter',
     fontSize: 9,
     fontWeight: 400,
     color: TEXT,
