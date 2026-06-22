@@ -51,10 +51,8 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
   const rif = `NS-${prev.id.slice(-6).toUpperCase()}`;
   const assetBase = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/');
 
-  const logoB64 =
-    (await fetchAsDataUrl(`${assetBase}logo-blu.svg`)) ||
-    (await fetchAsDataUrl(`${assetBase}logo-blu.png`)) ||
-    null;
+  // react-pdf <Image> non supporta SVG come data-URL (solo PNG/JPEG) — niente .svg qui
+  const logoB64 = (await fetchAsDataUrl(`${assetBase}logo-blu.png`)) || null;
 
   const vehicleImageB64 = await fetchVehicleImage(prev.veicolo_marca, prev.veicolo_modello);
 
