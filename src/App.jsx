@@ -26,6 +26,7 @@ const Usato            = lazy(() => import('./pages/Usato'));
 const MotoOffers       = lazy(() => import('./pages/MotoOffers'));
 const ReuseOffers      = lazy(() => import('./pages/ReuseOffers'));
 const PrivacyPolicy    = lazy(() => import('./pages/PrivacyPolicy'));
+const CookiePolicy     = lazy(() => import('./pages/CookiePolicy'));
 const TerminiCondizioni = lazy(() => import('./pages/TerminiCondizioni'));
 const Login            = lazy(() => import('./pages/Login'));
 const PasswordReset    = lazy(() => import('./pages/PasswordReset'));
@@ -92,6 +93,7 @@ const AppRoutes = () => {
           <Route path="/news"                 element={<News />} />
           <Route path="/news/:slug"           element={<NewsDetail />} />
           <Route path="/privacy"              element={<PrivacyPolicy />} />
+          <Route path="/cookie-policy"        element={<CookiePolicy />} />
           <Route path="/termini"              element={<TerminiCondizioni />} />
         </Route>
 

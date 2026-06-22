@@ -1,22 +1,92 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { LazyMotion, m, domAnimation, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Cookie, X, Check, Settings } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 const STORAGE_KEY = "nolosubito_cookie_consent";
 
-export default function CookieBanner() {
-  const [visible, setVisible] = useState(() => !localStorage.getItem(STORAGE_KEY));
-  const [showDetail, setShowDetail] = useState(false);
+function readStoredConsent() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY));
+  } catch {
+    return null;
+  }
+}
 
-  const accept = (all = true) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      necessary: true,
-      analytics: all,
-      marketing: all,
-      date: new Date().toISOString(),
-    }));
+function applyConsent(prefs) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...prefs, date: new Date().toISOString() }));
+  window.__updateConsent?.(prefs);
+}
+
+async function logConsent(prefs) {
+  try {
+    await supabase.from("cookie_consents").insert({
+      consent: { necessary: true, analytics: prefs.analytics, marketing: prefs.marketing },
+      user_agent: navigator.userAgent,
+      page: window.location.pathname,
+    });
+  } catch {
+    // il log è best-effort: un fallimento di rete non deve bloccare il banner
+  }
+}
+
+const CATEGORIES = [
+  {
+    key: "necessary",
+    name: "Necessari",
+    desc: "Essenziali per il funzionamento del sito. Non possono essere disabilitati.",
+    locked: true,
+  },
+  {
+    key: "analytics",
+    name: "Analitici",
+    desc: "Ci aiutano a capire come viene usato il sito (dati aggregati e anonimi).",
+    locked: false,
+  },
+  {
+    key: "marketing",
+    name: "Marketing",
+    desc: "Utilizzati per mostrare contenuti pertinenti ai tuoi interessi.",
+    locked: false,
+  },
+];
+
+export default function CookieBanner() {
+  const [visible, setVisible] = useState(() => !readStoredConsent());
+  const [showDetail, setShowDetail] = useState(false);
+  const [prefs, setPrefs] = useState(() => {
+    const stored = readStoredConsent();
+    return { analytics: stored?.analytics ?? false, marketing: stored?.marketing ?? false };
+  });
+
+  useEffect(() => {
+    const stored = readStoredConsent();
+    if (stored) window.__updateConsent?.(stored);
+
+    const reopen = () => {
+      setShowDetail(true);
+      setVisible(true);
+    };
+    window.addEventListener("open-cookie-preferences", reopen);
+    return () => window.removeEventListener("open-cookie-preferences", reopen);
+  }, []);
+
+  const confirm = (next) => {
+    applyConsent(next);
+    logConsent(next);
+    setPrefs({ analytics: next.analytics, marketing: next.marketing });
     setVisible(false);
+    setShowDetail(false);
+  };
+
+  const acceptAll = () => confirm({ analytics: true, marketing: true });
+  const acceptNecessaryOnly = () => confirm({ analytics: false, marketing: false });
+  const savePreferences = () => confirm(prefs);
+
+  const toggle = (key) => {
+    if (key === "necessary") return;
+    setPrefs((p) => ({ ...p, [key]: !p[key] }));
   };
 
   return (
@@ -60,14 +130,14 @@ export default function CookieBanner() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => accept(false)}
+                      onClick={acceptNecessaryOnly}
                       className="px-4 py-2 rounded-xl text-xs font-semibold text-white/60 border border-white/15 hover:border-white/30 hover:text-white transition-all cursor-pointer"
                     >
                       Solo necessari
                     </button>
                     <button
                       type="button"
-                      onClick={() => accept(true)}
+                      onClick={acceptAll}
                       className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-electric hover:bg-electric/90 text-[#0f0f23] transition-all cursor-pointer"
                     >
                       <Check className="size-3.5" />
@@ -90,46 +160,49 @@ export default function CookieBanner() {
                   </div>
 
                   <div className="space-y-3 mb-5">
-                    {[
-                      {
-                        name: "Necessari",
-                        desc: "Essenziali per il funzionamento del sito. Non possono essere disabilitati.",
-                        locked: true,
-                      },
-                      {
-                        name: "Analitici",
-                        desc: "Ci aiutano a capire come viene usato il sito (dati aggregati e anonimi).",
-                        locked: false,
-                      },
-                      {
-                        name: "Marketing",
-                        desc: "Utilizzati per mostrare contenuti pertinenti ai tuoi interessi.",
-                        locked: false,
-                      },
-                    ].map(({ name, desc, locked }) => (
-                      <div key={name} className="flex items-start justify-between gap-4 bg-white/5 rounded-xl px-4 py-3">
-                        <div>
-                          <p className="text-sm font-medium text-white">{name}</p>
-                          <p className="text-xs text-white/45 mt-0.5 leading-relaxed">{desc}</p>
+                    {CATEGORIES.map(({ key, name, desc, locked }) => {
+                      const on = locked || prefs[key];
+                      return (
+                        <div key={key} className="flex items-start justify-between gap-4 bg-white/5 rounded-xl px-4 py-3">
+                          <div>
+                            <p className="text-sm font-medium text-white">{name}</p>
+                            <p className="text-xs text-white/45 mt-0.5 leading-relaxed">{desc}</p>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={locked}
+                            onClick={() => toggle(key)}
+                            aria-pressed={on}
+                            aria-label={`Attiva/disattiva cookie ${name}`}
+                            className={`w-10 h-5 rounded-full shrink-0 mt-0.5 flex items-center px-0.5 transition-colors ${
+                              locked ? "bg-electric/50 cursor-not-allowed" : on ? "bg-electric cursor-pointer" : "bg-white/15 cursor-pointer"
+                            }`}
+                          >
+                            <div className={`size-4 rounded-full bg-white shadow transition-transform ${on ? "translate-x-5" : "translate-x-0"}`} />
+                          </button>
                         </div>
-                        <div className={`w-10 h-5 rounded-full shrink-0 mt-0.5 flex items-center px-0.5 ${locked ? "style={{backgroundColor:'#71BAED'}}/50 cursor-not-allowed" : "style={{backgroundColor:'#71BAED'}} cursor-pointer"}`}>
-                          <div className="size-4 rounded-full bg-white shadow translate-x-5" />
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
-                  <div className="flex gap-2 justify-end">
+                  <div className="flex flex-wrap gap-2 justify-end">
                     <button
                       type="button"
-                      onClick={() => accept(false)}
+                      onClick={acceptNecessaryOnly}
                       className="px-4 py-2 rounded-xl text-xs font-semibold text-white/60 border border-white/15 hover:border-white/30 hover:text-white transition-all cursor-pointer"
                     >
                       Solo necessari
                     </button>
                     <button
                       type="button"
-                      onClick={() => accept(true)}
+                      onClick={savePreferences}
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-white/80 border border-white/15 hover:border-white/30 hover:text-white transition-all cursor-pointer"
+                    >
+                      Salva preferenze
+                    </button>
+                    <button
+                      type="button"
+                      onClick={acceptAll}
                       className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-electric hover:bg-electric/90 text-[#0f0f23] transition-all cursor-pointer"
                     >
                       <Check className="size-3.5" />

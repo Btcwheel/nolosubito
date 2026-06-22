@@ -212,6 +212,15 @@ create table if not exists leads (
   created_at      timestamptz default now()
 );
 
+-- ── Cookie consents (registro consenso GDPR) ──────────────────
+create table if not exists cookie_consents (
+  id              uuid default uuid_generate_v4() primary key,
+  consent         jsonb not null,
+  user_agent      text,
+  page            text,
+  created_at      timestamptz default now()
+);
+
 -- ============================================================
 -- Row Level Security (RLS)
 -- ============================================================
@@ -226,6 +235,7 @@ alter table pratica_note enable row level security;
 alter table materiali enable row level security;
 alter table materiale_visibilita enable row level security;
 alter table leads enable row level security;
+alter table cookie_consents enable row level security;
 
 -- Helper: ruolo utente corrente
 create or replace function get_user_role()
@@ -343,6 +353,13 @@ create policy "Admin e backoffice gestiscono i lead"
 
 create policy "Chiunque inserisce un lead"
   on leads for insert with check (true);
+
+-- ── RLS Cookie consents ─────────────────────────────────────
+create policy "Admin legge il registro consensi"
+  on cookie_consents for select using (get_user_role() = 'admin');
+
+create policy "Chiunque registra il proprio consenso"
+  on cookie_consents for insert with check (true);
 
 -- ============================================================
 -- Storage Buckets

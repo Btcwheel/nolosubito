@@ -26,7 +26,7 @@ export default function PrivacyPolicy() {
         <Section title="1. Titolare del Trattamento">
           <p>
             Il Titolare del trattamento dei dati personali è <strong>Nolosubito S.r.l.</strong>,
-            con sede legale in Milano (MI), Italia — email:{" "}
+            con sede legale in Via Nuova Poggioreale 60L, 80143 Napoli, Italia — email:{" "}
             <a href="mailto:privacy@nolosubito.it" className="text-electric hover:underline">privacy@nolosubito.it</a>.
           </p>
         </Section>
@@ -55,7 +55,17 @@ export default function PrivacyPolicy() {
 
         <Section title="4. Cookie">
           <p>Il sito utilizza cookie tecnici (necessari al funzionamento) e cookie analitici/di marketing (solo con consenso).</p>
-          <p className="mt-2">Puoi modificare le tue preferenze in qualsiasi momento cliccando su "Gestisci cookie" nel footer o reimpostando le preferenze dal tuo browser.</p>
+          <p className="mt-2">
+            Puoi modificare le tue preferenze in qualsiasi momento cliccando su{" "}
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("open-cookie-preferences"))}
+              className="text-electric hover:underline cursor-pointer"
+            >
+              "Gestisci cookie"
+            </button>{" "}
+            nel footer o reimpostando le preferenze dal tuo browser.
+          </p>
           <p className="mt-2">Per informazioni dettagliate sui cookie utilizzati, consulta la nostra <Link to="/cookie-policy" className="text-electric hover:underline">Cookie Policy</Link>.</p>
         </Section>
 
@@ -74,6 +84,7 @@ export default function PrivacyPolicy() {
           <ul className="list-disc list-inside space-y-1 mt-2 ml-2">
             <li>Società finanziarie partner (esclusivamente per la valutazione del credito, previo consenso)</li>
             <li>Fornitori di servizi tecnici (hosting, database, email) che agiscono come Responsabili del Trattamento</li>
+            <li><strong>Google Analytics 4</strong> (Google Ireland Ltd.), solo previo consenso ai cookie analitici — dettagli nella <Link to="/cookie-policy" className="text-electric hover:underline">Cookie Policy</Link></li>
             <li>Autorità competenti in caso di obbligo di legge</li>
           </ul>
           <p className="mt-2">I dati vengono trattati all'interno dell'Unione Europea. Eventuali trasferimenti extra-UE avvengono nel rispetto delle garanzie previste dal GDPR.</p>
@@ -115,7 +126,7 @@ export default function PrivacyPolicy() {
 
         <div className="border-t border-border/40 pt-6 mt-4">
           <p className="text-xs text-muted-foreground">
-            Nolosubito S.r.l. — P.IVA IT12345678901 — Milano, Italia
+            Nolosubito S.r.l. — P.IVA IT08350931211 — Napoli, Italia
           </p>
         </div>
       </div>

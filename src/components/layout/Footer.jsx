@@ -39,6 +39,16 @@ export default function Footer() {
               <li><Link to="/accedi" className="hover:text-electric transition-colors duration-200">Area Clienti</Link></li>
               <li><Link to="/partner/accedi" className="hover:text-electric transition-colors duration-200">Area Partners</Link></li>
               <li><Link to="/privacy" className="hover:text-electric transition-colors duration-200">Privacy Policy</Link></li>
+              <li><Link to="/cookie-policy" className="hover:text-electric transition-colors duration-200">Cookie Policy</Link></li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-cookie-preferences"))}
+                  className="hover:text-electric transition-colors duration-200 cursor-pointer text-left"
+                >
+                  Gestisci cookie
+                </button>
+              </li>
               <li><Link to="/termini" className="hover:text-electric transition-colors duration-200">Termini e Condizioni</Link></li>
             </ul>
           </div>
@@ -75,7 +85,7 @@ export default function Footer() {
             © {new Date().getFullYear()} Nolosubito. Tutti i diritti riservati.
           </p>
           <p className="text-xs text-white/40">
-            P.IVA: IT12345678901
+            P.IVA: IT08350931211
           </p>
         </div>
       </div>

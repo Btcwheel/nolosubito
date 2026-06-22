@@ -30,10 +30,27 @@
     <!-- Google Fonts: preload per non bloccare rendering (font-display: swap impedisce FOUT) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" /></noscript>
-    <!-- Google Analytics 4 — loaded after first render to protect mobile TBT -->
+    <!-- Google Consent Mode v2 — default "denied" finché l'utente non sceglie dal banner cookie -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        analytics_storage: 'denied',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+      });
+      window.__updateConsent = (prefs) => {
+        gtag('consent', 'update', {
+          analytics_storage: prefs.analytics ? 'granted' : 'denied',
+          ad_storage: prefs.marketing ? 'granted' : 'denied',
+          ad_user_data: prefs.marketing ? 'granted' : 'denied',
+          ad_personalization: prefs.marketing ? 'granted' : 'denied',
+        });
+      };
+    </script>
+    <!-- Google Analytics 4 — loaded after first render to protect mobile TBT; il tracking resta "denied" fino al consenso (Consent Mode v2) -->
+    <script>
       window.addEventListener('load', () => {
         const loadAnalytics = () => {
           const script = document.createElement('script');
