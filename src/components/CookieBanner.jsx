@@ -131,9 +131,9 @@ export default function CookieBanner() {
                     <button
                       type="button"
                       onClick={acceptNecessaryOnly}
-                      className="px-4 py-2 rounded-xl text-xs font-semibold text-white/60 border border-white/15 hover:border-white/30 hover:text-white transition-all cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-white/10 border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all cursor-pointer"
                     >
-                      Solo necessari
+                      Rifiuta tutti
                     </button>
                     <button
                       type="button"
@@ -189,9 +189,9 @@ export default function CookieBanner() {
                     <button
                       type="button"
                       onClick={acceptNecessaryOnly}
-                      className="px-4 py-2 rounded-xl text-xs font-semibold text-white/60 border border-white/15 hover:border-white/30 hover:text-white transition-all cursor-pointer"
+                      className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-white/10 border border-white/20 hover:bg-white/15 hover:border-white/30 transition-all cursor-pointer"
                     >
-                      Solo necessari
+                      Rifiuta tutti
                     </button>
                     <button
                       type="button"
