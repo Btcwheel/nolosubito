@@ -1,0 +1,35 @@
+name: Build Electron Mac
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'operator-desktop/**'
+      - '.github/workflows/build-electron-mac.yml'
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        working-directory: operator-desktop
+        run: npm install
+
+      - name: Build Electron app for Mac
+        working-directory: operator-desktop
+        run: npm run electron:build:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload .dmg
+        uses: actions/upload-artifact@v4
+        with:
+          name: nolosubito-operator-mac
+          path: operator-desktop/dist-electron/*.dmg
+          retention-days: 30
