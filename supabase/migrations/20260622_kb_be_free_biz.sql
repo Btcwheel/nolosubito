@@ -21,7 +21,7 @@ I veicoli disponibili sono selezionati da un catalogo dedicato e a disponibilit�
   'manual',
   NULL,
   true
-);
+) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, content = EXCLUDED.content;
 
 INSERT INTO knowledge_chunks (id, document_id, content, metadata)
 VALUES (
@@ -29,6 +29,6 @@ VALUES (
   'd0c00000-0000-4000-8000-000000000007'::uuid,
   'Be Free Biz è una formula di noleggio a lungo termine di Leasys dedicata esclusivamente ai veicoli usati. Durata fissa di 12 o 24 mesi con chilometraggio di 20.000 km annui. Include assicurazione RCA con franchigia di €450, coperture Furto Incendio e Kasko con franchigia di €2.000, manutenzione ordinaria e straordinaria. Prevede pagamento di un canone anticipato. Non consente modifiche a durata, chilometraggio o franchigie. Veicoli da catalogo dedicato a disponibilità limitata, immatricolazioni 2023-2024-2025.',
   '{"index":0,"total":1}'
-);
+) ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content, metadata = EXCLUDED.metadata;
 
 SELECT 'KB Be Free Biz: 1 documento, 1 chunk inserito' as result;

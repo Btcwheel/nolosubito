@@ -85,7 +85,7 @@ Le coperture assicurative incluse NON azzerano il rischio economico: il cliente 
   'manual',
   NULL,
   true
-);
+) ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, content = EXCLUDED.content;
 
 -- Chunk 1: Panoramica + target
 INSERT INTO knowledge_chunks (id, document_id, content, metadata)
@@ -93,8 +93,8 @@ VALUES (
   'c8c00000-0000-4000-8000-000006000001'::uuid,
   'd0c00000-0000-4000-8000-000000000006'::uuid,
   'Be Free è una formula di noleggio a lungo termine di Leasys (gruppo Stellantis e Crédit Agricole) per privati e partite IVA. Funziona come "abbonamento auto": canone mensile fisso con servizi inclusi (assicurazione RCA Kasko FurtoIncendio, manutenzione ordinaria e straordinaria, bollo, soccorso stradale h24, app My-Leasys, servizio I-Care telematico). La caratteristica principale è la restituzione senza penale dopo il 12° mese entro una finestra che arriva circa al 24° mese. Per privati e partite IVA. Durata tipica 48 mesi. KM standard 60.000 totali (15.000/anno). Anticipo possibile da 0 a 4.000 € per ridurre il canone.',
-  '{"index":0,"total":6}'
-);
+   '{"index":0,"total":6}'
+) ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content, metadata = EXCLUDED.metadata;
 
 -- Chunk 2: Flessibilità e restituzione anticipata
 INSERT INTO knowledge_chunks (id, document_id, content, metadata)
@@ -102,8 +102,8 @@ VALUES (
   'c8c00000-0000-4000-8000-000006000002'::uuid,
   'd0c00000-0000-4000-8000-000000000006'::uuid,
   'Il tratto distintivo di Be Free è la restituzione anticipata senza penale. Il cliente può restituire l''auto senza costi di recesso dal 12° mese fino al 24° mese circa (finestra variabile in base alla campagna). Oltre tale finestra si applicano le regole standard di recesso anticipato con penale. La restituzione richiede un preavviso di 30 giorni solari e il rispetto delle condizioni contrattuali (assenza pendenze, km non eccessivamente oltre soglia). Prima del 12° mese il recesso anticipato è costoso come nel noleggio tradizionale.',
-  '{"index":1,"total":6}'
-);
+   '{"index":1,"total":6}'
+) ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content, metadata = EXCLUDED.metadata;
 
 -- Chunk 3: Servizi inclusi e opzionali
 INSERT INTO knowledge_chunks (id, document_id, content, metadata)
@@ -111,8 +111,8 @@ VALUES (
   'c8c00000-0000-4000-8000-000006000003'::uuid,
   'd0c00000-0000-4000-8000-000000000006'::uuid,
   'Servizi inclusi in Be Free: RCA con massimale 25 milioni, Kasko/Collisione per danni da urto con franchigia variabile, Furto e Incendio, manutenzione ordinaria (tagliandi, filtri, liquidi) e straordinaria (guasti meccanici e elettronici) presso rete convenzionata Leasys, soccorso stradale h24 nazionale, app My-Leasys per gestione scadenze e assistenza, servizio telematico I-Care. Servizi opzionali a pagamento: cambio pneumatici con stoccaggio stagionale, vettura sostitutiva durante fermi, garanzie accessorie tipo Be Safe per perdita lavoro o invalidità, soluzioni ricarica EasyWallbox per elettriche e ibride plug-in.',
-  '{"index":2,"total":6}'
-);
+   '{"index":2,"total":6}'
+) ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content, metadata = EXCLUDED.metadata;
 
 -- Chunk 4: Aspetti economici e franchigie
 INSERT INTO knowledge_chunks (id, document_id, content, metadata)
@@ -120,8 +120,8 @@ VALUES (
   'c8c00000-0000-4000-8000-000006000004'::uuid,
   'd0c00000-0000-4000-8000-000000000006'::uuid,
   'Il canone mensile Be Free copre veicolo e bundle servizi. Il bollo auto è gestito da Leasys ma fatturato separatamente come voce extracanone. Le coperture assicurative prevedono franchigie a carico del cliente: per Kasko solitamente 500-1000 €, per Furto una percentuale sul valore del veicolo. In caso di sinistro il cliente paga la franchigia, la parte eccedente è coperta dall''assicurazione Leasys. A fine contratto possono essere addebitati: danni oltre la normale usura, km eccedenti il limite contrattuale, accessori o dotazioni mancanti, multe e sanzioni non pagate. È importante documentare con foto lo stato del veicolo alla riconsegna.',
-  '{"index":3,"total":6}'
-);
+   '{"index":3,"total":6}'
+) ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content, metadata = EXCLUDED.metadata;
 
 -- Chunk 5: Vantaggi per tipologia cliente
 INSERT INTO knowledge_chunks (id, document_id, content, metadata)
@@ -129,8 +129,8 @@ VALUES (
   'c8c00000-0000-4000-8000-000006000005'::uuid,
   'd0c00000-0000-4000-8000-000000000006'::uuid,
   'Vantaggi Be Free per privati: tutto incluso in un canone fisso senza pensieri, possibilità di restituire l''auto senza penali dopo 12 mesi se cambiano esigenze (lavoro, famiglia, trasferimento), accesso a veicoli nuovi ogni 4 anni, nessun rischio di rivendita. Vantaggi per partite IVA e aziende: trasformazione costo auto da investimento (CAPEX) a costo operativo (OPEX) con miglioramento liquidità e bilancio, deducibilità fiscale del canone, recupero IVA nei limiti di legge, prevedibilità costo flotta, riduzione carico amministrativo interno, flessibilità nel dimensionare la flotta all''andamento del business.',
-  '{"index":4,"total":6}'
-);
+   '{"index":4,"total":6}'
+) ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content, metadata = EXCLUDED.metadata;
 
 -- Chunk 6: Rischi e domande da fare
 INSERT INTO knowledge_chunks (id, document_id, content, metadata)
@@ -138,7 +138,7 @@ VALUES (
   'c8c00000-0000-4000-8000-000006000006'::uuid,
   'd0c00000-0000-4000-8000-000000000006'::uuid,
   'Rischi e punti attenzione Be Free: franchigie su danni possono essere elevate, sottostimare i km annui per abbassare il canone genera extra costi a fine contratto (costo km extra definito da contratto), danni oltre la normale usura alla riconsegna possono essere addebitati, vincolo minimo 12 mesi (prima il recesso è costoso), il cliente non diventa mai proprietario del veicolo. Domande da fare al cliente prima di procedere: che tipo di cliente è (privato/P.IVA/azienda), quanti km all''anno percorre, durata preferita (48 mesi standard), modello desiderato (marchi Stellantis: Fiat Jeep Alfa Romeo Lancia Peugeot Citroën DS Opel), requisiti per delibera (CUD per privati, bilancio per aziende), eventuale anticipo per ridurre canone.',
-  '{"index":5,"total":6}'
-);
+   '{"index":5,"total":6}'
+) ON CONFLICT (id) DO UPDATE SET content = EXCLUDED.content, metadata = EXCLUDED.metadata;
 
 SELECT 'KB Be Free: 1 documento, 6 chunk inseriti' as result;
