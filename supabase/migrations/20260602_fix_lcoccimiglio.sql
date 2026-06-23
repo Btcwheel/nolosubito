@@ -3,6 +3,9 @@
 -- Esegui nel SQL Editor di Supabase (SQL puro, no psql)
 -- ============================================================
 
+-- Assicura che pgcrypto sia disponibile per gen_salt/crypt
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+
 -- ── 1. STATO ATTUALE ───────────────────────────────────────────
 SELECT
   'auth.users'  AS sorgente,
@@ -50,7 +53,7 @@ BEGIN
       '00000000-0000-0000-0000-000000000000',
       user_id, 'authenticated', 'authenticated',
       target_email,
-      crypt(target_pass, gen_salt('bf')),
+      extensions.crypt(target_pass, extensions.gen_salt('bf')),
       now(), now(), now(),
       '{"provider":"email","providers":["email"]}',
       '{"full_name":"Luigi Coccimiglio"}',
@@ -65,7 +68,7 @@ BEGIN
     RAISE NOTICE 'CASO B: utente trovato (id: %), aggiorno...', user_id;
 
     UPDATE auth.users
-    SET encrypted_password  = crypt(target_pass, gen_salt('bf')),
+    SET encrypted_password  = extensions.crypt(target_pass, extensions.gen_salt('bf')),
         email_confirmed_at  = COALESCE(email_confirmed_at, now()),
         updated_at          = now()
     WHERE id = user_id;

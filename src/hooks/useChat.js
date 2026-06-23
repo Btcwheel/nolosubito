@@ -3,8 +3,11 @@ import { chatService } from '@/services/chat';
 import { supabase } from '@/lib/supabase';
 
 const STORAGE_KEY = 'nolosubito_chat';
-const STORAGE_TTL = 24 * 60 * 60 * 1000; // 24 ore
-const ESCALATION_TIMEOUT_MS = 1 * 60 * 1000; // 1 minuto
+const STORAGE_TTL = 24 * 60 * 60 * 1000;
+const ESCALATION_TIMEOUT_MS = 1 * 60 * 1000;
+const TYPE_SPEED_MIN = 25;
+const TYPE_SPEED_MAX = 45;
+const CHUNKS_PER_MSG = 15;
 
 const WELCOME = {
   role: 'assistant',
@@ -36,10 +39,11 @@ function saveToStorage(messages, leadSaved, sessionId) {
   } catch {}
 }
 
-function typingDelay(text) {
-  const base = text.length * 130;
-  const jitter = Math.random() * 1000 - 500;
-  return Math.min(Math.max(base + jitter, 4000), 10000);
+function typingDelay(text, serverLength) {
+  const charCount = serverLength || text.length;
+  const base = charCount * 35 + 1500;
+  const jitter = Math.random() * 800 - 400;
+  return Math.min(Math.max(base + jitter, 1500), 7000);
 }
 
 const BETWEEN_MSG_PAUSE = () => 2500 + Math.random() * 2000;
@@ -54,6 +58,7 @@ export default function useChat() {
   const [escalated, setEscalated] = useState(false);
   const [escalationPhase, setEscalationPhase] = useState(null); // null | 'waiting' | 'ask_wait' | 'ask_contact'
   const [operatorTyping, setOperatorTyping] = useState(false);
+  const [partialContent, setPartialContent] = useState(null);
   const [operatorName, setOperatorName] = useState(null);
   const [sessionId] = useState(() => stored?.sessionId ?? generateSessionId());
   const bottomRef = useRef(null);
@@ -74,13 +79,27 @@ export default function useChat() {
     };
   }, []);
 
-  const deliverMessages = useCallback(async (parts) => {
+  const deliverMessages = useCallback(async (parts, serverLength) => {
     for (let idx = 0; idx < parts.length; idx++) {
+      const content = parts[idx];
+      const delay = typingDelay(content, idx === 0 ? serverLength : null);
+
       setTyping(true);
-      await new Promise(r => setTimeout(r, typingDelay(parts[idx])));
+      await new Promise(r => setTimeout(r, delay));
       setTyping(false);
-      await new Promise(r => setTimeout(r, 80));
-      setMessages(prev => [...prev, { role: 'assistant', content: parts[idx] }]);
+
+      const total = content.length;
+      const chunkSize = Math.max(3, Math.ceil(total / CHUNKS_PER_MSG));
+      let revealed = 0;
+
+      while (revealed < total) {
+        revealed = Math.min(revealed + chunkSize, total);
+        setPartialContent({ role: 'assistant', content: content.slice(0, revealed) });
+        await new Promise(r => setTimeout(r, TYPE_SPEED_MIN + Math.random() * (TYPE_SPEED_MAX - TYPE_SPEED_MIN)));
+      }
+
+      setPartialContent(null);
+      setMessages(prev => [...prev, { role: 'assistant', content }]);
       if (idx < parts.length - 1) {
         await new Promise(r => setTimeout(r, BETWEEN_MSG_PAUSE()));
       }
@@ -258,10 +277,12 @@ export default function useChat() {
         setLeadSaved(true);
       }
 
+      const serverLen = data.response_length;
+
       if (data.escalated) {
         setEscalated(true);
         setTyping(false);
-        await deliverMessages(data.reply);
+        await deliverMessages(data.reply, serverLen);
         setTyping(true);
         startEscalationTimer(data.session_id || sessionId);
         return;
@@ -270,7 +291,7 @@ export default function useChat() {
       setTyping(false);
 
       if (Array.isArray(data.reply) && data.reply.length > 0) {
-        await deliverMessages(data.reply);
+        await deliverMessages(data.reply, serverLen);
       }
     } catch (err) {
       console.error('Chat error:', err);
@@ -308,6 +329,7 @@ export default function useChat() {
     input,
     setInput,
     typing,
+    partialContent,
     leadSaved,
     escalated,
     escalationPhase,

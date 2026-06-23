@@ -46,3 +46,22 @@ lighthouse-report.html
 google-cloud-sdk/
 google-cloud-cli-darwin-x86_64.tar.gz
 
+# Electron build output
+operator-desktop/dist-electron/
+
+# Windows nul artifact
+nul
+
+# PDF samples (preventivo analysis)
+supabase/functions/analyze-preventivo/samples/
+
+# Supabase CLI temp
+supabase/.temp/
+
+# Brain graph HTML (generated)
+public/brain-graph.html
+public/graph-tree.html
+
+# Misc PDFs in public
+public/brands/*.pdf
+

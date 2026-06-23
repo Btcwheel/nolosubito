@@ -6,23 +6,27 @@
 -- e la risposta dell'operatore non raggiunge il client della chat.
 -- ============================================================
 
--- Policy: anon può ricevere eventi realtime (SELECT) su tutte le sessioni.
--- Il filtro session_id=eq.${sid} viene applicato lato server dal client,
--- quindi ogni sessione riceve solo i propri eventi.
-create policy "anon_realtime_escalated_sessions"
-  on escalated_sessions
-  for select
-  to anon
-  using (true);
+do $$ begin
+  if not exists (
+    select 1 from pg_policies
+    where tablename = 'escalated_sessions'
+      and policyname = 'anon_realtime_escalated_sessions'
+  ) then
+    create policy "anon_realtime_escalated_sessions"
+      on escalated_sessions for select to anon using (true);
+  end if;
+end $$;
 
--- Anche authenticated (cliente loggato) deve poter leggere le sessioni.
--- La policy admin/backoffice esistente è "for all", quindi copre anche SELECT,
--- ma aggiungiamo una policy dedicata per chiarezza e per casi limite.
-create policy "authenticated_realtime_escalated_sessions"
-  on escalated_sessions
-  for select
-  to authenticated
-  using (true);
+do $$ begin
+  if not exists (
+    select 1 from pg_policies
+    where tablename = 'escalated_sessions'
+      and policyname = 'authenticated_realtime_escalated_sessions'
+  ) then
+    create policy "authenticated_realtime_escalated_sessions"
+      on escalated_sessions for select to authenticated using (true);
+  end if;
+end $$;
 
 -- Verifica che realtime sia abilitato sulla tabella
 do $$

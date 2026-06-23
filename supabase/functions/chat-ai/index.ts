@@ -1,10 +1,10 @@
-
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-// @ts-ignore - Deno imports are not recognized by standard TS
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const ANTHROPIC_API_KEY      = Deno.env.get("ANTHROPIC_API_KEY")!;
-const SUPABASE_URL           = Deno.env.get("SUPABASE_URL")!;
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY")!;
+const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY")!;
+const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY")!;
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://nolosubito.it";
 
@@ -14,9 +14,397 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const MODEL = "claude-haiku-4-5-20251001";
-const VERSION = "chat-ai v2.2-kb-covered";
+const VERSION = "chat-ai v3.1-gemini-embedding";
 
+// ── ROUTER ──────────────────────────────────────────────────────────
+const COMPLEX_KEYWORDS = [
+  "franchigia", "penale", "penali", "confront", "differenza", "contratto",
+  "clausola", "condizioni", "risoluzione", "anticipata", "multa",
+  "danno", "sinistro", "kaskara", "furto", "incendio", "recesso",
+  "subentro", "riconsegna", "usura", "danni", "secondo conducente",
+  "garante", "finanziaria", "approvazione", "carrier", "arval", "leasys",
+  "ayvens", "unipolrental", "unipol",
+];
+
+function classifyComplexity(query: string): "simple" | "complex" {
+  const lower = query.toLowerCase();
+  const wordCount = query.split(/\s+/).length;
+  const hasComplex = COMPLEX_KEYWORDS.some(k => lower.includes(k));
+  if (wordCount > 15 || hasComplex) return "complex";
+  return "simple";
+}
+
+// ── KB EMBEDDING SEARCH ──────────────────────────────────────────────
+async function getEmbedding(text: string): Promise<number[]> {
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent?key=${GOOGLE_AI_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "models/gemini-embedding-2",
+        content: { parts: [{ text: text.slice(0, 8000) }] },
+        outputDimensionality: 768,
+      }),
+    },
+  );
+  if (!res.ok) throw new Error("embedding API error");
+  const data = await res.json() as { embedding: { values: number[] } };
+  return data.embedding.values;
+}
+
+async function searchKb(supabase: any, query: string): Promise<string[]> {
+  if (query.length < 3) return [];
+  try {
+    const embedding = await getEmbedding(query);
+    const { data } = await supabase.rpc("match_knowledge_chunks", {
+      query_embedding: embedding,
+      match_threshold: 0.7,
+      match_count: 5,
+    });
+    if (data) return data.map((r: { content: string }) => r.content);
+  } catch (_) {
+    // fallback: niente KB
+  }
+  return [];
+}
+
+// ── TOOL EXECUTORS ───────────────────────────────────────────────────
+async function getVehicles(supabase: any, args: Record<string, string>) {
+  let query = supabase.from("offers").select("make, model, category, fuel_type, segments, promo_expires_at, promo_discount_pct, promo_segment, promo_services").eq("is_active", true);
+  if (args.make) query = query.ilike("make", `%${args.make}%`);
+  if (args.model) query = query.ilike("model", `%${args.model}%`);
+  if (args.category) query = query.ilike("category", `%${args.category}%`);
+  if (args.fuel) query = query.ilike("fuel_type", `%${args.fuel}%`);
+  const { data: offers } = await query;
+  if (!offers || offers.length === 0) return "Nessun veicolo trovato.";
+
+  const makes = [...new Set(offers.map((o: any) => o.make))];
+  const models = [...new Set(offers.map((o: any) => o.model))];
+
+  const { data: configs } = await supabase
+    .from("offer_configs")
+    .select("make, model, segment, monthly_rent")
+    .in("make", makes)
+    .in("model", models)
+    .eq("is_active", true);
+
+  const minPrice: Record<string, number> = {};
+  for (const c of configs || []) {
+    const key = `${c.make}|${c.model}`;
+    if (!minPrice[key] || c.monthly_rent < minPrice[key]) minPrice[key] = c.monthly_rent;
+  }
+
+  return offers.map((o: any) => {
+    const price = minPrice[`${o.make}|${o.model}`];
+    let promo = "";
+    if (o.promo_expires_at && new Date(o.promo_expires_at) > new Date()) {
+      const discount = o.promo_discount_pct ? ` -${o.promo_discount_pct}%` : "";
+      promo = ` [PROMO${discount}]`;
+    }
+    return `${o.make} ${o.model} | ${o.category} | ${o.fuel_type} | da €${price ?? "—"}/mese${promo} | ${SITE_URL}/vehicle/${encodeURIComponent(o.make)}/${encodeURIComponent(o.model)}`;
+  }).join("\n");
+}
+
+async function getVehicleDetail(supabase: any, args: Record<string, string>) {
+  const { data: offers } = await supabase
+    .from("offers")
+    .select("make, model, category, fuel_type, segments, description, promo_expires_at, promo_discount_pct, promo_segment, promo_services, foto_prev, foto_url, gallery")
+    .eq("is_active", true)
+    .ilike("make", `%${args.make}%`)
+    .ilike("model", `%${args.model}%`)
+    .limit(1);
+
+  if (!offers || offers.length === 0) return "Veicolo non trovato.";
+  const o = offers[0];
+
+  const { data: configs } = await supabase
+    .from("offer_configs")
+    .select("segment, duration, km, monthly_rent, advance")
+    .eq("make", o.make)
+    .eq("model", o.model)
+    .eq("is_active", true)
+    .order("monthly_rent");
+
+  let detail = `${o.make} ${o.model}\nCategoria: ${o.category} | Alimentazione: ${o.fuel_type}\nSegmenti: ${o.segments || "—"}`;
+  if (o.description) detail += `\n\nDescrizione: ${o.description}`;
+  if (o.promo_expires_at && new Date(o.promo_expires_at) > new Date()) {
+    detail += `\n\nPROMO: sconto ${o.promo_discount_pct || 0}% fino al ${new Date(o.promo_expires_at).toLocaleDateString("it-IT")}`;
+  }
+  if (configs && configs.length > 0) {
+    detail += "\n\nConfigurazioni disponibili:";
+    for (const c of configs) {
+      detail += `\n- ${c.segment || "N/A"} | ${c.duration || "—"} mesi | ${c.km || "—"} km | €${c.monthly_rent}/mese${c.advance ? ` (anticipo €${c.advance})` : ""}`;
+    }
+  }
+  return detail;
+}
+
+async function getCarrier(supabase: any, args: Record<string, string>) {
+  const name = args.name?.toLowerCase() || "";
+  const { data: chunks } = await supabase
+    .from("knowledge_chunks")
+    .select("content")
+    .textSearch("content", name || "carrier franchigie penali", { type: "websearch" })
+    .limit(5);
+
+  if (!chunks || chunks.length === 0) return "Nessuna informazione carrier trovata.";
+  return chunks.map((c: { content: string }) => c.content).join("\n---\n");
+}
+
+async function getProduct(supabase: any, args: Record<string, string>) {
+  const name = args.name?.toLowerCase() || "";
+  const { data: docs } = await supabase
+    .from("knowledge_documents")
+    .select("id, title")
+    .ilike("title", `%${name}%`)
+    .eq("is_active", true)
+    .limit(1);
+
+  if (!docs || docs.length === 0) return "Prodotto non trovato.";
+  const { data: chunks } = await supabase
+    .from("knowledge_chunks")
+    .select("content")
+    .eq("document_id", docs[0].id)
+    .order("created_at")
+    .limit(20);
+
+  if (!chunks || chunks.length === 0) return "Nessun dettaglio trovato.";
+  return chunks.map((c: { content: string }) => c.content).join("\n");
+}
+
+async function saveLead(supabase: any, args: Record<string, string>, sessionId: string, messages: any[]) {
+  if (!args.nome || (!args.email && !args.telefono)) return "Dati insufficienti per salvare il lead.";
+  try {
+    await supabase.from("leads").insert({
+      nome: args.nome, email: args.email || null, telefono: args.telefono || null,
+      tipo_cliente: args.tipo_cliente || null, interesse: args.interesse,
+      chat_history: messages, source: "chat-ai", status: "Nuovo",
+    });
+    return "Lead salvato con successo.";
+  } catch (_) {
+    return "Errore nel salvataggio del lead.";
+  }
+}
+
+async function escalateToOperator(supabase: any, args: Record<string, string>, sessionId: string, messages: any[]) {
+  try {
+    await supabase.from("escalated_sessions").insert({
+      session_id: sessionId,
+      user_question: args.question || "",
+      chat_history: messages,
+      status: "waiting",
+    });
+  } catch (_) { /* ignora */ }
+  return "Escalation creata.";
+}
+
+// ── TOOL HANDLER ──────────────────────────────────────────────────────
+async function handleTool(name: string, input: Record<string, string>, supabase: any, sessionId: string, messages: any[]): Promise<string> {
+  switch (name) {
+    case "get_vehicles": return await getVehicles(supabase, input);
+    case "get_vehicle_detail": return await getVehicleDetail(supabase, input);
+    case "get_carrier": return await getCarrier(supabase, input);
+    case "get_product": return await getProduct(supabase, input);
+    case "save_lead": return await saveLead(supabase, input, sessionId, messages);
+    case "escalate_to_operator": return await escalateToOperator(supabase, input, sessionId, messages);
+    default: return `Tool sconosciuto: ${name}`;
+  }
+}
+
+// ── SYSTEM PROMPT (umanizzato) ────────────────────────────────────────
+function buildSystemPrompt(now: string, kbContext: string[]) {
+  const kbSection = kbContext.length > 0
+    ? `\n\n## INFO UTILI (usa se pertinenti)\n${kbContext.join("\n---\n")}`
+    : "";
+
+  return `Sei Luca, consulente NLT di Nolosubito (${SITE_URL}). Parli italiano. Sei cordiale, diretto, umano. Niente fronzoli.
+
+Ora: ${now}.
+
+## COME PARLARE
+- Naturale, come in una conversazione WhatsApp.
+- MAI: "Certamente", "Ottima domanda", "In qualità di", "Ecco", "Perfetto!"
+- MAI elenchi puntati, grassetto, corsivo o markdown.
+- MAI frasi fatte da bot.
+- Se il cliente usa "tu", usa "tu". Altrimenti "Lei".
+- Varia i saluti. Non ripetere sempre la stessa formula.
+- Frasi brevi. Messaggi di 1-3 frasi. Non scrivere romanzi.
+
+## ESEMPI — COME RISPONDERE
+Cliente: "Quanto costa la BMW X1?"
+Luca: "Buongiorno! La BMW X1 parte da circa 350 € al mese, dipende dall'anticipo e dai km. Che tipo di contratto sta cercando?"
+
+Cliente: "Mi spieghi Be Free"
+Luca: "Be Free di Leasys è un'offerta interessante: 48 mesi, 60.000 km, restituzione senza penale dal 12° al 24° mese. Include RCA, Kasko, manutenzione. Posso mandarle un preventivo personalizzato?"
+
+Cliente: "Ciao, vorrei informazioni"
+Luca: "Ciao! Sono Luca, consulente Nolosubito. Che tipo di auto sta cercando? Per privato o per la sua attività?"
+
+Cliente: "Quali sono le franchigie Arval?"
+Luca: "Le franchigie Arval dipendono dal modello. In generale, collisione tra 500 e 1.200 €, furto e incendio 10-15%. Se vuole Le faccio un esempio sul modello che Le interessa."
+
+## COME NON RISPONDERE MAI
+Cliente: "Quanto costa la BMW X1?"
+✗ "Certamente! Ecco le informazioni richieste: La BMW X1 è disponibile a partire da 350 € mensili..."
+✗ "Ottima domanda! La BMW X1 rientra nella nostra gamma di SUV premium..."
+✗ "Grazie per avermi contattato! In qualità di consulente Nolosubito, Le posso confermare che..."
+
+## REGOLE
+1. Se un cliente chiede di un veicolo, usa get_vehicles per cercarlo. Se chiede dettagli, usa get_vehicle_detail.
+2. Se chiede di carrier (Arval, Leasys, Ayvens, UnipolRental), usa get_carrier.
+3. Se chiede di un prodotto specifico (Be Free, Be Free Biz, Miles), usa get_product.
+4. Se non hai la risposta certa al 100%, usa escalate_to_operator. Non inventare.
+5. Quando hai nome + email + telefono, chiama save_lead. Fatto con naturalezza.
+6. Non chiedere "posso aiutarla?" — si vede che è una risposta da bot.
+
+## INFO NLT BASE
+Il noleggio a lungo termine include: RCA, Kasko, manutenzione, soccorso H24, bollo, auto sostitutiva. Durate 24-60 mesi, km 10.000-40.000/anno. Per privati serve CUD, per aziende 2 bilanci. Senza requisiti si può proporre un garante.
+${kbSection}`;
+}
+
+// ── TOOL DEFINITIONS ─────────────────────────────────────────────────
+
+// Formato Claude
+const CLAUDE_TOOLS = [
+  {
+    name: "get_vehicles",
+    description: "Cerca veicoli disponibili nel catalogo per marca, modello, categoria o alimentazione.",
+    input_schema: {
+      type: "object",
+      properties: {
+        make: { type: "string", description: "Marca (es. BMW, Mercedes, Audi)" },
+        model: { type: "string", description: "Modello (es. X1, Classe A, Q5)" },
+        category: { type: "string", description: "Categoria (es. SUV, Berlina, Station Wagon)" },
+        fuel: { type: "string", description: "Alimentazione (es. Benzina, Diesel, Ibrido, Elettrico)" },
+      },
+    },
+  },
+  {
+    name: "get_vehicle_detail",
+    description: "Ottieni dettagli completi di un veicolo (descrizione, configurazioni, promozioni).",
+    input_schema: {
+      type: "object",
+      properties: {
+        make: { type: "string", description: "Marca" },
+        model: { type: "string", description: "Modello" },
+      },
+      required: ["make", "model"],
+    },
+  },
+  {
+    name: "get_carrier",
+    description: "Ottieni informazioni su un carrier (franchigie, penali, condizioni).",
+    input_schema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Nome del carrier (Arval, Leasys, Ayvens, UnipolRental)" },
+      },
+    },
+  },
+  {
+    name: "get_product",
+    description: "Ottieni informazioni dettagliate su un prodotto Nolosubito (Be Free, Be Free Biz, Miles, ecc.).",
+    input_schema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Nome del prodotto" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "save_lead",
+    description: "Salva i dati del cliente nel CRM quando hai nome e almeno email o telefono.",
+    input_schema: {
+      type: "object",
+      properties: {
+        nome: { type: "string", description: "Nome e cognome" },
+        email: { type: "string", description: "Email" },
+        telefono: { type: "string", description: "Telefono" },
+        tipo_cliente: { type: "string", enum: ["Privato", "P.IVA", "Azienda"] },
+        interesse: { type: "string", description: "Esigenze emerse" },
+      },
+      required: ["nome", "tipo_cliente", "interesse"],
+    },
+  },
+  {
+    name: "escalate_to_operator",
+    description: "Chiama questo tool quando non sai rispondere a una domanda. Un operatore umano prenderà in carico il cliente.",
+    input_schema: {
+      type: "object",
+      properties: {
+        question: { type: "string", description: "La domanda del cliente" },
+      },
+      required: ["question"],
+    },
+  },
+];
+
+// Formato OpenAI (Groq)
+function toOpenAITools(claudeTools: typeof CLAUDE_TOOLS) {
+  return claudeTools.map(t => ({
+    type: "function" as const,
+    function: {
+      name: t.name,
+      description: t.description,
+      parameters: t.input_schema,
+    },
+  }));
+}
+
+// ── LLM CALLERS ───────────────────────────────────────────────────────
+
+async function callClaude(systemPrompt: string, messages: any[], tools: typeof CLAUDE_TOOLS) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: "claude-haiku-4-5-20251001",
+      max_tokens: 600,
+      system: systemPrompt,
+      messages,
+      tools,
+    }),
+  });
+  if (!res.ok) throw new Error(`Claude ${res.status}`);
+  return await res.json() as { content: { type: string; text?: string; id?: string; name?: string; input?: Record<string, string> }[] };
+}
+
+async function callGroq(systemPrompt: string, messages: any[]) {
+  const groqMessages = [
+    { role: "system", content: systemPrompt },
+    ...messages.map((m: any) => ({ role: m.role, content: m.content })),
+  ];
+
+  const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "llama-3.1-70b-versatile",
+      max_tokens: 400,
+      messages: groqMessages,
+      tools: toOpenAITools(CLAUDE_TOOLS),
+      tool_choice: "auto",
+    }),
+  });
+  if (!res.ok) throw new Error(`Groq ${res.status}`);
+  return await res.json() as {
+    choices: {
+      finish_reason: string;
+      message: { content: string; tool_calls?: { id: string; function: { name: string; arguments: string } }[] };
+    }[];
+  };
+}
+
+// ── MAIN ──────────────────────────────────────────────────────────────
 Deno.serve(async (req: Request) => {
   console.log(`[${VERSION}] request received`);
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
@@ -32,96 +420,9 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
     const lastUserMessage = (messages[messages.length - 1]?.content ?? "").slice(0, 200);
 
-    // ── PRE-GUARD: detect "termine sconosciuto" PRIMA di chiamare Anthropic ─────
-    // Se l'utente cita un termine che sembra un prodotto/offerta/marchio/sigla,
-    // NON chiamare il modello: escalation diretta, senza possibilità di scappatoie.
-    const SUSPICIOUS_TERM_PATTERNS = [
-      /"[^"]{2,}"/,                                  // "BE FREE BIZ"
-      /'[^']{2,}'/,                                  // 'X1 PRO'
-      /[A-Z]{2,}[A-Z0-9]*(?:\s+[A-Z][A-Z0-9]*){1,}/, // BE FREE BIZ, X1 PRO, GOLD 2024
-      /\b\w*(?:promo|biz|pack|gold|platinum|premium|plus|special|exclusive|vip|club|edition)\w*\b/i,
-      /\b(?:codice\s*promo(?:zionale)?|codice\s*sconto|pacchetto|tariffa|abbonamento|listino)\b/i,
-      /\b(?:offerta|promo|sconto)\s+\w+/i,          // "offerta X" (X di qualsiasi lunghezza)
-    ];
-
-    // ── PRODOTTI COPERTI DA KNOWLEDGE BASE ──────────────────────────────────
-    // Questi termini hanno un documento KB dedicato. Se l'utente li menziona,
-    // la richiesta NON viene bloccata dal pre-guard e passa a Claude + KB.
-    const KB_COVERED_TERMS = [
-      "be free", "be-free", "befree",
-      "be free biz", "be free pro", "be free gold",
-      "offerta be free", "offerta befree",
-    ];
-
-    // ── PAROLE CHIAVE LETTERALI (super-aggressivo) ────────────────────────────
-    const SUSPICIOUS_KEYWORDS = [
-      // X1 / X2 / X3
-      "x1 promo", "x1 pro", "x2 promo", "x3 pro", "x1 pro",
-      // PACCHETTI
-      "pacchetto premium", "pacchetto gold", "pacchetto plat",
-      // OFFERTE (generiche — Be Free è gestito da KB_COVERED_TERMS)
-      "offerta x1", "offerta special",
-      "offerta sul sito", "offerta sul vostro sito",
-      "ho visto l'offerta", "ho visto una promo", "ho visto un codice",
-      "l'offerta che", "la promo che", "lo sconto che",
-      // CODICI
-      "codice promo", "codice sconto", "codice promozionale",
-      // GENERICI PRODOTTO/SERVIZIO (broad)
-      "vostro prodotto", "vostro servizio", "vostra offerta",
-      "un vostro", "una vostra", "uno vostro",
-      // DOMANDE SU OFFERTE SPECIFICHE
-      "come funziona", "mi spieghi", "mi spiega", "spiegami", "spiegate",
-      "in cosa consiste", "cosa include", "cosa prevede",
-    ];
-
-    const userMsgRaw = lastUserMessage || "";
-    const userMsgLower = userMsgRaw.toLowerCase();
-
-    let hasSuspiciousTerm = false;
-    let matchesPattern = false;
-    let matchesKeyword = false;
-    let isKBCovered = false;
-    try {
-      // Se la richiesta riguarda un prodotto coperto da KB, NON bloccare
-      isKBCovered = KB_COVERED_TERMS.some(kw => userMsgLower.includes(kw));
-      if (!isKBCovered) {
-        matchesPattern = SUSPICIOUS_TERM_PATTERNS.some(rx => rx.test(userMsgRaw));
-        matchesKeyword = SUSPICIOUS_KEYWORDS.some(kw => userMsgLower.includes(kw));
-        hasSuspiciousTerm = matchesPattern || matchesKeyword;
-      } else {
-        console.log(`[${VERSION}] pre-guard: kb-covered term detected → bypass pre-guard`);
-      }
-    } catch (e) {
-      console.error(`[${VERSION}] pre-guard error:`, e);
-      hasSuspiciousTerm = false;
-    }
-
-    console.log(`[${VERSION}] pre-guard: msg="${userMsgRaw.slice(0,80)}" pattern=${matchesPattern} keyword=${matchesKeyword} → suspicious=${hasSuspiciousTerm}`);
-
-    if (hasSuspiciousTerm) {
-      try {
-        await supabase.from("escalated_sessions").insert({
-          session_id: sessionId,
-          user_question: userMsgRaw,
-          chat_history: messages,
-          status: "waiting",
-          reason: "pre_guard_suspicious_term",
-        });
-      } catch (e) {
-        console.error("pre-guard: insert failed", e);
-      }
-      return new Response(JSON.stringify({
-        reply: ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"],
-        offerLink: null, leadSaved: false, escalated: true,
-        session_id: sessionId,
-      }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
-    }
-
-    // ── TAKE-OVER GUARD: se la sessione è già in mano all'operatore, NON rispondo ────
-    // L'operatore sta scrivendo nella tabella operator_chat_messages, Luca sta zitto.
+    // ── TAKE-OVER GUARD ──────────────────────────────────────────────
     const { data: takeover } = await supabase
       .from("escalated_sessions")
       .select("status, operator_id")
@@ -132,360 +433,144 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (takeover?.operator_id && takeover.status === "operator_joined") {
-      console.log(`[${VERSION}] takeover-active: skip ai response for session ${sessionId}`);
+      console.log(`[${VERSION}] takeover-active: session ${sessionId}`);
       return new Response(JSON.stringify({
-        reply: [],
-        offerLink: null, leadSaved: false, escalated: true,
-        takeover: true, session_id: sessionId,
+        reply: [], escalated: true, takeover: true, session_id: sessionId,
       }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
     }
 
-    const [offersRes, configsRes, kbRes] = await Promise.all([
-      supabase.from("offers").select("make, model, category, fuel_type, segments, promo_expires_at, promo_discount_pct, promo_segment, promo_services").eq("is_active", true),
-      supabase.from("offer_configs").select("make, model, segment, monthly_rent").eq("is_active", true),
-      lastUserMessage.length > 3
-        ? supabase.from("knowledge_chunks")
-            .select("content")
-            .textSearch("content", lastUserMessage.split(/\s+/).filter((w: string) => w.length > 3).slice(0, 5).join(" | "), { type: "websearch" })
-            .limit(5)
-        : Promise.resolve({ data: [] }),
-    ]);
+    // ── SEARCH KB (automatico, semantico via pgvector) ───────────────
+    const kbChunks = await searchKb(supabase, lastUserMessage);
 
-    if (offersRes.error) throw new Error("offers: " + offersRes.error.message);
-    if (configsRes.error) throw new Error("configs: " + configsRes.error.message);
+    // ── ROUTING ──────────────────────────────────────────────────────
+    const complexity = classifyComplexity(lastUserMessage);
+    console.log(`[${VERSION}] routing: complexity=${complexity}`);
 
-    const relevantChunks = (kbRes.data ?? []).map((c: { content: string }) => c.content);
-    const knowledgeSection = relevantChunks.length > 0
-      ? `\n\n## DOCUMENTI INTERNI — usa queste info se pertinenti\n${relevantChunks.join("\n---\n")}`
-      : "";
-
-    const minPriceMap: Record<string, number> = {};
-    for (const c of configsRes.data || []) {
-      const key = `${c.make}|${c.model}`;
-      if (!minPriceMap[key] || c.monthly_rent < minPriceMap[key]) minPriceMap[key] = c.monthly_rent;
-    }
-
-    const offersTable = (offersRes.data || [])
-      .map((o: any) => {
-        const price = minPriceMap[`${o.make}|${o.model}`];
-        const link = `${SITE_URL}/vehicle/${encodeURIComponent(o.make)}/${encodeURIComponent(o.model)}`;
-        
-        let promoInfo = "";
-        if (o.promo_expires_at && new Date(o.promo_expires_at) > new Date()) {
-          const discount = o.promo_discount_pct ? ` Sconto -${o.promo_discount_pct}%` : "";
-          const segment = o.promo_segment ? ` riservato a ${o.promo_segment}` : "";
-          const services = o.promo_services ? ` (Servizi inclusi: ${o.promo_services})` : "";
-          const dateStr = new Date(o.promo_expires_at).toLocaleDateString("it-IT");
-          promoInfo = ` | [PROMO attiva fino al ${dateStr}${discount}${segment}${services}]`;
-        }
-        
-        return `- ${o.make} ${o.model} | ${o.category} | ${o.fuel_type} | da €${price ?? "—"}/mese${promoInfo} | ${link}`;
-      })
-      .join("\n");
-
-    const now = new Date().toLocaleString("it-IT", { timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit" });
-    const systemPrompt = `Sei Luca, consulente NLT di Nolosubito (${SITE_URL}). Professionista preparato, cordiale e diretto.
-Ora corrente in Italia: ${now} — usa questa info per i saluti (buongiorno/buon pomeriggio/buonasera).
-
-## ⚠️ REGOLA N°1 — QUANDO NON SAI RISPONDERE, ESCALA SUBITO ⚠️
-Questa è la regola più importante. Ha la precedenza su TUTTO il resto.
-
-Se NON hai una visione completa e certa al 100% della risposta, DEVI chiamare IMMEDIATAMENTE il tool escalate_to_operator. Non rispondere MAI con un messaggio testuale se non sei certo al 100% di cosa stai dicendo.
-
-VIETATO assolutamente:
-- Dire "non è un prodotto/servizio che offriamo" → ESCALA, non fare affermazioni su cosa esiste o non esiste
-- Dire "non mi è chiaro", "cosa intende", "mi dice meglio" → ESCALA
-- Proporre alternative dal catalogo quando la domanda non riguarda il catalogo → ESCALA
-- Rispondere con "posso aiutarla con..." quando non hai capito la domanda → ESCALA
-- Inventare, supporre, interpretare, generalizzare, approssimare → ESCALA SEMPRE
-
-Casi che RICHIEDONO SEMPRE escalation (lista non esaustiva):
-- Termini sconosciuti, prodotti, marchi, codici promo, sigle, nomi commerciali (es: "X1 PROMO", "Pacchetto Premium Gold")
-ECCEZIONE — "Be Free" di Leasys è coperto nei DOCUMENTI INTERNI. Se il cliente chiede di Be Free, usa le informazioni nei DOCUMENTI INTERNI per rispondere (durata 48 mesi, 60.000 km, restituzione senza penale dal 12° al 24° mese, servizi inclusi, franchigie, vantaggi). Non escalare su Be Free a meno che la domanda non riguardi casi eccezionali non coperti dalla KB (es. protesti, situazioni personali anomale, deroghe).
-- Clausole contrattuali (recesso, penali, subentro, danni, fine contratto, franchigie, rivalsa)
-- Condizioni particolari (disabili, neopatentati, conduzioni multiple, estero, secondo conducente)
-- Situazioni anomale (protesti, crisi aziendali, deroghe, sinistri, problemi assicurativi)
-- Qualsiasi prezzo, disponibilità o tempistica non esplicitamente nel catalogo/KB
-- Stato di una pratica, tempi di consegna specifici
-
-RISPONDI SOLO se la risposta è completa e certa al 100% e riguarda: catalogo veicoli, canoni medi, durate NLT standard, requisiti base, saluti, lead capture.
-
-## PRIMA DI RISPONDERE — OBBLIGATORIO
-Ragionamento interno silenzioso:
-1. Cosa so già del cliente? (tipo, esigenze, nome, contatto)
-2. Cosa ho già chiesto/detto? (non ripetere)
-3. HO LA RISPOSTA COMPLETA E CERTA AL 100%? Se no → ESCALA. Se sì → rispondi.
-
-## TONO
-- Inizia con "Lei". Se il cliente usa "tu", adattati al "tu" per tutta la conversazione.
-- Professionale ma caldo. Varia le formule di apertura.
-- MAI: "Certamente!", "Ottima domanda!", "Capisco perfettamente!"
-- Grammatica italiana corretta: "il SUV" / "i SUV" (NON "gli SUV"), "il NLT", "i km".
-- NON usare mai markdown nel testo: niente **grassetto**, niente *corsivo*, niente elenchi con trattini. Solo testo normale come in un messaggio WhatsApp.
-
-## OBIETTIVI (solo se la risposta è certa al 100%)
-1. Capire se Privato, P.IVA o Azienda — UNA SOLA VOLTA.
-2. Verificare requisiti (CUD / 2 bilanci) solo quando c'è interesse concreto.
-3. Ottenere nome e cognome + email + numero di telefono → chiama save_lead.
-4. Rispondere su NLT e catalogo.
-
-## LEAD CAPTURE — NATURALE
-Adatta al contesto, non usare formule fisse.
-Chiedi SEMPRE tutti e tre: nome e cognome, email, numero di telefono. Non accontentarti di uno solo.
-Se il cliente ne fornisce solo uno o due, chiedi gentilmente anche gli altri prima di salvare.
-Quando hai nome + email + telefono → chiama save_lead immediatamente.
-
-## LEAD CAPTURE PRIORITARIA — BE FREE
-Se il cliente chiede informazioni su Be Free, dopo aver risposto con le informazioni della KB, chiedi SEMPRE nome, cognome, email e telefono e chiama save_lead. Il lead è prioritario anche se il cliente ha solo chiesto informazioni generiche. La cattura del lead è l'obiettivo principale per le richieste Be Free.
-
-## GESTIONE REQUISITI MANCANTI
-Se il cliente dice che non ha CUD (privati) o bilanci (aziende), rispondi ESATTAMENTE così:
-"Capito, nessun problema. Ma senza CUD possiamo comunque procedere, solo se ci possiamo avvalere di un garante (una persona fisica con CUD). Cosa ne pensa, vuole prima provare a trovare un garante e poi mi ricontatta? Oppure ha già un garante e quindi andiamo avanti?"
-Non aggiungere altro. Aspetta la risposta del cliente.
-
-## CONOSCENZA NLT
-Canone include: RCA+Kasko, manutenzione, soccorso H24, bollo, auto sostitutiva.
-Privati: CUD richiesto. Aziende/P.IVA: 2 bilanci. Senza requisiti: proponi garante.
-Durate: 24-60 mesi. KM: 10K-40K/anno. Anticipo: €0-10K opzionale.
-P.IVA: canone deducibile 80-100%, IVA recuperabile 40-100%.
-
-## CATALOGO
-${offersTable}
-
-Parla SOLO dei veicoli in lista. Includi sempre link completo e prezzo. Se un veicolo ha una promozione attiva contrassegnata da [PROMO attiva], proponila valorizzando lo sconto, la data di scadenza e gli eventuali servizi inclusi nella promo.
-
-${knowledgeSection}
-
-## FORMATO
-- 2-3 messaggi separati da ||
-- Ogni segmento: 1-2 frasi, naturale
-- NON scrivere note o istruzioni tra parentesi
-
-## ⚠️ RICHIAMO FINALE ⚠️
-Se stai per scrivere un messaggio testuale invece di chiamare escalate_to_operator, FERMATI. Ricontrolla: ho la risposta certa al 100%? Se NO → chiama escalate_to_operator. Il cliente non resta mai senza risposta, verrà contattato da un consulente umano.`;
-
-    const ESCALATE_TOOL = {
-      name: "escalate_to_operator",
-      description: "Chiama questo tool quando non conosci la risposta a una domanda specifica del cliente. Salva la sessione e avvisa un operatore umano.",
-      input_schema: {
-        type: "object",
-        properties: {
-          question: { type: "string", description: "La domanda del cliente a cui non sai rispondere" },
-        },
-        required: ["question"],
-      },
-    };
-
-    const SAVE_LEAD_TOOL = {
-      name: "save_lead",
-      description: "Salva i dati del cliente nel CRM quando hai nome e almeno email o telefono",
-      input_schema: {
-        type: "object",
-        properties: {
-          nome:         { type: "string",  description: "Nome e cognome" },
-          email:        { type: "string",  description: "Email (vuota se non fornita)" },
-          telefono:     { type: "string",  description: "Telefono (vuoto se non fornito)" },
-          tipo_cliente: { type: "string",  enum: ["Privato", "P.IVA", "Azienda"] },
-          interesse:    { type: "string",  description: "Esigenze emerse nella conversazione" },
-        },
-        required: ["nome", "tipo_cliente", "interesse"],
-      },
-    };
-
-    const FALLBACK_REPLY = {
-      reply: ["Posso ricontattarLa tra poco — mi lascia un recapito? Grazie."],
-      offerLink: null, leadSaved: false,
-    };
-    const FALLBACK_RES = new Response(JSON.stringify(FALLBACK_REPLY), {
-      status: 200, headers: { ...CORS, "Content-Type": "application/json" },
+    const now = new Date().toLocaleString("it-IT", {
+      timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit",
     });
-
-    // Rimuovi messaggi di errore dall'history
+    const systemPrompt = buildSystemPrompt(now, kbChunks);
     const cleanMessages = messages.filter((m: { role: string; content: string }) =>
-      !(m.role === "assistant" && m.content?.startsWith("Posso ricontattarLa"))
+      !(m.role === "assistant" && typeof m.content === "string" && m.content.startsWith("Posso ricontattarLa"))
     );
-
-    const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 600,
-        system: systemPrompt,
-        messages: cleanMessages,
-        tools: [SAVE_LEAD_TOOL, ESCALATE_TOOL],
-      }),
-    });
-
-    if (!anthropicRes.ok) {
-      console.error("Anthropic error:", anthropicRes.status, await anthropicRes.text().catch(() => ""));
-      return FALLBACK_RES;
-    }
-
-    const data = await anthropicRes.json() as any;
-    const content: { type: string; text?: string; id?: string; name?: string; input?: Record<string, string> }[] = data.content || [];
 
     let replyParts: string[] = [];
     let leadSaved = false;
     let escalated = false;
+    let isToolCall = false;
+    let toolName = "";
+    let toolInput: Record<string, string> = {};
 
-    // Gestisci escalate_to_operator
-    const escalateTool = content.find(b => b.type === "tool_use" && b.name === "escalate_to_operator");
-    if (escalateTool?.input) {
-      const question = (escalateTool.input as { question: string }).question;
-      try {
-        await supabase.from("escalated_sessions").insert({
-          session_id: sessionId,
-          user_question: question,
-          chat_history: messages,
-          status: "waiting",
-        });
-      } catch (_) { /* ignora errore insert */ }
-      escalated = true;
-      replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
-    }
+    if (complexity === "complex") {
+      // Usa Claude Haiku
+      const claudeRes = await callClaude(systemPrompt, cleanMessages, CLAUDE_TOOLS);
+      const content: any[] = claudeRes.content || [];
 
-    // Gestisci tool_use (save_lead)
-    const toolUse = escalated ? undefined : content.find(b => b.type === "tool_use" && b.name === "save_lead");
-    if (toolUse?.input) {
-      const args = toolUse.input;
-      if (args.nome && (args.email || args.telefono)) {
-        try {
-          await supabase.from("leads").insert({
-            nome: args.nome,
-            email: args.email || null,
-            telefono: args.telefono || null,
-            tipo_cliente: args.tipo_cliente || null,
-            interesse: args.interesse,
-            chat_history: messages,
-            source: "chat-ai",
-            status: "Nuovo",
-          });
-          leadSaved = true;
-        } catch (_) { /* ignora errore insert */ }
-      }
-
-      // Follow-up dopo save_lead
-      if (leadSaved) {
-        const followUp = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01",
-          },
-          body: JSON.stringify({
-            model: MODEL,
-            max_tokens: 300,
-            system: systemPrompt,
-            messages: [
-              ...cleanMessages,
-              { role: "assistant", content },
-              { role: "user", content: [{ type: "tool_result", tool_use_id: toolUse.id, content: "Lead salvato." }] },
-            ],
-          }),
-        });
-        if (followUp.ok) {
-          const fuData = await followUp.json() as any;
-          const txt = fuData.content?.find((b: { type: string; text?: string }) => b.type === "text")?.text || "Grazie! Un consulente la contatterà presto.";
-          replyParts = txt.split("||").map((s: string) => s.trim()).filter(Boolean);
-        } else {
-          replyParts = ["Grazie! La contatteremo entro 24 ore."];
-        }
-      }
-    }
-
-    // Risposta testuale normale
-    if (!leadSaved) {
-      const textBlock = content.find(b => b.type === "text");
-      const raw = textBlock?.text || "";
-      const clean = raw.replace(/^\(.*\)\s*$/gm, "").trim();
-      replyParts = clean ? clean.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
-    }
-
-    // ── GUARD SERVER-SIDE: forza escalation se il modello ha barato ────────────
-    // Se il modello ha risposto con un "soft refusal" o ha fatto affermazioni
-    // su prodotti/servizi che non può conoscere, convertiamo in escalation.
-    if (!escalated && !leadSaved && replyParts.length > 0) {
-      const fullReply = replyParts.join(" ").toLowerCase();
-      const userMsg = (lastUserMessage || "").toLowerCase();
-
-      // Pattern di "soft refusal" o affermazioni non verificate sul OUTPUT
-      const softRefusalPatterns = [
-        /non\s+(?:è|sono|abbiamo|offriamo|facciamo|trattiamo|disponiamo|dispongo|disponiamo)/i,
-        /non\s+(?:mi\s+)?(?:è|risulta)\s+(?:chiaro|noto|familiare|possibile)/i,
-        /non\s+ho\s+(?:informazioni|notizie|accesso|dati|modo|strumenti)/i,
-        /non\s+posso\s+(?:accedere|verificare|consultare|trovare|rispondere)/i,
-        /non\s+riesco\s+a\s+(?:capire|rispondere|trovare|verificare)/i,
-        /non\s+mi\s+risulta/i,
-        /non\s+dispongo/i,
-        /non\s+sono\s+in\s+grado/i,
-        /cosa\s+intende/i,
-        /mi\s+(?:dice|dica|spiega)\s+meglio/i,
-        /può\s+specificare/i,
-        /purtroppo/i,
-        /mi\s+dispiace,?\s+ma/i,
-        /pagine\s+specifiche/i,
-        /non\s+ho\s+diretto/i,
-      ];
-
-      // Pattern di termini "prodotto-like" nel messaggio utente (codici, marchi, sigle)
-      const productLikePatterns = [
-        /"[^"]{2,}"/,                                 // "qualcosa tra virgolette"
-        /'[^']{2,}'/,                                 // 'qualcosa tra apici singoli'
-        /\b[A-Z]{2,}(?:[\s\-_]+[A-Z0-9]+){0,3}\b/,    // BE FREE, X1 PRO, GOLD 2024, BE-FREE-BIZ
-        /\b\w*(?:promo|biz|pack|gold|platinum|premium|plus|special|exclusive|vip|club)\w*\b/i,
-        /\b\w*pro\w*\b/i,                             // catch "proposte", "X1 Pro", ecc. (attenzione: match aggressivo)
-        /\b(?:codice|codice\s+promo(?:zionale)?|codice\s+sconto|abbonamento|offerta\s+\w+)\b/i,
-        /\b(?:listino|preventivo\s+personalizzato|tariffa|canone\s+\w+)\b/i,
-      ];
-
-      const isSoftRefusal = softRefusalPatterns.some(rx => rx.test(fullReply));
-      const userHasProductTerm = productLikePatterns.some(rx => rx.test(userMsg));
-
-      // Se la richiesta riguarda un prodotto coperto da KB, NON forzare escalation anche se matcha pattern
-      const isKBCoveredGuard = KB_COVERED_TERMS.some(kw => userMsg.includes(kw));
-      if (isKBCoveredGuard) {
-        console.log(`[${VERSION}] server-guard: kb-covered term → skip product term escalation`);
-      }
-
-      if ((isSoftRefusal || userHasProductTerm) && !isKBCoveredGuard) {
-        try {
-          await supabase.from("escalated_sessions").insert({
-            session_id: sessionId,
-            user_question: lastUserMessage,
-            chat_history: messages,
-            status: "waiting",
-            reason: userHasProductTerm ? "product_term_detected" : "soft_refusal_detected",
-          });
-        } catch (e) {
-          console.error("guard: insert escalated_sessions failed", e);
-        }
+      const escalateTool = content.find((b: any) => b.type === "tool_use" && b.name === "escalate_to_operator");
+      if (escalateTool?.input) {
+        await escalateToOperator(supabase, escalateTool.input as Record<string, string>, sessionId, messages);
         escalated = true;
         replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
+      } else {
+        const toolUse = content.find((b: any) => b.type === "tool_use");
+        if (toolUse?.input) {
+          isToolCall = true;
+          toolName = toolUse.name;
+          toolInput = toolUse.input as Record<string, string>;
+          const result = await handleTool(toolUse.name, toolInput, supabase, sessionId, messages);
+
+          if (toolUse.name === "save_lead") {
+            leadSaved = result.includes("salvato");
+            // Follow-up con Claude
+            const followRes = await callClaude(systemPrompt, [
+              ...cleanMessages,
+              { role: "assistant", content },
+              { role: "user", content: [{ type: "tool_result", tool_use_id: toolUse.id, content: result }] },
+            ], []);
+            const txt = followRes.content?.find((b: any) => b.type === "text")?.text || "";
+            replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : ["Grazie! Un consulente la contatterà presto."];
+          } else {
+            // Tool → risposta testuale
+            const followRes = await callClaude(systemPrompt, [
+              ...cleanMessages,
+              { role: "assistant", content },
+              { role: "user", content: [{ type: "tool_result", tool_use_id: toolUse.id, content: result }] },
+            ], []);
+            const txt = followRes.content?.find((b: any) => b.type === "text")?.text || "";
+            replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
+          }
+        } else {
+          const textBlock = content.find((b: any) => b.type === "text");
+          const raw = textBlock?.text || "";
+          replyParts = raw ? raw.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
+        }
+      }
+    } else {
+      // Usa Groq (Llama 3.1-70B)
+      const groqRes = await callGroq(systemPrompt, cleanMessages);
+      const choice = groqRes.choices?.[0];
+
+      if (choice?.finish_reason === "tool_calls" && choice.message?.tool_calls) {
+        const tc = choice.message.tool_calls[0];
+        toolName = tc.function.name;
+        try { toolInput = JSON.parse(tc.function.arguments); } catch { toolInput = {}; }
+
+        if (toolName === "escalate_to_operator") {
+          await escalateToOperator(supabase, toolInput, sessionId, messages);
+          escalated = true;
+          replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
+        } else {
+          isToolCall = true;
+          const result = await handleTool(toolName, toolInput, supabase, sessionId, messages);
+
+          if (toolName === "save_lead") {
+            leadSaved = true;
+            replyParts = ["Grazie! Un consulente la contatterà presto."];
+          } else {
+            // Tool → risposta testuale: richiama Groq con il risultato
+            const followRes = await callGroq(systemPrompt, [
+              ...cleanMessages,
+              choice.message,
+              { role: "tool", tool_call_id: tc.id, content: result },
+            ]);
+            const followChoice = followRes.choices?.[0];
+            const txt = followChoice?.message?.content || "";
+            replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
+          }
+        }
+      } else {
+        const txt = choice?.message?.content || "";
+        replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
       }
     }
 
-    if (replyParts.length === 0) replyParts = ["Ho ricevuto la sua richiesta, un attimo."];
+    if (replyParts.length === 0) {
+      replyParts = ["Ho ricevuto la sua richiesta, un attimo."];
+    }
 
-    const reply = replyParts.join("\n\n");
-    const vehicleRegex = new RegExp(`(${SITE_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\/vehicle\\/[^\\s).,;!?]+)`);
-    const offerLink = reply.match(vehicleRegex)?.[1]?.replace(/[.,;!?]+$/, "") || null;
+    const fullReply = replyParts.join("\n\n");
+    const responseLength = fullReply.length;
 
-    return new Response(JSON.stringify({ reply: replyParts, offerLink, leadSaved, escalated, session_id: sessionId }), {
-      status: 200, headers: { ...CORS, "Content-Type": "application/json" },
-    });
+    const vehicleRegex = new RegExp(
+      `(${SITE_URL.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\/vehicle\\/[^\\s).,;!?]+)`
+    );
+    const offerLink = fullReply.match(vehicleRegex)?.[1]?.replace(/[.,;!?]+$/, "") || null;
+
+    return new Response(JSON.stringify({
+      reply: replyParts,
+      offerLink,
+      leadSaved,
+      escalated,
+      session_id: sessionId,
+      response_length: responseLength,
+    }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
 
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("chat-ai error:", msg);
+    console.error(`[${VERSION}] error:`, msg);
     return new Response(JSON.stringify({
       reply: ["Posso ricontattarLa tra poco — mi lascia un recapito? Grazie."],
-      offerLink: null, leadSaved: false,
+      offerLink: null, leadSaved: false, response_length: 0,
     }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
   }
 });

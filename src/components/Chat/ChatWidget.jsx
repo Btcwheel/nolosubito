@@ -92,7 +92,7 @@ function TypingIndicator() {
 
 export default function ChatWidget() {
   const {
-    messages, input, setInput, typing, leadSaved, escalated, escalationPhase,
+    messages, input, setInput, typing, partialContent, leadSaved, escalated, escalationPhase,
     bottomRef, sendMessage, handleEscalationChoice, saveContact,
   } = useChat();
 
@@ -177,6 +177,8 @@ export default function ChatWidget() {
               {messages.map((msg, i) => (
                 <ChatMessage key={i} message={msg} />
               ))}
+
+              {partialContent && !typing && <ChatMessage message={partialContent} />}
 
               {typing && <TypingIndicator />}
 
