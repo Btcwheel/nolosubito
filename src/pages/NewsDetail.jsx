@@ -1,13 +1,18 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { postsService } from "@/services/posts";
-import ReactMarkdown from "react-markdown";
-import { ArrowLeft, Calendar, Tag } from "lucide-react";
+import { ArrowLeft, Calendar, Tag, ChevronLeft, ChevronRight, X } from "lucide-react";
+import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
+import {
+  Dialog,
+  DialogContent,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 function useNoIndex(active) {
   useEffect(() => {
@@ -60,11 +65,32 @@ function useSeoMeta(post) {
 
 export default function NewsDetail() {
   const { slug } = useParams();
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   const { data: post, isLoading } = useQuery({
     queryKey: ["post", slug],
     queryFn: () => postsService.getBySlug(slug),
   });
+
+  const gallery = post?.gallery_images || [];
+
+  const handlePrev = useCallback(() => {
+    setLightboxIndex((prev) => (prev === 0 ? gallery.length - 1 : prev - 1));
+  }, [gallery.length]);
+
+  const handleNext = useCallback(() => {
+    setLightboxIndex((prev) => (prev === gallery.length - 1 ? 0 : prev + 1));
+  }, [gallery.length]);
+
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    const onKey = (e) => {
+      if (e.key === "ArrowLeft") handlePrev();
+      if (e.key === "ArrowRight") handleNext();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxIndex, handlePrev, handleNext]);
 
   useNoIndex(!isLoading && !post);
   useSeoMeta(post);
@@ -128,23 +154,65 @@ export default function NewsDetail() {
         </div>
 
         {/* Gallery */}
-        {post.gallery_images && post.gallery_images.length > 0 && (
+        {gallery.length > 0 && (
           <div className="mb-8">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              {post.gallery_images.map((url, i) => (
-                <div key={i} className="aspect-video rounded-xl overflow-hidden bg-muted">
+              {gallery.map((url, i) => (
+                <button
+                  key={i}
+                  onClick={() => setLightboxIndex(i)}
+                  className="aspect-video rounded-xl overflow-hidden bg-muted group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric"
+                >
                   <img
                     src={url}
                     alt={`${post.title} - foto ${i + 1}`}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy"
                     onError={(e) => { e.target.style.display = 'none'; }}
                   />
-                </div>
+                </button>
               ))}
             </div>
           </div>
         )}
+
+        {/* Lightbox */}
+        <Dialog open={lightboxIndex !== null} onOpenChange={(open) => { if (!open) setLightboxIndex(null); }}>
+          <DialogContent className="max-w-5xl w-[95vw] h-[90vh] p-0 bg-black/95 border-none">
+            <div className="relative flex items-center justify-center w-full h-full">
+              <img
+                src={gallery[lightboxIndex]}
+                alt={`${post?.title} - foto ${lightboxIndex + 1}`}
+                className="max-w-full max-h-full object-contain p-4"
+              />
+              {gallery.length > 1 && (
+                <>
+                  <button
+                    onClick={handlePrev}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors"
+                    aria-label="Foto precedente"
+                  >
+                    <ChevronLeft className="size-6" />
+                  </button>
+                  <button
+                    onClick={handleNext}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 size-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors"
+                    aria-label="Foto successiva"
+                  >
+                    <ChevronRight className="size-6" />
+                  </button>
+                  <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/70 text-sm">
+                    {lightboxIndex + 1} / {gallery.length}
+                  </span>
+                </>
+              )}
+            </div>
+            <DialogClose className="absolute top-2 right-2 size-8 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors">
+              <X className="size-4" />
+              <span className="sr-only">Chiudi</span>
+            </DialogClose>
+          </DialogContent>
+        </Dialog>
 
         {/* Meta */}
         <div className="flex flex-wrap items-center gap-3 mb-4">
@@ -176,13 +244,13 @@ export default function NewsDetail() {
         <div className="prose prose-slate max-w-none
           prose-headings:font-heading prose-headings:text-foreground
           prose-p:text-foreground/80 prose-p:leading-relaxed
-          prose-a:style={{color:'#71BAED'}} prose-a:no-underline hover:prose-a:underline
+          prose-a:text-electric prose-a:no-underline hover:prose-a:underline
           prose-strong:text-foreground
           prose-li:text-foreground/80
           prose-img:rounded-xl
-          prose-blockquote:style={{borderColor:'#71BAED'}} prose-blockquote:text-muted-foreground
+          prose-blockquote:border-l-electric prose-blockquote:text-muted-foreground
         ">
-          <ReactMarkdown>{post.content}</ReactMarkdown>
+          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }} />
         </div>
 
         {/* Footer */}

@@ -14,7 +14,10 @@ import { useToast } from "@/components/ui/use-toast";
 import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink, FolderOpen, Search, Upload, Loader2, ChevronDown, ChevronUp, GripVertical, Image as ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import ReactMarkdown from "react-markdown";
+import DOMPurify from "dompurify";
 
 // Converte path locale → URL Supabase Storage
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -743,7 +746,7 @@ export default function CmsNews() {
                 {form.cover_image_url && <img src={form.cover_image_url} alt="" className="w-full h-48 object-cover rounded-xl mb-4" />}
                 <h1 className="text-2xl font-bold">{form.title}</h1>
                 <p className="text-muted-foreground">{form.summary}</p>
-                <ReactMarkdown>{form.content}</ReactMarkdown>
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(form.content) }} />
               </div>
             ) : (
               <div className="space-y-4">
@@ -760,8 +763,23 @@ export default function CmsNews() {
                   <Textarea value={form.summary} onChange={e => set("summary", e.target.value)} className="mt-1 h-20" placeholder="Breve descrizione dell'articolo..." />
                 </div>
                 <div>
-                  <Label className="text-xs">Contenuto (Markdown) *</Label>
-                  <Textarea value={form.content} onChange={e => set("content", e.target.value)} className="mt-1 h-56 font-mono text-xs" placeholder="## Titolo sezione&#10;Testo del corpo..." />
+                  <Label className="text-xs">Contenuto *</Label>
+                  <div className="mt-1 [&_.ql-editor]:min-h-[250px] [&_.ql-editor]:text-sm [&_.ql-editor]:leading-relaxed [&_.ql-toolbar]:rounded-t-lg [&_.ql-container]:rounded-b-lg [&_.ql-container]:border-t-0">
+                    <ReactQuill
+                      value={form.content}
+                      onChange={val => set("content", val)}
+                      modules={{
+                        toolbar: [
+                          [{ header: [2, 3, false] }],
+                          ["bold", "italic", "underline", "strike"],
+                          [{ list: "ordered" }, { list: "bullet" }],
+                          ["blockquote", "link"],
+                          ["clean"],
+                        ],
+                      }}
+                      placeholder="Scrivi il contenuto dell'articolo..."
+                    />
+                  </div>
                 </div>
                 <div>
                   <Label className="text-xs">Immagine Copertina</Label>

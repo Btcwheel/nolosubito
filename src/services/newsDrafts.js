@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { marked } from 'marked';
 
 export const newsDraftsService = {
   async listPending() {
@@ -12,12 +13,15 @@ export const newsDraftsService = {
   },
 
   async accept(draft) {
+    // Converte il contenuto da Markdown (generato AI) a HTML
+    const content = await marked.parse(draft.content);
+
     // Crea il post pubblicato
     const { error: postError } = await supabase.from('posts').insert({
       title:           draft.title,
       slug:            draft.slug,
       summary:         draft.summary,
-      content:         draft.content,
+      content,
       cover_image_url: draft.cover_image_url,
       category:        draft.category,
       gallery_images:  draft.gallery_images || [],

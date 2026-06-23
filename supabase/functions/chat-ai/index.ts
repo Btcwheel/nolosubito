@@ -15,7 +15,7 @@ const CORS = {
 };
 
 const MODEL = "claude-haiku-4-5-20251001";
-const VERSION = "chat-ai v2.1-pre-guard";
+const VERSION = "chat-ai v2.2-kb-covered";
 
 Deno.serve(async (req: Request) => {
   console.log(`[${VERSION}] request received`);
@@ -47,16 +47,23 @@ Deno.serve(async (req: Request) => {
       /\b(?:offerta|promo|sconto)\s+\w+/i,          // "offerta X" (X di qualsiasi lunghezza)
     ];
 
+    // ── PRODOTTI COPERTI DA KNOWLEDGE BASE ──────────────────────────────────
+    // Questi termini hanno un documento KB dedicato. Se l'utente li menziona,
+    // la richiesta NON viene bloccata dal pre-guard e passa a Claude + KB.
+    const KB_COVERED_TERMS = [
+      "be free", "be-free", "befree",
+      "be free biz", "be free pro", "be free gold",
+      "offerta be free", "offerta befree",
+    ];
+
     // ── PAROLE CHIAVE LETTERALI (super-aggressivo) ────────────────────────────
     const SUSPICIOUS_KEYWORDS = [
-      // BE FREE
-      "be free", "be-free", "befree", "be free biz", "be free pro", "be free gold",
       // X1 / X2 / X3
       "x1 promo", "x1 pro", "x2 promo", "x3 pro", "x1 pro",
       // PACCHETTI
       "pacchetto premium", "pacchetto gold", "pacchetto plat",
-      // OFFERTE
-      "offerta be", "offerta free", "offerta x1", "offerta special",
+      // OFFERTE (generiche — Be Free è gestito da KB_COVERED_TERMS)
+      "offerta x1", "offerta special",
       "offerta sul sito", "offerta sul vostro sito",
       "ho visto l'offerta", "ho visto una promo", "ho visto un codice",
       "l'offerta che", "la promo che", "lo sconto che",
@@ -76,10 +83,17 @@ Deno.serve(async (req: Request) => {
     let hasSuspiciousTerm = false;
     let matchesPattern = false;
     let matchesKeyword = false;
+    let isKBCovered = false;
     try {
-      matchesPattern = SUSPICIOUS_TERM_PATTERNS.some(rx => rx.test(userMsgRaw));
-      matchesKeyword = SUSPICIOUS_KEYWORDS.some(kw => userMsgLower.includes(kw));
-      hasSuspiciousTerm = matchesPattern || matchesKeyword;
+      // Se la richiesta riguarda un prodotto coperto da KB, NON bloccare
+      isKBCovered = KB_COVERED_TERMS.some(kw => userMsgLower.includes(kw));
+      if (!isKBCovered) {
+        matchesPattern = SUSPICIOUS_TERM_PATTERNS.some(rx => rx.test(userMsgRaw));
+        matchesKeyword = SUSPICIOUS_KEYWORDS.some(kw => userMsgLower.includes(kw));
+        hasSuspiciousTerm = matchesPattern || matchesKeyword;
+      } else {
+        console.log(`[${VERSION}] pre-guard: kb-covered term detected → bypass pre-guard`);
+      }
     } catch (e) {
       console.error(`[${VERSION}] pre-guard error:`, e);
       hasSuspiciousTerm = false;
@@ -127,7 +141,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const [offersRes, configsRes, kbRes] = await Promise.all([
-      supabase.from("offers").select("make, model, category, fuel_type, segments").eq("is_active", true),
+      supabase.from("offers").select("make, model, category, fuel_type, segments, promo_expires_at, promo_discount_pct, promo_segment, promo_services").eq("is_active", true),
       supabase.from("offer_configs").select("make, model, segment, monthly_rent").eq("is_active", true),
       lastUserMessage.length > 3
         ? supabase.from("knowledge_chunks")
@@ -155,7 +169,17 @@ Deno.serve(async (req: Request) => {
       .map((o: any) => {
         const price = minPriceMap[`${o.make}|${o.model}`];
         const link = `${SITE_URL}/vehicle/${encodeURIComponent(o.make)}/${encodeURIComponent(o.model)}`;
-        return `- ${o.make} ${o.model} | ${o.category} | ${o.fuel_type} | da €${price ?? "—"}/mese | ${link}`;
+        
+        let promoInfo = "";
+        if (o.promo_expires_at && new Date(o.promo_expires_at) > new Date()) {
+          const discount = o.promo_discount_pct ? ` Sconto -${o.promo_discount_pct}%` : "";
+          const segment = o.promo_segment ? ` riservato a ${o.promo_segment}` : "";
+          const services = o.promo_services ? ` (Servizi inclusi: ${o.promo_services})` : "";
+          const dateStr = new Date(o.promo_expires_at).toLocaleDateString("it-IT");
+          promoInfo = ` | [PROMO attiva fino al ${dateStr}${discount}${segment}${services}]`;
+        }
+        
+        return `- ${o.make} ${o.model} | ${o.category} | ${o.fuel_type} | da €${price ?? "—"}/mese${promoInfo} | ${link}`;
       })
       .join("\n");
 
@@ -176,7 +200,8 @@ VIETATO assolutamente:
 - Inventare, supporre, interpretare, generalizzare, approssimare → ESCALA SEMPRE
 
 Casi che RICHIEDONO SEMPRE escalation (lista non esaustiva):
-- Termini sconosciuti, prodotti, marchi, codici promo, sigle, nomi commerciali (es: "BE FREE BIZ", "X1 PROMO", "Pacchetto Premium Gold")
+- Termini sconosciuti, prodotti, marchi, codici promo, sigle, nomi commerciali (es: "X1 PROMO", "Pacchetto Premium Gold")
+ECCEZIONE — "Be Free" di Leasys è coperto nei DOCUMENTI INTERNI. Se il cliente chiede di Be Free, usa le informazioni nei DOCUMENTI INTERNI per rispondere (durata 48 mesi, 60.000 km, restituzione senza penale dal 12° al 24° mese, servizi inclusi, franchigie, vantaggi). Non escalare su Be Free a meno che la domanda non riguardi casi eccezionali non coperti dalla KB (es. protesti, situazioni personali anomale, deroghe).
 - Clausole contrattuali (recesso, penali, subentro, danni, fine contratto, franchigie, rivalsa)
 - Condizioni particolari (disabili, neopatentati, conduzioni multiple, estero, secondo conducente)
 - Situazioni anomale (protesti, crisi aziendali, deroghe, sinistri, problemi assicurativi)
@@ -210,6 +235,9 @@ Chiedi SEMPRE tutti e tre: nome e cognome, email, numero di telefono. Non accont
 Se il cliente ne fornisce solo uno o due, chiedi gentilmente anche gli altri prima di salvare.
 Quando hai nome + email + telefono → chiama save_lead immediatamente.
 
+## LEAD CAPTURE PRIORITARIA — BE FREE
+Se il cliente chiede informazioni su Be Free, dopo aver risposto con le informazioni della KB, chiedi SEMPRE nome, cognome, email e telefono e chiama save_lead. Il lead è prioritario anche se il cliente ha solo chiesto informazioni generiche. La cattura del lead è l'obiettivo principale per le richieste Be Free.
+
 ## GESTIONE REQUISITI MANCANTI
 Se il cliente dice che non ha CUD (privati) o bilanci (aziende), rispondi ESATTAMENTE così:
 "Capito, nessun problema. Ma senza CUD possiamo comunque procedere, solo se ci possiamo avvalere di un garante (una persona fisica con CUD). Cosa ne pensa, vuole prima provare a trovare un garante e poi mi ricontatta? Oppure ha già un garante e quindi andiamo avanti?"
@@ -224,7 +252,7 @@ P.IVA: canone deducibile 80-100%, IVA recuperabile 40-100%.
 ## CATALOGO
 ${offersTable}
 
-Parla SOLO dei veicoli in lista. Includi sempre link completo e prezzo.
+Parla SOLO dei veicoli in lista. Includi sempre link completo e prezzo. Se un veicolo ha una promozione attiva contrassegnata da [PROMO attiva], proponila valorizzando lo sconto, la data di scadenza e gli eventuali servizi inclusi nella promo.
 
 ${knowledgeSection}
 
@@ -419,7 +447,13 @@ Se stai per scrivere un messaggio testuale invece di chiamare escalate_to_operat
       const isSoftRefusal = softRefusalPatterns.some(rx => rx.test(fullReply));
       const userHasProductTerm = productLikePatterns.some(rx => rx.test(userMsg));
 
-      if (isSoftRefusal || userHasProductTerm) {
+      // Se la richiesta riguarda un prodotto coperto da KB, NON forzare escalation anche se matcha pattern
+      const isKBCoveredGuard = KB_COVERED_TERMS.some(kw => userMsg.includes(kw));
+      if (isKBCoveredGuard) {
+        console.log(`[${VERSION}] server-guard: kb-covered term → skip product term escalation`);
+      }
+
+      if ((isSoftRefusal || userHasProductTerm) && !isKBCoveredGuard) {
         try {
           await supabase.from("escalated_sessions").insert({
             session_id: sessionId,
