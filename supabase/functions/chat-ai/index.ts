@@ -146,7 +146,7 @@ Deno.serve(async (req: Request) => {
       lastUserMessage.length > 3
         ? supabase.from("knowledge_chunks")
             .select("content")
-            .textSearch("content", lastUserMessage.split(/\s+/).filter((w: string) => w.length > 3).slice(0, 5).join(" | "), { type: "plain" })
+            .textSearch("content", lastUserMessage.split(/\s+/).filter((w: string) => w.length > 3).slice(0, 5).join(" | "), { type: "websearch" })
             .limit(5)
         : Promise.resolve({ data: [] }),
     ]);
