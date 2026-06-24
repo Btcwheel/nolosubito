@@ -50,7 +50,12 @@
       "Bash(node scripts/link-wp-images.cjs)",
       "Bash(Select-String -Pattern \"error|✓|✗|modules transformed\")",
       "Bash(Select-Object -First 10)",
-      "WebFetch(domain:www.leasys.com)"
+      "WebFetch(domain:www.leasys.com)",
+      "Bash(git pull *)",
+      "Bash(git rev-list *)",
+      "Bash(git stash *)",
+      "Bash(sips -g pixelWidth -g pixelHeight \"dist-electron/mac/Nolosubito Operator.app/Contents/Resources/icon.icns\")",
+      "Bash(gh auth *)"
     ]
   }
 }
