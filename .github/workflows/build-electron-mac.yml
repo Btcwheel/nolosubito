@@ -10,6 +10,9 @@ on:
 jobs:
   build-mac:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64]
     steps:
       - uses: actions/checkout@v4
 
@@ -21,15 +24,15 @@ jobs:
         working-directory: operator-desktop
         run: npm install
 
-      - name: Build Electron app for Mac (Intel x64)
+      - name: Build Electron app for Mac (${{ matrix.arch }})
         working-directory: operator-desktop
-        run: npx electron-builder --mac --x64
+        run: npx electron-builder --mac --${{ matrix.arch }}
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Upload .dmg
         uses: actions/upload-artifact@v4
         with:
-          name: nolosubito-operator-mac-intel
+          name: nolosubito-operator-mac-${{ matrix.arch }}
           path: operator-desktop/dist-electron/*.dmg
           retention-days: 30
