@@ -21,15 +21,15 @@ jobs:
         working-directory: operator-desktop
         run: npm install
 
-      - name: Build Electron app for Mac
+      - name: Build Electron app for Mac (Intel x64)
         working-directory: operator-desktop
-        run: npm run electron:build:mac
+        run: npx electron-builder --mac --x64
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Upload .dmg
         uses: actions/upload-artifact@v4
         with:
-          name: nolosubito-operator-mac
+          name: nolosubito-operator-mac-intel
           path: operator-desktop/dist-electron/*.dmg
           retention-days: 30
