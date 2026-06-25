@@ -309,18 +309,21 @@ export default function PrintPreventivo() {
         document.querySelectorAll('script[src*="googletagmanager"]').forEach(function(s) { s.remove(); });
 
         if (containerRef.current) {
+          // window.print() non funziona se chiamato subito dopo document.write
+          // perché il browser non ha ancora renderizzato il template (font, layout).
+          // Usiamo un timeout fisso invece di aspettare l'evento load, che a volte
+          // non viene sparato dopo document.close().
           document.open();
           document.write(compiledHtml);
           document.close();
+        }
 
-          // Dopo il load, se ?print=1, lancia window.print() automaticamente
-          if (autoPrint) {
-            window.addEventListener('load', () => {
-              setTimeout(() => {
-                try { window.print(); } catch (e) { console.warn('Auto-print fallito:', e); }
-              }, 800);
-            });
-          }
+        // print() VA FUORI dal if(containerRef) per funzionare anche quando
+        // React ha già smontato il componente dopo document.write
+        if (autoPrint) {
+          setTimeout(function () {
+            try { window.print(); } catch (e) { console.warn('[PrintPreventivo] print fallito:', e); }
+          }, 1500);
         }
 
         setStatus('ready');
