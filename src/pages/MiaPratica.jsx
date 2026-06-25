@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { scaricaPreventivoPDF } from "@/lib/preventivoPdf";
+import { scaricaPreventivoPDF } from "@/lib/preventivoPrint";
 import PreventivoModal from "@/components/preventivi/PreventivoModal";
 import { praticheService } from "@/services/pratiche";
 import { preventiviService } from "@/services/preventivi";

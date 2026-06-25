@@ -1,0 +1,101 @@
+{
+  "_descrizione": "Schema dati per il preventivo Nolosubito. L'agente AI compila questi campi; il programma li inietta nel template HTML e genera il PDF. Gli importi sono numeri (punto come separatore decimale): la formattazione italiana (€ 1.234,56) la applica il template/programma. Le sezioni marcate _statico nel template (marketing, note legali, privacy) NON sono qui perche' non cambiano da preventivo a preventivo.",
+
+  "offerta": {
+    "numero": "NS-C4EBF6",
+    "data_emissione": "2026-05-18",
+    "valida_fino_al": "2026-06-02"
+  },
+
+  "cliente": {
+    "nome": "Maria Bruno",
+    "email": "cliente@email.it",
+    "telefono": "+39 ..."
+  },
+
+  "consulente": {
+    "ragione_sociale": "Nolosubito S.r.l.",
+    "telefono": "+39 06 400 49490",
+    "email": "info@nolosubito.it",
+    "sito": "nolosubito.it"
+  },
+
+  "veicolo": {
+    "marca": "Citroën",
+    "modello": "C3",
+    "versione": "C3 Turbo 100 cv Manuale PLUS",
+    "titolo_display": "Citroën C3 Turbo 100 cv",
+    "sottotitolo_display": "Allestimento PLUS · Cambio Manuale · Pronta consegna",
+    "alimentazione": "Benzina",
+    "potenza_cv": 100,
+    "potenza_kw": 74,
+    "cambio": "Manuale 6 marce",
+    "carrozzeria": "Hatchback / Crossover",
+    "colore_esterno": "A definire",
+    "interni": "Tessuto allestimento PLUS",
+    "emissioni_co2_g_km": 119,
+    "classe_ambientale": "Euro 6E",
+    "pronta_consegna": true,
+    "foto_url": null,
+    "_foto_note": "URL di una foto del modello scontornata (sfondo trasparente, PNG). Lasciare null per mostrare il segnaposto."
+  },
+
+  "contratto": {
+    "durata_mesi": 48,
+    "km_annui": 25000,
+    "km_totali": 100000,
+    "anticipo_iva_esclusa": 0.00,
+    "anticipo_iva_inclusa": 0.00
+  },
+
+  "chips": [
+    "Pronta consegna",
+    "Benzina · 100 cv",
+    "48 mesi",
+    "25.000 km/anno",
+    "Cambio Manuale"
+  ],
+
+  "canone": {
+    "aliquota_iva": 22,
+    "quota_veicolo_iva_esclusa": 276.86,
+    "quota_veicolo_iva_inclusa": 337.77,
+    "quota_servizi_iva_esclusa": 136.36,
+    "quota_servizi_iva_inclusa": 166.36,
+    "totale_iva_esclusa": 413.22,
+    "totale_iva_inclusa": 504.13,
+    "canone_mensile_display": 504.13,
+    "_nota": "canone_mensile_display e' l'importo grande in evidenza (IVA inclusa). totale_* = quota_veicolo_* + quota_servizi_*."
+  },
+
+  "valore_veicolo": {
+    "listino": 17900.00,
+    "optional": 0.00,
+    "accessori": 0.00,
+    "totale": 17900.00,
+    "_nota": "totale = listino + optional + accessori (IVA esclusa)."
+  },
+
+  "servizi_inclusi": [
+    { "titolo": "R.C.A. Responsabilità Civile", "dettaglio": "Massimale max 25 milioni" },
+    { "titolo": "Copertura Danni Kasko", "dettaglio": "Penale 500 € per sinistro" },
+    { "titolo": "Incendio e Furto", "dettaglio": "Penale 10% sul valore" },
+    { "titolo": "Manutenzione Ordinaria", "dettaglio": "Tagliandi periodici programmati" },
+    { "titolo": "Manutenzione Straordinaria", "dettaglio": "Riparazioni per usura" },
+    { "titolo": "Tassa di Possesso", "dettaglio": "Bollo auto gestito da broker" },
+    { "titolo": "Immatricolazione", "dettaglio": "Messa su strada inclusa" },
+    { "titolo": "Cambio Pneumatici", "dettaglio": "Stagionali (estivi/invernali)" },
+    { "titolo": "Assistenza Stradale H24", "dettaglio": "Soccorso 365 giorni l'anno" },
+    { "titolo": "Consegna del Veicolo", "dettaglio": "Presso sede o domicilio" },
+    { "titolo": "Gestione Multe", "dettaglio": "Rinotifica al conducente" },
+    { "titolo": "Customer Care Dedicato", "dettaglio": "Numero verde + e-mail" }
+  ],
+
+  "branding": {
+    "_nota": "Opzionale. Se omesso, il template usa i colori Nolosubito di default.",
+    "colore_brand": "#2B2D87",
+    "colore_brand_2": "#3A3DA6",
+    "colore_brand_soft": "#ECEDF7",
+    "colore_accento": "#FFB100"
+  }
+}

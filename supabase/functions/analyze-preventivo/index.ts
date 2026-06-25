@@ -1,6 +1,12 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+// Provider: Z.ai (GLM-4.6 multimodale vision) — OpenAI-compatible endpoint.
+// Sostituisce Anthropic Claude Haiku (crediti esauriti).
+// Endpoint: https://api.z.ai/api/paas/v4/chat/completions
+// Modello: glm-4.6 (supporta image_url con data URI base64)
+const ZAI_API_KEY = Deno.env.get("ZAI_API_KEY");
+const ZAI_ENDPOINT = "https://api.z.ai/api/paas/v4/chat/completions";
+const ZAI_MODEL = "glm-4.6";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -451,8 +457,8 @@ function normalizePreventivo(raw: JsonRecord): NormalizedPreventivo {
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
-  if (!ANTHROPIC_API_KEY) {
-    return new Response(JSON.stringify({ error: "Missing ANTHROPIC_API_KEY" }), {
+  if (!ZAI_API_KEY) {
+    return new Response(JSON.stringify({ error: "Missing ZAI_API_KEY" }), {
       status: 500,
       headers: { ...CORS, "Content-Type": "application/json" },
     });
@@ -460,19 +466,20 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json() as AnalyzeBody;
+    // Formato OpenAI-compatible: content è un array di {type:"text"|"image_url", ...}
     const userContent: unknown[] = [];
 
     if (body.pages && body.pages.length > 0) {
       for (const pageB64 of body.pages) {
         userContent.push({
-          type: "image",
-          source: { type: "base64", media_type: "image/jpeg", data: pageB64 },
+          type: "image_url",
+          image_url: { url: `data:image/jpeg;base64,${pageB64}` },
         });
       }
     } else if (body.base64 && body.mediaType) {
       userContent.push({
-        type: "image",
-        source: { type: "base64", media_type: body.mediaType, data: body.base64 },
+        type: "image_url",
+        image_url: { url: `data:${body.mediaType};base64,${body.base64}` },
       });
     }
 
@@ -531,30 +538,32 @@ Linee guida pratiche:
 `,
     });
 
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch(ZAI_ENDPOINT, {
       method: "POST",
       headers: {
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json",
+        "Authorization": `Bearer ${ZAI_API_KEY}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 768,
+        model: ZAI_MODEL,
+        max_tokens: 1024,
         messages: [{ role: "user", content: userContent }],
+        // Forza output JSON puro (GLM-4.6 supporta response_format OpenAI-style)
+        response_format: { type: "json_object" },
       }),
     });
 
     const responseText = await response.text();
     if (!response.ok) {
-      return new Response(JSON.stringify({ error: responseText || `Anthropic API error (${response.status})` }), {
+      return new Response(JSON.stringify({ error: responseText || `Z.ai API error (${response.status})` }), {
         status: response.status,
         headers: { ...CORS, "Content-Type": "application/json" },
       });
     }
 
-    const payload = JSON.parse(responseText) as { content?: Array<{ text?: string }> };
-    const raw = payload.content?.[0]?.text ?? "{}";
+    // Risposta OpenAI-compatible: choices[0].message.content (stringa)
+    const payload = JSON.parse(responseText) as { choices?: Array<{ message?: { content?: string } }> };
+    const raw = payload.choices?.[0]?.message?.content ?? "{}";
     const parsed = parseJsonFromText(raw);
     const data = normalizePreventivo(parsed);
 

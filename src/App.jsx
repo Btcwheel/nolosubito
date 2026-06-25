@@ -37,6 +37,7 @@ const AgenteMateriali     = lazy(() => import('./pages/AgenteMateriali'));
 const BackofficeDashboard = lazy(() => import('./pages/BackofficeDashboard'));
 const PraticaDetail       = lazy(() => import('./pages/PraticaDetail'));
 const MiaPratica          = lazy(() => import('./pages/MiaPratica'));
+const PrintPreventivo     = lazy(() => import('./pages/PrintPreventivo'));
 const CmsDashboard        = lazy(() => import('./pages/CmsDashboard'));
 const PageNotFound        = lazy(() => import('./lib/PageNotFound'));
 
@@ -136,6 +137,9 @@ const AppRoutes = () => {
             <Route path="/mia-pratica" element={<MiaPratica />} />
           </Route>
         </Route>
+
+        {/* ── Print Preventivo (standalone, no layout — popup per Stampa → Salva PDF) ── */}
+        <Route path="/print/preventivo/:id" element={<PrintPreventivo />} />
 
         <Route path="*" element={<PageNotFound />} />
       </Routes>

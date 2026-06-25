@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { scaricaPreventivoPDF } from "@/lib/preventivoPdf";
+import { scaricaPreventivoPDF } from "@/lib/preventivoPrint";
 import { preventiviService } from "@/services/preventivi";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
@@ -102,17 +102,37 @@ async function renderPdfPagesAndText(pdf) {
   const pages = [];
   const textParts = [];
   const maxPages = Math.min(pdf.numPages, 5);
+  // Anthropic Vision: max 1568px lato lungo, max 10MB/imma.
+  // A4 a scale 1.6 ~ 1900x2700 -> downscale a 1568 lato lungo.
+  const MAX_LONG_SIDE = 1568;
 
   for (let i = 1; i <= maxPages; i++) {
     const page = await pdf.getPage(i);
-    const viewport = page.getViewport({ scale: 2.5 });
+    const viewport = page.getViewport({ scale: 1.6 });
     const canvas = document.createElement('canvas');
     canvas.width = viewport.width;
     canvas.height = viewport.height;
     const ctx = canvas.getContext('2d');
     if (!ctx) continue;
     await page.render({ canvasContext: ctx, viewport }).promise;
-    pages.push(canvas.toDataURL('image/jpeg', 0.95).split(',')[1]);
+
+    // Downscale di sicurezza se eccede il limite Anthropic
+    const longSide = Math.max(canvas.width, canvas.height);
+    if (longSide > MAX_LONG_SIDE) {
+      const ratio = MAX_LONG_SIDE / longSide;
+      const out = document.createElement('canvas');
+      out.width = Math.round(canvas.width * ratio);
+      out.height = Math.round(canvas.height * ratio);
+      const outCtx = out.getContext('2d');
+      if (outCtx) {
+        outCtx.drawImage(canvas, 0, 0, out.width, out.height);
+        pages.push(out.toDataURL('image/jpeg', 0.85).split(',')[1]);
+      } else {
+        pages.push(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+      }
+    } else {
+      pages.push(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+    }
 
     try {
       const textContent = await page.getTextContent();
