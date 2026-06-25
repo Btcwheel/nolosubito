@@ -302,10 +302,13 @@ export default function PrintPreventivo() {
         if (cancelled) return;
 
         // 6. Inietta nel DOM
+        // Prima di sostituire la pagina, neutralizza Google Analytics per evitare
+        // errori postMessage (GA prova a comunicare con google/youtube dopo il replace)
+        window.dataLayer = [];
+        window.gtag = function() {};
+        document.querySelectorAll('script[src*="googletagmanager"]').forEach(function(s) { s.remove(); });
+
         if (containerRef.current) {
-          // Estrai solo il <body> del template (il <style> va nel <head>)
-          // Più semplice: iniettiamo tutto dentro un wrapper che fa da shadow DOM
-          // — ma per stampare correttamente usiamo document.write per sostituire l'intera pagina
           document.open();
           document.write(compiledHtml);
           document.close();
