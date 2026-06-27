@@ -109,7 +109,7 @@ header.doc-head{
 
 /* TITLE BLOCK */
 .title-block{
-  padding:32px 44px 24px;
+  padding:20px 44px 16px;
   background:
     radial-gradient(900px 200px at 100% 0%, rgba(255,177,0,.07), transparent 60%),
     linear-gradient(180deg, #fff, #FAFBFD);
@@ -117,23 +117,23 @@ header.doc-head{
 .eyebrow{
   display:inline-block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;
   color:var(--brand);font-weight:700;
-  padding:5px 10px;background:var(--brand-soft);border-radius:6px;margin-bottom:14px;
+  padding:4px 10px;background:var(--brand-soft);border-radius:6px;margin-bottom:10px;
 }
 h1.title{
-  font-size:30px;font-weight:800;letter-spacing:-.025em;line-height:1.1;color:var(--brand);margin:0 0 14px;
+  font-size:26px;font-weight:800;letter-spacing:-.025em;line-height:1.1;color:var(--brand);margin:0 0 10px;
 }
 h1.title em{font-style:normal;color:var(--ink);font-weight:700;}
-.lede{font-size:13.5px;line-height:1.65;color:var(--ink-2);max-width:680px;margin:0;text-align:left;}
+.lede{font-size:12.5px;line-height:1.55;color:var(--ink-2);max-width:680px;margin:0;text-align:left;}
 .lede strong{color:var(--brand);font-weight:700;}
 
 /* TWO-COL */
 .pair{
-  display:grid;grid-template-columns:1fr 1fr;gap:18px;
-  padding:6px 44px 22px;
+  display:grid;grid-template-columns:1fr 1fr;gap:14px;
+  padding:4px 44px 16px;
 }
 .card{
   background:#fff;border:1px solid var(--line);border-radius:var(--radius);
-  padding:18px 20px;position:relative;
+  padding:14px 18px;position:relative;
 }
 .card .head{
   display:flex;align-items:center;justify-content:space-between;
@@ -154,7 +154,7 @@ h1.title em{font-style:normal;color:var(--ink);font-weight:700;}
 
 /* VEHICLE HERO */
 .veh-hero{
-  margin:0 44px 22px;
+  margin:0 44px 16px;
   background:linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%);
   border-radius:var(--radius);
   color:#fff;
@@ -168,7 +168,7 @@ h1.title em{font-style:normal;color:var(--ink);font-weight:700;}
   pointer-events:none;
 }
 .veh-hero-inner{
-  padding:24px 28px;position:relative;z-index:1;
+  padding:18px 24px;position:relative;z-index:1;
 }
 .veh-info .brand-tag{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.65);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
 .veh-info .brand-tag::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.18);max-width:120px;}
@@ -185,7 +185,7 @@ h1.title em{font-style:normal;color:var(--ink);font-weight:700;}
 
 /* CANONE BLOCK */
 .canone-wrap{
-  padding:0 44px 22px;
+  padding:0 44px 16px;
   display:grid;grid-template-columns:1.55fr 1fr;gap:18px;
 }
 .canone-table{
@@ -252,36 +252,57 @@ h1.title em{font-style:normal;color:var(--ink);font-weight:700;}
 
 /* SERVICES */
 .services{
-  padding:0 44px 30px;
+  padding:0 44px 16px;
 }
 .section-title{
-  display:flex;align-items:center;gap:10px;margin:0 0 14px;
+  display:flex;align-items:center;gap:10px;margin:0 0 10px;
 }
 .section-title h3{
-  font-size:14px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--brand);margin:0;
+  font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--brand);margin:0;
 }
 .section-title .rule{flex:1;height:1px;background:var(--line);}
 .section-title .badge{
   background:var(--brand-soft);color:var(--brand);
-  font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;
+  font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;
 }
 .services-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:8px 18px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:4px 14px;
 }
 .service{
-  display:flex;gap:10px;align-items:flex-start;
-  padding:10px 4px;
-  font-size:12px;line-height:1.35;color:var(--ink-2);
+  display:flex;gap:8px;align-items:flex-start;
+  padding:7px 2px;
+  font-size:11.5px;line-height:1.3;color:var(--ink-2);
   border-bottom:1px solid var(--line-2);
 }
 .service .check{
-  flex-shrink:0;width:18px;height:18px;border-radius:6px;
+  flex-shrink:0;width:16px;height:16px;border-radius:5px;
   background:#E8F4EE;color:var(--green);
   display:grid;place-items:center;margin-top:1px;
 }
-.service .check svg{width:11px;height:11px;}
+.service .check svg{width:10px;height:10px;}
 .service strong{font-weight:600;color:var(--ink);}
-.service .meta{display:block;color:var(--muted);font-size:10.5px;margin-top:1px;font-weight:500;}
+.service .meta{display:block;color:var(--muted);font-size:10px;margin-top:1px;font-weight:500;}
+
+/* OPTIONAL SERVICES */
+.services-opt{
+  padding:0 44px 16px;
+}
+.opt-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:4px 14px;
+}
+.service-opt{
+  display:flex;gap:8px;align-items:center;
+  padding:6px 2px;
+  font-size:11.5px;color:var(--muted);
+  border-bottom:1px dashed var(--line-2);
+}
+.service-opt .check-opt{
+  flex-shrink:0;width:16px;height:16px;border-radius:5px;
+  border:1.5px dashed var(--muted-2);
+  display:grid;place-items:center;
+}
+.service-opt strong{font-weight:600;color:var(--ink-2);}
+.service-opt .meta{color:var(--muted);font-size:10px;margin-left:4px;}
 
 /* FOOTER */
 .doc-foot{
@@ -535,7 +556,7 @@ h1.title em{font-style:normal;color:var(--ink);font-weight:700;}
     </div>
   </section>
 
-  <!-- Services -->
+  <!-- Services included -->
   <section class="services">
     <div class="section-title">
       <h3>Servizi inclusi nel canone</h3>
@@ -551,6 +572,24 @@ h1.title em{font-style:normal;color:var(--ink);font-weight:700;}
       {{/each}}
     </div>
   </section>
+
+  <!-- Optional services -->
+  {{#if servizi_richiesti.length}}
+  <section class="services-opt">
+    <div class="section-title">
+      <h3>Servizi aggiuntivi disponibili</h3>
+      <span class="rule"></span>
+    </div>
+    <div class="opt-grid">
+      {{#each servizi_richiesti}}
+      <div class="service-opt">
+        <span class="check-opt"></span>
+        <span><strong>{{this.titolo}}</strong><span class="meta">— {{this.dettaglio}}</span></span>
+      </div>
+      {{/each}}
+    </div>
+  </section>
+  {{/if}}
 
   <footer class="doc-foot">
     <div class="left">
