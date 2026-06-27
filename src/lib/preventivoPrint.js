@@ -314,11 +314,13 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
           const raw = await html2canvas(el, {
             useCORS: true,
             scale: 2,
-            height: Math.round(el.offsetWidth * 297 / 210),
           });
 
-          if (i > 0) pdf.addPage();
-          pdf.addImage(raw.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297);
+          // Calcola l'altezza PDF proporzionale alla larghezza A4
+          // Se il contenuto sfora l'A4, viene compresso (non tagliato)
+          const pdfH = Math.round((raw.height / raw.width) * 210 * 10) / 10;
+          if (i > 0) pdf.addPage([210, pdfH]);
+          pdf.addImage(raw.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, pdfH);
         }
 
         pdf.save(`preventivo-${prev.id.slice(-6).toUpperCase()}.pdf`);
