@@ -1,10 +1,11 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-preventivo-print`;
 
-// Stesso SERVIZI_NOLOSUBITO_MAP di src/lib/PreventivoPdfDoc.jsx
 const SERVIZI_NOLOSUBITO_MAP = {
   RCA: ['RC Auto', 'Responsabilità Civile Auto verso terzi'],
   DANNI: ['Copertura Danni', 'Penale variabile in base alla società di noleggio'],
@@ -46,25 +47,29 @@ const fmtDataIt = (iso) => {
   return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
-// Handlebars-lite: render dei placeholder {{path}} + blocchi {{#if}}/{{#each}}
-// (sottoinsieme minimale sufficiente per il nostro template, niente dipendenze)
 function renderTemplate(tpl, data) {
-  // Helper: registra
-  const helpers = { eur: fmtEur, num: fmtNum, dataIt: fmtDataIt };
+  const fmtAmt = (v) => {
+    if (v == null || isNaN(Number(v))) return '0,00';
+    return Number(v).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+  const helpers = { eur: fmtEur, num: fmtNum, dataIt: fmtDataIt, amt: fmtAmt };
 
-  // 1. Risolvi i blocchi {{#if x}}...{{/if}} (con eventuale {{else}})
   tpl = tpl.replace(/\{\{#if\s+([\w.]+)\}\}([\s\S]*?)\{\{\/if\}\}/g, (m, path, body) => {
     const val = getPath(data, path);
+    const elseIdx = body.indexOf('{{else}}');
+    if (elseIdx !== -1) {
+      const ifBody = body.slice(0, elseIdx);
+      const elseBody = body.slice(elseIdx + 8);
+      return val ? ifBody : elseBody;
+    }
     if (val) return body;
     return '';
   });
 
-  // 2. Risolvi i blocchi {{#each x}}...{{/each}} (con {{this.field}})
   tpl = tpl.replace(/\{\{#each\s+([\w.]+)\}\}([\s\S]*?)\{\{\/each\}\}/g, (m, path, body) => {
     const arr = getPath(data, path);
     if (!Array.isArray(arr)) return '';
     return arr.map((item) => {
-      // Sostituisci {{this.x}} e {{this}} nel body
       let itemBody = body;
       itemBody = itemBody.replace(/\{\{this\.([\w.]+)\}\}/g, (_, p) => getPath(item, p) ?? '');
       itemBody = itemBody.replace(/\{\{this\}\}/g, () => item);
@@ -72,19 +77,16 @@ function renderTemplate(tpl, data) {
     }).join('');
   });
 
-  // 3. Risolvi {{obj.length}} (proprietà built-in)
   tpl = tpl.replace(/\{\{([\w.]+)\.length\}\}/g, (_, path) => {
     const val = getPath(data, path);
     return Array.isArray(val) ? String(val.length) : '0';
   });
 
-  // 4. Risolvi gli helper {{helperName path}}
   Object.keys(helpers).forEach((hName) => {
     const re = new RegExp(`\\{\\{${hName}\\s+([\\w.]+)\\}\\}`, 'g');
     tpl = tpl.replace(re, (_, path) => helpers[hName](getPath(data, path)));
   });
 
-  // 5. Risolvi i placeholder semplici {{path.to.field}}
   tpl = tpl.replace(/\{\{([\w.]+)\}\}/g, (_, path) => {
     const val = getPath(data, path);
     return val == null ? '' : String(val);
@@ -142,7 +144,6 @@ function mapServizioRichiesto(sr) {
 }
 
 async function buildPayload(prev, pratica) {
-  // Fetch offer per foto_prev (match su marca/modello)
   let fotoUrl = null;
   try {
     const { data: offers } = await supabase
@@ -164,7 +165,6 @@ async function buildPayload(prev, pratica) {
     console.warn('[PrintPreventivo] foto_prev lookup fallito:', e);
   }
 
-  // Calcola derivati
   const canoneIvaInclusa = Number(prev.canone_finale ?? prev.canone_mensile ?? 0);
   const canoneIvaEsclusa = round2(canoneIvaInclusa / 1.22);
   const quotaVeicoloIvaInclusa = Number(prev.quota_veicolo ?? 0);
@@ -271,81 +271,98 @@ export default function PrintPreventivo() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const autoPrint = searchParams.get('print') === 'true';
+  const iframeRef = useRef(null);
+  const [[status, errorMsg], setState] = useState(['loading', '']);
+  const generating = useRef(false);
 
-  const [status, setStatus] = useState('loading'); // loading | ready | error
-  const [errorMsg, setErrorMsg] = useState('');
-  const containerRef = useRef(null);
+  const generatePdf = useRef(null);
 
   useEffect(() => {
     let cancelled = false;
 
     async function run() {
       try {
-        // 1. Fetch preventivo + pratica via Edge Function (bypass RLS)
         const fnRes = await fetch(`${EDGE_FUNCTION_URL}?id=${encodeURIComponent(id)}`, {
           headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
         });
         if (!fnRes.ok) throw new Error('Preventivo non trovato');
         const { preventivo: prev, pratica } = await fnRes.json();
 
-        // 3. Build payload
         const payload = await buildPayload(prev, pratica);
 
-        // 4. Fetch template HTML da Storage
         const tplRes = await fetch(TEMPLATE_URL);
         if (!tplRes.ok) throw new Error(`Template HTTP ${tplRes.status}`);
         const tplHtml = await tplRes.text();
 
-        // 5. Compila template con i dati (Handlebars-lite)
         const compiledHtml = renderTemplate(tplHtml, payload);
+
+        window.dataLayer = [];
+        window.gtag = function() {};
+        document.querySelectorAll('script[src*="googletagmanager"]').forEach(s => s.remove());
 
         if (cancelled) return;
 
-        // 6. Inietta nel DOM
-        // Prima di sostituire la pagina, neutralizza Google Analytics per evitare
-        // errori postMessage (GA prova a comunicare con google/youtube dopo il replace)
-        window.dataLayer = [];
-        window.gtag = function() {};
-        document.querySelectorAll('script[src*="googletagmanager"]').forEach(function(s) { s.remove(); });
-
-        if (containerRef.current) {
-          // window.print() non funziona se chiamato subito dopo document.write
-          // perché il browser non ha ancora renderizzato il template (font, layout).
-          // Usiamo un timeout fisso invece di aspettare l'evento load, che a volte
-          // non viene sparato dopo document.close().
-          document.open();
-          document.write(compiledHtml);
-          document.close();
+        if (iframeRef.current) {
+          iframeRef.current.srcdoc = compiledHtml;
         }
 
-        // print() VA FUORI dal if(containerRef) per funzionare anche quando
-        // React ha già smontato il componente dopo document.write
-        if (autoPrint) {
-          setTimeout(function () {
-            try { window.print(); } catch (e) { console.warn('[PrintPreventivo] print fallito:', e); }
-          }, 1500);
-        }
+        generatePdf.current = async () => {
+          if (generating.current) return;
+          generating.current = true;
 
-        setStatus('ready');
+          try {
+            const iframe = iframeRef.current;
+            if (!iframe) return;
+            const doc = iframe.contentDocument || iframe.contentWindow.document;
+
+            // Aspetta font + immagini + rendering
+            await doc.fonts.ready;
+            await Promise.all(Array.from(doc.querySelectorAll('img')).map(
+              (img) => img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; }),
+            ));
+            await new Promise(r => setTimeout(r, 500));
+
+            const pages = doc.querySelectorAll('.page');
+            if (!pages.length) throw new Error('Nessuna pagina trovata');
+
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            for (let i = 0; i < pages.length; i++) {
+              const el = pages[i];
+              const raw = await html2canvas(el, {
+                useCORS: true,
+                scale: 2,
+                height: Math.round(el.offsetWidth * 297 / 210),
+              });
+
+              if (i > 0) pdf.addPage();
+              pdf.addImage(raw.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, 297);
+            }
+
+            pdf.save(`preventivo-${id.slice(-6).toUpperCase()}.pdf`);
+
+            // Chiudi popup dopo il download
+            setTimeout(() => { window.close(); }, 500);
+          } catch (e) {
+            console.error('[PrintPreventivo] PDF fallito:', e);
+          }
+        };
+
+        setState(['ready', '']);
       } catch (e) {
         if (cancelled) return;
         console.error('[PrintPreventivo] errore:', e);
-        setErrorMsg(e.message || String(e));
-        setStatus('error');
+        setState(['error', e.message || String(e)]);
       }
     }
 
     run();
     return () => { cancelled = true; };
-  }, [id, autoPrint]);
+  }, [id]);
 
-  if (status === 'loading') {
-    return (
-      <div style={{ padding: '40px', fontFamily: 'system-ui, sans-serif', color: '#374151', textAlign: 'center' }}>
-        <div style={{ fontSize: '14px' }}>Generazione preventivo…</div>
-      </div>
-    );
-  }
+  const handleIframeLoad = () => {
+    if (autoPrint) generatePdf.current?.();
+  };
 
   if (status === 'error') {
     return (
@@ -362,7 +379,25 @@ export default function PrintPreventivo() {
     );
   }
 
-  // Il contenuto viene iniettato via document.write, questo div è solo un placeholder
-  // che verrà sostituito. Serve per il mount di React.
-  return <div ref={containerRef} style={{ display: 'none' }} />;
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      {status === 'loading' && (
+        <div style={{ padding: '40px', fontFamily: 'system-ui, sans-serif', color: '#374151', textAlign: 'center', fontSize: '14px' }}>
+          Generazione preventivo…
+        </div>
+      )}
+      <iframe
+        ref={iframeRef}
+        onLoad={handleIframeLoad}
+        style={{
+          width: '794px',
+          flex: 1,
+          border: 'none',
+          background: '#fff',
+          margin: '0 auto',
+        }}
+        title="Preventivo"
+      />
+    </div>
+  );
 }
