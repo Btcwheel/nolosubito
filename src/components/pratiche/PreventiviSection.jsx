@@ -10,10 +10,13 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Plus, Send, Trash2, CheckCircle2, XCircle,
-  Car, ChevronUp, Loader2, RotateCcw, Sparkles, Paperclip, Eye, EyeOff, Download, FileText,
+  Car, ChevronUp, Loader2, RotateCcw, Sparkles, Paperclip, Eye, EyeOff, Download, FileText, AlertTriangle,
 } from "lucide-react";
 import PreventivoModal from "@/components/preventivi/PreventivoModal";
 import { format } from "date-fns";
@@ -363,6 +366,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
   const [form, setForm] = useState(BLANK_FORM);
   const [extracting, setExtracting] = useState(false);
   const [brokerFile, setBrokerFile] = useState(null);
+  const [limitModal, setLimitModal] = useState({ open: false, inclusiCount: 0, richiestiCount: 0 });
   const fileInputRef = useRef(null);
   const set = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
 
@@ -646,6 +650,16 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
     form.durata_mesi &&
     form.km_annui &&
     form.canone_mensile;
+
+  const handleSaveClick = () => {
+    const inclusiCount = form.servizi?.length || 0;
+    const richiestiCount = form.servizi_richiesti?.length || 0;
+    if (inclusiCount > 12 || richiestiCount > 3) {
+      setLimitModal({ open: true, inclusiCount, richiestiCount });
+      return;
+    }
+    createMut.mutate();
+  };
 
   return (
     <div className="bg-card border border-border/50 rounded-2xl p-5">
@@ -1017,7 +1031,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
             </Button>
             <Button
               size="sm"
-              onClick={() => createMut.mutate()}
+              onClick={handleSaveClick}
               disabled={!canSubmit || createMut.isPending}
               className="bg-navy hover:bg-navy-dark text-white gap-1.5"
             >
@@ -1059,6 +1073,38 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
           ))}
         </div>
       )}
+
+      <Dialog open={limitModal.open} onOpenChange={(open) => setLimitModal((prev) => ({ ...prev, open }))}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <AlertTriangle className="size-5 text-destructive" />
+              Limite servizi superato
+            </DialogTitle>
+            <DialogDescription className="text-sm">
+              Il PDF preventivo può contenere massimo <strong>12 servizi inclusi</strong> e <strong>3 servizi su richiesta</strong>.
+              <br /><br />
+              Attualmente hai <strong>{limitModal.inclusiCount} servizi inclusi</strong> e <strong>{limitModal.richiestiCount} servizi su richiesta</strong>.
+              <br /><br />
+              I servizi in eccesso non verranno mostrati nel PDF. Puoi eliminarli, spostarli nelle note per il cliente, o salvare comunque.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setLimitModal((prev) => ({ ...prev, open: false }))}>
+              Torna indietro
+            </Button>
+            <Button
+              onClick={() => {
+                setLimitModal((prev) => ({ ...prev, open: false }));
+                createMut.mutate();
+              }}
+              className="bg-navy hover:bg-navy-dark text-white"
+            >
+              Salva comunque
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

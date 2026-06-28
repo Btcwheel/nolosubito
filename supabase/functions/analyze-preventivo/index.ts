@@ -1,12 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-// Provider: Z.ai (GLM-4.6 multimodale vision) — OpenAI-compatible endpoint.
-// Sostituisce Anthropic Claude Haiku (crediti esauriti).
-// Endpoint: https://api.z.ai/api/paas/v4/chat/completions
-// Modello: glm-4.6 (supporta image_url con data URI base64)
-const ZAI_API_KEY = Deno.env.get("ZAI_API_KEY");
-const ZAI_ENDPOINT = "https://api.z.ai/api/paas/v4/chat/completions";
-const ZAI_MODEL = "glm-4.6";
+const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+const ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages";
+const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -454,39 +450,7 @@ function normalizePreventivo(raw: JsonRecord): NormalizedPreventivo {
   };
 }
 
-Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
-
-  if (!ZAI_API_KEY) {
-    return new Response(JSON.stringify({ error: "Missing ZAI_API_KEY" }), {
-      status: 500,
-      headers: { ...CORS, "Content-Type": "application/json" },
-    });
-  }
-
-  try {
-    const body = await req.json() as AnalyzeBody;
-    // Formato OpenAI-compatible: content è un array di {type:"text"|"image_url", ...}
-    const userContent: unknown[] = [];
-
-    if (body.pages && body.pages.length > 0) {
-      for (const pageB64 of body.pages) {
-        userContent.push({
-          type: "image_url",
-          image_url: { url: `data:image/jpeg;base64,${pageB64}` },
-        });
-      }
-    } else if (body.base64 && body.mediaType) {
-      userContent.push({
-        type: "image_url",
-        image_url: { url: `data:${body.mediaType};base64,${body.base64}` },
-      });
-    }
-
-    const textInput = cleanText(body.text);
-    userContent.push({
-      type: "text",
-      text: `Sei un esperto di preventivi NLT italiani. Estrai i dati dal documento e restituisci SOLO JSON valido, senza markdown, senza spiegazioni, senza testo aggiuntivo.
+const PROMPT_TEXT = `Sei un esperto di preventivi NLT italiani. Estrai i dati dal documento e restituisci SOLO JSON valido, senza markdown, senza spiegazioni, senza testo aggiuntivo.
 
 Se sono presenti sia testo estratto che immagini, usa le immagini come fonte primaria e il testo solo come supporto.
 Se una pagina contiene la scheda tecnica del veicolo, trattala come fonte di verità per marca, modello, versione/allestimento, alimentazione, cambio, carrozzeria, colore esterno, interni e potenza.
@@ -495,7 +459,7 @@ Non inventare servizi inclusi: estrai solo quelli esplicitamente elencati come i
 Ignora banner, claim promozionali e sezioni di marketing come "Perché scegliere..." se non contengono dati del preventivo.
 
 Testo estratto opzionale:
-${textInput ? textInput : "(nessuno)"}
+{{TEXT_INPUT}}
 
 Campi richiesti:
 {
@@ -535,35 +499,69 @@ Linee guida pratiche:
 - Se il documento mostra solo km totali, converti in km annui usando la durata.
 - Se trovi una versione/allestimento ripetuta nel modello, separala nel campo versione e lascia il modello pulito.
 - Se un servizio è esplicitamente incluso ma il suo nome non è standard, preservalo come stringa leggibile e deduplicala solo per equivalenza semantica.
-`,
+`;
+
+Deno.serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
+
+  if (!ANTHROPIC_API_KEY) {
+    return new Response(JSON.stringify({ error: "Missing ANTHROPIC_API_KEY" }), {
+      status: 500,
+      headers: { ...CORS, "Content-Type": "application/json" },
+    });
+  }
+
+  try {
+    const body = await req.json() as AnalyzeBody;
+
+    // Anthropic: content array con text + image blocks
+    const userContent: unknown[] = [];
+
+    if (body.pages && body.pages.length > 0) {
+      for (const pageB64 of body.pages) {
+        userContent.push({
+          type: "image",
+          source: { type: "base64", media_type: "image/jpeg", data: pageB64 },
+        });
+      }
+    } else if (body.base64 && body.mediaType) {
+      userContent.push({
+        type: "image",
+        source: { type: "base64", media_type: body.mediaType, data: body.base64 },
+      });
+    }
+
+    const textInput = cleanText(body.text) || "(nessuno)";
+    userContent.push({
+      type: "text",
+      text: PROMPT_TEXT.replace("{{TEXT_INPUT}}", textInput),
     });
 
-    const response = await fetch(ZAI_ENDPOINT, {
+    const response = await fetch(ANTHROPIC_ENDPOINT, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${ZAI_API_KEY}`,
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: ZAI_MODEL,
+        model: ANTHROPIC_MODEL,
         max_tokens: 1024,
         messages: [{ role: "user", content: userContent }],
-        // Forza output JSON puro (GLM-4.6 supporta response_format OpenAI-style)
-        response_format: { type: "json_object" },
       }),
     });
 
     const responseText = await response.text();
     if (!response.ok) {
-      return new Response(JSON.stringify({ error: responseText || `Z.ai API error (${response.status})` }), {
+      return new Response(JSON.stringify({ error: responseText || `Anthropic API error (${response.status})` }), {
         status: response.status,
         headers: { ...CORS, "Content-Type": "application/json" },
       });
     }
 
-    // Risposta OpenAI-compatible: choices[0].message.content (stringa)
-    const payload = JSON.parse(responseText) as { choices?: Array<{ message?: { content?: string } }> };
-    const raw = payload.choices?.[0]?.message?.content ?? "{}";
+    // Risposta Anthropic: content[0].text
+    const payload = JSON.parse(responseText) as { content?: Array<{ text?: string }> };
+    const raw = payload.content?.[0]?.text ?? "{}";
     const parsed = parseJsonFromText(raw);
     const data = normalizePreventivo(parsed);
 

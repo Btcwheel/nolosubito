@@ -134,7 +134,7 @@ export default function PreventivoModal({ preventivo, clienteNome, open, onClose
         {/* Footer actions */}
         <div className="px-6 pt-3 pb-4 border-t border-[#DCE2EF] bg-white">
           <p className="text-center text-xs text-[#6D7894] mb-3 flex items-center justify-center gap-1.5">
-            Apri il documento completo, poi usa Salva come PDF
+            Il PDF verrà scaricato automaticamente
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v7M3 6l3 3 3-3" stroke="#6D7894" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </p>
         <div className="flex gap-3">
@@ -151,7 +151,7 @@ export default function PreventivoModal({ preventivo, clienteNome, open, onClose
             className="flex-1 bg-[#36389D] hover:bg-[#36389D]/90 text-white gap-2"
           >
             <Download className="size-4" />
-            {downloading ? "Apertura…" : "Apri PDF"}
+            {downloading ? "Download…" : "Scarica PDF"}
           </Button>
         </div>
         </div>

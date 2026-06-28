@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
-import { scaricaPreventivoPDF } from "@/lib/preventivoPrint";
 import PreventivoModal from "@/components/preventivi/PreventivoModal";
 import { praticheService } from "@/services/pratiche";
 import { preventiviService } from "@/services/preventivi";
@@ -19,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import {
   Search, Car, User, MessageSquare, AlertCircle, Mail,
-  CheckCircle2, XCircle, Clock, Plus, Loader2, FileText, Download,
+  CheckCircle2, XCircle, Plus, Loader2, FileText,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";

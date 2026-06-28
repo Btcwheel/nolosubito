@@ -3,7 +3,51 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
 const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-preventivo-print`;
-const TEMPLATE_URL = 'https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/site-images/preventivo-template.html';
+const TEMPLATE_URL = '/export/preventivo-template.html';
+
+async function fetchAsDataUrl(path) {
+  const res = await fetch(path, { cache: 'no-store' });
+  if (!res.ok) return null;
+  const blob = await res.blob();
+  if (!blob.size) return null;
+  return new Promise((resolve) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result);
+    fr.onerror = () => resolve(null);
+    fr.readAsDataURL(blob);
+  });
+}
+
+function convertWebpToPngDataUrl(dataUrl) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = () => resolve(null);
+    img.src = dataUrl;
+  });
+}
+
+async function fetchVehicleImageAsPngDataUrl(url) {
+  try {
+    const dataUrl = await fetchAsDataUrl(url);
+    if (!dataUrl) return url;
+    if (dataUrl.startsWith('data:image/webp')) {
+      const png = await convertWebpToPngDataUrl(dataUrl);
+      return png || url;
+    }
+    return dataUrl;
+  } catch (e) {
+    console.warn('[preventivoPrint] conversione foto fallita:', e);
+    return url;
+  }
+}
 
 const SERVIZI_NOLOSUBITO_MAP = {
   RCA: ['RC Auto', 'Responsabilità Civile Auto verso terzi'],
@@ -53,7 +97,7 @@ function getPath(obj, path) {
   return path.split('.').reduce((acc, key) => (acc == null ? acc : acc[key]), obj);
 }
 
-function renderTemplate(tpl, data) {
+export function renderTemplate(tpl, data) {
   const fmtAmt = (v) => {
     if (v == null || isNaN(Number(v))) return '0,00';
     return Number(v).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -144,7 +188,7 @@ function mapServizioRichiesto(sr) {
   return { titolo: mapped[0], dettaglio: 'Disponibile su richiesta' };
 }
 
-async function buildPayload(prev, pratica) {
+export async function buildPayload(prev, pratica) {
   let fotoUrl = null;
   try {
     const { data: offers } = await supabase
@@ -160,7 +204,7 @@ async function buildPayload(prev, pratica) {
         const normOfferModel = norm(o.model);
         return normModello.startsWith(normOfferModel) || normOfferModel.startsWith(normModello);
       });
-      if (match?.foto_prev) fotoUrl = match.foto_prev;
+      if (match?.foto_prev) fotoUrl = await fetchVehicleImageAsPngDataUrl(match.foto_prev);
     }
   } catch (e) {
     console.warn('[preventivoPrint] foto_prev lookup fallito:', e);
@@ -260,8 +304,8 @@ async function buildPayload(prev, pratica) {
     },
     valore_veicolo: { listino: listing, optional, accessori, totale: totaleVeicolo },
     note_cliente: prev.note_cliente || null,
-    servizi_inclusi: serviziInclusi,
-    servizi_richiesti: serviziRichiesti,
+    servizi_inclusi: serviziInclusi.slice(0, 12),
+    servizi_richiesti: serviziRichiesti.slice(0, 3),
     branding: null,
   };
 }
@@ -285,8 +329,10 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
 
   const compiledHtml = renderTemplate(tplHtml, payload);
 
-  window.dataLayer = [];
-  window.gtag = function() {};
+        // @ts-ignore
+        window.dataLayer = [];
+        // @ts-ignore
+        window.gtag = function() {};
   document.querySelectorAll('script[src*="googletagmanager"]').forEach(s => s.remove());
 
   const iframe = document.createElement('iframe');
@@ -307,20 +353,24 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
         const pages = doc.querySelectorAll('.page');
         if (!pages.length) throw new Error('Nessuna pagina trovata');
 
-        const pdf = new jsPDF('p', 'mm', 'a4');
+        const overflows = Array.from(pages).filter((p) => p.scrollHeight > p.clientHeight + 2);
+        if (overflows.length) {
+          throw new Error('Il contenuto del preventivo supera lo spazio disponibile in una pagina A4. Riduci i servizi inclusi o le note.');
+        }
+
+        const pdf = new jsPDF('p', 'mm', [210, 297]);
 
         for (let i = 0; i < pages.length; i++) {
           const el = /** @type {HTMLElement} */ (pages[i]);
+          if (i > 0) pdf.addPage([210, 297]);
+
           const raw = await html2canvas(el, {
             useCORS: true,
             scale: 2,
+            backgroundColor: null,
           });
 
-          // Calcola l'altezza PDF proporzionale alla larghezza A4
-          // Se il contenuto sfora l'A4, viene compresso (non tagliato)
-          const pdfH = Math.round((raw.height / raw.width) * 210 * 10) / 10;
-          if (i > 0) pdf.addPage([210, pdfH]);
-          pdf.addImage(raw.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, 210, pdfH);
+          pdf.addImage(raw.toDataURL('image/png'), 'PNG', 0, 0, 210, 297);
         }
 
         pdf.save(`preventivo-${prev.id.slice(-6).toUpperCase()}.pdf`);
