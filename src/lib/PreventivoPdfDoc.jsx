@@ -16,15 +16,28 @@ import {
 // Helvetica (font standard PDF) ha metriche/glifi incompleti per caratteri estesi
 // (accentate, alcune cifre in contesti di wrap) in @react-pdf/renderer: causava spazi
 // scartati dopo É/à/ò e cifre mal renderizzate. Si registra Inter (già nel sito) come fix.
-const FONT_BASE = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/');
+const FONT_BASE = (
+  typeof process !== 'undefined' && process.env?.FONT_BASE_PATH
+    ? process.env.FONT_BASE_PATH
+    : typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL
+      ? import.meta.env.BASE_URL
+      : '/'
+).replace(/\/?$/, '/');
 Font.register({
-  family: 'Inter',
+  family: 'Manrope',
   fonts: [
-    { src: `${FONT_BASE}fonts/Inter-Regular.ttf`, fontWeight: 400 },
-    { src: `${FONT_BASE}fonts/Inter-Medium.ttf`, fontWeight: 500 },
-    { src: `${FONT_BASE}fonts/Inter-Bold.ttf`, fontWeight: 700 },
-    { src: `${FONT_BASE}fonts/Inter-Bold.ttf`, fontWeight: 'bold' },
-    { src: `${FONT_BASE}fonts/Inter-ExtraBold.ttf`, fontWeight: 800 },
+    { src: `${FONT_BASE}fonts/manrope-400.woff`, fontWeight: 400 },
+    { src: `${FONT_BASE}fonts/manrope-500.woff`, fontWeight: 500 },
+    { src: `${FONT_BASE}fonts/manrope-700.woff`, fontWeight: 700 },
+    { src: `${FONT_BASE}fonts/manrope-700.woff`, fontWeight: 'bold' },
+    { src: `${FONT_BASE}fonts/manrope-800.woff`, fontWeight: 800 },
+  ],
+});
+Font.register({
+  family: 'DM Mono',
+  fonts: [
+    { src: `${FONT_BASE}fonts/dm-mono-400.woff`, fontWeight: 400 },
+    { src: `${FONT_BASE}fonts/dm-mono-500.woff`, fontWeight: 500 },
   ],
 });
 
@@ -48,7 +61,7 @@ const stripLeadingCode = (value) => (value ? String(value).replace(/^\d{2,4}\s+/
 const S = StyleSheet.create({
   page: {
     backgroundColor: PAGE_BG,
-    fontFamily: 'Inter',
+    fontFamily: 'Manrope',
     fontSize: 9,
     fontWeight: 400,
     color: TEXT,
@@ -587,7 +600,7 @@ const WIcon = ({ type }) => {
   return <View>{map[type]}</View>;
 };
 
-const CheckItem = ({ nome, nota, highlight, icon = 'check' }) => (
+const CheckItem = ({ nome, nota, highlight = false, icon = 'check' }) => (
   <View style={S.serviceItem}>
     <SmallIcon type={icon} />
     <View style={S.serviceTextWrap}>

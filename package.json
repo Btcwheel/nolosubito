@@ -17,7 +17,9 @@
     "migrate-images": "node scripts/migrate-images.cjs"
   },
   "dependencies": {
+    "@fontsource/dm-mono": "^5.2.7",
     "@fontsource/inter": "^5.2.8",
+    "@fontsource/manrope": "^5.2.8",
     "@hello-pangea/dnd": "^17.0.0",
     "@hookform/resolvers": "^4.1.2",
     "@radix-ui/react-accordion": "^1.2.3",
