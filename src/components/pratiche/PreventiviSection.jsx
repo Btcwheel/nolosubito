@@ -59,6 +59,8 @@ const NOLOSUBITO_MAP = {
   'RCA': 'RC Auto',
   'DANNI': 'Copertura Danni',
   'FURTO_INCENDIO': 'Furto e Incendio',
+  'FURTO': 'Furto e Incendio',
+  'INCENDIO': 'Furto e Incendio',
   'CRISTALLI': 'Cristalli',
   'INFORTUNI': 'Infortuni Conducente',
   'TUTELA_LEGALE': 'Tutela Legale',
@@ -90,6 +92,55 @@ const BLANK_FORM = {
   servizi: [],
   servizi_richiesti: [],
 };
+
+function formatPenaleServizio(codice, penale) {
+  if (penale == null || penale === '') {
+    return codice === 'FURTO_INCENDIO' ? 'penale 0%' : '';
+  }
+  const valore = String(penale).trim();
+  if (codice === 'FURTO_INCENDIO') {
+    return valore.endsWith('%') ? `penale ${valore}` : `penale ${valore}%`;
+  }
+  return `penale €${valore}`;
+}
+
+function normalizeServiceKey(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function formatServizioNota(codice, notaBase, penale, originale = null) {
+  const originalNorm = normalizeServiceKey(originale || '');
+  const baseNorm = normalizeServiceKey(notaBase || '');
+  const originalLooksDetailed = Boolean(
+    originalNorm &&
+    originalNorm !== baseNorm &&
+    (
+      originalNorm.includes('penale') ||
+      originalNorm.includes('%') ||
+      originalNorm.includes('quota') ||
+      originalNorm.includes('inclus') ||
+      originalNorm.includes('franchigia') ||
+      originalNorm.length > baseNorm.length + 8
+    )
+  );
+
+  if (originalLooksDetailed) {
+    return originale;
+  }
+  if (codice === 'FURTO_INCENDIO') {
+    return formatPenaleServizio(codice, penale);
+  }
+  if (penale != null && penale !== '') {
+    return formatPenaleServizio(codice, penale);
+  }
+  return notaBase || '';
+}
 
 function isPresent(value) {
   return value !== null && value !== undefined && value !== "";
@@ -935,7 +986,8 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
                   const display = (() => {
                     if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
                       const nome = NOLOSUBITO_MAP[obj.codice] || obj.codice || obj.originale || '';
-                      const penale = obj.penale != null ? ` — penale €${obj.penale}` : '';
+                      const nota = formatServizioNota(obj.codice, nome, obj.penale, obj.originale);
+                      const penale = nota ? ` — ${nota}` : '';
                       return `${nome}${penale}`;
                     }
                     // Vecchio formato [canonical, original]

@@ -251,7 +251,7 @@ export default function useChat() {
   }, [sessionId]);
 
   const sendMessage = useCallback(async (text) => {
-    if (!text.trim() || typing || escalated) return;
+    if (!text.trim() || typing) return;
 
     const text_clean = text.trim();
     const userMsg = { role: 'user', content: text_clean };

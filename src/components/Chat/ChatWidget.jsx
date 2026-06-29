@@ -117,9 +117,9 @@ export default function ChatWidget() {
   }, [open]);
 
   const handleSend = useCallback(() => {
-    if (!input.trim() || typing || escalated) return;
+    if (!input.trim() || typing) return;
     sendMessage(input);
-  }, [input, typing, escalated, sendMessage]);
+  }, [input, typing, sendMessage]);
 
   const handleKey = useCallback((e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -206,7 +206,7 @@ export default function ChatWidget() {
                 />
                 <button type="button"
                   onClick={handleSend}
-                  disabled={!input.trim() || typing || escalated}
+                  disabled={!input.trim() || typing}
                   className="size-10 rounded-xl bg-electric disabled:bg-muted flex items-center justify-center text-white transition-all hover:bg-electric/90 active:scale-95 cursor-pointer disabled:cursor-not-allowed shrink-0"
                 >
                   {typing

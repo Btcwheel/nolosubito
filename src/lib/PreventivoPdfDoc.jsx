@@ -321,10 +321,13 @@ const S = StyleSheet.create({
   serviceMetaHighlight: { color: GREEN, fontWeight: 'bold' },
 
   p2TitleWrap: { marginTop: 2, marginBottom: 8 },
+  p2TopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginTop: 2, marginBottom: 8 },
+  p2TitleCol: { flex: 1, paddingRight: 4 },
+  p2ImageCol: { width: 176, alignItems: 'flex-end' },
   p2Hero: { fontSize: 13.8, lineHeight: 1.1, color: TEXT, fontWeight: 'bold', marginBottom: 1 },
   p2HeroBlue: { color: NAVY },
   p2HeroSub: { fontSize: 10.8, lineHeight: 1.1, color: TEXT, fontWeight: 'bold' },
-  vehiclePhotoLarge: { width: '100%', height: 130, objectFit: 'contain', marginBottom: 8 },
+  vehiclePhotoLarge: { width: 176, height: 106, objectFit: 'contain', marginBottom: 0 },
 
   specsGrid: { flexDirection: 'row', gap: 18, marginBottom: 9 },
   specCol: { flex: 1 },
@@ -733,6 +736,8 @@ const SERVIZI_MAP = {
   'copertura danni': ['Copertura Danni', 'Penale variabile in base al carrier scelto'],
   'copertura danni kasko': ['Copertura Danni', 'Penale variabile in base al carrier scelto'],
   'kasko': ['Copertura Danni', 'Penale variabile in base al carrier scelto'],
+  'furto': ['Furto e Incendio', 'Penale variabile in base al carrier scelto'],
+  'furto incendio': ['Furto e Incendio', 'Penale variabile in base al carrier scelto'],
   'copertura incendio e furto': ['Incendio e Furto', 'Penale variabile in base al carrier scelto'],
   'incendio e furto': ['Incendio e Furto', 'Penale variabile in base al carrier scelto'],
   'manutenzione ordinaria e straordinaria': ['Manutenzione Ordinaria e Straordinaria', 'Tagliandi e riparazioni inclusi'],
@@ -845,6 +850,45 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
     ...(prev.cambio ? [{ label: prev.cambio, hot: true }] : []),
   ];
 
+  const formatPenale = (codice, penale) => {
+    if (penale == null || penale === '') {
+      return codice === 'FURTO_INCENDIO' ? 'Penale 0%' : '';
+    }
+    const valore = String(penale).trim();
+    if (codice === 'FURTO_INCENDIO') {
+      return valore.endsWith('%') ? `Penale ${valore}` : `Penale ${valore}%`;
+    }
+    return `Penale € ${valore}`;
+  };
+
+  const formatServiceNote = (codice, mappedNote, penale, originale = null) => {
+    const originalNorm = normalizeServiceKey(originale || '');
+    const mappedNorm = normalizeServiceKey(mappedNote || '');
+    const originalLooksDetailed = Boolean(
+      originalNorm &&
+      originalNorm !== mappedNorm &&
+      (
+        originalNorm.includes('penale') ||
+        originalNorm.includes('%') ||
+        originalNorm.includes('quota') ||
+        originalNorm.includes('inclus') ||
+        originalNorm.includes('franchigia') ||
+        originalNorm.length > mappedNorm.length + 8
+      )
+    );
+
+    if (originalLooksDetailed) {
+      return originale;
+    }
+    if (codice === 'FURTO_INCENDIO') {
+      return formatPenale(codice, penale);
+    }
+    if (penale != null && penale !== '') {
+      return formatPenale(codice, penale);
+    }
+    return mappedNote || '';
+  };
+
   // Normalizza servizi — supporta sia nuovo formato {codice, penale, originale}
   // sia vecchio formato [canonical, original] che stringhe plain (legacy)
   function normalizzaServizio(s) {
@@ -862,8 +906,14 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
       const mapped = SERVIZI_NOLOSUBITO_MAP[obj.codice];
       if (mapped) {
         if (obj.penale === 0) return [mapped[0], 'Nessuna Penale', true];
-        const nota = obj.penale != null ? `Penale € ${obj.penale}` : mapped[1];
+        const nota = formatServiceNote(obj.codice, mapped[1], obj.penale, obj.originale);
         return [mapped[0], nota];
+      }
+      const originalNorm = normalizeServiceKey(obj.originale || '');
+      if (originalNorm.includes('furto')) {
+        const nomeFurto = originalNorm.includes('incendio') ? 'Furto e Incendio' : 'Furto e Incendio';
+        const notaFurto = formatPenale('FURTO_INCENDIO', obj.penale);
+        return [nomeFurto, notaFurto];
       }
       const nome = obj.originale || 'Servizio';
       return [nome, obj.penale != null ? `Penale € ${obj.penale}` : ''];
@@ -1089,16 +1139,23 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
         footerRight={`Pagina 2 di 2 · Ed. 1 — ${mesAnno}`}
       >
         <Text style={S.eyebrow}>DETTAGLI TECNICI</Text>
-        <View style={S.p2TitleWrap}>
-          <Text style={S.p2Hero}>
-            <Text style={S.p2HeroBlue}>Caratteristiche del veicolo</Text>
-          </Text>
-          <Text style={S.p2HeroSub}>
-            {prev.veicolo_marca} {prev.veicolo_modello}{prev.veicolo_versione ? ` ${prev.veicolo_versione}` : ''}
-          </Text>
+        <View style={S.p2TopRow}>
+          <View style={S.p2TitleCol}>
+            <View style={S.p2TitleWrap}>
+              <Text style={S.p2Hero}>
+                <Text style={S.p2HeroBlue}>Caratteristiche del veicolo</Text>
+              </Text>
+              <Text style={S.p2HeroSub}>
+                {prev.veicolo_marca} {prev.veicolo_modello}{prev.veicolo_versione ? ` ${prev.veicolo_versione}` : ''}
+              </Text>
+            </View>
+          </View>
+          {vehicleImageB64 ? (
+            <View style={S.p2ImageCol}>
+              <Image src={vehicleImageB64} style={S.vehiclePhotoLarge} />
+            </View>
+          ) : null}
         </View>
-
-        {vehicleImageB64 ? <Image src={vehicleImageB64} style={S.vehiclePhotoLarge} /> : null}
 
         <View style={[S.sectionTitleRow, { marginBottom: 8 }]}>
           <Text style={S.sectionTitle}>DATI TECNICI VEICOLO</Text>
