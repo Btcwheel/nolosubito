@@ -5,9 +5,9 @@ import { supabase } from '@/lib/supabase';
 const STORAGE_KEY = 'nolosubito_chat';
 const STORAGE_TTL = 24 * 60 * 60 * 1000;
 const ESCALATION_TIMEOUT_MS = 1 * 60 * 1000;
-const TYPE_SPEED_MIN = 25;
-const TYPE_SPEED_MAX = 45;
-const CHUNKS_PER_MSG = 15;
+const TYPE_SPEED_MIN = 45;
+const TYPE_SPEED_MAX = 85;
+const CHUNKS_PER_MSG = 12;
 
 const WELCOME = {
   role: 'assistant',
@@ -41,13 +41,13 @@ function saveToStorage(messages, leadSaved, sessionId) {
 
 function typingDelay(text, serverLength) {
   const charCount = serverLength || text.length;
-  const base = charCount * 35 + 1500;
-  const jitter = Math.random() * 800 - 400;
-  return Math.min(Math.max(base + jitter, 1500), 7000);
+  const base = charCount * 75 + 2500;
+  const jitter = Math.random() * 1200 - 600;
+  return Math.min(Math.max(base + jitter, 2500), 12000);
 }
 
-const BETWEEN_MSG_PAUSE = () => 2500 + Math.random() * 2000;
-const READ_DELAY = () => 2500 + Math.random() * 2500;
+const BETWEEN_MSG_PAUSE = () => 3500 + Math.random() * 2500;
+const READ_DELAY = () => 4000 + Math.random() * 4000;
 
 export default function useChat() {
   const stored = loadFromStorage();

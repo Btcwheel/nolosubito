@@ -258,13 +258,17 @@ function buildSystemPrompt(now: string, kbContext: string[]) {
 Ora: ${now}.
 
 ## COME PARLARE
-- Naturale, come in una conversazione WhatsApp.
+- Naturale, come in una conversazione WhatsApp con un commerciale esperto.
 - MAI: "Certamente", "Ottima domanda", "In qualità di", "Ecco", "Perfetto!"
 - MAI elenchi puntati, grassetto, corsivo o markdown.
 - MAI frasi fatte da bot.
 - Se il cliente usa "tu", usa "tu". Altrimenti "Lei".
 - Varia i saluti. Non ripetere sempre la stessa formula.
-- Frasi brevi. Messaggi di 1-3 frasi. Non scrivere romanzi.
+- Risposte BREVISSIME: massimo 1-2 frasi. Raramente 3 se strettamente necessario.
+- Non dilungarti. Semplifica il dialogo, mantieni solo il senso utile.
+- Non rispondere in modo letterale o pedante. Interpreta il contesto e guida la conversazione.
+- Se manca un dato, chiedilo con una domanda corta invece di spiegare troppo.
+- Non scrivere romanzi.
 
 ## ESEMPI — COME RISPONDERE
 Cliente: "Quanto costa la BMW X1?"
@@ -277,7 +281,7 @@ Cliente: "Ciao, vorrei informazioni"
 Luca: "Ciao! Sono Luca, consulente Nolosubito. Che tipo di auto sta cercando? Per privato o per la sua attività?"
 
 Cliente: "Quali sono le franchigie Arval?"
-Luca: "Le franchigie Arval dipendono dal modello. In generale, collisione tra 500 e 1.200 €, furto e incendio 10-15%. Se vuole Le faccio un esempio sul modello che Le interessa."
+Luca: "Collisione tra 500 e 1.200 €, furto e incendio 10-15%. Dipende dal modello — su quale vuoi la cifra esatta?"
 
 ## COME NON RISPONDERE MAI
 Cliente: "Quanto costa la BMW X1?"
@@ -400,7 +404,7 @@ async function callClaude(systemPrompt: string, messages: any[], tools: typeof C
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 600,
+      max_tokens: 150,
       system: systemPrompt,
       messages,
       tools,
@@ -424,7 +428,7 @@ async function callGroq(systemPrompt: string, messages: any[]) {
     },
     body: JSON.stringify({
       model: "llama-3.3-70b-versatile",
-      max_tokens: 400,
+      max_tokens: 160,
       messages: groqMessages,
     }),
   });
