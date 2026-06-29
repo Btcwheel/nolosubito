@@ -426,15 +426,13 @@ async function callGroq(systemPrompt: string, messages: any[]) {
       model: "llama-3.3-70b-versatile",
       max_tokens: 400,
       messages: groqMessages,
-      tools: toOpenAITools(CLAUDE_TOOLS),
-      tool_choice: "auto",
     }),
   });
   if (!res.ok) throw new Error(`Groq ${res.status}`);
   return await res.json() as {
     choices: {
       finish_reason: string;
-      message: { content: string; tool_calls?: { id: string; function: { name: string; arguments: string } }[] };
+      message: { content: string };
     }[];
   };
 }
@@ -445,16 +443,21 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405, headers: CORS });
 
+  let messages: any[] = [];
+  let sessionId = "";
+  let supabase: any;
+
   try {
-    const { messages, session_id } = await req.json() as any;
-    const sessionId: string = session_id || crypto.randomUUID();
-    if (!messages || !Array.isArray(messages)) {
+    const body = await req.json() as any;
+    messages = body.messages || [];
+    sessionId = body.session_id || crypto.randomUUID();
+    if (!Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "messages array required" }), {
         status: 400, headers: { ...CORS, "Content-Type": "application/json" },
       });
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const lastUserMessage = (messages[messages.length - 1]?.content ?? "").slice(0, 200);
 
     // ── TAKE-OVER GUARD ──────────────────────────────────────────────
@@ -553,42 +556,9 @@ Deno.serve(async (req: Request) => {
         }
       }
     } else {
-      // Usa Groq (Llama 3.1-70B)
       const groqRes = await callGroq(systemPrompt, cleanMessages);
-      const choice = groqRes.choices?.[0];
-
-      if (choice?.finish_reason === "tool_calls" && choice.message?.tool_calls) {
-        const tc = choice.message.tool_calls[0];
-        toolName = tc.function.name;
-        try { toolInput = JSON.parse(tc.function.arguments); } catch { toolInput = {}; }
-
-        if (toolName === "escalate_to_operator") {
-          await escalateToOperator(supabase, toolInput, sessionId, messages);
-          escalated = true;
-          replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
-        } else {
-          isToolCall = true;
-          const result = await handleTool(toolName, toolInput, supabase, sessionId, messages);
-
-          if (toolName === "save_lead") {
-            leadSaved = true;
-            replyParts = ["Grazie! Un consulente la contatterà presto."];
-          } else {
-            // Tool → risposta testuale: richiama Groq con il risultato
-            const followRes = await callGroq(systemPrompt, [
-              ...cleanMessages,
-              choice.message,
-              { role: "tool", tool_call_id: tc.id, content: result },
-            ]);
-            const followChoice = followRes.choices?.[0];
-            const txt = followChoice?.message?.content || "";
-            replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
-          }
-        }
-      } else {
-        const txt = choice?.message?.content || "";
-        replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
-      }
+      const txt = groqRes.choices?.[0]?.message?.content || "";
+      replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
     }
 
     if (replyParts.length === 0) {
@@ -616,9 +586,19 @@ Deno.serve(async (req: Request) => {
     const msg = err instanceof Error ? err.message : String(err);
     const stack = err instanceof Error ? err.stack : undefined;
     console.error(`[${VERSION}] error:`, msg, stack);
+
+    try {
+      const lastQuestion = messages.slice().reverse().find((m: any) => m.role === "user")?.content || "";
+      await escalateToOperator(supabase, { question: String(lastQuestion) }, sessionId, messages);
+    } catch (escErr: unknown) {
+      const escMsg = escErr instanceof Error ? escErr.message : String(escErr);
+      console.error(`[${VERSION}] auto-escalation failed:`, escMsg);
+    }
+
     return new Response(JSON.stringify({
       reply: ["Posso ricontattarLa tra poco — mi lascia un recapito? Grazie."],
-      offerLink: null, leadSaved: false, response_length: 0,
+      offerLink: null, leadSaved: false, escalated: true,
+      session_id: sessionId, response_length: 0,
     }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
   }
 });
