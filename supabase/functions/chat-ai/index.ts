@@ -35,6 +35,24 @@ function classifyComplexity(query: string): "simple" | "complex" {
   return "simple";
 }
 
+function buildQuickReply(query: string) {
+  const lower = query.toLowerCase();
+
+  if (lower.includes("come funziona") || lower.includes("come si") || lower.includes("noleggio")) {
+    return "Il noleggio a lungo termine funziona in modo semplice: si sceglie il veicolo, la durata e i km annui, e nel canone ci sono già quasi tutti i costi principali come manutenzione, assistenza e assicurazioni. Se mi dice che veicolo Le serve, Le indico subito la soluzione più adatta.";
+  }
+
+  if (lower.includes("furgon")) {
+    return "Sì, per l’estate possiamo trovare un furgone adatto. Mi dica solo se Le serve per lavoro o per uso personale, e quanto spazio Le serve.";
+  }
+
+  if (lower.includes("auto")) {
+    return "Mi dica marca o budget e Le indico subito le soluzioni più adatte.";
+  }
+
+  return null;
+}
+
 // ── KB EMBEDDING SEARCH ──────────────────────────────────────────────
 async function getEmbedding(text: string): Promise<number[]> {
   const res = await fetch(
@@ -405,7 +423,7 @@ async function callGroq(systemPrompt: string, messages: any[]) {
       "Authorization": `Bearer ${GROQ_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "llama-3.1-70b-versatile",
+      model: "llama-3.3-70b-versatile",
       max_tokens: 400,
       messages: groqMessages,
       tools: toOpenAITools(CLAUDE_TOOLS),
@@ -470,6 +488,18 @@ Deno.serve(async (req: Request) => {
     const cleanMessages = messages.filter((m: { role: string; content: string }) =>
       !(m.role === "assistant" && typeof m.content === "string" && m.content.startsWith("Posso ricontattarLa"))
     );
+
+    const quickReply = buildQuickReply(lastUserMessage);
+    if (quickReply) {
+      return new Response(JSON.stringify({
+        reply: [quickReply],
+        offerLink: null,
+        leadSaved: false,
+        escalated: false,
+        session_id: sessionId,
+        response_length: quickReply.length,
+      }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
+    }
 
     let replyParts: string[] = [];
     let leadSaved = false;
@@ -584,7 +614,8 @@ Deno.serve(async (req: Request) => {
 
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error(`[${VERSION}] error:`, msg);
+    const stack = err instanceof Error ? err.stack : undefined;
+    console.error(`[${VERSION}] error:`, msg, stack);
     return new Response(JSON.stringify({
       reply: ["Posso ricontattarLa tra poco — mi lascia un recapito? Grazie."],
       offerLink: null, leadSaved: false, response_length: 0,
