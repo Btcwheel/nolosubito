@@ -29,8 +29,9 @@ const COMPLEX_KEYWORDS = [
 function classifyComplexity(query: string): "simple" | "complex" {
   const lower = query.toLowerCase();
   const wordCount = query.split(/\s+/).length;
-  const hasComplex = COMPLEX_KEYWORDS.some(k => lower.includes(k));
-  if (wordCount > 15 || hasComplex) return "complex";
+  const matchedKeywords = COMPLEX_KEYWORDS.filter(k => lower.includes(k)).length;
+  const hasStrongSignals = matchedKeywords >= 2;
+  if (wordCount > 24 || hasStrongSignals) return "complex";
   return "simple";
 }
 
@@ -188,14 +189,30 @@ async function saveLead(supabase: any, args: Record<string, string>, sessionId: 
 }
 
 async function escalateToOperator(supabase: any, args: Record<string, string>, sessionId: string, messages: any[]) {
-  try {
-    await supabase.from("escalated_sessions").insert({
-      session_id: sessionId,
-      user_question: args.question || "",
-      chat_history: messages,
-      status: "waiting",
-    });
-  } catch (_) { /* ignora */ }
+  const payload = {
+    session_id: sessionId,
+    user_question: args.question || "",
+    chat_history: messages,
+    status: "waiting",
+    operator_id: null,
+    taken_at: null,
+    resolved_at: null,
+  };
+
+  let { error } = await supabase
+    .from("escalated_sessions")
+    .upsert(payload, { onConflict: "session_id" });
+
+  if (error) {
+    console.warn("[chat-ai] escalation upsert failed, retrying insert:", error.message);
+    const retry = await supabase.from("escalated_sessions").insert(payload);
+    error = retry.error;
+  }
+
+  if (error) {
+    console.error("[chat-ai] escalation insert failed:", error.message);
+    throw new Error(`Escalation failed: ${error.message}`);
+  }
   return "Escalation creata.";
 }
 
