@@ -826,16 +826,13 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
     ['Modello', prev.veicolo_modello || '—'],
     ['Versione', prev.veicolo_versione || '—'],
     ['Alimentazione', prev.alimentazione || '—'],
-    ['Cambio', prev.cambio || '—'],
     ['Carrozzeria', prev.carrozzeria || '—'],
     ['Potenza', prev.potenza || '—'],
   ];
   const specsRight = [
+    ['Cambio', prev.cambio || '—'],
     ['Colore esterno', stripLeadingCode(prev.colore_esterno) || 'A definire'],
     ['Interni', stripLeadingCode(prev.interni) || 'A definire'],
-    ['Emissioni CO2', prev.emissioni_co2 || '—'],
-    ['Classe ambientale', prev.classe_ambientale || '—'],
-    ['Deposito cauzionale', prev.deposito_cauzionale != null ? `€ ${fmt(prev.deposito_cauzionale)}` : '—'],
     ['Durata contratto', `${prev.durata_mesi} mesi`],
     ['Km annui', `${fmtN(prev.km_annui)} km`],
     ['Km totali', `${fmtN(kmTotali)} km`],
