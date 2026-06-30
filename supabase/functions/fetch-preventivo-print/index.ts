@@ -41,6 +41,13 @@ serve(async (req: Request) => {
     .eq("id", prev.pratica_id)
     .single();
 
+  // DEBUG: logga i dati restituiti per diagnosticare problemi di stampa
+  console.log('[fetch-preventivo-print] preventivo:', {
+    id: prev.id,
+    servizi: prev.servizi,
+    note_operative: prev.note_operative,
+  });
+
   return new Response(JSON.stringify({ preventivo: prev, pratica }), {
     headers: { ...CORS, "Content-Type": "application/json" },
   });

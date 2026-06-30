@@ -146,6 +146,14 @@ function isPresent(value) {
   return value !== null && value !== undefined && value !== "";
 }
 
+function buildNoteOperativa(noteAggiuntive, brokerText, prevNote) {
+  const parts = [];
+  if (noteAggiuntive?.trim()) parts.push(noteAggiuntive.trim());
+  if (brokerText?.trim()) parts.push(`--- TESTO BROKER ---\n${brokerText.trim().slice(0, 5000)}`);
+  if (!parts.length) return prevNote || "";
+  return parts.join("\n\n");
+}
+
 function toFormNumber(value) {
   if (!isPresent(value)) return "";
   const numeric = Number(value);
@@ -520,7 +528,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
             carrier:              extracted.carrier || prev.carrier,
             servizi:              nuoviServizi,
             servizi_richiesti:    calcRichiedibili(nuoviServizi),
-            note_operative:       extracted.note_aggiuntive || prev.note_operative,
+            note_operative:       buildNoteOperativa(extracted.note_aggiuntive, text, prev.note_operative),
           };
         };
 

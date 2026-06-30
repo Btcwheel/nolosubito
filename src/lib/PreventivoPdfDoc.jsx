@@ -1001,6 +1001,9 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
   const col2 = serviziInclusi.filter((_, i) => i % 3 === 1);
   const col3 = serviziInclusi.filter((_, i) => i % 3 === 2);
 
+  // DEBUG: logga i servizi che verranno renderizzati nel PDF
+  console.log('[PreventivoPdfDoc] serviziInclusi:', serviziInclusi);
+
   const logoSrc = logoB64 || null;
 
   return (

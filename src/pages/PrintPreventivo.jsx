@@ -21,6 +21,13 @@ export default function PrintPreventivo() {
         if (!fnRes.ok) throw new Error('Preventivo non trovato');
         const { preventivo: prev, pratica } = await fnRes.json();
 
+        // DEBUG: logga i servizi ricevuti per diagnosticare problemi di stampa
+        console.log('[PrintPreventivo] preventivo ricevuto:', {
+          id: prev?.id,
+          servizi: prev?.servizi,
+          note_operative: prev?.note_operative,
+        });
+
         if (cancelled) return;
 
         if (autoPrint) {
