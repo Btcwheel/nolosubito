@@ -155,7 +155,7 @@ function toFormNumber(value) {
 async function renderPdfPagesAndText(pdf) {
   const pages = [];
   const textParts = [];
-  const maxPages = Math.min(pdf.numPages, 5);
+  const maxPages = Math.min(pdf.numPages, 10);
   // Anthropic Vision: max 1568px lato lungo, max 10MB/imma.
   // A4 a scale 1.6 ~ 1900x2700 -> downscale a 1568 lato lungo.
   const MAX_LONG_SIDE = 1568;

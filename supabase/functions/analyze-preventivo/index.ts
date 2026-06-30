@@ -362,10 +362,18 @@ function normalizeServices(value: unknown): Array<ServizioNormalizzato> {
 function inferFurtoIncendioPenalty(text: string | null): string | null {
   if (!text) return null;
   const lower = text.toLowerCase();
+  const furtoIncendio = "(?:furto\\s*(?:e|\\/)\\s*incendio|incendio\\s*(?:e|\\/)\\s*furto)";
+  const amount = "(\\d{1,3}(?:[.,]\\d{1,2})?)";
   const patterns = [
-    /(?:furto\s*(?:e|\/)\s*incendio|incendio\s*(?:e|\/)\s*furto)[^.\n]*?(?:penale|franchigia)[^.\n]*?(\d{1,3}(?:[.,]\d{1,2})?)\s*%/i,
-    /(?:penale|franchigia)[^.\n]*(\d{1,3}(?:[.,]\d{1,2})?)\s*%[^.\n]*?(?:furto\s*(?:e|\/)\s*incendio|incendio\s*(?:e|\/)\s*furto)/i,
-    /(?:furto\s*(?:e|\/)\s*incendio|incendio\s*(?:e|\/)\s*furto)[^.\n]*?(\d{1,3}(?:[.,]\d{1,2})?)\s*(?:%|percento)/i,
+    // "Furto e Incendio ... 10%" (qualsiasi testo in mezzo, anche a capo)
+    new RegExp(`${furtoIncendio}[\\s\\S]{0,100}?${amount}\\s*%`, "i"),
+    // "10% ... Furto e Incendio"
+    new RegExp(`${amount}\\s*%[\\s\\S]{0,100}?${furtoIncendio}`, "i"),
+    // "Furto e Incendio ... 10 percento"
+    new RegExp(`${furtoIncendio}[\\s\\S]{0,100}?${amount}\\s*(?:%|percento)`, "i"),
+    // con keyword penale/franchigia/quota/a carico
+    new RegExp(`${furtoIncendio}[\\s\\S]{0,80}?(?:penale|franchigia|quota|a carico)[\\s\\S]{0,60}?${amount}\\s*%`, "i"),
+    new RegExp(`(?:penale|franchigia|quota|a carico)[\\s\\S]{0,60}?${amount}\\s*%[\\s\\S]{0,80}?${furtoIncendio}`, "i"),
   ];
   for (const pattern of patterns) {
     const match = lower.match(pattern);
@@ -382,6 +390,12 @@ function hasFurtoIncendio(services: Array<ServizioNormalizzato>): boolean {
     const text = normalizeKey(`${s.originale || ""} ${s.codice || ""}`);
     return text.includes("furto") && text.includes("incendio");
   });
+}
+
+function mentionsFurtoIncendio(text: string | null): boolean {
+  if (!text) return false;
+  const lower = text.toLowerCase();
+  return /(?:furto\s*(?:e|\/)\s*incendio|incendio\s*(?:e|\/)\s*furto)/i.test(lower);
 }
 
 function stripLeadingPrefix(value: string, prefix: string) {
@@ -461,7 +475,8 @@ function normalizePreventivo(raw: JsonRecord, rawText?: string | null): Normaliz
   let servizi = normalizeServices(raw.servizi);
 
   if (!hasFurtoIncendio(servizi)) {
-    const penale = inferFurtoIncendioPenalty(rawText || textOrNull(raw.note_aggiuntive));
+    const textSource = rawText || textOrNull(raw.note_aggiuntive);
+    const penale = inferFurtoIncendioPenalty(textSource) || (mentionsFurtoIncendio(textSource) ? "10%" : null);
     if (penale) {
       servizi = [
         ...servizi,

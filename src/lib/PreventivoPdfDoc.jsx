@@ -930,29 +930,40 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
 
   // Fallback di sicurezza: se Furto e Incendio non è mai stato estratto,
   // proviamo a recuperare la penale dalle note/originali e lo aggiungiamo.
-  const hasFurtoIncendio = serviziInclusi.some(([nome]) => {
+  // Se invece esiste già ma risulta "Penale 0%", tentiamo di correggerla.
+  const furtoIndex = serviziInclusi.findIndex(([nome]) => {
     const key = normalizeServiceKey(nome || '');
     return key.includes('furto') && key.includes('incendio');
   });
-  if (!hasFurtoIncendio) {
-    const noteText = [
-      prev.note_operative,
-      prev.note_cliente,
-      ...(prev.servizi || []).map((s) => {
-        let obj = s;
-        if (typeof s === 'string' && s.startsWith('{')) {
-          try { obj = JSON.parse(s); } catch (e) { }
-        }
-        return obj && typeof obj === 'object' && !Array.isArray(obj) ? (obj.originale || '') : '';
-      }),
-    ].join(' ');
-    const furtoMatch = noteText.match(/furto\s*(?:e|\/)\s*incendio[^.\n]*?(?:penale|franchigia)[^.\n]*?(\d{1,3}(?:[.,]\d{1,2})?)\s*%/i)
-      || noteText.match(/(?:penale|franchigia)[^.\n]*(\d{1,3}(?:[.,]\d{1,2})?)\s*%[^.\n]*?furto\s*(?:e|\/)\s*incendio/i);
-    const penaleFurto = furtoMatch ? `${furtoMatch[1].replace(',', '.')}%` : null;
-    serviziInclusi = [
-      ...serviziInclusi,
-      ['Furto e Incendio', formatPenale('FURTO_INCENDIO', penaleFurto)],
-    ];
+  const noteText = [
+    prev.note_operative,
+    prev.note_cliente,
+    ...(prev.servizi || []).map((s) => {
+      let obj = s;
+      if (typeof s === 'string' && s.startsWith('{')) {
+        try { obj = JSON.parse(s); } catch (e) { }
+      }
+      return obj && typeof obj === 'object' && !Array.isArray(obj) ? (obj.originale || '') : '';
+    }),
+  ].join(' ');
+  const furtoPattern = '(?:furto\\s*(?:e|\\/)\\s*incendio|incendio\\s*(?:e|\\/)\\s*furto)';
+  const amountPattern = '(\\d{1,3}(?:[.,]\\d{1,2})?)';
+  const furtoMatch = noteText.match(new RegExp(`${furtoPattern}[\\s\\S]{0,100}?${amountPattern}\\s*%`, 'i'))
+    || noteText.match(new RegExp(`${amountPattern}\\s*%[\\s\\S]{0,100}?${furtoPattern}`, 'i'))
+    || noteText.match(new RegExp(`${furtoPattern}[\\s\\S]{0,80}?(?:penale|franchigia|quota|a carico)[\\s\\S]{0,60}?${amountPattern}\\s*%`, 'i'))
+    || noteText.match(new RegExp(`(?:penale|franchigia|quota|a carico)[\\s\\S]{0,60}?${amountPattern}\\s*%[\\s\\S]{0,80}?${furtoPattern}`, 'i'));
+  const penaleFurto = furtoMatch
+    ? `${furtoMatch[1].replace(',', '.')}%`
+    : new RegExp(furtoPattern, 'i').test(noteText) ? '10%' : null;
+  if (penaleFurto) {
+    if (furtoIndex === -1) {
+      serviziInclusi = [...serviziInclusi, ['Furto e Incendio', formatPenale('FURTO_INCENDIO', penaleFurto)]];
+    } else {
+      const currentNote = serviziInclusi[furtoIndex][1];
+      if (!currentNote || currentNote === 'Penale 0%' || currentNote === '') {
+        serviziInclusi[furtoIndex][1] = formatPenale('FURTO_INCENDIO', penaleFurto);
+      }
+    }
   }
 
   // Servizi richiedibili (non inclusi ma disponibili on-demand)
