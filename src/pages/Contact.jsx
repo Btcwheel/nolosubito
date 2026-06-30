@@ -35,7 +35,7 @@ const offices = [
   },
   {
     name: "Filiale Napoli / Agnano",
-    lines: ["Via Eduardo Scarfoglio, 6H", "80125 Napoli"],
+    lines: ["Via Antiniana 58", "80078 Pozzuoli (NA)"],
     phones: ["+39 081 218 9702", "+39 334 353 1333"],
   },
   {
