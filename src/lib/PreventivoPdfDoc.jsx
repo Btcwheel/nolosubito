@@ -924,9 +924,36 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
   }
 
   const serviziRaw = prev.servizi?.length > 0 ? prev.servizi : null;
-  const serviziInclusi = serviziRaw
+  let serviziInclusi = serviziRaw
     ? serviziRaw.map(normalizzaServizio)
     : parseServizi(prev.note_operative) ?? SERVIZI_DEFAULT;
+
+  // Fallback di sicurezza: se Furto e Incendio non è mai stato estratto,
+  // proviamo a recuperare la penale dalle note/originali e lo aggiungiamo.
+  const hasFurtoIncendio = serviziInclusi.some(([nome]) => {
+    const key = normalizeServiceKey(nome || '');
+    return key.includes('furto') && key.includes('incendio');
+  });
+  if (!hasFurtoIncendio) {
+    const noteText = [
+      prev.note_operative,
+      prev.note_cliente,
+      ...(prev.servizi || []).map((s) => {
+        let obj = s;
+        if (typeof s === 'string' && s.startsWith('{')) {
+          try { obj = JSON.parse(s); } catch (e) { }
+        }
+        return obj && typeof obj === 'object' && !Array.isArray(obj) ? (obj.originale || '') : '';
+      }),
+    ].join(' ');
+    const furtoMatch = noteText.match(/furto\s*(?:e|\/)\s*incendio[^.\n]*?(?:penale|franchigia)[^.\n]*?(\d{1,3}(?:[.,]\d{1,2})?)\s*%/i)
+      || noteText.match(/(?:penale|franchigia)[^.\n]*(\d{1,3}(?:[.,]\d{1,2})?)\s*%[^.\n]*?furto\s*(?:e|\/)\s*incendio/i);
+    const penaleFurto = furtoMatch ? `${furtoMatch[1].replace(',', '.')}%` : null;
+    serviziInclusi = [
+      ...serviziInclusi,
+      ['Furto e Incendio', formatPenale('FURTO_INCENDIO', penaleFurto)],
+    ];
+  }
 
   // Servizi richiedibili (non inclusi ma disponibili on-demand)
   const codiciInclusi = new Set(

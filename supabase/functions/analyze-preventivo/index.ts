@@ -64,6 +64,11 @@ const SERVICE_GROUPS = [
     "limitazione responsabilita furto incendio con penale risarcitoria 10",
     "incendio e furto penale 0 i care", "incendio e furto penale 10 i care",
     "furto quota cliente 10 valore commerciale",
+    "furto e incendio", "furto incendio", "copertura furto e incendio",
+    "assicurazione furto e incendio", "limitazione responsabilita furto e incendio",
+    "furto e incendio penale 0", "furto e incendio penale 10",
+    "furto e incendio penale 0 i care", "furto e incendio penale 10 i care",
+    "furto incendio penale 10", "furto incendio penale 0",
   ]},
   { canonical: "Copertura Danni", aliases: [
     "copertura danni", "danni", "limitazione danni", "limitazione responsabilita danni",
@@ -354,6 +359,31 @@ function normalizeServices(value: unknown): Array<ServizioNormalizzato> {
   return result;
 }
 
+function inferFurtoIncendioPenalty(text: string | null): string | null {
+  if (!text) return null;
+  const lower = text.toLowerCase();
+  const patterns = [
+    /(?:furto\s*(?:e|\/)\s*incendio|incendio\s*(?:e|\/)\s*furto)[^.\n]*?(?:penale|franchigia)[^.\n]*?(\d{1,3}(?:[.,]\d{1,2})?)\s*%/i,
+    /(?:penale|franchigia)[^.\n]*(\d{1,3}(?:[.,]\d{1,2})?)\s*%[^.\n]*?(?:furto\s*(?:e|\/)\s*incendio|incendio\s*(?:e|\/)\s*furto)/i,
+    /(?:furto\s*(?:e|\/)\s*incendio|incendio\s*(?:e|\/)\s*furto)[^.\n]*?(\d{1,3}(?:[.,]\d{1,2})?)\s*(?:%|percento)/i,
+  ];
+  for (const pattern of patterns) {
+    const match = lower.match(pattern);
+    if (match) {
+      const val = match[1].replace(",", ".");
+      return `${val}%`;
+    }
+  }
+  return null;
+}
+
+function hasFurtoIncendio(services: Array<ServizioNormalizzato>): boolean {
+  return services.some((s) => {
+    const text = normalizeKey(`${s.originale || ""} ${s.codice || ""}`);
+    return text.includes("furto") && text.includes("incendio");
+  });
+}
+
 function stripLeadingPrefix(value: string, prefix: string) {
   if (!prefix) return value;
   const pattern = new RegExp(`^${escapeRegex(prefix)}\\s+`, "i");
@@ -426,8 +456,20 @@ function normalizeVehicleFields(raw: JsonRecord) {
   };
 }
 
-function normalizePreventivo(raw: JsonRecord): NormalizedPreventivo {
+function normalizePreventivo(raw: JsonRecord, rawText?: string | null): NormalizedPreventivo {
   const vehicle = normalizeVehicleFields(raw);
+  let servizi = normalizeServices(raw.servizi);
+
+  if (!hasFurtoIncendio(servizi)) {
+    const penale = inferFurtoIncendioPenalty(rawText || textOrNull(raw.note_aggiuntive));
+    if (penale) {
+      servizi = [
+        ...servizi,
+        { codice: "FURTO_INCENDIO", penale, originale: `Furto e Incendio Penale ${penale}` },
+      ];
+    }
+  }
+
   return {
     carrier: normalizeCarrier(raw.carrier),
     veicolo_marca: vehicle.veicolo_marca,
@@ -450,7 +492,7 @@ function normalizePreventivo(raw: JsonRecord): NormalizedPreventivo {
     valore_listing: vehicle.valore_listing,
     valore_optional: vehicle.valore_optional,
     valore_accessori: vehicle.valore_accessori,
-    servizi: normalizeServices(raw.servizi),
+    servizi,
     note_aggiuntive: textOrNull(raw.note_aggiuntive),
   };
 }
@@ -544,7 +586,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const textInput = cleanText(body.text) || "(nessuno)";
+    const textInputClean = cleanText(body.text);
+    const textInput = textInputClean || "(nessuno)";
     userContent.push({
       type: "text",
       text: PROMPT_TEXT.replace("{{TEXT_INPUT}}", textInput),
@@ -576,7 +619,7 @@ Deno.serve(async (req: Request) => {
     const payload = JSON.parse(responseText) as { content?: Array<{ text?: string }> };
     const raw = payload.content?.[0]?.text ?? "{}";
     const parsed = parseJsonFromText(raw);
-    const data = normalizePreventivo(parsed);
+    const data = normalizePreventivo(parsed, textInputClean);
 
     return new Response(JSON.stringify({ data }), {
       headers: { ...CORS, "Content-Type": "application/json" },

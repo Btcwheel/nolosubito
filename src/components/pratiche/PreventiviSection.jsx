@@ -418,6 +418,7 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
   const [extracting, setExtracting] = useState(false);
   const [brokerFile, setBrokerFile] = useState(null);
   const [limitModal, setLimitModal] = useState({ open: false, inclusiCount: 0, richiestiCount: 0 });
+  const [servizioDaAggiungere, setServizioDaAggiungere] = useState("");
   const fileInputRef = useRef(null);
   const set = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
 
@@ -1010,6 +1011,51 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
               </div>
             </div>
           )}
+
+          {/* Aggiungi servizio mancante */}
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+              Aggiungi servizio mancante
+            </p>
+            <div className="flex gap-2">
+              <Select value={servizioDaAggiungere} onValueChange={setServizioDaAggiungere}>
+                <SelectTrigger className="h-9 text-xs flex-1">
+                  <SelectValue placeholder="Seleziona un servizio..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {(() => {
+                    const codiciInclusi = new Set(
+                      form.servizi.map((s) => {
+                        const obj = (typeof s === 'string' && s.startsWith('{'))
+                          ? (() => { try { return JSON.parse(s); } catch(e) { return null; } })()
+                          : s;
+                        return obj && typeof obj === 'object' && !Array.isArray(obj) ? obj.codice : null;
+                      }).filter(Boolean),
+                    );
+                    return Object.entries(NOLOSUBITO_MAP)
+                      .filter(([codice]) => !codiciInclusi.has(codice))
+                      .map(([codice, nome]) => (
+                        <SelectItem key={codice} value={codice} className="text-xs">{nome}</SelectItem>
+                      ));
+                  })()}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 text-xs"
+                disabled={!servizioDaAggiungere}
+                onClick={() => {
+                  if (!servizioDaAggiungere) return;
+                  set("servizi", [...form.servizi, { codice: servizioDaAggiungere, penale: null, originale: null }]);
+                  setServizioDaAggiungere("");
+                }}
+              >
+                Aggiungi
+              </Button>
+            </div>
+          </div>
 
           {/* Servizi richiedibili */}
           {form.servizi.length > 0 && (
