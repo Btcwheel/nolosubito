@@ -8,7 +8,6 @@ import { useToast } from '@/components/ui/use-toast';
 
 const CHAT_AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-ai`;
 const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-document`;
-const TRAINING_SESSION_ID = 'training_backoffice';
 
 const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
@@ -72,6 +71,7 @@ function TrainingChat({ currentUserId, onKbUpdated }) {
   const [correcting, setCorrecting] = useState(null); // indice messaggio in correzione
   const [correction, setCorrection] = useState('');
   const [saving, setSaving] = useState(false);
+  const [sessionId, setSessionId] = useState(() => `training_${crypto.randomUUID()}`);
   const bottomRef = useRef(null);
   const { toast } = useToast();
 
@@ -97,7 +97,7 @@ function TrainingChat({ currentUserId, onKbUpdated }) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
-        body: JSON.stringify({ messages: apiMessages, session_id: TRAINING_SESSION_ID }),
+        body: JSON.stringify({ messages: apiMessages, session_id: sessionId }),
       });
       const data = await res.json();
       const reply = Array.isArray(data.reply) ? data.reply.join('\n\n') : (data.reply || '...');
@@ -158,6 +158,7 @@ function TrainingChat({ currentUserId, onKbUpdated }) {
     }]);
     setCorrecting(null);
     setCorrection('');
+    setSessionId(`training_${crypto.randomUUID()}`);
   }
 
   return (
