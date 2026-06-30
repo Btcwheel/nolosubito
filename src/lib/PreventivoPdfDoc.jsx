@@ -966,6 +966,23 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
     }
   }
 
+  // Fallback per Copertura Danni: se la nota è quella generica, cerchiamo la penale nel testo broker
+  const danniIndex = serviziInclusi.findIndex(([nome]) => normalizeServiceKey(nome || '').includes('danni'));
+  if (danniIndex !== -1) {
+    const currentDanniNote = serviziInclusi[danniIndex][1];
+    if (!currentDanniNote || currentDanniNote.includes('variabile') || currentDanniNote === '') {
+      const danniPattern = '(?:copertura danni|kasko|collisione|danni al veicolo)';
+      const danniAmount = '(\\d{1,6}(?:[.,]\\d{1,2})?)';
+      const danniMatch = noteText.match(new RegExp(`${danniPattern}[\\s\\S]{0,100}?${danniAmount}\\s*€`, 'i'))
+        || noteText.match(new RegExp(`${danniAmount}\\s*€[\\s\\S]{0,100}?${danniPattern}`, 'i'))
+        || noteText.match(new RegExp(`${danniPattern}[\\s\\S]{0,80}?(?:penale|franchigia|quota|a carico)[\\s\\S]{0,60}?${danniAmount}\\s*€`, 'i'))
+        || noteText.match(new RegExp(`(?:penale|franchigia|quota|a carico)[\\s\\S]{0,60}?${danniAmount}\\s*€[\\s\\S]{0,80}?${danniPattern}`, 'i'));
+      if (danniMatch) {
+        serviziInclusi[danniIndex][1] = `Penale € ${danniMatch[1].replace(',', '.')}`;
+      }
+    }
+  }
+
   // Servizi richiedibili (non inclusi ma disponibili on-demand)
   const codiciInclusi = new Set(
     (prev.servizi || []).map((s) => {

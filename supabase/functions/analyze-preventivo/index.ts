@@ -398,6 +398,27 @@ function mentionsFurtoIncendio(text: string | null): boolean {
   return /(?:furto\s*(?:e|\/)\s*incendio|incendio\s*(?:e|\/)\s*furto)/i.test(lower);
 }
 
+function inferDanniPenalty(text: string | null): number | null {
+  if (!text) return null;
+  const lower = text.toLowerCase();
+  const danniPattern = "(?:copertura danni|kasko|collisione|danni al veicolo|limitazione responsabilita danni)";
+  const amount = "(\\d{1,6}(?:[.,]\\d{1,2})?)";
+  const patterns = [
+    new RegExp(`${danniPattern}[\\s\\S]{0,100}?${amount}\\s*€`, "i"),
+    new RegExp(`${amount}\\s*€[\\s\\S]{0,100}?${danniPattern}`, "i"),
+    new RegExp(`${danniPattern}[\\s\\S]{0,80}?(?:penale|franchigia|quota|a carico)[\\s\\S]{0,60}?${amount}\\s*€`, "i"),
+    new RegExp(`(?:penale|franchigia|quota|a carico)[\\s\\S]{0,60}?${amount}\\s*€[\\s\\S]{0,80}?${danniPattern}`, "i"),
+  ];
+  for (const pattern of patterns) {
+    const match = lower.match(pattern);
+    if (match) {
+      const val = Number(match[1].replace(",", "."));
+      return Number.isFinite(val) ? val : null;
+    }
+  }
+  return null;
+}
+
 function stripLeadingPrefix(value: string, prefix: string) {
   if (!prefix) return value;
   const pattern = new RegExp(`^${escapeRegex(prefix)}\\s+`, "i");
@@ -474,8 +495,9 @@ function normalizePreventivo(raw: JsonRecord, rawText?: string | null): Normaliz
   const vehicle = normalizeVehicleFields(raw);
   let servizi = normalizeServices(raw.servizi);
 
+  const textSource = rawText || textOrNull(raw.note_aggiuntive);
+
   if (!hasFurtoIncendio(servizi)) {
-    const textSource = rawText || textOrNull(raw.note_aggiuntive);
     const penale = inferFurtoIncendioPenalty(textSource) || (mentionsFurtoIncendio(textSource) ? "10%" : null);
     if (penale) {
       servizi = [
@@ -484,6 +506,17 @@ function normalizePreventivo(raw: JsonRecord, rawText?: string | null): Normaliz
       ];
     }
   }
+
+  // Recupera la penale di Copertura Danni dal testo broker se l'AI non l'ha estratta
+  servizi = servizi.map((s) => {
+    if (s.codice === "DANNI" && s.penale == null) {
+      const penale = inferDanniPenalty(textSource);
+      if (penale != null) {
+        return { ...s, penale, originale: s.originale || `Copertura Danni Penale ${penale}` };
+      }
+    }
+    return s;
+  });
 
   return {
     carrier: normalizeCarrier(raw.carrier),
