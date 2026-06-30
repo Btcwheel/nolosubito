@@ -20,7 +20,7 @@ type JsonRecord = Record<string, unknown>;
 
 type ServizioNormalizzato = {
   codice: string | null;
-  penale: number | null;
+  penale: number | string | null;
   originale: string | null;
 };
 
@@ -287,9 +287,14 @@ function stripCarrierTerms(text: string | null): string | null {
   return stripped || null;
 }
 
-function extractPenale(texto: string | null): number | null {
+function extractPenale(texto: string | null): number | string | null {
   if (!texto) return null;
   const lower = texto.toLowerCase();
+  const matchPct = lower.match(/penal[ei]\s*(?:risarcitoria\s+)?(\d{1,3}(?:[.,]\d{1,2})?)\s*%/);
+  if (matchPct) {
+    const val = matchPct[1].replace(",", ".");
+    return `${val}%`;
+  }
   const match = lower.match(/penal[ei]\s*(?:risarcitoria\s+)?(\d{1,6}(?:[.,]\d{1,2})?)/);
   if (match) {
     const val = Number(match[1].replace(",", "."));
@@ -298,7 +303,7 @@ function extractPenale(texto: string | null): number | null {
   return null;
 }
 
-function canonicalizeService(value: unknown): { canonical: string; codice: string | null; penale: number | null; original: string | null } | null {
+function canonicalizeService(value: unknown): { canonical: string; codice: string | null; penale: number | string | null; original: string | null } | null {
   const text = cleanText(value);
   if (!text) return null;
   const key = normalizeKey(text);
@@ -490,7 +495,15 @@ Campi richiesti:
 
 Per il campo "servizi", restituisci un array di stringhe con i nomi ESATTI dei servizi come appaiono nel documento. Non normalizzare i nomi. Estrai TUTTI i servizi inclusi elencati nel preventivo.
 
-Per gli importi delle penali (franchigie) di ogni servizio, includile nel nome del servizio tra parentesi quando presenti (es. "RCA Penale 250").
+Per gli importi delle penali (franchigie) di ogni servizio, includile SEMPRE nel nome del servizio quando presenti nel documento.
+IMPORTANTE: ogni servizio deve avere la SUA penale corretta, non confondere le penali tra servizi diversi.
+Usa il formato: "Nome Servizio Penale VALORE" dove VALORE è il numero con eventuale %.
+Esempi corretti:
+- "Incendio e Furto Penale 10%" (se il documento indica penale 10% per furto/incendio)
+- "Copertura Danni Penale 500" (se il documento indica penale 500€ per kasko/danni)
+- "RCA Penale 250" (se il documento indica penale 250€ per RCA)
+Se un servizio non ha penale indicata, ometti la penale dal nome.
+Se la penale è una percentuale, includi il simbolo % (es. "Penale 10%").
 I campi "quota_veicolo" e "quota_servizi" rappresentano la suddivisione del canone mensile tra quota veicolo e quota servizi, così come riportata nel preventivo broker originale. Estrai SEMPRE i valori che trovi nel documento, senza calcolarli. Usa valori IVA inclusa quando presenti. Se il documento non ha la suddivisione, lascia null.
 Il campo "valore_listing" è il prezzo totale del veicolo (es. "Valore veicolo", "Prezzo veicolo", "Valore di listino", "Prezzo di listino"). Cercalo in tutte le pagine, spesso nella sezione "Scheda tecnica" o "Dati veicolo" o nella sezione economica.
 Linee guida pratiche:
