@@ -45,6 +45,7 @@ lighthouse-report.html
 # Google Cloud SDK
 google-cloud-sdk/
 google-cloud-cli-darwin-x86_64.tar.gz
+google-cloud-cli-darwin-x86.tar.gz
 
 # Electron build output
 operator-desktop/dist-electron/
