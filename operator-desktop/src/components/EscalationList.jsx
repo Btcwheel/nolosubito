@@ -17,6 +17,14 @@ export default function EscalationList({ user }) {
   const audioRef = useRef(null);
   const notifiedRef = useRef(new Set());
 
+  const filtered = sessions.filter(s => {
+    if (filter === 'active') return s.status === 'waiting' || s.status === 'operator_joined';
+    if (filter === 'resolved') return s.status === 'resolved' || s.status === 'contact_left';
+    return true;
+  });
+
+  const waitingCount = sessions.filter(s => s.status === 'waiting').length;
+
   useEffect(() => {
     fetchSessions();
     const channel = supabase
@@ -89,14 +97,6 @@ export default function EscalationList({ user }) {
   };
 
   const activeSession = sessions.find(s => s.id === activeSessionId);
-
-  const filtered = sessions.filter(s => {
-    if (filter === 'active') return s.status === 'waiting' || s.status === 'operator_joined';
-    if (filter === 'resolved') return s.status === 'resolved' || s.status === 'contact_left';
-    return true;
-  });
-
-  const waitingCount = sessions.filter(s => s.status === 'waiting').length;
 
   return (
     <div className="app-layout">

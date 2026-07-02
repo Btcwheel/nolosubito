@@ -45,13 +45,26 @@ export default function ChatView({ session, user, onClose }) {
   }, []);
 
   const loadMessages = async () => {
-    const { data } = await supabase
+    const { data: liveMessages } = await supabase
       .from('operator_chat_messages')
       .select('*')
       .eq('session_id', session.session_id)
       .order('created_at', { ascending: true });
 
-    if (data) setMessages(data);
+    const historyMessages = Array.isArray(session.chat_history)
+      ? session.chat_history
+          .filter(m => m.role === 'user' || m.role === 'assistant')
+          .map((m, idx) => ({
+            id: `history-${idx}`,
+            session_id: session.session_id,
+            sender: m.role === 'user' ? 'customer' : 'luca',
+            content: typeof m.content === 'string' ? m.content : JSON.stringify(m.content),
+            created_at: null,
+            isHistory: true,
+          }))
+      : [];
+
+    setMessages([...historyMessages, ...(liveMessages || [])]);
   };
 
   const send = async () => {
@@ -97,12 +110,18 @@ export default function ChatView({ session, user, onClose }) {
               maxWidth: '75%',
               padding: '8px 14px',
               borderRadius: '16px',
-              backgroundColor: m.sender === 'operator' ? '#2563eb' : '#f1f5f9',
+              backgroundColor: m.sender === 'operator' ? '#2563eb' : (m.isHistory ? '#e2e8f0' : '#f1f5f9'),
               color: m.sender === 'operator' ? '#fff' : '#1e293b',
               fontSize: '14px',
               lineHeight: 1.4,
               whiteSpace: 'pre-wrap',
+              opacity: m.isHistory ? 0.85 : 1,
             }}>
+              {m.isHistory && (
+                <div style={{ fontSize: '10px', color: '#64748b', marginBottom: '4px', fontWeight: 600 }}>
+                  {m.sender === 'luca' ? 'LUCA' : 'CLIENTE'} — prima dell’escalation
+                </div>
+              )}
               {m.content}
             </div>
           </div>
