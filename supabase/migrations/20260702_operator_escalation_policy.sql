@@ -5,6 +5,7 @@
 
 -- Rimuovi la policy vecchia stretta (admin/backoffice solo per compatibilita')
 drop policy if exists "backoffice_escalated_sessions" on public.escalated_sessions;
+drop policy if exists "operator_escalated_sessions" on public.escalated_sessions;
 
 -- Policy per operatori autenticati con permesso escalation:
 -- - possono leggere tutte le sessioni in escalation
