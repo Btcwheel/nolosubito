@@ -144,7 +144,7 @@ export default function LeadForm({ prefilledConfig }) {
     marca:         prefilledConfig?.make                              || "",
     modello:       prefilledConfig?.model                             || "",
     versione:      prefilledConfig?.version                           || "",
-    alimentazione: FUEL_TYPE_MAP[prefilledConfig?.fuelType] || "",
+    alimentazione: FUEL_TYPE_MAP[prefilledConfig?.fuelType] || prefilledConfig?.fuelType || "",
      anticipo:      "",
      kmAnnui:      prefilledConfig?.annualKm    ? String(prefilledConfig.annualKm) : "",
      note: "",

@@ -34,7 +34,7 @@ const offices = [
     phones: ["+39 06 40 049 490", "+39 345 430 0936"],
   },
   {
-    name: "Filiale Napoli / Agnano",
+    name: "Filiale Napoli / Pozzuoli",
     lines: ["Via Antiniana 58", "80078 Pozzuoli (NA)"],
     phones: ["+39 081 218 9702", "+39 334 353 1333"],
   },
@@ -97,7 +97,7 @@ export default function Contact() {
   return (
     <div className="bg-surface min-h-screen">
       <div className="bg-white border-b border-gray-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-4 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-4 pb-8">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
             <p className="text-xs font-bold text-electric uppercase tracking-widest mb-2">Nolosubito</p>
             <h1 className="font-heading font-bold text-3xl sm:text-4xl text-navy">Contattaci</h1>
