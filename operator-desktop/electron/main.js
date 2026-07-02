@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage } from 'electron';
+import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, Notification } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -8,9 +8,23 @@ const isDev = !app.isPackaged;
 let mainWindow = null;
 let tray = null;
 
-function createTray() {
+function getTrayIcon() {
   const iconPath = path.join(__dirname, '..', 'build', 'icon.png');
-  const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
+  try {
+    const image = nativeImage.createFromPath(iconPath);
+    if (image.isEmpty()) {
+      console.warn('Tray icon is empty, falling back to generated icon');
+      return nativeImage.createEmpty();
+    }
+    return image.resize({ width: 16, height: 16 });
+  } catch (err) {
+    console.error('Failed to load tray icon:', err.message);
+    return nativeImage.createEmpty();
+  }
+}
+
+function createTray() {
+  const icon = getTrayIcon();
   tray = new Tray(icon);
 
   const updateMenu = (count = 0) => {
@@ -42,13 +56,14 @@ function createTray() {
   };
 
   updateMenu(0);
-  tray.setContextMenu(updateMenu);
 
   tray.on('click', () => {
     if (mainWindow) {
       mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
     }
   });
+
+  return updateMenu;
 }
 
 function createWindow() {
@@ -95,7 +110,34 @@ function createWindow() {
 
 app.whenReady().then(() => {
   createWindow();
-  createTray();
+  const updateTrayMenu = createTray();
+
+  // Aggiorna badge sul tray, dock e menu
+  ipcMain.on('update-badge', (_event, count) => {
+    const safeCount = Number.isFinite(count) && count > 0 ? count : 0;
+    updateTrayMenu(safeCount);
+    if (process.platform === 'darwin') {
+      app.setBadgeCount(safeCount);
+    }
+  });
+
+  // Mostra notifica nativa anche se la finestra e' nascosta
+  ipcMain.on('show-notification', (_event, { title, body }) => {
+    if (!title) return;
+    const notification = new Notification({
+      title,
+      body: body || '',
+      icon: path.join(__dirname, '..', 'build', 'icon.png'),
+      silent: false,
+    });
+    notification.on('click', () => {
+      if (mainWindow) {
+        mainWindow.show();
+        mainWindow.focus();
+      }
+    });
+    notification.show();
+  });
 });
 
 app.on('window-all-closed', () => {

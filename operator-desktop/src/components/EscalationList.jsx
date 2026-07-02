@@ -28,8 +28,15 @@ export default function EscalationList({ user }) {
       }, () => fetchSessions())
       .subscribe();
 
+    // Badge inizialmente a zero finche' non carichiamo
+    window.electronAPI?.setBadgeCount?.(0);
+
     return () => supabase.removeChannel(channel);
   }, []);
+
+  useEffect(() => {
+    window.electronAPI?.setBadgeCount?.(waitingCount);
+  }, [waitingCount]);
 
   const fetchSessions = async () => {
     const { data } = await supabase
