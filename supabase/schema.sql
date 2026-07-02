@@ -44,11 +44,9 @@ create table if not exists offers (
   id              uuid default uuid_generate_v4() primary key,
   make            text not null,
   model           text not null,
-  category        text not null
-                    check (category in ('Business Sedan','Business SUV','Electric Exec',
-                                        'Electric SUV','Commercial Van','Premium Sedan','Compact Business')),
-  fuel_type       text check (fuel_type in ('Diesel','Petrol','Electric','Hybrid','GPL')),
-  transmission    text check (transmission in ('Automatic','Manual')),
+  category        text not null,
+  fuel_type       text,
+  transmission    text,
   power_hp        integer,
   co2_emissions   integer,
   vehicle_image   text,
@@ -531,8 +529,10 @@ alter table offers
   add column if not exists seo_keywords   text[]    default '{}',
   add column if not exists is_featured    boolean   default false;
 
--- Rimuove il CHECK su category (ora gestito lato app) e aggiunge tutte le categorie
+-- Rimuove il CHECK su category, fuel_type, e transmission (ora gestiti lato app tramite vehicle_options)
 alter table offers drop constraint if exists offers_category_check;
+alter table offers drop constraint if exists offers_fuel_type_check;
+alter table offers drop constraint if exists offers_transmission_check;
 
 -- Rimuove il CHECK su offer_configs.segment e lo ricrea includendo Moto e Green
 alter table offer_configs drop constraint if exists offer_configs_segment_check;

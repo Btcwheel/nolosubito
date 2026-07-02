@@ -81,13 +81,24 @@ create policy "backoffice_knowledge_chunks" on knowledge_chunks
     )
   );
 
--- escalated_sessions: backoffice e admin leggono/scrivono tutto
-create policy "backoffice_escalated_sessions" on escalated_sessions
-  for all using (
-    exists (
-      select 1 from profiles
-      where profiles.id = auth.uid()
-        and profiles.role in ('admin', 'backoffice')
+-- escalated_sessions: admin, backoffice e operatori con permesso escalation
+-- possono leggere/aggiornare le sessioni (prendi in carico, chiudi).
+create policy "operator_escalated_sessions" on escalated_sessions
+  for all to authenticated
+  using (
+    auth.uid() in (
+      select id from profiles
+      where role in ('admin', 'backoffice')
+         or backoffice_role in ('operatore_senior', 'supervisore')
+         or coalesce(permissions->>'escalation', 'false') = 'true'
+    )
+  )
+  with check (
+    auth.uid() in (
+      select id from profiles
+      where role in ('admin', 'backoffice')
+         or backoffice_role in ('operatore_senior', 'supervisore')
+         or coalesce(permissions->>'escalation', 'false') = 'true'
     )
   );
 
