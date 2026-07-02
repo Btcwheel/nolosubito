@@ -14,7 +14,7 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const VERSION = "chat-ai v3.1-gemini-embedding";
+const VERSION = "chat-ai v3.2-gptoss-tools-escalation";
 
 // ── ROUTER ──────────────────────────────────────────────────────────
 const COMPLEX_KEYWORDS = [
@@ -33,6 +33,17 @@ function classifyComplexity(query: string): "simple" | "complex" {
   const hasStrongSignals = matchedKeywords >= 2;
   if (wordCount > 24 || hasStrongSignals) return "complex";
   return "simple";
+}
+
+const ESCALATION_KEYWORDS = [
+  "operatore", "umano", "agente", "persona", "consulente reale", "parla con",
+  "contattami", "richiamata", "telefonata", "non so", "non sai", "non risponde",
+  "non mi aiuta", "sbagliato", "reclamo", "assistenza clienti", "vivo",
+];
+
+function shouldEscalate(query: string): boolean {
+  const lower = query.toLowerCase();
+  return ESCALATION_KEYWORDS.some(k => lower.includes(k));
 }
 
 function buildQuickReply(query: string) {
@@ -414,11 +425,26 @@ async function callClaude(systemPrompt: string, messages: any[], tools: typeof C
   return await res.json() as { content: { type: string; text?: string; id?: string; name?: string; input?: Record<string, string> }[] };
 }
 
-async function callGroq(systemPrompt: string, messages: any[]) {
+async function callGroq(systemPrompt: string, messages: any[], tools?: any[]) {
   const groqMessages = [
     { role: "system", content: systemPrompt },
-    ...messages.map((m: any) => ({ role: m.role, content: m.content })),
+    ...messages.map((m: any) => {
+      const base: Record<string, any> = { role: m.role, content: m.content ?? null };
+      if (m.tool_calls) base.tool_calls = m.tool_calls;
+      if (m.tool_call_id) base.tool_call_id = m.tool_call_id;
+      return base;
+    }),
   ];
+
+  const body: Record<string, any> = {
+    model: "openai/gpt-oss-120b",
+    max_tokens: 160,
+    messages: groqMessages,
+  };
+  if (tools && tools.length > 0) {
+    body.tools = tools;
+    body.tool_choice = "auto";
+  }
 
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
@@ -426,17 +452,13 @@ async function callGroq(systemPrompt: string, messages: any[]) {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${GROQ_API_KEY}`,
     },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 160,
-      messages: groqMessages,
-    }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`Groq ${res.status}`);
   return await res.json() as {
     choices: {
       finish_reason: string;
-      message: { content: string };
+      message: { content: string; tool_calls?: { id: string; function: { name: string; arguments: string } }[] };
     }[];
   };
 }
@@ -487,6 +509,19 @@ Deno.serve(async (req: Request) => {
     // ── ROUTING ──────────────────────────────────────────────────────
     const complexity = classifyComplexity(lastUserMessage);
     console.log(`[${VERSION}] routing: complexity=${complexity}`);
+
+    // ── ESCALATION DETERMINISTICA ─────────────────────────────────────
+    if (shouldEscalate(lastUserMessage)) {
+      await escalateToOperator(supabase, { question: lastUserMessage }, sessionId, messages);
+      return new Response(JSON.stringify({
+        reply: ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"],
+        offerLink: null,
+        leadSaved: false,
+        escalated: true,
+        session_id: sessionId,
+        response_length: 66,
+      }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
+    }
 
     const now = new Date().toLocaleString("it-IT", {
       timeZone: "Europe/Rome", hour: "2-digit", minute: "2-digit",
@@ -560,9 +595,43 @@ Deno.serve(async (req: Request) => {
         }
       }
     } else {
-      const groqRes = await callGroq(systemPrompt, cleanMessages);
-      const txt = groqRes.choices?.[0]?.message?.content || "";
-      replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
+      const openAiTools = toOpenAITools(CLAUDE_TOOLS);
+      const groqRes = await callGroq(systemPrompt, cleanMessages, openAiTools);
+      const choice = groqRes.choices?.[0];
+
+      if (choice?.finish_reason === "tool_calls" && choice.message?.tool_calls) {
+        const tc = choice.message.tool_calls[0];
+        const name = tc.function.name;
+        let input: Record<string, string> = {};
+        try { input = JSON.parse(tc.function.arguments); } catch { input = {}; }
+
+        if (name === "escalate_to_operator") {
+          await escalateToOperator(supabase, input, sessionId, messages);
+          escalated = true;
+          replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
+        } else {
+          isToolCall = true;
+          toolName = name;
+          toolInput = input;
+          const result = await handleTool(name, input, supabase, sessionId, messages);
+
+          if (name === "save_lead") {
+            leadSaved = result.includes("salvato");
+            replyParts = ["Grazie! Un consulente la contatterà presto."];
+          } else {
+            const followRes = await callGroq(systemPrompt, [
+              ...cleanMessages,
+              choice.message,
+              { role: "tool", tool_call_id: tc.id, content: result },
+            ]);
+            const txt = followRes.choices?.[0]?.message?.content || "";
+            replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
+          }
+        }
+      } else {
+        const txt = choice?.message?.content || "";
+        replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
+      }
     }
 
     if (replyParts.length === 0) {
@@ -592,6 +661,9 @@ Deno.serve(async (req: Request) => {
     console.error(`[${VERSION}] error:`, msg, stack);
 
     try {
+      if (!supabase) {
+        supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+      }
       const lastQuestion = messages.slice().reverse().find((m: any) => m.role === "user")?.content || "";
       await escalateToOperator(supabase, { question: String(lastQuestion) }, sessionId, messages);
     } catch (escErr: unknown) {
