@@ -8,9 +8,9 @@ import { supabase } from '@/lib/supabase';
 import AppLayout from './components/layout/AppLayout';
 import DashboardLayout from './components/layout/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+import Home from './pages/Home';
 
 // Lazy loading — ogni pagina è un chunk separato
-const Home             = lazy(() => import('./pages/Home'));
 const HeroCompare      = lazy(() => import('./pages/HeroCompare'));
 const BusinessOffers   = lazy(() => import('./pages/BusinessOffers'));
 const VehicleDetail    = lazy(() => import('./pages/VehicleDetail'));
