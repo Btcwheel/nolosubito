@@ -8,6 +8,47 @@ import { useCountdown } from "@/hooks/useCountdown";
 import { usePageVisible } from "@/hooks/usePageVisible";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing";
+import { Skeleton } from "@/components/ui/skeleton";
+
+function PromoHeroSkeleton() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-16 items-center animate-pulse">
+      {/* Left: contenuto */}
+      <div className="space-y-4 sm:space-y-6 z-10">
+        <div className="flex items-center gap-2">
+          <div className="size-1.5 sm:w-2 sm:h-2 rounded-full bg-white/20" />
+          <Skeleton className="h-3 w-40 bg-white/10" />
+        </div>
+
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-16 bg-white/10" />
+          <Skeleton className="h-10 sm:h-12 lg:h-14 w-3/4 bg-white/10" />
+          <Skeleton className="h-3 w-32 bg-white/10" />
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-8">
+          <div className="space-y-1.5">
+            <Skeleton className="h-2.5 w-16 bg-white/10" />
+            <Skeleton className="h-12 sm:h-14 w-48 bg-white/10 rounded-xl" />
+          </div>
+          <div className="space-y-0.5">
+            <Skeleton className="h-4 w-24 bg-white/10" />
+            <Skeleton className="h-10 sm:h-12 w-40 bg-white/10" />
+            <Skeleton className="h-2.5 w-32 bg-white/10" />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <Skeleton className="h-8 sm:h-9 w-28 bg-white/10 rounded-xl" />
+          <Skeleton className="h-8 sm:h-9 w-36 bg-white/10 rounded-xl" />
+        </div>
+      </div>
+
+      {/* Right: immagine */}
+      <div className="relative h-[200px] sm:h-[280px] lg:h-[400px] overflow-hidden rounded-2xl bg-white/5" />
+    </div>
+  );
+}
 
 function DigitBlock({ value, label }) {
   const padded = String(value).padStart(2, "0");
@@ -243,9 +284,16 @@ export default function PromoHero() {
     return (
       <section
         aria-hidden="true"
-        className="relative w-full overflow-hidden min-h-[560px] sm:min-h-[500px] lg:min-h-[520px]"
+        className="relative w-full overflow-hidden"
         style={{ background: "linear-gradient(135deg, #0f0f23 0%, #1a1a3e 40%, #0d1f3c 100%)" }}
-      />
+      >
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }}
+        />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:pt-6 sm:pb-12 lg:pt-8 lg:pb-16">
+          <PromoHeroSkeleton />
+        </div>
+      </section>
     );
   }
 
@@ -259,7 +307,7 @@ export default function PromoHero() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, y: -16, height: 0, overflow: "hidden" }}
           transition={{ duration: 0.35, ease: "easeInOut" }}
-          className="relative w-full overflow-hidden"
+          className="relative w-full overflow-hidden min-h-[560px] sm:min-h-[500px] lg:min-h-[520px]"
           style={{ background: "linear-gradient(135deg, #0f0f23 0%, #1a1a3e 40%, #0d1f3c 100%)" }}
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
