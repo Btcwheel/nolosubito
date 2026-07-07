@@ -202,7 +202,7 @@ export default function FeaturedVehicles() {
   };
 
   return (
-    <section className="bg-surface min-h-screen">
+    <section className="bg-surface">
 
       {/* ── HERO ───────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-4">
