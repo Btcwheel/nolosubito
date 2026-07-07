@@ -291,7 +291,7 @@ export default function PromoHero() {
     return (
       <section
         aria-hidden="true"
-        className="relative w-full overflow-hidden min-h-[460px] sm:min-h-[540px] lg:min-h-[560px]"
+        className="relative w-full overflow-hidden h-[460px] sm:h-[540px] lg:h-[560px]"
         style={{ background: "linear-gradient(135deg, #0f0f23 0%, #1a1a3e 40%, #0d1f3c 100%)" }}
       >
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
@@ -314,7 +314,7 @@ export default function PromoHero() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, y: -16, height: 0, overflow: "hidden" }}
           transition={{ duration: 0.35, ease: "easeInOut" }}
-          className="relative w-full overflow-hidden min-h-[460px] sm:min-h-[540px] lg:min-h-[560px]"
+          className="relative w-full overflow-hidden h-[460px] sm:h-[540px] lg:h-[560px]"
           style={{ background: "linear-gradient(135deg, #0f0f23 0%, #1a1a3e 40%, #0d1f3c 100%)" }}
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
