@@ -10,10 +10,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const supabase = createClient(
-      process.env.VITE_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 
+                        process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || 
+                        process.env.VITE_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error("Missing Supabase URL or Key in environment variables");
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Fetch posts pubblicati
     const { data: posts } = await supabase
@@ -22,10 +28,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .eq('is_published', true)
       .order('published_date', { ascending: false });
 
-    // Fetch offers unici
+    // Fetch offers unici (solo attive)
     const { data: allOffers } = await supabase
       .from('offers')
-      .select('make,model,created_at');
+      .select('make,model,created_at')
+      .eq('is_active', true);
 
     // Deduplicare offers per make/model
     const uniqueOffers = Array.from(
@@ -35,12 +42,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const xml = generateSitemap(posts || [], uniqueOffers);
 
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, max-age=86400'); // Cache 24h
+    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
     res.status(200).send(xml);
   } catch (err) {
     console.error("Sitemap error:", err);
     res.status(500).send("Error generating sitemap");
   }
+}
+
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
 }
 
 function generateSitemap(
@@ -83,7 +99,7 @@ function generateSitemap(
     const lastmod = new Date(post.published_date).toISOString().split("T")[0];
     urls.push(`
   <url>
-    <loc>${DOMAIN}/news/${post.slug}</loc>
+    <loc>${DOMAIN}/news/${escapeXml(post.slug)}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -97,7 +113,7 @@ function generateSitemap(
     const lastmod = new Date(offer.created_at).toISOString().split("T")[0];
     urls.push(`
   <url>
-    <loc>${DOMAIN}/vehicle/${makeSlug}/${modelSlug}</loc>
+    <loc>${DOMAIN}/vehicle/${escapeXml(makeSlug)}/${escapeXml(modelSlug)}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
