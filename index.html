@@ -69,7 +69,22 @@
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- PromoHero placeholder: riserva spazio prima del caricamento React per ridurre CLS -->
+      <div aria-hidden="true" class="promo-hero-placeholder"></div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
+    <style>
+      .promo-hero-placeholder {
+        min-height: 460px;
+        background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 40%, #0d1f3c 100%);
+      }
+      @media (min-width: 640px) {
+        .promo-hero-placeholder { min-height: 540px; }
+      }
+      @media (min-width: 1024px) {
+        .promo-hero-placeholder { min-height: 560px; }
+      }
+    </style>
   </body>
 </html>
