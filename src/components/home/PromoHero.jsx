@@ -253,14 +253,6 @@ export default function PromoHero() {
     .filter(v => v.promo_expires_at && new Date(v.promo_expires_at) > new Date())
     .sort((a, b) => new Date(a.promo_expires_at) - new Date(b.promo_expires_at));
 
-  // Auto-close dopo 30s dall'apertura
-  useEffect(() => {
-    if (dismissed || promos.length === 0) return;
-    const id = setTimeout(dismiss, 30000);
-    return () => clearTimeout(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dismissed, promos.length]);
-
   // Auto-slide carosello ogni 5s (in pausa quando il tab è in background)
   const visible = usePageVisible();
   useEffect(() => {
