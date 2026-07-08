@@ -19,21 +19,29 @@ const publicEntriesToCopy = [
 ];
 
 /**
- * Deferisce solo CSS esterni (Google Fonts). Il CSS principale dell'app
- * NON viene differito per evitare FOUC (Flash of Unstyled Content).
+ * Carica il CSS principale con preload (alta priorità) ma senza bloccare il rendering.
+ * I CSS esterni (Google Fonts) usano media="print" per non bloccare.
+ * Il CSS principale viene preloadato invece di essere render-blocking,
+ * così la pagina può iniziare a renderizzare prima che il CSS sia completo.
+ * L'inline style minimal in index.html evita il Flash of Unstyled Content
+ * per lo sfondo e il caricamento iniziale.
  */
-function deferExternalCssPlugin() {
+function deferCssPlugin() {
   return {
-    name: 'defer-external-css',
+    name: 'defer-css',
     transformIndexHtml: {
       order: 'post',
       handler(html) {
         return html.replace(
-          /<link [^>]*rel="stylesheet"[^>]*href="(https?:\/\/[^"]+)"[^>]*>/g,
-          (match, href) => {
+          /<link ([^>]*)rel="stylesheet"([^>]*)href="([^"]+)"([^>]*)>/g,
+          (match, before, middle, href, after) => {
             if (href.includes('fonts.googleapis.com')) {
-              return `<link rel="stylesheet" href="${href}" media="print" onload="this.media='all'">` +
-                     `<noscript><link rel="stylesheet" href="${href}"></noscript>`;
+              return `<link ${before}rel="stylesheet"${middle}href="${href}" media="print" onload="this.media='all'">` +
+                     `<noscript><link ${before}rel="stylesheet"${middle}href="${href}"></noscript>`;
+            }
+            if (href.includes('.css')) {
+              return `<link rel="preload" as="style" href="${href}" onload="this.onload=null;this.rel='stylesheet'">` +
+                     `<noscript><link ${before}rel="stylesheet"${middle}href="${href}"></noscript>`;
             }
             return match;
           }
@@ -66,7 +74,7 @@ export default defineConfig(({ command }) => ({
   publicDir: command === 'build' ? false : 'public',
   plugins: [
     react(),
-    deferExternalCssPlugin(),
+    deferCssPlugin(),
     copyLeanPublicPlugin(),
     // Genera file .gz e .br pre-compressi durante il build
     compression({ algorithm: 'gzip', ext: '.gz' }),
@@ -114,11 +122,10 @@ export default defineConfig(({ command }) => ({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules/lucide-react')) return 'icons';
-          if (id.includes('node_modules/react-pdf') || id.includes('node_modules/@react-pdf')) return 'pdf-render';
-          if (id.includes('node_modules/jspdf') || id.includes('node_modules/pdfmake') || id.includes('node_modules/pdfjs-dist')) return 'pdf-libs';
+          if (id.includes('node_modules/react-pdf')) return 'pdf-render';
+          if (id.includes('node_modules/jspdf') || id.includes('node_modules/pdfmake')) return 'pdf-libs';
           if (id.includes('node_modules/html2canvas')) return 'canvas';
-          if (id.includes('node_modules/recharts')) return 'charts';
-          if (id.match(/node_modules\/(react|react-dom|scheduler)\//)) return 'core-react';
+          if (id.includes('node_modules/react') && !id.includes('@')) return 'core-react';
         }
       }
     }
