@@ -113,13 +113,12 @@ export default defineConfig(({ command }) => ({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Keep only broad, always-needed vendor groups manual.
-          // Route-specific dependencies should stay with their lazy route chunks.
           if (id.includes('node_modules/lucide-react')) return 'icons';
-          if (id.includes('node_modules/react-pdf')) return 'pdf-render';
-          if (id.includes('node_modules/jspdf') || id.includes('node_modules/pdfmake')) return 'pdf-libs';
+          if (id.includes('node_modules/react-pdf') || id.includes('node_modules/@react-pdf')) return 'pdf-render';
+          if (id.includes('node_modules/jspdf') || id.includes('node_modules/pdfmake') || id.includes('node_modules/pdfjs-dist')) return 'pdf-libs';
           if (id.includes('node_modules/html2canvas')) return 'canvas';
-          if (id.includes('node_modules/react') && !id.includes('@')) return 'core-react';
+          if (id.includes('node_modules/recharts')) return 'charts';
+          if (id.match(/node_modules\/(react|react-dom|scheduler)\//)) return 'core-react';
         }
       }
     }
