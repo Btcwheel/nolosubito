@@ -1,5 +1,13 @@
 import { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
+
+let _supabase = null;
+const getSupabase = async () => {
+  if (!_supabase) {
+    const mod = await import('@/lib/supabase');
+    _supabase = mod.supabase;
+  }
+  return _supabase;
+};
 
 const AuthContext = createContext();
 
@@ -51,11 +59,12 @@ export const AuthProvider = ({ children }) => {
     }
     setAuthError(null);
     try {
+      const sb = await getSupabase();
       let data, error;
       // Dopo il resume dal background a volte la prima query torna senza
       // riga né errore (race con il refresh del token) — un retry risolve.
       for (let attempt = 0; attempt <= 1; attempt++) {
-        ({ data, error } = await supabase
+        ({ data, error } = await sb
           .from('profiles')
           .select('*')
           .eq('id', userId)
@@ -101,7 +110,8 @@ export const AuthProvider = ({ children }) => {
         getState: () => ({ user, profile, isLoadingAuth, authError }),
         refreshProfile: () => user ? fetchProfile(user.id, { force: true }) : null,
         clearCache: async () => {
-          await supabase.auth.signOut();
+          const sb = await getSupabase();
+          await sb.auth.signOut();
           localStorage.clear();
           sessionStorage.clear();
           setUser(null);
@@ -116,8 +126,10 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     let mounted = true;
 
+    const sbPromise = getSupabase();
+
     // Init: controlla sessione con timeout
-    const initPromise = supabase.auth.getSession().then(async ({ data: { session } }) => {
+    const initPromise = sbPromise.then(sb => sb.auth.getSession()).then(async ({ data: { session } }) => {
       if (!mounted) return;
       if (session?.user) {
         setUser(session.user);
@@ -139,45 +151,44 @@ export const AuthProvider = ({ children }) => {
 
     initPromise.finally(() => clearTimeout(initTimeout));
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    let subscription = null;
+    sbPromise.then(sb => {
       if (!mounted) return;
-      console.log('[Auth] onAuthStateChange →', event, session?.user?.email);
+      const sub = sb.auth.onAuthStateChange(async (event, session) => {
+        if (!mounted) return;
+        console.log('[Auth] onAuthStateChange →', event, session?.user?.email);
 
-      // Se l'evento indica che la sessione è scaduta o il refresh è fallito
-      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
-        setUser(null);
-        setProfile(null);
-        fetchedFor.current = null;
-        setIsLoadingAuth(false);
-        return;
-      }
+        if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+          setUser(null);
+          setProfile(null);
+          fetchedFor.current = null;
+          setIsLoadingAuth(false);
+          return;
+        }
 
-      if (event === 'TOKEN_REFRESHED' && session?.user) {
-        fetchedFor.current = null;
-        await fetchProfile(session.user.id, { force: true });
-        return;
-      }
+        if (event === 'TOKEN_REFRESHED' && session?.user) {
+          fetchedFor.current = null;
+          await fetchProfile(session.user.id, { force: true });
+          return;
+        }
 
-      // supabase-js riemette SIGNED_IN ad ogni cambio di visibilità della tab
-      // (_onVisibilityChanged → _recoverAndRefresh, anche a sessione valida).
-      // Se è già lo stesso utente con profilo caricato, non rifare la fetch:
-      // eviterebbe una request a /rest/v1/profiles ad ogni cambio tab, che
-      // dopo il resume dal background a volte si blocca e causa freeze.
-      if (event === 'SIGNED_IN' && session?.user && fetchedFor.current === session.user.id) {
-        setUser(session.user);
-        setIsLoadingAuth(false);
-        return;
-      }
+        if (event === 'SIGNED_IN' && session?.user && fetchedFor.current === session.user.id) {
+          setUser(session.user);
+          setIsLoadingAuth(false);
+          return;
+        }
 
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchedFor.current = null;
-        await fetchProfile(session.user.id, { force: true });
-      } else {
-        setProfile(null);
-        fetchedFor.current = null;
-        setIsLoadingAuth(false);
-      }
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchedFor.current = null;
+          await fetchProfile(session.user.id, { force: true });
+        } else {
+          setProfile(null);
+          fetchedFor.current = null;
+          setIsLoadingAuth(false);
+        }
+      });
+      subscription = sub.data.subscription;
     });
 
     // Quando la tab torna in foreground, forza un refresh della sessione
@@ -199,7 +210,8 @@ export const AuthProvider = ({ children }) => {
 
       try {
         // getSession() legge da localStorage (no rete)
-        const { data: { session } } = await supabase.auth.getSession();
+        const sb = await getSupabase();
+        const { data: { session } } = await sb.auth.getSession();
 
         if (!session) {
           console.log('[Auth] Nessuna sessione — redirect a login');
@@ -215,7 +227,7 @@ export const AuthProvider = ({ children }) => {
         // Token già scaduto o scade entro 2 minuti
         if (now >= expiresAt - 2 * 60 * 1000) {
           console.log('[Auth] Token scaduto/in scadenza — refresh...');
-          const { data: { session: newSession }, error } = await supabase.auth.refreshSession();
+          const { data: { session: newSession }, error } = await sb.auth.refreshSession();
           if (error || !newSession) {
             console.warn('[Auth] Refresh fallito:', error?.message || 'nessuna sessione');
             // Reload invece di pulire user (resetta tutto lo stato)
@@ -243,7 +255,7 @@ export const AuthProvider = ({ children }) => {
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      if (subscription) subscription.unsubscribe();
       clearTimeout(initTimerRef.current);
       clearTimeout(refreshTimeoutId);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
@@ -251,15 +263,17 @@ export const AuthProvider = ({ children }) => {
   }, [fetchProfile, safeReload]);
 
   const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const sb = await getSupabase();
+    const { data, error } = await sb.auth.signInWithPassword({ email, password });
     console.log('[Auth] signIn →', { email, hasUser: !!data?.user, error: error?.message });
     if (error) throw error;
     return data;
   };
 
   const signInWithMagicLink = async (email) => {
+    const sb = await getSupabase();
     const siteUrl = import.meta.env.VITE_SITE_URL ?? "https://nolosubito.it";
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await sb.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${siteUrl}/mia-pratica` },
     });
@@ -267,8 +281,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const sendOtp = async (email) => {
+    const sb = await getSupabase();
     const siteUrl = import.meta.env.VITE_SITE_URL ?? "https://nolosubito.it";
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await sb.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${siteUrl}/mia-pratica` },
     });
@@ -276,7 +291,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const verifyOtp = async (email, token) => {
-    const { data, error } = await supabase.auth.verifyOtp({
+    const sb = await getSupabase();
+    const { data, error } = await sb.auth.verifyOtp({
       email,
       token,
       type: 'email',
@@ -286,7 +302,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    const sb = await getSupabase();
+    await sb.auth.signOut();
     setUser(null);
     setProfile(null);
     fetchedFor.current = null;

@@ -19,22 +19,19 @@ const publicEntriesToCopy = [
 ];
 
 /**
- * Plugin che converte i tag CSS render-blocking in caricamento asincrono.
- * Usa il trick: media="print" onload="this.media='all'"
- * È il metodo più affidabile per caricare CSS in modo non bloccante senza FOUC pesante.
+ * Deferisce solo CSS esterni (Google Fonts). Il CSS principale dell'app
+ * NON viene differito per evitare FOUC (Flash of Unstyled Content).
  */
-function deferCssPlugin() {
+function deferExternalCssPlugin() {
   return {
-    name: 'defer-non-critical-css',
+    name: 'defer-external-css',
     transformIndexHtml: {
       order: 'post',
       handler(html) {
-        // Match any stylesheet link (Vite assets or Google Fonts)
         return html.replace(
-          /<link [^>]*rel="stylesheet"[^>]*href="([^"]+)"[^>]*>/g,
+          /<link [^>]*rel="stylesheet"[^>]*href="(https?:\/\/[^"]+)"[^>]*>/g,
           (match, href) => {
-            // Apply defer only to CSS files or Fonts
-            if (href.includes('.css') || href.includes('fonts.googleapis.com')) {
+            if (href.includes('fonts.googleapis.com')) {
               return `<link rel="stylesheet" href="${href}" media="print" onload="this.media='all'">` +
                      `<noscript><link rel="stylesheet" href="${href}"></noscript>`;
             }
@@ -69,7 +66,7 @@ export default defineConfig(({ command }) => ({
   publicDir: command === 'build' ? false : 'public',
   plugins: [
     react(),
-    deferCssPlugin(),
+    deferExternalCssPlugin(),
     copyLeanPublicPlugin(),
     // Genera file .gz e .br pre-compressi durante il build
     compression({ algorithm: 'gzip', ext: '.gz' }),
@@ -88,6 +85,7 @@ export default defineConfig(({ command }) => ({
     include: ['buffer'],
   },
   build: {
+    target: 'es2020',
     minify: 'terser',
     terserOptions: {
       compress: {
