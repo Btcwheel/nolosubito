@@ -12,7 +12,7 @@ import { Plus, Pencil, Trash2, X, Check, Zap, RefreshCw, Loader2, Search } from 
 const EMPTY_CONFIG = {
   make: "", model: "", segment: "P.IVA",
   duration_months: 36, annual_km: 20000,
-  advance_payment: 0, monthly_rent: 0, is_active: true,
+  advance_payment: 0, monthly_rent: 0, is_active: true, is_featured: false,
 };
 
 const SEGMENTS = ["P.IVA", "Veicoli Commerciali", "Privati", "ReUse"];
@@ -208,10 +208,14 @@ export default function CmsOffers() {
                 <Label className="text-xs">Canone Mensile (€) *</Label>
                 <Input type="number" value={form.monthly_rent} onChange={e => set("monthly_rent", e.target.value)} className="mt-1" />
               </div>
-              <div className="col-span-2">
+              <div className="col-span-2 flex gap-6">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={form.is_active} onChange={e => set("is_active", e.target.checked)} className="accent-electric" />
                   <span className="text-sm">Attivo (visibile nel configuratore)</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={!!form.is_featured} onChange={e => set("is_featured", e.target.checked)} className="accent-electric" />
+                  <span className="text-sm">Vetrina (prezzo/durata mostrati in card)</span>
                 </label>
               </div>
             </div>
@@ -334,6 +338,7 @@ export default function CmsOffers() {
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Anticipo</th>
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Canone</th>
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Stato</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Vetrina</th>
                   <th className="text-right px-4 py-3"></th>
                 </tr>
               </thead>
@@ -349,6 +354,13 @@ export default function CmsOffers() {
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${o.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
                         {o.is_active ? "Attivo" : "Disattivo"}
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {o.is_featured && (
+                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">
+                          ★ Vetrina
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">

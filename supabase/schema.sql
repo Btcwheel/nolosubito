@@ -123,7 +123,7 @@ create table if not exists pratiche (
   veicolo_marca               text,
   veicolo_modello             text,
   veicolo_alimentazione       text,
-  segmento                    text check (segmento in ('P.IVA','Fleet','Privati')),
+  segmento                    text check (segmento in ('P.IVA','Fleet','Privati','Moto','Green','ReUse','Veicoli Commerciali')),
   durata_mesi                 integer,
   km_annui                    integer,
   anticipo                    numeric(10,2),
@@ -518,7 +518,7 @@ create policy "Anon aggiunge nota da cliente"
 alter table pratiche drop constraint if exists pratiche_segmento_check;
 alter table pratiche
   add constraint pratiche_segmento_check
-  check (segmento in ('P.IVA','Fleet','Privati','Moto','Green'));
+  check (segmento in ('P.IVA','Fleet','Privati','Moto','Green','ReUse','Veicoli Commerciali'));
 
 -- ── Migration: colonne mancanti in offers ───────────────────
 alter table offers
