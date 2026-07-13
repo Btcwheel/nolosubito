@@ -20,6 +20,7 @@ import { useToast } from "@/components/ui/use-toast";
 import AdminOverviewCharts from "@/components/admin/AdminOverviewCharts";
 import AdminTeam from "@/components/admin/AdminTeam";
 import { PRATICA_STATUS_COLORS, DEFAULT_STATUS_COLOR } from "@/lib/praticaStatus";
+import { isPromoLive } from "@/lib/promo";
 
 const FUEL_LABELS = { Electric: "Elettrico", Hybrid: "Ibrido", Diesel: "Diesel", Petrol: "Benzina" };
 const FUEL_COLORS = {
@@ -74,8 +75,9 @@ export default function AdminDashboard() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["offers-admin"] });
       qc.invalidateQueries({ queryKey: ["offers-home-catalog"] });
+      qc.invalidateQueries({ queryKey: ["offers-has-active-promo"] });
       setPromoEditId(null);
-      toast({ title: "Promo salvata", description: "L'offerta è ora visibile sul sito." });
+      toast({ title: "Promo salvata", description: "Sconto, data e servizi aggiornati." });
     },
     onError: () => toast({ title: "Errore", description: "Salvataggio promo fallito.", variant: "destructive" }),
   });
@@ -85,9 +87,22 @@ export default function AdminDashboard() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["offers-admin"] });
       qc.invalidateQueries({ queryKey: ["offers-home-catalog"] });
+      qc.invalidateQueries({ queryKey: ["offers-has-active-promo"] });
       toast({ title: "Promo rimossa" });
     },
     onError: () => toast({ title: "Errore", description: "Rimozione promo fallita.", variant: "destructive" }),
+  });
+
+  // Toggle indipendente dalla data di scadenza: permette di nascondere/far
+  // ripartire una promo (anche già terminata) senza perdere sconto/data/servizi.
+  const togglePromoActive = useMutation({
+    mutationFn: ({ id, promo_active }) => offersService.update(id, { promo_active }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["offers-admin"] });
+      qc.invalidateQueries({ queryKey: ["offers-home-catalog"] });
+      qc.invalidateQueries({ queryKey: ["offers-has-active-promo"] });
+    },
+    onError: () => toast({ title: "Errore", description: "Aggiornamento promo fallito.", variant: "destructive" }),
   });
 
   function openPromoEdit(o) {
@@ -544,6 +559,21 @@ export default function AdminDashboard() {
                           </button>
                         </div>
 
+                        {/* Toggle attiva/disattiva — indipendente dalla scadenza, agisce subito */}
+                        {(o.promo_expires_at || o.promo_discount_pct) && (
+                          <button type="button"
+                            onClick={() => togglePromoActive.mutate({ id: o.id, promo_active: !(o.promo_active !== false) })}
+                            disabled={togglePromoActive.isPending}
+                            className={`w-full py-1.5 rounded-lg text-[11px] font-bold cursor-pointer border transition-colors ${
+                              o.promo_active !== false
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                                : "bg-muted text-muted-foreground border-border hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"
+                            }`}
+                          >
+                            {o.promo_active !== false ? "✓ Promo attiva — clicca per disattivare" : "Promo disattivata — clicca per riattivare"}
+                          </button>
+                        )}
+
                         {/* Segmento */}
                         <div className="space-y-1.5">
                           <label className="text-[10px] font-semibold text-orange-600 uppercase tracking-wide">Visibile a</label>
@@ -647,19 +677,37 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     ) : (
-                      <button type="button"
-                        onClick={() => openPromoEdit(o)}
-                        className={`mt-2 w-full py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
-                          o.promo_expires_at && new Date(o.promo_expires_at) > new Date()
-                            ? "bg-orange-50 text-orange-700 border-orange-200"
-                            : "bg-muted/50 text-muted-foreground border-border hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200"
-                        }`}
-                      >
-                        <Tag className="size-3" />
-                        {o.promo_expires_at && new Date(o.promo_expires_at) > new Date()
-                          ? o.promo_discount_pct > 0 ? `🔥 Promo attiva -${Math.round(o.promo_discount_pct)}%` : "🔥 Promo attiva"
-                          : "Aggiungi Promo"}
-                      </button>
+                      <div className="mt-2 flex items-center gap-1.5">
+                        <button type="button"
+                          onClick={() => openPromoEdit(o)}
+                          className={`flex-1 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
+                            isPromoLive(o)
+                              ? "bg-orange-50 text-orange-700 border-orange-200"
+                              : "bg-muted/50 text-muted-foreground border-border hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200"
+                          }`}
+                        >
+                          <Tag className="size-3" />
+                          {isPromoLive(o)
+                            ? o.promo_discount_pct > 0 ? `🔥 Promo attiva -${Math.round(o.promo_discount_pct)}%` : "🔥 Promo attiva"
+                            : (o.promo_expires_at || o.promo_discount_pct)
+                              ? (o.promo_active === false ? "Promo disattivata" : "Promo scaduta")
+                              : "Aggiungi Promo"}
+                        </button>
+                        {(o.promo_expires_at || o.promo_discount_pct) && (
+                          <button type="button"
+                            onClick={() => togglePromoActive.mutate({ id: o.id, promo_active: !(o.promo_active !== false) })}
+                            disabled={togglePromoActive.isPending}
+                            title={o.promo_active !== false ? "Disattiva promo" : "Riattiva promo"}
+                            className={`shrink-0 size-7 rounded-lg border flex items-center justify-center transition-colors cursor-pointer ${
+                              o.promo_active !== false
+                                ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                                : "bg-muted text-muted-foreground border-border hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"
+                            }`}
+                          >
+                            {o.promo_active !== false ? <CheckCircle2 className="size-3.5" /> : <X className="size-3.5" />}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </motion.div>
                 ))}

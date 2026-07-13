@@ -572,6 +572,14 @@ alter table pratiche add constraint pratiche_status_check
     'Stipula Contratto','Attesa Consegna','Approvata','Consegnata','Chiusa'
   ));
 
+-- ── Migration: toggle manuale promo (indipendente dalla scadenza) ──────────
+alter table offers
+  add column if not exists promo_active boolean not null default true;
+
+drop index if exists idx_offers_promo_expires_at;
+create index if not exists idx_offers_active_promo on offers (promo_expires_at)
+  where promo_active = true and promo_expires_at is not null;
+
 -- ── Storage: bucket vehicle-images ──────────────────────────────────────────
 -- Eseguire nel SQL Editor di Supabase oppure creare il bucket dalla dashboard
 

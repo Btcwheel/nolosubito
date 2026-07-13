@@ -19,6 +19,7 @@ import { getVehicleDetailSrcSet, getVehicleCardSrcSet, getOptimizedSrc } from "@
 import { splitVehicleDescription } from "@/lib/vehicleText";
 import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing";
 import { useCountdown } from "@/hooks/useCountdown";
+import { isPromoLive } from "@/lib/promo";
 
 const MOCK_GALLERY_EXTRAS = [
   { src: "https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?w=1200&q=85", label: "3/4 anteriore" },
@@ -545,7 +546,7 @@ export default function VehicleDetail() {
                 </div>
 
                 {/* Ribbon promo diagonale */}
-                {bestOffer.promo_expires_at && new Date(bestOffer.promo_expires_at) > new Date() && (
+                {isPromoLive(bestOffer) && (
                   <PromoBadge discountPct={bestOffer.promo_discount_pct} />
                 )}
 
@@ -697,7 +698,7 @@ export default function VehicleDetail() {
               transition={{ duration: 0.4, delay: 0.1 }}
               className="lg:sticky lg:top-24 self-start space-y-4"
             >
-              {bestOffer.promo_expires_at && new Date(bestOffer.promo_expires_at) > new Date() && (
+              {isPromoLive(bestOffer) && (
                 <PromoBox
                   expiresAt={bestOffer.promo_expires_at}
                   discountPct={bestOffer.promo_discount_pct}

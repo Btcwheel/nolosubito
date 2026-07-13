@@ -8,6 +8,7 @@ import { useCountdown } from "@/hooks/useCountdown";
 import { usePageVisible } from "@/hooks/usePageVisible";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing";
+import { isPromoLive } from "@/lib/promo";
 import { Skeleton } from "@/components/ui/skeleton";
 
 function PromoHeroSkeleton() {
@@ -243,14 +244,25 @@ export default function PromoHero() {
   const [idx, setIdx]       = useState(0);
   const [paused, setPaused] = useState(false);
 
-  const { data: vehicles = [], isLoading } = useQuery({
+  // Check economico: evita di caricare l'intero catalogo + RPC prezzi
+  // (listWithMinPrice) quando non c'è nessuna promo attiva — è il caso più
+  // frequente, e prima faceva restare il banner "in caricamento" a lungo
+  // pur non avendo nulla da mostrare, penalizzando LCP/CLS in home.
+  const { data: hasPromo, isLoading: checkingPromo } = useQuery({
+    queryKey: ["offers-has-active-promo"],
+    queryFn:  () => offersService.hasActivePromo(),
+    staleTime: 60 * 1000,
+  });
+
+  const { data: vehicles = [], isLoading: loadingPrices } = useQuery({
     queryKey: ["offers-home-catalog"],
     queryFn:  () => offersService.listWithMinPrice(),
     staleTime: 5 * 60 * 1000,
+    enabled: hasPromo === true,
   });
 
   const promos = vehicles
-    .filter(v => v.promo_expires_at && new Date(v.promo_expires_at) > new Date())
+    .filter(isPromoLive)
     .sort((a, b) => new Date(a.promo_expires_at) - new Date(b.promo_expires_at));
 
   // Auto-slide carosello ogni 5s (in pausa quando il tab è in background)
@@ -279,7 +291,11 @@ export default function PromoHero() {
 
   if (dismissed) return null;
 
-  if (isLoading) {
+  // Check economico ancora in corso, o già concluso senza nessuna promo:
+  // niente skeleton, niente layout shift, si passa dritti a FeaturedVehicles.
+  if (checkingPromo || hasPromo === false) return null;
+
+  if (loadingPrices) {
     return (
       <section
         aria-hidden="true"

@@ -8,6 +8,7 @@ import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks
 import { getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
 import { formatDisplayedRent, formatAdvanceAmount, isVatIncludedForDisplay, resolvePricingSegment } from "@/lib/vehiclePricing";
 import { useCountdown } from "@/hooks/useCountdown";
+import { isPromoLive } from "@/lib/promo";
 
 const FUEL_IT = {
   Electric: "Elettrica",
@@ -128,10 +129,7 @@ const VehicleCard = memo(function VehicleCard({ vehicle, index = 0, segment, com
   const imgH = compact ? "h-[170px]" : "h-[200px]";
 
   // Promo
-  const isInPromo = !!(
-    vehicle.promo_expires_at &&
-    new Date(vehicle.promo_expires_at) > new Date()
-  );
+  const isInPromo = isPromoLive(vehicle);
   const discountPct = Number(vehicle.promo_discount_pct);
   const promoRent = isInPromo && vehicle.monthly_rent && discountPct > 0
     ? Math.round(vehicle.monthly_rent * (1 - discountPct / 100))
@@ -175,7 +173,7 @@ const VehicleCard = memo(function VehicleCard({ vehicle, index = 0, segment, com
               onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0"; }}
             />
 
-            {vehicle.promo_expires_at && new Date(vehicle.promo_expires_at) > new Date() && (
+            {isInPromo && (
               <PromoCountdownBadge
                 expiresAt={vehicle.promo_expires_at}
                 discountPct={vehicle.promo_discount_pct}

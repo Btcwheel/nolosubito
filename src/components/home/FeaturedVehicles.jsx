@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import VehicleCard from "../vehicles/VehicleCard";
 import { offersService } from "@/services/offers";
 import { supabase } from "@/lib/supabase";
+import { isPromoLive } from "@/lib/promo";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 9;
@@ -151,9 +152,8 @@ export default function FeaturedVehicles() {
       })
       .filter(v => !prontoConsegna || v.is_ready_delivery === true)
       .sort((a, b) => {
-        const now = new Date();
-        const aPromo = a.promo_expires_at && new Date(a.promo_expires_at) > now ? 1 : 0;
-        const bPromo = b.promo_expires_at && new Date(b.promo_expires_at) > now ? 1 : 0;
+        const aPromo = isPromoLive(a) ? 1 : 0;
+        const bPromo = isPromoLive(b) ? 1 : 0;
         return bPromo - aPromo;
       });
   }, [vehicles, makeFilter, tipologia, categoryFilter, budgetFilter, quickFilter, prontoConsegna]);

@@ -76,6 +76,22 @@ export const offersService = {
     return data;
   },
 
+  // Check economico usato dalla home per decidere se vale la pena caricare
+  // il catalogo completo + RPC prezzi per la sezione promo. Una singola query
+  // indicizzata invece di listWithMinPrice() (join su offer_configs via RPC),
+  // per non pagare quel costo quando non c'è nessuna promo attiva.
+  async hasActivePromo() {
+    const { data, error } = await supabase
+      .from('offers')
+      .select('id')
+      .eq('is_active', true)
+      .eq('promo_active', true)
+      .gt('promo_expires_at', new Date().toISOString())
+      .limit(1);
+    if (error) throw error;
+    return (data?.length ?? 0) > 0;
+  },
+
   async getByMakeModel(make, model) {
     const { data, error } = await supabase
       .from('offers')
