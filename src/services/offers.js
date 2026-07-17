@@ -129,13 +129,26 @@ export const offersService = {
     return data;
   },
 
+  // Pagina esplicitamente oltre il limite di default di PostgREST (1000 righe):
+  // senza .range() l'ordinamento per marca tronca l'elenco a meta' alfabeto.
   async getAllConfigs() {
-    const { data, error } = await supabase
-      .from('offer_configs')
-      .select('*')
-      .order('make');
-    if (error) throw error;
-    return data;
+    const PAGE_SIZE = 1000;
+    let allRows = [];
+    let from = 0;
+
+    while (true) {
+      const { data, error } = await supabase
+        .from('offer_configs')
+        .select('*')
+        .order('make')
+        .range(from, from + PAGE_SIZE - 1);
+      if (error) throw error;
+      allRows = allRows.concat(data);
+      if (data.length < PAGE_SIZE) break;
+      from += PAGE_SIZE;
+    }
+
+    return allRows;
   },
 
   async upsertConfig(config) {
@@ -163,13 +176,27 @@ export const offersService = {
 
   async bulkUpsertConfigs(configs) {
     if (!configs || configs.length === 0) return;
-    // Rimuoviamo l'id per garantire che tutti gli oggetti abbiano le stesse chiavi.
-    // L'upsert agirà sulle chiavi di business (make,model,segment,duration_months,annual_km).
-    const cleanConfigs = configs.map(({ id, ...rest }) => rest);
-    const { error } = await supabase
-      .from('offer_configs')
-      .upsert(cleanConfigs, { onConflict: 'make,model,segment,duration_months,annual_km' });
-    if (error) throw error;
+
+    // Righe già salvate (hanno un id): aggiorna per chiave primaria, non per
+    // chiave di business. Se l'upsert facesse match su (make,model,segment,
+    // duration_months,annual_km) e l'utente avesse cambiato durata/km rispetto
+    // al valore salvato, non troverebbe corrispondenza e inserirebbe una riga
+    // duplicata, lasciando quella vecchia orfana (e ancora "vetrina" se lo era).
+    const withId = configs.filter(c => c.id);
+    if (withId.length) {
+      const { error } = await supabase.from('offer_configs').upsert(withId);
+      if (error) throw error;
+    }
+
+    // Righe nuove (senza id): l'upsert agisce sulle chiavi di business per
+    // evitare duplicati se la stessa combinazione viene reinserita.
+    const withoutId = configs.filter(c => !c.id).map(({ id, ...rest }) => rest);
+    if (withoutId.length) {
+      const { error } = await supabase
+        .from('offer_configs')
+        .upsert(withoutId, { onConflict: 'make,model,segment,duration_months,annual_km' });
+      if (error) throw error;
+    }
   },
 
   async deleteConfig(id) {
