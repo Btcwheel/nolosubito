@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
@@ -8,13 +9,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   UserPlus, Mail, Shield, CheckCircle2, XCircle, Edit2,
-  Power, PowerOff, ChevronDown, ChevronUp, Users,
+  Power, PowerOff, ChevronDown, ChevronUp, Users, Briefcase, Crown,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { MODULI, RUOLI_BASE, DEFAULT_PERMISSIONS, getEffectivePermissions } from '@/lib/permissions';
 
 const INVITE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-team-member`;
+
+const TIPI_ACCOUNT = [
+  { id: 'backoffice', label: 'Backoffice', desc: 'Operatore con permessi per modulo' },
+  { id: 'agente',     label: 'Agente',     desc: 'Portale agente, materiali, provvigioni' },
+  { id: 'admin',      label: 'Admin',      desc: 'Accesso completo alla piattaforma', ownerOnly: true },
+];
 
 // ── Colore badge ruolo ────────────────────────────────────────────────────────
 
@@ -218,16 +225,58 @@ function MemberCard({ member, onEdit, onToggleActive }) {
   );
 }
 
+// ── Riga membro semplice (Agenti / Admin, senza permessi per modulo) ──────────
+
+function SimpleMemberRow({ member, badgeLabel, badgeClass, badgeIcon: BadgeIcon, onToggleActive, showToggle = true }) {
+  return (
+    <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border ${!member.is_active ? 'opacity-50 border-border/30' : 'bg-muted/20 border-border/30'}`}>
+      <div className="size-8 rounded-full bg-electric/10 flex items-center justify-center shrink-0">
+        <span className="text-xs font-bold text-electric">
+          {(member.full_name || member.email)[0].toUpperCase()}
+        </span>
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-foreground truncate">{member.full_name || member.email}</p>
+        <p className="text-xs text-muted-foreground truncate">{member.email}</p>
+      </div>
+      {member.is_owner && (
+        <span className="text-xs px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 font-semibold flex items-center gap-1">
+          <Crown className="size-3" /> Titolare
+        </span>
+      )}
+      <span className={`text-xs px-2 py-0.5 rounded-full border font-semibold flex items-center gap-1 ${badgeClass}`}>
+        {BadgeIcon && <BadgeIcon className="size-3" />} {badgeLabel}
+      </span>
+      {!member.is_active && (
+        <span className="text-xs text-destructive font-medium">Disattivato</span>
+      )}
+      {showToggle && (
+        <button type="button"
+          onClick={() => onToggleActive(member)}
+          className={`p-1.5 rounded-lg transition-colors ${member.is_active
+            ? 'text-muted-foreground hover:text-destructive hover:bg-destructive/5'
+            : 'text-muted-foreground hover:text-green-600 hover:bg-green-50'}`}
+          title={member.is_active ? 'Disattiva account' : 'Riattiva account'}
+        >
+          {member.is_active ? <PowerOff className="size-4" /> : <Power className="size-4" />}
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ── Componente principale ─────────────────────────────────────────────────────
 
 export default function AdminTeam() {
   const { toast } = useToast();
   const qc = useQueryClient();
+  const { profile } = useAuth();
+  const isOwner = !!profile?.is_owner;
   const [showInvite, setShowInvite] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
 
   // Form invito
-  const [inviteForm, setInviteForm] = useState({ fullName: '', email: '', ruolo: 'operatore_base' });
+  const [inviteForm, setInviteForm] = useState({ fullName: '', email: '', tipoAccount: 'backoffice', ruolo: 'operatore_base' });
   const [invitePerms, setInvitePerms] = useState(DEFAULT_PERMISSIONS.operatore_base);
   const [inviting, setInviting] = useState(false);
 
@@ -236,8 +285,8 @@ export default function AdminTeam() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, full_name, role, backoffice_role, permissions, is_active, invited_at, created_at')
-        .in('role', ['backoffice', 'admin'])
+        .select('id, email, full_name, role, backoffice_role, permissions, is_active, is_owner, invited_at, created_at')
+        .in('role', ['backoffice', 'admin', 'agente'])
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
@@ -251,11 +300,15 @@ export default function AdminTeam() {
     }
     setInviting(true);
     try {
-      // Calcola override rispetto al default
-      const def = DEFAULT_PERMISSIONS[inviteForm.ruolo];
-      const override = {};
-      for (const m of MODULI) {
-        if (invitePerms[m.id] !== def[m.id]) override[m.id] = invitePerms[m.id];
+      const isBackoffice = inviteForm.tipoAccount === 'backoffice';
+
+      // Calcola override rispetto al default (solo per backoffice)
+      let override = {};
+      if (isBackoffice) {
+        const def = DEFAULT_PERMISSIONS[inviteForm.ruolo];
+        for (const m of MODULI) {
+          if (invitePerms[m.id] !== def[m.id]) override[m.id] = invitePerms[m.id];
+        }
       }
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -270,8 +323,8 @@ export default function AdminTeam() {
         body: JSON.stringify({
           email: inviteForm.email,
           fullName: inviteForm.fullName,
-          backofficeRole: inviteForm.ruolo,
-          permissions: override,
+          targetRole: inviteForm.tipoAccount,
+          ...(isBackoffice ? { backofficeRole: inviteForm.ruolo, permissions: override } : {}),
         }),
       });
       const body = await res.json();
@@ -279,7 +332,7 @@ export default function AdminTeam() {
 
       toast({ title: `Invito inviato a ${inviteForm.email}` });
       setShowInvite(false);
-      setInviteForm({ fullName: '', email: '', ruolo: 'operatore_base' });
+      setInviteForm({ fullName: '', email: '', tipoAccount: 'backoffice', ruolo: 'operatore_base' });
       setInvitePerms(DEFAULT_PERMISSIONS.operatore_base);
       qc.invalidateQueries(['team-members']);
     } catch (err) {
@@ -319,6 +372,8 @@ export default function AdminTeam() {
 
   const admins = members.filter(m => m.role === 'admin');
   const operatori = members.filter(m => m.role === 'backoffice');
+  const agenti = members.filter(m => m.role === 'agente');
+  const tipiDisponibili = TIPI_ACCOUNT.filter(t => !t.ownerOnly || isOwner);
 
   return (
     <div className="space-y-6">
@@ -326,22 +381,44 @@ export default function AdminTeam() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <Users className="size-5 text-muted-foreground" /> Team backoffice
+            <Users className="size-5 text-muted-foreground" /> Team
           </h2>
           <p className="text-sm text-muted-foreground mt-0.5">
-            {operatori.length} operator{operatori.length === 1 ? 'e' : 'i'} · invita e gestisci i permessi
+            {operatori.length} operator{operatori.length === 1 ? 'e' : 'i'} · {agenti.length} agent{agenti.length === 1 ? 'e' : 'i'} · invita e gestisci il team
           </p>
         </div>
         <Button onClick={() => setShowInvite(v => !v)} className="gap-2">
           <UserPlus className="size-4" />
-          Invita operatore
+          Invita
         </Button>
       </div>
 
       {/* Form invito */}
       {showInvite && (
         <div className="bg-card border border-electric/30 rounded-xl p-5 space-y-5">
-          <p className="text-sm font-semibold text-foreground">Nuovo operatore</p>
+          <p className="text-sm font-semibold text-foreground">Nuovo membro del team</p>
+
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1.5">Tipo account</label>
+            <div className="flex gap-2 flex-wrap">
+              {tipiDisponibili.map(t => (
+                <button type="button"
+                  key={t.id}
+                  onClick={() => setInviteForm(p => ({ ...p, tipoAccount: t.id }))}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all
+                    ${inviteForm.tipoAccount === t.id ? 'bg-electric/10 text-electric border-electric/40 ring-2 ring-offset-1 ring-electric' : 'border-border/50 text-muted-foreground hover:border-electric/40'}`}
+                  title={t.desc}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            {!isOwner && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Solo il titolare può invitare nuovi account Admin.
+              </p>
+            )}
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
@@ -361,43 +438,47 @@ export default function AdminTeam() {
                 placeholder="alessia@nolosubito.it"
               />
             </div>
-            <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1.5">Ruolo base</label>
-              <Select
-                value={inviteForm.ruolo}
-                onValueChange={r => {
-                  setInviteForm(p => ({ ...p, ruolo: r }));
-                  setInvitePerms(DEFAULT_PERMISSIONS[r]);
-                }}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {RUOLI_BASE.map(r => <SelectItem key={r.id} value={r.id}>{r.label}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+            {inviteForm.tipoAccount === 'backoffice' && (
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1.5">Ruolo base</label>
+                <Select
+                  value={inviteForm.ruolo}
+                  onValueChange={r => {
+                    setInviteForm(p => ({ ...p, ruolo: r }));
+                    setInvitePerms(DEFAULT_PERMISSIONS[r]);
+                  }}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {RUOLI_BASE.map(r => <SelectItem key={r.id} value={r.id}>{r.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
-          {/* Permessi moduli */}
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Accesso ai moduli</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {MODULI.map(m => (
-                <PermessoToggle
-                  key={m.id}
-                  modulo={m}
-                  checked={invitePerms[m.id] ?? false}
-                  onChange={val => setInvitePerms(p => ({ ...p, [m.id]: val }))}
-                  isDefault={DEFAULT_PERMISSIONS[inviteForm.ruolo][m.id] ?? false}
-                />
-              ))}
+          {/* Permessi moduli — solo backoffice */}
+          {inviteForm.tipoAccount === 'backoffice' && (
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Accesso ai moduli</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {MODULI.map(m => (
+                  <PermessoToggle
+                    key={m.id}
+                    modulo={m}
+                    checked={invitePerms[m.id] ?? false}
+                    onChange={val => setInvitePerms(p => ({ ...p, [m.id]: val }))}
+                    isDefault={DEFAULT_PERMISSIONS[inviteForm.ruolo][m.id] ?? false}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-100 rounded-lg">
             <Mail className="size-4 text-blue-500 shrink-0" />
             <p className="text-xs text-blue-700">
-              L'operatore riceverà un'email con il link per impostare la sua password e accedere al backoffice.
+              Riceverà un'email con il link per impostare la password e accedere alla piattaforma.
             </p>
           </div>
 
@@ -433,22 +514,39 @@ export default function AdminTeam() {
         </div>
       )}
 
+      {/* Sezione agenti */}
+      {agenti.length > 0 && (
+        <div className="pt-4 border-t border-border/30">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Agenti</p>
+          <div className="space-y-2">
+            {agenti.map(m => (
+              <SimpleMemberRow
+                key={m.id}
+                member={m}
+                badgeLabel="Agente"
+                badgeClass="bg-blue-50 text-blue-700 border-blue-200"
+                badgeIcon={Briefcase}
+                onToggleActive={({ id, is_active }) => toggleActiveMut.mutate({ id, is_active })}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Sezione admin */}
       {admins.length > 0 && (
         <div className="pt-4 border-t border-border/30">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Amministratori</p>
           <div className="space-y-2">
             {admins.map(m => (
-              <div key={m.id} className="flex items-center gap-3 px-4 py-3 bg-muted/20 rounded-xl border border-border/30">
-                <div className="size-8 rounded-full bg-purple-100 flex items-center justify-center">
-                  <Shield className="size-4 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">{m.full_name || m.email}</p>
-                  <p className="text-xs text-muted-foreground">{m.email}</p>
-                </div>
-                <span className="ml-auto text-xs px-2 py-0.5 rounded-full border bg-purple-50 text-purple-700 border-purple-200 font-semibold">Admin</span>
-              </div>
+              <SimpleMemberRow
+                key={m.id}
+                member={m}
+                badgeLabel="Admin"
+                badgeClass="bg-purple-50 text-purple-700 border-purple-200"
+                badgeIcon={Shield}
+                showToggle={false}
+              />
             ))}
           </div>
         </div>
