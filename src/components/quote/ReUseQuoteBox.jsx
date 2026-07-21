@@ -8,6 +8,7 @@ import {
   ADVANCE_BRACKETS,
   formatAdvanceAmount,
   formatDisplayedRent,
+  computeNetMonthlyRent,
 } from "@/lib/vehiclePricing";
 
 const TEAL = "#0d9488";
@@ -254,8 +255,7 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
 
   const computedRent = useMemo(() => {
     if (!exactConfig) return null;
-    const diff = advance - Number(exactConfig.advance_payment ?? 0);
-    return Math.max(Math.round(Number(exactConfig.monthly_rent) - diff / duration), 50);
+    return computeNetMonthlyRent(exactConfig.monthly_rent, advance, duration);
   }, [exactConfig, advance, duration]);
 
   const displayRent = computedRent

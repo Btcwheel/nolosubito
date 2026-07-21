@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { computeNetMonthlyRent } from '@/lib/vehiclePricing';
 
 const BUCKET = 'vehicle-images';
 
@@ -295,9 +296,10 @@ export const offersService = {
       ?.filter(o => !segmentsFilter || (Array.isArray(o.segments) && o.segments.some(s => segmentsFilter.includes(s))))
       .map(o => {
         const p = priceMap[normKey(o.make, o.model)];
+        const baseRent = p ? (p.featured ?? p.min) : null;
         return {
           ...o,
-          monthly_rent:    p ? (p.featured ?? p.min) : null,
+          monthly_rent:    baseRent != null ? computeNetMonthlyRent(baseRent, p.advance, p.duration) : null,
           advance_payment: p ? (p.advance ?? 0)      : 0,
           duration_months: p?.duration ?? null,
           annual_km:       p?.km       ?? null,

@@ -12,6 +12,7 @@ import {
   isVatIncludedForDisplay,
   resolvePricingSegment,
   isMotoCategory,
+  computeNetMonthlyRent,
 } from "@/lib/vehiclePricing";
 import ReUseQuoteBox from "@/components/quote/ReUseQuoteBox";
 
@@ -178,8 +179,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
 
   const computedRent = useMemo(() => {
     if (!exactConfig) return null;
-    const diff = advance - Number(exactConfig.advance_payment ?? 0);
-    return Math.max(Math.round(Number(exactConfig.monthly_rent) - diff / duration), 50);
+    return computeNetMonthlyRent(exactConfig.monthly_rent, advance, duration);
   }, [exactConfig, advance, duration]);
 
   const displayRent = computedRent

@@ -813,7 +813,8 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
   const quotaServiziNetto = quotaServizi ? Math.round((quotaServizi / 1.22) * 100) / 100 : 0;
 
   const anticipo = Number(prev.anticipo) || 0;
-  const anticipoNetto = anticipo / 1.22;
+  // L'anticipo è fuori campo IVA: non va né scorporato né maggiorato, resta identico in entrambe le colonne.
+  const anticipoNetto = anticipo;
   const kmTotali = Number(prev.km_annui) * (Number(prev.durata_mesi) / 12);
 
   const listing = Number(prev.valore_listing || prev.valore_veicolo || 0);

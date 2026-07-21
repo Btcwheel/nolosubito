@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { offersService } from "@/services/offers";
+import { computeNetMonthlyRent } from "@/lib/vehiclePricing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -205,8 +206,13 @@ export default function CmsOffers() {
                 <Input type="number" value={form.advance_payment} onChange={e => set("advance_payment", e.target.value)} className="mt-1" />
               </div>
               <div className="col-span-2">
-                <Label className="text-xs">Canone Mensile (€) *</Label>
+                <Label className="text-xs">Canone Mensile (€) * — imponibile pieno, anticipo zero</Label>
                 <Input type="number" value={form.monthly_rent} onChange={e => set("monthly_rent", e.target.value)} className="mt-1" />
+                {Number(form.advance_payment) > 0 && form.monthly_rent !== "" && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Canone mostrato al cliente: €{computeNetMonthlyRent(form.monthly_rent, form.advance_payment, form.duration_months)}/mese
+                  </p>
+                )}
               </div>
               <div className="col-span-2">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -344,7 +350,14 @@ export default function CmsOffers() {
                     <td className="px-4 py-3 text-muted-foreground">{o.segment}</td>
                     <td className="px-4 py-3 text-muted-foreground">{o.duration_months} mesi / {o.annual_km?.toLocaleString()} km</td>
                     <td className="px-4 py-3 text-muted-foreground">€{o.advance_payment?.toLocaleString()}</td>
-                    <td className="px-4 py-3 font-semibold text-electric">€{o.monthly_rent}/mese</td>
+                    <td className="px-4 py-3 font-semibold text-electric">
+                      €{o.monthly_rent}/mese
+                      {Number(o.advance_payment) > 0 && (
+                        <span className="block text-[10px] font-normal text-muted-foreground">
+                          mostrato: €{computeNetMonthlyRent(o.monthly_rent, o.advance_payment, o.duration_months)}/mese
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${o.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
                         {o.is_active ? "Attivo" : "Disattivo"}

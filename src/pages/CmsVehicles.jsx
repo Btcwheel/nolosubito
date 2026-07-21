@@ -15,7 +15,7 @@ import {
   Loader2, ToggleLeft, ToggleRight, ChevronDown, ChevronUp, Wand2, Copy, Star,
 } from "lucide-react";
 import { normalizeVehicleDescription } from "@/lib/vehicleText";
-import { formatAdvanceAmount, isMotoCategory } from "@/lib/vehiclePricing";
+import { formatAdvanceAmount, isMotoCategory, computeNetMonthlyRent } from "@/lib/vehiclePricing";
 
 // ── Costanti (fallback — rimpiazzate dal DB via useVehicleOptions) ─────────────
 
@@ -465,17 +465,24 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
                 </SelectContent>
               </Select>
 
-              {/* Canone */}
-              <div className="relative">
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
-                <Input
-                  type="number"
-                  min="0"
-                  value={row.monthly_rent}
-                  onChange={e => updateRow(row._key, "monthly_rent", e.target.value)}
-                  placeholder="0"
-                  className="h-8 text-xs pl-6"
-                />
+              {/* Canone: si inserisce sempre come imponibile pieno (anticipo zero) */}
+              <div>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={row.monthly_rent}
+                    onChange={e => updateRow(row._key, "monthly_rent", e.target.value)}
+                    placeholder="0"
+                    className="h-8 text-xs pl-6"
+                  />
+                </div>
+                {Number(row.advance_payment) > 0 && row.monthly_rent !== "" && (
+                  <p className="text-[9px] text-muted-foreground mt-0.5 pl-1">
+                    mostrato: €{computeNetMonthlyRent(row.monthly_rent, row.advance_payment, row.duration_months)}/mese
+                  </p>
+                )}
               </div>
 
               {/* Duplica riga */}
