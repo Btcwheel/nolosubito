@@ -17,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { getVehicleDetailSrcSet, getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
 import { splitVehicleDescription } from "@/lib/vehicleText";
-import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing";
+import { formatDisplayedRent, resolvePricingSegment, computeNetMonthlyRent } from "@/lib/vehiclePricing";
 import { useCountdown } from "@/hooks/useCountdown";
 
 const MOCK_GALLERY_EXTRAS = [
@@ -213,10 +213,16 @@ export default function VehicleDetail() {
     const filtered = currentSegment
       ? configs.filter(c => c.segment === currentSegment && c.is_active !== false)
       : configs.filter(c => c.is_active !== false);
-    // Preferisci il canone vetrina, fallback al minimo
+    // Preferisci il canone vetrina, fallback al minimo (entrambi al netto dell'anticipo della propria config)
     const featured = filtered.find(c => c.is_featured);
-    const minPrice = filtered.length ? Math.min(...filtered.map(c => Number(c.monthly_rent))) : null;
-    return { ...vehicle, monthly_rent: featured ? Number(featured.monthly_rent) : minPrice };
+    const netRents = filtered
+      .map(c => computeNetMonthlyRent(c.monthly_rent, c.advance_payment, c.duration_months))
+      .filter(r => r != null);
+    const minNetPrice = netRents.length ? Math.min(...netRents) : null;
+    const featuredNetPrice = featured
+      ? computeNetMonthlyRent(featured.monthly_rent, featured.advance_payment, featured.duration_months)
+      : null;
+    return { ...vehicle, monthly_rent: featuredNetPrice ?? minNetPrice };
   }, [vehicle, configs, currentSegment]);
 
   const similarVehicles = useMemo(() => {
@@ -353,7 +359,8 @@ export default function VehicleDetail() {
     "fuelType": bestOffer.fuel_type || "Unknown",
     "vehicleTransmission": bestOffer.transmission || "Unknown",
     "offers": configs.map(o => ({
-      "@type": "Offer", "priceCurrency": "EUR", "price": o.monthly_rent,
+      "@type": "Offer", "priceCurrency": "EUR",
+      "price": computeNetMonthlyRent(o.monthly_rent, o.advance_payment, o.duration_months),
       "description": `${o.duration_months} mesi, ${o.annual_km?.toLocaleString()} km/anno`,
     })),
   };

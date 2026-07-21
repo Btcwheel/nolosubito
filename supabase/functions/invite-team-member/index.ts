@@ -34,21 +34,29 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "Non autenticato" }), { status: 401, headers: CORS });
   }
   const { data: callerProfile } = await adminClient
-    .from("profiles").select("role, full_name").eq("id", caller.id).single();
+    .from("profiles").select("role, full_name, is_owner").eq("id", caller.id).single();
   if (callerProfile?.role !== "admin") {
     return new Response(JSON.stringify({ error: "Solo gli admin possono invitare" }), { status: 403, headers: CORS });
   }
 
-  const { email, fullName, backofficeRole, permissions } = await req.json() as any;
-  if (!email || !fullName || !backofficeRole) {
-    return new Response(JSON.stringify({ error: "email, fullName e backofficeRole sono obbligatori" }), { status: 400, headers: CORS });
+  const { email, fullName, targetRole, backofficeRole, permissions } = await req.json() as any;
+  const role = targetRole ?? "backoffice"; // retrocompatibilita' con chiamate esistenti
+
+  if (!["backoffice", "agente", "admin"].includes(role)) {
+    return new Response(JSON.stringify({ error: "targetRole non valido" }), { status: 400, headers: CORS });
+  }
+  if (role === "admin" && !callerProfile?.is_owner) {
+    return new Response(JSON.stringify({ error: "Solo il titolare puo' invitare nuovi Admin" }), { status: 403, headers: CORS });
+  }
+  if (!email || !fullName || (role === "backoffice" && !backofficeRole)) {
+    return new Response(JSON.stringify({ error: "email, fullName (e backofficeRole per il backoffice) sono obbligatori" }), { status: 400, headers: CORS });
   }
 
   // 1. Crea l'utente senza mandare email di Supabase
   const { data: created, error: createErr } = await adminClient.auth.admin.createUser({
     email,
     email_confirm: true,
-    user_metadata: { full_name: fullName, role: "backoffice" },
+    user_metadata: { full_name: fullName, role },
   });
   if (createErr) {
     return new Response(JSON.stringify({ error: createErr.message }), { status: 400, headers: { ...CORS, "Content-Type": "application/json" } });
@@ -59,19 +67,20 @@ Deno.serve(async (req) => {
   // 2. Aggiorna il profilo
   await adminClient.from("profiles").update({
     full_name:       fullName,
-    role:            "backoffice",
-    backoffice_role: backofficeRole,
-    permissions:     permissions ?? {},
+    role,
+    backoffice_role: role === "backoffice" ? backofficeRole : null,
+    permissions:     role === "backoffice" ? (permissions ?? {}) : {},
     is_active:       true,
     invited_by:      caller.id,
     invited_at:      new Date().toISOString(),
   }).eq("id", userId);
 
   // 3. Genera link per impostare la password
+  const DEST_BY_ROLE: Record<string, string> = { backoffice: "/backoffice", agente: "/agente", admin: "/admin" };
   const { data: linkData, error: linkErr } = await adminClient.auth.admin.generateLink({
     type:        "recovery",
     email,
-    options:     { redirectTo: `${SITE_URL}/backoffice` },
+    options:     { redirectTo: `${SITE_URL}${DEST_BY_ROLE[role]}` },
   });
   if (linkErr || !linkData?.properties?.action_link) {
     return new Response(JSON.stringify({ error: "Errore generazione link: " + linkErr?.message }), { status: 500, headers: CORS });
@@ -93,6 +102,8 @@ Deno.serve(async (req) => {
       operatore_base:   "Operatore Base",
       operatore_senior: "Operatore Senior",
       supervisore:      "Supervisore",
+      agente:           "Agente",
+      admin:            "Amministratore",
     };
 
     await transporter.sendMail({
@@ -101,7 +112,7 @@ Deno.serve(async (req) => {
       subject: `Sei stato invitato nel team Nolosubito`,
       html:    buildInviteEmail({
         fullName,
-        ruolo:      ruoloLabel[backofficeRole] ?? backofficeRole,
+        ruolo:      ruoloLabel[role === "backoffice" ? backofficeRole : role] ?? role,
         actionLink,
         invitedBy:  callerProfile?.full_name || "L'amministratore",
       }),
