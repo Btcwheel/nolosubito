@@ -24,6 +24,8 @@ export const PRATICA_STATUS_COLORS = {
   "Approvata":                     { badge: "bg-fuel-ev/15 text-fuel-ev border-fuel-ev/25",              dot: "bg-fuel-ev" },
   "Consegnata":                    { badge: "bg-navy/10 text-navy border-navy/20",                       dot: "bg-navy" },
   "Chiusa":                        { badge: "bg-muted text-muted-foreground border-border",              dot: "bg-muted-foreground" },
+  "Crif negativa":                 { badge: "bg-destructive/10 text-destructive border-destructive/20",   dot: "bg-destructive" },
+  "bocciato":                      { badge: "bg-destructive/5 text-destructive/70 border-destructive/10", dot: "bg-destructive/70" },
 };
 
 /** Fallback per stati non mappati */

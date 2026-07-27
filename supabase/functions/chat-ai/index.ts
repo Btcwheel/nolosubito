@@ -503,6 +503,32 @@ Deno.serve(async (req: Request) => {
       }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
     }
 
+    // ── AI DISABLED GUARD ─────────────────────────────────────────────
+    try {
+      const { data: aiSettings } = await supabase
+        .from("chat_operator_settings")
+        .select("ai_enabled")
+        .eq("id", "global")
+        .maybeSingle();
+
+      if (aiSettings && !aiSettings.ai_enabled) {
+        console.log(`[${VERSION}] ai-disabled: routing session ${sessionId} to operator`);
+        const lastQuestion = messages[messages.length - 1]?.content ?? "";
+        await supabase.from("escalated_sessions").upsert({
+          session_id: sessionId,
+          user_question: String(lastQuestion).slice(0, 200),
+          chat_history: messages,
+          status: "waiting",
+          source: "direct",
+        }, { onConflict: "session_id" });
+        return new Response(JSON.stringify({
+          reply: [], escalated: true, direct_mode: true, session_id: sessionId,
+        }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
+      }
+    } catch (_) {
+      // Tabella non ancora creata: procedi normalmente
+    }
+
     // ── SEARCH KB (automatico, semantico via pgvector) ───────────────
     const kbChunks = await searchKb(supabase, lastUserMessage);
 

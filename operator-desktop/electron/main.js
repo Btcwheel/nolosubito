@@ -1,12 +1,17 @@
 import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, Notification } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createClient } from '@supabase/supabase-js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isDev = !app.isPackaged;
 
+const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://nowoiywrzfnjocvsbmih.supabase.co';
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vd29peXd6emZqbm9jdnNibWloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzNzQyNzksImV4cCI6MjA1NDk1MDI3OX0.5ZnQkYgFRXr8W-M0tq6U7SPkJt3Stx7FwKdY4wJx8VY';
+
 let mainWindow = null;
 let tray = null;
+let supabaseSubscription = null;
 
 function getTrayIcon() {
   const iconPath = path.join(__dirname, '..', 'build', 'icon.png');
@@ -111,6 +116,62 @@ function createWindow() {
 app.whenReady().then(() => {
   createWindow();
   const updateTrayMenu = createTray();
+
+  // ── Supabase Realtime nel main process (notifiche affidabili anche in background) ──
+  let knownWaiting = new Set();
+
+  function setupSupabaseSubscription() {
+    try {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      supabaseSubscription = supabase
+        .channel('main_escalation_panel')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'escalated_sessions',
+        }, (payload) => {
+          const row = payload.new;
+          if (row.status === 'waiting' && !knownWaiting.has(row.id)) {
+            knownWaiting.add(row.id);
+            const isDirect = row.source === 'direct';
+            const notification = new Notification({
+              title: isDirect ? 'Nuova chat diretta' : 'Luca ha bisogno di aiuto',
+              body: row.user_question?.slice(0, 120) || '',
+              icon: path.join(__dirname, '..', 'build', 'icon.png'),
+              silent: false,
+            });
+            notification.on('click', () => {
+              if (mainWindow) {
+                mainWindow.show();
+                mainWindow.focus();
+              }
+            });
+            notification.show();
+            // Avvisa il renderer per aggiornare la lista in tempo reale
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              mainWindow.webContents.send('new-waiting-session', { source: row.source });
+            }
+          }
+        })
+        .subscribe();
+    } catch (err) {
+      console.error('Supabase subscription error:', err);
+    }
+  }
+
+  // Ricarica knownWaiting quando il renderer fa fetch
+  ipcMain.on('sync-waiting-ids', (_event, ids) => {
+    knownWaiting = new Set(ids || []);
+  });
+
+  setupSupabaseSubscription();
+
+  app.on('will-quit', () => {
+    if (supabaseSubscription) {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      supabase.removeChannel(supabaseSubscription);
+    }
+  });
 
   // Aggiorna badge sul tray, dock e menu
   ipcMain.on('update-badge', (_event, count) => {

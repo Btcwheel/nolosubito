@@ -34,6 +34,12 @@ export default memo(function ChatMessage({ message }) {
         <div className="size-7 rounded-full bg-electric/15 flex items-center justify-center shrink-0 mt-0.5">
           <User className="size-3.5 text-electric" />
         </div>
+      ) : message.operatorName ? (
+        <div className="shrink-0 mt-0.5">
+          <div className="rounded-full bg-navy flex items-center justify-center size-7 shadow-sm">
+            <span className="font-bold text-white text-[11px]">{message.operatorName.charAt(0).toUpperCase()}</span>
+          </div>
+        </div>
       ) : (
         <div className="shrink-0 mt-0.5">
           <LucaAvatar size="sm" />

@@ -18,7 +18,7 @@ import DocumentUploadSection from "@/components/pratiche/DocumentUploadSection";
 import PreventiviSection from "@/components/pratiche/PreventiviSection";
 import { PRATICA_STATUS_COLORS, DEFAULT_STATUS_COLOR } from "@/lib/praticaStatus";
 
-const ALL_STATUSES = ["Nuova", "In Lavorazione", "Documenti Richiesti", "Approvata", "Consegnata", "Chiusa"];
+const ALL_STATUSES = ["Nuova", "In Lavorazione", "Documenti Richiesti", "Approvata", "Consegnata", "Chiusa", "Crif negativa", "bocciato"];
 
 export default function PraticaDetail() {
   const { id } = useParams();

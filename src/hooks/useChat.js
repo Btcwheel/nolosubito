@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { chatService } from '@/services/chat';
+import { chatSettingsService } from '@/services/chatSettings';
 import { supabase } from '@/lib/supabase';
 
 const STORAGE_KEY = 'nolosubito_chat';
@@ -61,6 +62,7 @@ export default function useChat() {
   const [partialContent, setPartialContent] = useState(null);
   const [operatorName, setOperatorName] = useState(null);
   const [sessionId] = useState(() => stored?.sessionId ?? generateSessionId());
+  const [aiEnabled, setAiEnabled] = useState(true);
   const bottomRef = useRef(null);
   const escalationTimerRef = useRef(null);
   const escalationChannelRef = useRef(null);
@@ -69,6 +71,28 @@ export default function useChat() {
   useEffect(() => {
     saveToStorage(messages, leadSaved, sessionId);
   }, [messages, leadSaved, sessionId]);
+
+  // Fetch iniziale + sottoscrizione Realtime allo stato del toggle AI
+  useEffect(() => {
+    let cancelled = false;
+    let unsubscribe = null;
+
+    chatSettingsService.get().then((settings) => {
+      if (!cancelled) setAiEnabled(settings.ai_enabled !== false);
+    });
+
+    chatSettingsService.subscribe((enabled) => {
+      if (!cancelled) setAiEnabled(enabled);
+    }).then(fn => {
+      if (cancelled) fn();
+      else unsubscribe = fn;
+    });
+
+    return () => {
+      cancelled = true;
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -122,7 +146,12 @@ export default function useChat() {
       }, (payload) => {
         const row = payload.new;
         if (row.sender === 'operator') {
-          setMessages(prev => [...prev, { role: 'assistant', content: row.content, operatorMessage: true }]);
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: row.content,
+            operatorMessage: true,
+            operatorName: row.operator_name || 'Operatore',
+          }]);
           setOperatorTyping(false);
         }
       })
@@ -165,7 +194,8 @@ export default function useChat() {
         filter: `session_id=eq.${sid}`,
       }, (payload) => {
         const row = payload.new;
-        if (row.operator_id) setOperatorName(row.operator_id);
+        if (row.operator_name) setOperatorName(row.operator_name);
+        if (row.operator_id) setOperatorName(row.operator_name || row.operator_id);
         if (row.status === 'operator_joined') {
           setOperatorTyping(true);
         }
@@ -264,6 +294,19 @@ export default function useChat() {
       return;
     }
 
+    // ── AI DISABLED: routing diretto all'operatore ─────────────────────────
+    if (!aiEnabled) {
+      const newMessages = [...messages, userMsg];
+      setTyping(true);
+      await chatService.createDirectChat(sessionId, text_clean, newMessages);
+      setTyping(false);
+      setEscalated(true);
+      setEscalationPhase('direct');
+      subscribeToOperatorTakeover(sessionId);
+      subscribeToEscalationStatus(sessionId);
+      return;
+    }
+
     // ── NORMAL MODE: chiamo l'edge function ──────────────────────────────
     const newMessages = [...messages, userMsg];
     await new Promise(r => setTimeout(r, READ_DELAY()));
@@ -283,8 +326,15 @@ export default function useChat() {
         setEscalated(true);
         setTyping(false);
         await deliverMessages(data.reply, serverLen);
-        setTyping(true);
-        startEscalationTimer(data.session_id || sessionId);
+
+        if (data.direct_mode) {
+          setEscalationPhase('direct');
+          subscribeToOperatorTakeover(data.session_id || sessionId);
+          subscribeToEscalationStatus(data.session_id || sessionId);
+        } else {
+          setTyping(true);
+          startEscalationTimer(data.session_id || sessionId);
+        }
         return;
       }
 
@@ -301,7 +351,7 @@ export default function useChat() {
         content: 'Posso ricontattarLa tra poco — mi lascia un recapito? Grazie.',
       }]);
     }
-  }, [messages, typing, escalated, leadSaved, sessionId, deliverMessages, startEscalationTimer]);
+  }, [messages, typing, escalated, leadSaved, sessionId, aiEnabled, deliverMessages, startEscalationTimer, subscribeToOperatorTakeover, subscribeToEscalationStatus]);
 
   const reset = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
@@ -336,6 +386,7 @@ export default function useChat() {
     operatorTyping,
     operatorName,
     sessionId,
+    aiEnabled,
     bottomRef,
     sendMessage,
     handleEscalationChoice,

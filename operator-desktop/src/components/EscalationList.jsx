@@ -36,10 +36,18 @@ export default function EscalationList({ user }) {
       }, () => fetchSessions())
       .subscribe();
 
-    // Badge inizialmente a zero finche' non carichiamo
+    // Ascolta notifiche dal processo main (per affidabilita' in background)
+    const cleanupMainProcess = window.electronAPI?.onNewWaitingSession?.((data) => {
+      fetchSessions();
+      notify(1, data.source === 'direct');
+    });
+
     window.electronAPI?.setBadgeCount?.(0);
 
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+      if (typeof cleanupMainProcess === 'function') cleanupMainProcess();
+    };
   }, []);
 
   useEffect(() => {
@@ -58,22 +66,29 @@ export default function EscalationList({ user }) {
       const newWaiting = data.filter(s => s.status === 'waiting' && !notifiedRef.current.has(s.id));
       if (newWaiting.length > 0) {
         newWaiting.forEach(s => notifiedRef.current.add(s.id));
-        notify(newWaiting.length);
+        const allDirect = newWaiting.every(s => s.source === 'direct');
+        notify(newWaiting.length, allDirect);
       }
+      // Sincronizza col processo main per evitare notifiche doppie
+      const waitingIds = data.filter(s => s.status === 'waiting').map(s => s.id);
+      window.electronAPI?.syncWaitingIds?.(waitingIds);
     }
   };
 
-  const notify = (count) => {
+  const notify = (count, isDirect = false) => {
+    const label = isDirect ? 'Nuova chat diretta' : 'Nuova escalation';
     if (window.electronAPI) {
       window.electronAPI.showNotification(
-        'Nuova chat in attesa',
-        count === 1 ? 'Un cliente sta aspettando un operatore' : `${count} clienti in attesa`
+        count === 1 ? label : `${label} (${count})`,
+        count === 1
+          ? (isDirect ? 'Un cliente sta aspettando un operatore' : 'Luca ha bisogno di aiuto')
+          : `${count} clienti in attesa`
       );
     }
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
       const osc = ctx.createOscillator();
-      osc.frequency.value = 600;
+      osc.frequency.value = isDirect ? 800 : 600;
       osc.connect(ctx.destination);
       osc.start();
       setTimeout(() => osc.stop(), 150);
@@ -81,9 +96,20 @@ export default function EscalationList({ user }) {
   };
 
   const takeOver = async (session) => {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', user.id)
+      .single();
+
     await supabase
       .from('escalated_sessions')
-      .update({ operator_id: user.id, status: 'operator_joined', taken_at: new Date().toISOString() })
+      .update({
+        operator_id: user.id,
+        operator_name: profile?.name || 'Operatore',
+        status: 'operator_joined',
+        taken_at: new Date().toISOString(),
+      })
       .eq('id', session.id);
     setActiveSessionId(session.id);
   };
@@ -137,9 +163,14 @@ export default function EscalationList({ user }) {
             {filtered.map(s => (
               <div key={s.id} className={`session-card ${s.status}`}>
                 <div className="session-header">
-                  <span className={`status-badge ${s.status}`}>
-                    {STATUS_LABELS[s.status] || s.status}
-                  </span>
+                  <div className="session-header-left">
+                    <span className={`source-badge ${s.source === 'direct' ? 'direct' : 'escalation'}`}>
+                      {s.source === 'direct' ? 'Chat diretta' : 'Escalation'}
+                    </span>
+                    <span className={`status-badge ${s.status}`}>
+                      {STATUS_LABELS[s.status] || s.status}
+                    </span>
+                  </div>
                   <span className="session-time">
                     {new Date(s.created_at).toLocaleString('it-IT')}
                   </span>
