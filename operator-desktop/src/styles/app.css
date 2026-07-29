@@ -246,6 +246,29 @@ header h1 {
   color: #6b21a8;
 }
 
+.session-header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.source-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.source-badge.direct {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.source-badge.escalation {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .session-time {
   font-size: 11px;
   color: #94a3b8;

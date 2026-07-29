@@ -9,7 +9,9 @@
     "build": "vite build",
     "electron:dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
     "electron:build": "vite build && electron-builder",
-    "electron:build:mac": "vite build && electron-builder --mac",
+    "electron:build:mac:universal": "vite build && electron-builder --mac --universal",
+    "electron:build:mac:intel": "vite build && electron-builder --mac --x64",
+    "electron:build:mac:arm": "vite build && electron-builder --mac --arm64",
     "electron:build:win": "vite build && electron-builder --win"
   },
   "build": {
@@ -27,7 +29,13 @@
     "mac": {
       "target": "dmg",
       "icon": "build/icon.icns",
-      "category": "public.app-category.business"
+      "category": "public.app-category.business",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "asar": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
     "win": {
       "target": "nsis",

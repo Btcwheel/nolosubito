@@ -172,6 +172,19 @@ export const praticheService = {
       .select()
       .single();
     if (error) throw error;
+
+    if (visibileCliente) {
+      try {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke('notify-nota-cliente', {
+          body: { praticaId, testo, autoreNome: autorNome },
+        });
+        if (fnError) console.error('notify-nota-cliente error:', fnError);
+        else console.log('notify-nota-cliente ok:', fnData);
+      } catch (e) {
+        console.error('notify-nota-cliente exception:', e.message);
+      }
+    }
+
     return data;
   },
 

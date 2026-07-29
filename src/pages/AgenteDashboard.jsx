@@ -22,6 +22,7 @@ const ALL_STATUSES = [
   "Nuova", "In Lavorazione", "Documenti Richiesti", "Documenti Caricati",
   "Attesa Affidamento Finanziaria", "Affidamento Ricevuto", "Stipula Contratto",
   "Attesa Consegna", "Approvata", "Consegnata", "Chiusa",
+  "Crif negativa", "bocciato",
 ];
 const ACTIVE_STATUSES = ["Nuova", "In Lavorazione", "Documenti Richiesti", "Approvata"];
 

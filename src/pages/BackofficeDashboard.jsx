@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { praticheService } from "@/services/pratiche";
 import { profilesService } from "@/services/profiles";
 import { useAuth } from "@/lib/AuthContext";
 import { canAccess } from "@/lib/permissions";
+import { chatSettingsService } from "@/services/chatSettings";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { useToast } from "@/components/ui/use-toast";
 import {
   Search, Eye, ClipboardList, Clock, CheckCircle2,
   AlertCircle, FileCheck, FileX, ChevronRight, Users, MessageSquareWarning, BookOpen, EyeOff,
+  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -26,6 +28,7 @@ const ALL_STATUSES = [
   "Nuova", "In Lavorazione", "Documenti Richiesti", "Documenti Caricati",
   "Attesa Affidamento Finanziaria", "Affidamento Ricevuto",
   "Stipula Contratto", "Attesa Consegna", "Approvata", "Consegnata", "Chiusa",
+  "Crif negativa", "bocciato",
 ];
 
 const ALL_TABS = [
@@ -117,6 +120,99 @@ function PraticaRow({ p, basePath }) {
   );
 }
 
+function OperatorModeToggle({ currentUserId }) {
+  const { toast } = useToast();
+  const { data: settings, isLoading } = useQuery({
+    queryKey: ['chat-operator-settings'],
+    queryFn: () => chatSettingsService.get(),
+    refetchInterval: 10000,
+  });
+  const { data: waitingCount = 0 } = useQuery({
+    queryKey: ['chat-direct-waiting'],
+    queryFn: () => chatSettingsService.countWaitingDirect(),
+    refetchInterval: 5000,
+  });
+
+  const isEnabled = settings?.ai_enabled !== false;
+
+  const [notifGranted, setNotifGranted] = useState(
+    'Notification' in window && Notification.permission === 'granted'
+  );
+
+  const requestNotif = useCallback(() => {
+    if (!('Notification' in window)) return;
+    if (Notification.permission === 'granted') {
+      setNotifGranted(true);
+      return;
+    }
+    Notification.requestPermission().then(perm => {
+      setNotifGranted(perm === 'granted');
+    });
+  }, []);
+
+  const toggleMutation = useMutation({
+    mutationFn: (enabled) => chatSettingsService.setAiEnabled(enabled, currentUserId),
+    onSuccess: () => {
+      requestNotif();
+      toast({
+        title: isEnabled ? 'Chat AI sospesa' : 'Chat AI riattivata',
+        description: isEnabled
+          ? 'Le chat arrivano direttamente agli operatori'
+          : 'Luca risponde automaticamente ai clienti',
+      });
+    },
+    onError: () => {
+      toast({ title: 'Errore', description: 'Impossibile cambiare modalità', variant: 'destructive' });
+    },
+  });
+
+  if (isLoading) return null;
+
+  return (
+    <div className={`rounded-xl border p-4 flex items-center justify-between gap-4 mb-6 ${
+      isEnabled ? 'bg-green-50/60 border-green-200' : 'bg-amber-50/60 border-amber-200'
+    }`}>
+      <div className="flex items-center gap-3 min-w-0">
+        <div className={`size-3 rounded-full ${isEnabled ? 'bg-green-500' : 'bg-red-500'} animate-pulse shrink-0`} />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-foreground">
+            {isEnabled ? 'AI Attiva — Luca risponde automaticamente' : 'Chat AI sospesa — chat in arrivo diretto'}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {isEnabled
+              ? 'I clienti parlano con Luca. Le escalation arrivano qui.'
+              : `${waitingCount} chat in coda operatore. I clienti parlano direttamente con voi.`
+            }
+          </p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        {!notifGranted && 'Notification' in window && (
+          <button
+            type="button"
+            onClick={requestNotif}
+            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-2 cursor-pointer"
+            title="Abilita notifiche desktop per le chat in arrivo"
+          >
+            Notifiche off
+          </button>
+        )}
+        <Button
+          variant={isEnabled ? 'destructive' : 'default'}
+          size="sm"
+          onClick={() => toggleMutation.mutate(!isEnabled)}
+          disabled={toggleMutation.isPending}
+        >
+          {toggleMutation.isPending ? (
+            <Loader2 className="size-4 animate-spin mr-1.5" />
+          ) : null}
+          {isEnabled ? 'Sospendi chat AI' : 'Riattiva chat AI'}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function BackofficeDashboard() {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -188,6 +284,11 @@ export default function BackofficeDashboard() {
           <StatCard label="Doc. da verificare"     value={stats.docsInAttesa}icon={FileX}          colorClass="text-red-500 bg-red-50" />
           <StatCard label="Consegnate"             value={stats.consegnate}  icon={CheckCircle2}   colorClass="text-green-600 bg-green-50" />
         </div>
+
+        {/* Toggle modalità operatore */}
+        {canAccess(profile, 'escalation') && (
+          <OperatorModeToggle currentUserId={currentUserId} />
+        )}
 
         {/* Tabs */}
         <div className="flex gap-1 bg-muted/50 rounded-xl p-1 mb-6 w-fit">

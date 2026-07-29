@@ -4,6 +4,7 @@ import { supabase } from '../services/supabase';
 const STYLES = {
   container: { display: 'flex', flexDirection: 'column', flex: 1, height: '100%', overflow: 'hidden' },
   header: { padding: '12px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fff' },
+  operatorLabel: { fontSize: '12px', color: '#2563eb', fontWeight: 600, marginTop: '2px' },
   messages: { flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '8px' },
   inputArea: { padding: '12px 16px', borderTop: '1px solid #e2e8f0', display: 'flex', gap: '8px', backgroundColor: '#fff' },
   input: { flex: 1, border: '1px solid #d1d5db', borderRadius: '12px', padding: '10px 14px', fontSize: '14px', resize: 'none', outline: 'none', fontFamily: 'inherit' },
@@ -73,10 +74,17 @@ export default function ChatView({ session, user, onClose }) {
     const content = text.trim();
     setText('');
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', user.id)
+      .single();
+
     await supabase.from('operator_chat_messages').insert({
       session_id: session.session_id,
       sender: 'operator',
       operator_id: user.id,
+      operator_name: profile?.name || 'Operatore',
       content,
     });
 
@@ -99,6 +107,9 @@ export default function ChatView({ session, user, onClose }) {
           <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>
             {session.user_question?.slice(0, 60)}...
           </p>
+          {session.operator_name && (
+            <p style={STYLES.operatorLabel}>Rispondi come {session.operator_name}</p>
+          )}
         </div>
         <button style={STYLES.closeBtn} onClick={onClose}>Chiudi</button>
       </div>

@@ -99,7 +99,8 @@ create table if not exists pratiche (
                                 check (status in (
                                   'Nuova','In Lavorazione','Documenti Richiesti','Documenti Caricati',
                                   'Attesa Affidamento Finanziaria','Affidamento Ricevuto',
-                                  'Stipula Contratto','Attesa Consegna','Approvata','Consegnata','Chiusa'
+                                  'Stipula Contratto','Attesa Consegna','Approvata','Consegnata','Chiusa',
+                                  'Crif negativa','bocciato'
                                 )),
   -- Cliente
   cliente_nome                text not null,
@@ -569,7 +570,8 @@ alter table pratiche add constraint pratiche_status_check
   check (status in (
     'Nuova','In Lavorazione','Documenti Richiesti','Documenti Caricati',
     'Attesa Affidamento Finanziaria','Affidamento Ricevuto',
-    'Stipula Contratto','Attesa Consegna','Approvata','Consegnata','Chiusa'
+    'Stipula Contratto','Attesa Consegna','Approvata','Consegnata','Chiusa',
+    'Crif negativa','bocciato'
   ));
 
 -- ── Storage: bucket vehicle-images ──────────────────────────────────────────

@@ -93,7 +93,7 @@ function TypingIndicator() {
 export default function ChatWidget() {
   const {
     messages, input, setInput, typing, partialContent, leadSaved, escalated, escalationPhase,
-    bottomRef, sendMessage, handleEscalationChoice, saveContact,
+    operatorTyping, operatorName, bottomRef, sendMessage, handleEscalationChoice, saveContact,
   } = useChat();
 
   const [open, setOpen] = useState(false);
@@ -156,11 +156,31 @@ export default function ChatWidget() {
                 onError={e => e.target.style.display = 'none'}
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white leading-none">Luca — Consulente NLT</p>
-                <p className="text-[11px] text-white/45 mt-0.5 flex items-center gap-1">
-                  <span className="size-1.5 rounded-full bg-green-400 inline-block" />
-                  Online — risposta immediata
-                </p>
+                {escalationPhase === 'direct' && operatorName ? (
+                  <>
+                    <p className="text-sm font-semibold text-white leading-none">{operatorName} — Operatore</p>
+                    <p className="text-[11px] text-white/45 mt-0.5 flex items-center gap-1">
+                      <span className="size-1.5 rounded-full bg-green-400 inline-block" />
+                      Online
+                    </p>
+                  </>
+                ) : escalationPhase === 'direct' ? (
+                  <>
+                    <p className="text-sm font-semibold text-white leading-none">Assistenza clienti</p>
+                    <p className="text-[11px] text-white/45 mt-0.5 flex items-center gap-1">
+                      <span className="size-1.5 rounded-full bg-amber-400 inline-block" />
+                      Operatore in arrivo...
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-white leading-none">Luca — Consulente NLT</p>
+                    <p className="text-[11px] text-white/45 mt-0.5 flex items-center gap-1">
+                      <span className="size-1.5 rounded-full bg-green-400 inline-block" />
+                      Online — risposta immediata
+                    </p>
+                  </>
+                )}
               </div>
               <button type="button"
                 onClick={() => setOpen(false)}
@@ -180,13 +200,28 @@ export default function ChatWidget() {
 
               {partialContent && !typing && <ChatMessage message={partialContent} />}
 
-              {typing && <TypingIndicator />}
+              {typing && escalationPhase !== 'direct' && <TypingIndicator />}
 
-              {escalationPhase === 'ask_wait' && !typing && (
-                <EscalationChoiceButtons onChoice={handleEscalationChoice} />
+              {operatorTyping && escalationPhase === 'direct' && operatorName && (
+                <div className="flex gap-2.5 items-end">
+                  <div className="rounded-full bg-navy flex items-center justify-center size-7 shrink-0 shadow-sm">
+                    <span className="font-bold text-white text-[11px]">{operatorName.charAt(0).toUpperCase()}</span>
+                  </div>
+                  <div className="bg-muted/60 border border-border/40 rounded-2xl rounded-tl-sm px-4 py-3">
+                    <p className="text-xs text-muted-foreground">{operatorName} sta scrivendo...</p>
+                  </div>
+                </div>
               )}
-              {escalationPhase === 'ask_contact' && !typing && (
-                <ContactForm onSubmit={saveContact} />
+
+              {escalationPhase === 'direct' ? null : (
+                <>
+                  {escalationPhase === 'ask_wait' && !typing && (
+                    <EscalationChoiceButtons onChoice={handleEscalationChoice} />
+                  )}
+                  {escalationPhase === 'ask_contact' && !typing && (
+                    <ContactForm onSubmit={saveContact} />
+                  )}
+                </>
               )}
 
               <div ref={bottomRef} />
@@ -199,7 +234,7 @@ export default function ChatWidget() {
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onKeyDown={handleKey}
-                  placeholder="Scrivi un messaggio…"
+                  placeholder={escalationPhase === 'direct' ? 'Scrivi una risposta...' : 'Scrivi un messaggio…'}
                   rows={1}
                   className="flex-1 resize-none bg-muted/40 border border-border/50 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-electric/50 focus:ring-1 focus:ring-electric/20 transition-all max-h-24 leading-relaxed"
                   style={{ minHeight: '42px' }}

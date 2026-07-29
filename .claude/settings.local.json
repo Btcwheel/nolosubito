@@ -55,7 +55,8 @@
       "Bash(git rev-list *)",
       "Bash(git stash *)",
       "Bash(sips -g pixelWidth -g pixelHeight \"dist-electron/mac/Nolosubito Operator.app/Contents/Resources/icon.icns\")",
-      "Bash(gh auth *)"
+      "Bash(gh auth *)",
+      "Bash(supabase --version)"
     ]
   }
 }

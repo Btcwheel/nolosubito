@@ -3,8 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { chatService } from '@/services/chat';
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
-import { MessageSquare, Clock, CheckCircle2, Send, BookOpen, X, Loader2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { MessageSquare, Clock, CheckCircle2, Send, BookOpen, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
@@ -113,7 +112,7 @@ function OperatorChat({ session, currentUserId, onClose, onKbSaved }) {
     const text = input.trim();
     setInput('');
     setSending(true);
-    const { error } = await chatService.sendOperatorMessage(sessionId, text, currentUserId);
+    const { error } = await chatService.sendOperatorMessage(sessionId, text, currentUserId, session.operator_name);
     if (error) {
       toast({ title: 'Errore invio', description: error.message, variant: 'destructive' });
       setInput(text);
@@ -287,11 +286,17 @@ function EscalationCard({ session, onTake, currentUserId, takenSessionId, onKbSa
   const elapsed = useElapsed(session.created_at);
   const st = STATUS_LABELS[session.status] ?? STATUS_LABELS.waiting;
   const isTakenByMe = takenSessionId === session.id;
+  const isDirect = session.source === 'direct';
 
   return (
     <div className={`bg-card border rounded-xl p-4 space-y-2 ${isTakenByMe ? 'border-electric/50 ring-1 ring-electric/30' : 'border-border/50'}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${isDirect ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+              {isDirect ? 'Chat diretta' : 'Escalation Luca'}
+            </span>
+          </div>
           <p className="text-sm font-medium text-foreground leading-snug">{session.user_question}</p>
           <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
             <Clock className="size-3" />
@@ -347,8 +352,10 @@ export default function EscalationPanel({ currentUserId }) {
       if (waitingCount > prevCountRef.current) {
         playSound();
         if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('Luca ha bisogno di aiuto', {
-            body: data.find(s => s.status === 'waiting')?.user_question ?? '',
+          const firstWaiting = data.find(s => s.status === 'waiting');
+          const isDirect = firstWaiting?.source === 'direct';
+          new Notification(isDirect ? 'Nuova chat in arrivo' : 'Luca ha bisogno di aiuto', {
+            body: firstWaiting?.user_question ?? '',
             icon: '/favicon.ico',
           });
         }
@@ -359,10 +366,6 @@ export default function EscalationPanel({ currentUserId }) {
   }, [filter, playSound]);
 
   useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-
     fetchSessions();
 
     const channel = supabase
@@ -378,10 +381,17 @@ export default function EscalationPanel({ currentUserId }) {
   }, [filter, fetchSessions]);
 
   async function handleTake(session) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('name')
+      .eq('id', currentUserId)
+      .single();
+
     await supabase
       .from('escalated_sessions')
       .update({
         operator_id: currentUserId,
+        operator_name: profile?.name || 'Operatore',
         status: 'operator_joined',
         taken_at: new Date().toISOString(),
       })
@@ -409,6 +419,7 @@ export default function EscalationPanel({ currentUserId }) {
   const waiting = sessions.filter(s => s.status === 'waiting');
   const active = sessions.filter(s => s.status === 'operator_joined');
   const resolved = sessions.filter(s => s.status === 'resolved' || s.status === 'contact_left');
+  const hasDirect = sessions.some(s => s.source === 'direct');
 
   return (
     <div className="space-y-4">
@@ -423,8 +434,12 @@ export default function EscalationPanel({ currentUserId }) {
         <>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold text-foreground">Chat in escalation</h2>
-              <p className="text-xs text-muted-foreground">Sessioni dove Luca ha chiesto aiuto</p>
+              <h2 className="text-lg font-semibold text-foreground">
+                {hasDirect ? 'Chat e escalation' : 'Chat in escalation'}
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                {hasDirect ? 'Chat dirette e sessioni dove Luca ha chiesto aiuto' : 'Sessioni dove Luca ha chiesto aiuto'}
+              </p>
             </div>
             <div className="flex gap-2">
               <button type="button"
@@ -505,7 +520,7 @@ export default function EscalationPanel({ currentUserId }) {
           {sessions.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               <CheckCircle2 className="size-8 text-green-400 mx-auto mb-2" />
-              <p className="text-sm">Nessuna chat in escalation</p>
+              <p className="text-sm">Nessuna chat in arrivo</p>
             </div>
           )}
         </>

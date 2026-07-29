@@ -33,12 +33,13 @@ export const chatService = {
   },
 
   // ── Operatore ↔ Cliente takeover chat ────────────────────────
-  async sendOperatorMessage(sessionId, content, operatorId) {
+  async sendOperatorMessage(sessionId, content, operatorId, operatorName) {
     const { supabase } = await import('@/lib/supabase');
     return supabase.from('operator_chat_messages').insert({
       session_id: sessionId,
       sender: 'operator',
       operator_id: operatorId || null,
+      operator_name: operatorName || null,
       content,
     });
   },
@@ -71,6 +72,22 @@ export const chatService = {
       .eq('sender', 'customer')
       .order('created_at', { ascending: true });
     return data ?? [];
+  },
+
+  async createDirectChat(sessionId, text, chatHistory) {
+    const { supabase } = await import('@/lib/supabase');
+    const { error } = await supabase.from('escalated_sessions').insert({
+      session_id: sessionId,
+      user_question: text,
+      chat_history: chatHistory || [],
+      status: 'waiting',
+      source: 'direct',
+    });
+    // Ignora errore di chiave duplicata (sessione già esistente)
+    if (error && !error.message?.includes('duplicate key')) {
+      console.warn('createDirectChat insert error:', error);
+    }
+    await this.sendCustomerMessage(sessionId, text);
   },
 
   async closeEscalation(sessionId, { saveToKb = false, kbContent = null, kbTitle = null } = {}) {
