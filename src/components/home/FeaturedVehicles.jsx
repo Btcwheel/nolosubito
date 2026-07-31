@@ -75,6 +75,7 @@ export default function FeaturedVehicles() {
   const [budgetFilter, setBudgetFilter] = useState("all");
   const [quickFilter, setQuickFilter] = useState(null);
   const [prontoConsegna, setProntoConsegna] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const resultsRef = useRef(null);
@@ -149,6 +150,11 @@ export default function FeaturedVehicles() {
         if (quickFilter === "Elettriche") return v.fuel_type === "Electric";
         return true;
       })
+      .filter(v => {
+        if (!searchText) return true;
+        const q = searchText.toLowerCase();
+        return `${v.make ?? ""} ${v.model ?? ""}`.toLowerCase().includes(q);
+      })
       .filter(v => !prontoConsegna || v.is_ready_delivery === true)
       .sort((a, b) => {
         const now = new Date();
@@ -156,7 +162,7 @@ export default function FeaturedVehicles() {
         const bPromo = b.promo_expires_at && new Date(b.promo_expires_at) > now ? 1 : 0;
         return bPromo - aPromo;
       });
-  }, [vehicles, makeFilter, tipologia, categoryFilter, budgetFilter, quickFilter, prontoConsegna]);
+  }, [vehicles, makeFilter, tipologia, categoryFilter, budgetFilter, quickFilter, prontoConsegna, searchText]);
 
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   const hasMore = visibleCount < filtered.length;
@@ -305,6 +311,23 @@ export default function FeaturedVehicles() {
                     options={BUDGET_OPTIONS}
                     onChange={handleBudget}
                   />
+                </div>
+
+                {/* Ricerca testo */}
+                <div className="col-span-2 w-full sm:w-44 shrink-0">
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <label className="text-[11px] font-bold text-[#2D2E82] uppercase tracking-wide px-1">Cerca</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={searchText}
+                        onChange={e => { setSearchText(e.target.value); resetPage(); }}
+                        placeholder="Marca o modello…"
+                        className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-sm font-medium text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-navy/20"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* CTA */}
