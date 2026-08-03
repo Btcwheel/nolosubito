@@ -418,7 +418,7 @@ function PreventivoCard({ prev, clienteNome, onInvia, onReinvia, onDelete, isLoa
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function PreventiviSection({ praticaId, clienteNome }) {
+export default function PreventiviSection({ praticaId, clienteNome, pratica }) {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
@@ -758,7 +758,23 @@ export default function PreventiviSection({ praticaId, clienteNome }) {
           <Button
             size="sm"
             variant={showForm ? "outline" : "default"}
-            onClick={() => setShowForm((v) => !v)}
+            onClick={() => {
+              if (!showForm) {
+                setForm({
+                  ...BLANK_FORM,
+                  veicolo_marca:    pratica?.veicolo_marca || "",
+                  veicolo_modello:  pratica?.veicolo_modello || "",
+                  veicolo_versione: pratica?.veicolo_versione || "",
+                  alimentazione:    pratica?.veicolo_alimentazione || "",
+                  durata_mesi:      pratica?.durata_mesi ? String(pratica.durata_mesi) : "",
+                  km_annui:         pratica?.km_annui ? String(pratica.km_annui) : "",
+                  anticipo:         pratica?.anticipo != null ? String(pratica.anticipo) : "",
+                  canone_mensile:   pratica?.canone_mensile ? String(pratica.canone_mensile) : "",
+                  note_cliente:     pratica?.note_cliente || "",
+                });
+              }
+              setShowForm((v) => !v);
+            }}
             className={showForm ? "" : "gap-1.5"}
           >
             {showForm ? (
