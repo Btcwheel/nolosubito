@@ -238,6 +238,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
       annualKm,
       advance,
       monthlyRent: computedRent,
+      baseMonthlyRent: exactConfig?.monthly_rent ?? null,
     });
   }, [onRequestQuote, selectedMake, selectedModel, exactConfig, activeSegment, duration, annualKm, advance, computedRent]);
 

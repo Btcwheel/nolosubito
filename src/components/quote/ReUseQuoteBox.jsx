@@ -103,6 +103,7 @@ function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequest
       annualKm: selected.km,
       advance: 0,
       monthlyRent: config?.monthly_rent ?? null,
+      baseMonthlyRent: config?.monthly_rent ?? null,
     });
   };
 
@@ -294,8 +295,9 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
       annualKm,
       advance,
       monthlyRent: computedRent,
+      baseMonthlyRent: exactConfig?.monthly_rent ?? null,
     });
-  }, [onRequestQuote, fixedMake, fixedModel, duration, annualKm, advance, computedRent, reuseSegment]);
+  }, [onRequestQuote, fixedMake, fixedModel, duration, annualKm, advance, computedRent, reuseSegment, exactConfig]);
 
   const ctaClass = "w-full h-13 font-bold rounded-xl text-base py-3.5 cursor-pointer transition-all duration-200";
 

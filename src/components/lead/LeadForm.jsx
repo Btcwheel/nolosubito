@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { praticheService } from "@/services/pratiche";
+import { computeNetMonthlyRent } from "@/lib/vehiclePricing";
 import { useToast } from "@/components/ui/use-toast";
 import {
   ArrowRight, Loader2, CheckCircle2, Mail, ExternalLink,
@@ -172,6 +173,15 @@ export default function LeadForm({ prefilledConfig }) {
           ? f.denominazione.trim()
           : `${f.nome.trim()} ${f.cognome.trim()}`.trim();
 
+      // Se il cliente sceglie "senza anticipo" nel form personalizzato, il canone
+      // mostrato dalla box (già scontato in base all'anticipo configurato lì)
+      // va ricalcolato senza sconto, altrimenti anticipo e canone risultano incoerenti.
+      const anticipoValue = f.anticipo === "senza" ? 0 : (prefilledConfig?.advance ?? null);
+      const canoneValue =
+        f.anticipo === "senza" && prefilledConfig?.baseMonthlyRent != null
+          ? computeNetMonthlyRent(prefilledConfig.baseMonthlyRent, 0, prefilledConfig?.duration)
+          : (prefilledConfig?.monthlyRent ?? null);
+
       await praticheService.create({
         cliente_nome:             clienteNome,
         cliente_cognome:          f.cognome.trim()  || null,
@@ -193,11 +203,11 @@ export default function LeadForm({ prefilledConfig }) {
         veicolo_modello:          f.modello.trim()   || null,
         veicolo_versione:         f.versione.trim()  || null,
         veicolo_alimentazione:    f.alimentazione    || null,
-        anticipo:                 f.anticipo === "senza" ? 0 : (prefilledConfig?.advance ?? null),
+        anticipo:                 anticipoValue,
         segmento:                 ["P.IVA","Veicoli Commerciali","Privati","ReUse"].includes(prefilledConfig?.segment) ? prefilledConfig.segment : null,
         durata_mesi:              prefilledConfig?.duration || null,
         km_annui:                 f.kmAnnui ? parseInt(f.kmAnnui) : (prefilledConfig?.annualKm || null),
-        canone_mensile:           prefilledConfig?.monthlyRent || null,
+        canone_mensile:           canoneValue,
         note_cliente:             f.note.trim() || null,
       });
 
