@@ -1,10 +1,10 @@
 import { memo } from 'react';
 import { Link } from 'react-router-dom';
-import { User } from 'lucide-react';
+import { User, Bot } from 'lucide-react';
 
-const LucaAvatar = ({ size = 'sm' }) => (
-  <div className={`rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-sm ${size === 'sm' ? 'size-7' : 'size-9'}`}>
-    <span className={`font-bold text-white ${size === 'sm' ? 'text-[11px]' : 'text-sm'}`}>L</span>
+const AIAvatar = ({ size = 'sm' }) => (
+  <div className={`rounded-full bg-navy flex items-center justify-center shrink-0 shadow-sm ${size === 'sm' ? 'size-7' : 'size-9'}`}>
+    <Bot className={`text-white ${size === 'sm' ? 'size-4' : 'size-5'}`} />
   </div>
 );
 
@@ -42,7 +42,7 @@ export default memo(function ChatMessage({ message }) {
         </div>
       ) : (
         <div className="shrink-0 mt-0.5">
-          <LucaAvatar size="sm" />
+          <AIAvatar size="sm" />
         </div>
       )}
       <div

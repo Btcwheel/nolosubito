@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Loader2, ChevronDown } from 'lucide-react';
+import { MessageCircle, X, Send, Loader2, ChevronDown, Bot } from 'lucide-react';
 import ChatMessage from './ChatMessage';
 import useChat from '@/hooks/useChat';
 import useScrollDirection from '@/hooks/useScrollDirection';
@@ -72,8 +72,8 @@ function TypingIndicator() {
   return (
     <div className="flex gap-2.5 items-end">
       <div className="shrink-0">
-        <div className="rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0 shadow-sm size-7">
-          <span className="font-bold text-white text-[11px]">L</span>
+        <div className="rounded-full bg-navy flex items-center justify-center shrink-0 shadow-sm size-7">
+          <Bot className="size-4 text-white" />
         </div>
       </div>
       <div className="bg-muted/60 border border-border/40 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1">
@@ -92,7 +92,7 @@ function TypingIndicator() {
 
 export default function ChatWidget() {
   const {
-    messages, input, setInput, typing, partialContent, leadSaved, escalated, escalationPhase,
+    messages, input, setInput, typing, leadSaved, escalated, escalationPhase,
     operatorTyping, operatorName, bottomRef, sendMessage, handleEscalationChoice, saveContact,
   } = useChat();
 
@@ -174,10 +174,10 @@ export default function ChatWidget() {
                   </>
                 ) : (
                   <>
-                    <p className="text-sm font-semibold text-white leading-none">Luca — Consulente NLT</p>
+                    <p className="text-sm font-semibold text-white leading-none">Assistente AI Nolosubito</p>
                     <p className="text-[11px] text-white/45 mt-0.5 flex items-center gap-1">
                       <span className="size-1.5 rounded-full bg-green-400 inline-block" />
-                      Online — risposta immediata
+                      AI attiva — risposta immediata
                     </p>
                   </>
                 )}
@@ -197,8 +197,6 @@ export default function ChatWidget() {
               {messages.map((msg, i) => (
                 <ChatMessage key={i} message={msg} />
               ))}
-
-              {partialContent && !typing && <ChatMessage message={partialContent} />}
 
               {typing && escalationPhase !== 'direct' && <TypingIndicator />}
 
@@ -275,7 +273,7 @@ export default function ChatWidget() {
               <X className="size-3" />
             </button>
             <p className="text-sm font-semibold text-foreground pr-4">Hai domande sul Noleggio Lungo Termine?</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Luca risponde subito!</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Il nostro assistente AI risponde subito!</p>
             <div className="absolute -bottom-2 right-7 w-4 h-2 overflow-hidden">
               <div className="size-3 bg-white border-r border-b border-border/50 rotate-45 translate-y-[-50%] translate-x-[2px]" />
             </div>

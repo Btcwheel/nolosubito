@@ -6,13 +6,10 @@ import { supabase } from '@/lib/supabase';
 const STORAGE_KEY = 'nolosubito_chat';
 const STORAGE_TTL = 24 * 60 * 60 * 1000;
 const ESCALATION_TIMEOUT_MS = 1 * 60 * 1000;
-const TYPE_SPEED_MIN = 45;
-const TYPE_SPEED_MAX = 85;
-const CHUNKS_PER_MSG = 12;
 
 const WELCOME = {
   role: 'assistant',
-  content: 'Salve! Sono Luca, consulente NLT di Nolosubito. Sono a Sua disposizione per aiutarLa a trovare il veicolo più adatto alle Sue esigenze. Ha già qualcosa in mente, o preferisce che Le illustri come funziona il noleggio a lungo termine?',
+  content: 'Salve! Sono l\'assistente AI di Nolosubito. Posso aiutarla a trovare il veicolo più adatto alle Sue esigenze di noleggio a lungo termine. Ha già qualcosa in mente, o preferisce che Le illustri come funziona il noleggio a lungo termine?',
 };
 
 function generateSessionId() {
@@ -40,16 +37,6 @@ function saveToStorage(messages, leadSaved, sessionId) {
   } catch {}
 }
 
-function typingDelay(text, serverLength) {
-  const charCount = serverLength || text.length;
-  const base = charCount * 75 + 2500;
-  const jitter = Math.random() * 1200 - 600;
-  return Math.min(Math.max(base + jitter, 2500), 12000);
-}
-
-const BETWEEN_MSG_PAUSE = () => 3500 + Math.random() * 2500;
-const READ_DELAY = () => 4000 + Math.random() * 4000;
-
 export default function useChat() {
   const stored = loadFromStorage();
   const [messages, setMessages] = useState(stored?.messages ?? [WELCOME]);
@@ -59,7 +46,6 @@ export default function useChat() {
   const [escalated, setEscalated] = useState(false);
   const [escalationPhase, setEscalationPhase] = useState(null); // null | 'waiting' | 'ask_wait' | 'ask_contact'
   const [operatorTyping, setOperatorTyping] = useState(false);
-  const [partialContent, setPartialContent] = useState(null);
   const [operatorName, setOperatorName] = useState(null);
   const [sessionId] = useState(() => stored?.sessionId ?? generateSessionId());
   const [aiEnabled, setAiEnabled] = useState(true);
@@ -103,30 +89,12 @@ export default function useChat() {
     };
   }, []);
 
-  const deliverMessages = useCallback(async (parts, serverLength) => {
+  const deliverMessages = useCallback(async (parts) => {
     for (let idx = 0; idx < parts.length; idx++) {
-      const content = parts[idx];
-      const delay = typingDelay(content, idx === 0 ? serverLength : null);
-
       setTyping(true);
-      await new Promise(r => setTimeout(r, delay));
+      await new Promise(r => setTimeout(r, 250));
       setTyping(false);
-
-      const total = content.length;
-      const chunkSize = Math.max(3, Math.ceil(total / CHUNKS_PER_MSG));
-      let revealed = 0;
-
-      while (revealed < total) {
-        revealed = Math.min(revealed + chunkSize, total);
-        setPartialContent({ role: 'assistant', content: content.slice(0, revealed) });
-        await new Promise(r => setTimeout(r, TYPE_SPEED_MIN + Math.random() * (TYPE_SPEED_MAX - TYPE_SPEED_MIN)));
-      }
-
-      setPartialContent(null);
-      setMessages(prev => [...prev, { role: 'assistant', content }]);
-      if (idx < parts.length - 1) {
-        await new Promise(r => setTimeout(r, BETWEEN_MSG_PAUSE()));
-      }
+      setMessages(prev => [...prev, { role: 'assistant', content: parts[idx] }]);
     }
   }, []);
 
@@ -309,7 +277,6 @@ export default function useChat() {
 
     // ── NORMAL MODE: chiamo l'edge function ──────────────────────────────
     const newMessages = [...messages, userMsg];
-    await new Promise(r => setTimeout(r, READ_DELAY()));
     setTyping(true);
 
     try {
@@ -379,7 +346,6 @@ export default function useChat() {
     input,
     setInput,
     typing,
-    partialContent,
     leadSaved,
     escalated,
     escalationPhase,
