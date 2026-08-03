@@ -241,7 +241,7 @@ export default function NewsDetail() {
         </p>
 
         {/* Content */}
-        <div className="prose prose-slate max-w-none
+        <div className="prose prose-slate max-w-none overflow-x-auto
           prose-headings:font-heading prose-headings:text-foreground
           prose-p:text-foreground/80 prose-p:leading-relaxed
           prose-a:text-electric prose-a:no-underline hover:prose-a:underline

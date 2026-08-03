@@ -52,7 +52,7 @@ function PromoBadge({ discountPct }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-red-600/90 backdrop-blur-sm text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg shadow-red-600/40 whitespace-nowrap"
+      className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-red-600/90 backdrop-blur-sm text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg shadow-red-600/40 whitespace-nowrap max-w-[calc(100%-1.5rem)] truncate"
     >
       <Tag className="size-3.5 shrink-0" />
       {discountPct > 0 ? `Offerta -${Math.round(discountPct)}% · Tempo limitato` : "Offerta Speciale · Tempo limitato"}

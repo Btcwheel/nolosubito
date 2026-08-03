@@ -21,13 +21,13 @@ function DigitBlock({ value, label }) {
             animate={{ y: 0,   opacity: 1 }}
             exit={{   y:  24,  opacity: 0 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
-            className="tabular-nums font-bold text-white leading-none text-3xl sm:text-4xl lg:text-5xl"
+            className="tabular-nums font-bold text-white leading-none text-2xl sm:text-4xl lg:text-5xl max-[360px]:text-xl"
           >
             {padded}
           </motion.div>
         </AnimatePresence>
       </div>
-      <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-white/50">{label}</span>
+      <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-widest text-white/50 max-[360px]:text-[8px]">{label}</span>
     </div>
   );
 }
@@ -80,7 +80,7 @@ function PromoSlide({ promo, imgY }) {
       className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-16 items-center"
     >
       {/* ── Left: contenuto ── */}
-      <div className="space-y-4 sm:space-y-6 z-10">
+      <div className="space-y-4 sm:space-y-6 z-10 min-w-0">
         <div className="flex items-center gap-2">
           <div className="size-1.5 sm:w-2 sm:h-2 rounded-full bg-red-400 animate-pulse" />
           <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">
@@ -99,7 +99,7 @@ function PromoSlide({ promo, imgY }) {
         </div>
 
         {/* Countdown + prezzo su mobile: affiancati */}
-        <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-8">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-8 min-w-0">
           <div className="space-y-1.5">
             <p className="text-[10px] font-medium text-white/40 uppercase tracking-widest">Scade tra</p>
             <CountdownTimer expiresAt={promo.promo_expires_at} />

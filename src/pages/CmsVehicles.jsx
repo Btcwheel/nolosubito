@@ -404,22 +404,23 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
           )}
 
           {/* Header */}
-          <div className="grid grid-cols-[28px_1fr_90px_110px_130px_110px_32px_32px] gap-2 px-1">
-            {["★", "Segmento", "Durata", "KM/anno", "Anticipo", "Canone €/mese", "", ""].map((h, i) => (
-              <p key={i} className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{h}</p>
-            ))}
-          </div>
+          <div className="overflow-x-auto">
+            <div className="grid grid-cols-[28px_1fr_90px_110px_130px_110px_32px_32px] gap-2 px-1">
+              {["★", "Segmento", "Durata", "KM/anno", "Anticipo", "Canone €/mese", "", ""].map((h, i) => (
+                <p key={i} className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{h}</p>
+              ))}
+            </div>
 
-          {/* Righe */}
-          {rows.map(row => (
-            <div
-              key={row._key}
-              className={`grid grid-cols-[28px_1fr_90px_110px_130px_110px_32px_32px] gap-2 items-start rounded-xl px-3 py-2 border transition-colors ${
-                row.is_featured
-                  ? "bg-amber-50 border-amber-300"
-                  : "bg-muted/30 border-border/50"
-              }`}
-            >
+            {/* Righe */}
+            {rows.map(row => (
+              <div
+                key={row._key}
+                className={`grid grid-cols-[28px_1fr_90px_110px_130px_110px_32px_32px] gap-2 items-start rounded-xl px-3 py-2 border transition-colors ${
+                  row.is_featured
+                    ? "bg-amber-50 border-amber-300"
+                    : "bg-muted/30 border-border/50"
+                }`}
+              >
               {/* Stella vetrina */}
               <button
                 type="button"
@@ -505,6 +506,7 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
               </button>
             </div>
           ))}
+          </div>
         </div>
       )}
 
