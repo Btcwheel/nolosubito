@@ -8,54 +8,6 @@ import { useCountdown } from "@/hooks/useCountdown";
 import { usePageVisible } from "@/hooks/usePageVisible";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing";
-import { Skeleton } from "@/components/ui/skeleton";
-
-function PromoHeroSkeleton() {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 lg:gap-16 items-center animate-pulse">
-      {/* Left: contenuto */}
-      <div className="space-y-5 sm:space-y-6 z-10">
-        <div className="flex items-center gap-2">
-          <div className="size-1.5 sm:w-2 sm:h-2 rounded-full bg-white/20" />
-          <Skeleton className="h-3 w-44 bg-white/10" />
-        </div>
-
-        <div className="space-y-2">
-          <Skeleton className="h-3 sm:h-3.5 w-20 bg-white/10" />
-          <Skeleton className="h-12 sm:h-14 lg:h-16 w-full max-w-md bg-white/10" />
-          <Skeleton className="h-3 sm:h-3.5 w-40 bg-white/10" />
-        </div>
-
-        <div className="flex flex-col sm:flex-row sm:items-end gap-5 sm:gap-8">
-          <div className="space-y-2">
-            <Skeleton className="h-2.5 w-20 bg-white/10" />
-            <Skeleton className="h-14 sm:h-16 w-52 bg-white/10 rounded-xl" />
-          </div>
-          <div className="space-y-1">
-            <Skeleton className="h-4 w-28 bg-white/10" />
-            <Skeleton className="h-12 sm:h-14 w-44 bg-white/10" />
-            <Skeleton className="h-2.5 w-36 bg-white/10" />
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          <Skeleton className="h-9 sm:h-10 w-32 bg-white/10 rounded-xl" />
-          <Skeleton className="h-9 sm:h-10 w-40 bg-white/10 rounded-xl" />
-        </div>
-      </div>
-
-      {/* Right: immagine */}
-      <div className="relative h-[240px] sm:h-[320px] lg:h-[400px] overflow-hidden rounded-2xl bg-white/5" />
-
-      {/* Dot navigation placeholder */}
-      <div className="col-span-1 lg:col-span-2 flex justify-center gap-2 mt-6 sm:mt-8">
-        <Skeleton className="h-2 w-5 bg-white/20 rounded-full" />
-        <Skeleton className="h-2 w-2 bg-white/10 rounded-full" />
-        <Skeleton className="h-2 w-2 bg-white/10 rounded-full" />
-      </div>
-    </div>
-  );
-}
 
 function DigitBlock({ value, label }) {
   const padded = String(value).padStart(2, "0");
@@ -279,22 +231,7 @@ export default function PromoHero() {
 
   if (dismissed) return null;
 
-  if (isLoading) {
-    return (
-      <section
-        aria-hidden="true"
-        className="relative w-full overflow-hidden h-[460px] sm:h-[540px] lg:h-[560px]"
-        style={{ background: "linear-gradient(135deg, #0f0f23 0%, #1a1a3e 40%, #0d1f3c 100%)" }}
-      >
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
-          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }}
-        />
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8 sm:pt-6 sm:pb-12 lg:pt-8 lg:pb-16">
-          <PromoHeroSkeleton />
-        </div>
-      </section>
-    );
-  }
+  if (isLoading) return null;
 
   if (promos.length === 0) return null;
 
