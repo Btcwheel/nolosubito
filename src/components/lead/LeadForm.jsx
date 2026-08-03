@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { praticheService } from "@/services/pratiche";
-import { computeNetMonthlyRent } from "@/lib/vehiclePricing";
 import { useToast } from "@/components/ui/use-toast";
 import {
   ArrowRight, Loader2, CheckCircle2, Mail, ExternalLink,
@@ -69,6 +68,8 @@ const KM_OPTIONS = [
   { value: "40000",  label: "40.000 km/anno" },
   { value: "50000",  label: "50.000 km/anno" },
 ];
+
+const DURATA_OPTIONS = [12, 24, 36, 48, 60].map((d) => ({ value: String(d), label: `${d} mesi` }));
 
 const ANNI = Array.from(
   { length: 50 },
@@ -130,6 +131,11 @@ export default function LeadForm({ prefilledConfig }) {
   const [sending, setSending]             = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
 
+  // "locked" = offerta bloccata dalla box (config esatta, non modificabile).
+  // "custom" = richiesta personalizzata: solo marca/modello arrivano dalla box (se presente),
+  // durata/km/anticipo li specifica il cliente.
+  const mode = prefilledConfig?.mode === "locked" ? "locked" : "custom";
+
   const isPrivate = prefilledConfig?.segment === "Privati";
   const [clientType, setClientType] = useState(isPrivate ? "Privato" : "P.IVA");
 
@@ -142,13 +148,14 @@ export default function LeadForm({ prefilledConfig }) {
     // employment (Privato only)
     occupazione: "", tipoContratto: "", garante: "", annoInizioLavoro: "",
     // vehicle
-    marca:         prefilledConfig?.make                              || "",
-    modello:       prefilledConfig?.model                             || "",
-    versione:      prefilledConfig?.version                           || "",
-    alimentazione: FUEL_TYPE_MAP[prefilledConfig?.fuelType] || prefilledConfig?.fuelType || "",
-     anticipo:      "",
-     kmAnnui:      prefilledConfig?.annualKm    ? String(prefilledConfig.annualKm) : "",
-     note: "",
+    marca:         prefilledConfig?.make  || "",
+    modello:       prefilledConfig?.model || "",
+    versione:      mode === "locked" ? (prefilledConfig?.version || "") : "",
+    alimentazione: mode === "locked" ? (FUEL_TYPE_MAP[prefilledConfig?.fuelType] || prefilledConfig?.fuelType || "") : "",
+    durataMesi:      mode === "locked" && prefilledConfig?.duration  ? String(prefilledConfig.duration)  : "",
+    kmAnnui:         mode === "locked" && prefilledConfig?.annualKm  ? String(prefilledConfig.annualKm)  : "",
+    anticipoImporto: "",
+    note: "",
   });
   const set = (k, v) => setF((prev) => ({ ...prev, [k]: v }));
 
@@ -173,14 +180,13 @@ export default function LeadForm({ prefilledConfig }) {
           ? f.denominazione.trim()
           : `${f.nome.trim()} ${f.cognome.trim()}`.trim();
 
-      // Se il cliente sceglie "senza anticipo" nel form personalizzato, il canone
-      // mostrato dalla box (già scontato in base all'anticipo configurato lì)
-      // va ricalcolato senza sconto, altrimenti anticipo e canone risultano incoerenti.
-      const anticipoValue = f.anticipo === "senza" ? 0 : (prefilledConfig?.advance ?? null);
-      const canoneValue =
-        f.anticipo === "senza" && prefilledConfig?.baseMonthlyRent != null
-          ? computeNetMonthlyRent(prefilledConfig.baseMonthlyRent, 0, prefilledConfig?.duration)
-          : (prefilledConfig?.monthlyRent ?? null);
+      // In modalità "locked" l'offerta è quella esatta configurata nella box (non modificabile).
+      // In modalità "custom" durata/km/anticipo li specifica il cliente; non esiste un canone
+      // calcolato — lo definisce l'operatore in backoffice in base alla richiesta.
+      const durataValue    = mode === "locked" ? (prefilledConfig?.duration || null) : (f.durataMesi ? parseInt(f.durataMesi) : null);
+      const kmValue         = mode === "locked" ? (prefilledConfig?.annualKm || null) : (f.kmAnnui ? parseInt(f.kmAnnui) : null);
+      const anticipoValue  = mode === "locked" ? (prefilledConfig?.advance ?? 0) : (f.anticipoImporto !== "" ? parseFloat(f.anticipoImporto) : null);
+      const canoneValue     = mode === "locked" ? (prefilledConfig?.monthlyRent ?? null) : null;
 
       await praticheService.create({
         cliente_nome:             clienteNome,
@@ -205,10 +211,11 @@ export default function LeadForm({ prefilledConfig }) {
         veicolo_alimentazione:    f.alimentazione    || null,
         anticipo:                 anticipoValue,
         segmento:                 ["P.IVA","Veicoli Commerciali","Privati","ReUse"].includes(prefilledConfig?.segment) ? prefilledConfig.segment : null,
-        durata_mesi:              prefilledConfig?.duration || null,
-        km_annui:                 f.kmAnnui ? parseInt(f.kmAnnui) : (prefilledConfig?.annualKm || null),
+        durata_mesi:              durataValue,
+        km_annui:                 kmValue,
         canone_mensile:           canoneValue,
         note_cliente:             f.note.trim() || null,
+        richiesta_tipo:           mode === "locked" ? "bloccata" : "personalizzata",
       });
 
       const email = f.email.trim().toLowerCase();
@@ -529,62 +536,118 @@ export default function LeadForm({ prefilledConfig }) {
             Preferenze veicolo
           </p>
 
-          <FieldGroup label="Marca">
-            <Input
-              value={f.marca}
-              onChange={(e) => set("marca", e.target.value)}
-              placeholder="es. BMW, Volkswagen, Renault…"
-              className="h-11"
-            />
-          </FieldGroup>
+          {mode === "locked" ? (
+            <div className="bg-muted/30 border border-border/50 rounded-xl p-4 space-y-2 text-sm">
+              <p className="text-xs font-semibold text-electric uppercase tracking-wider mb-1">
+                Offerta bloccata dal sito
+              </p>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Veicolo</span>
+                <span className="font-medium text-foreground">{f.marca} {f.modello}</span>
+              </div>
+              {f.versione && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Versione</span>
+                  <span className="font-medium text-foreground">{f.versione}</span>
+                </div>
+              )}
+              {f.alimentazione && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Alimentazione</span>
+                  <span className="font-medium text-foreground">{f.alimentazione}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Durata</span>
+                <span className="font-medium text-foreground">{prefilledConfig?.duration} mesi</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Km annui</span>
+                <span className="font-medium text-foreground">{Number(prefilledConfig?.annualKm || 0).toLocaleString("it-IT")} km</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Anticipo</span>
+                <span className="font-medium text-foreground">€{Number(prefilledConfig?.advance || 0).toLocaleString("it-IT")}</span>
+              </div>
+              {prefilledConfig?.monthlyRent != null && (
+                <div className="flex justify-between pt-2 border-t border-border/40">
+                  <span className="text-muted-foreground">Canone mensile</span>
+                  <span className="font-bold text-electric">€{Number(prefilledConfig.monthlyRent).toLocaleString("it-IT")}/mese</span>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground pt-1">
+                Questi dati non sono modificabili: sono l'offerta esatta configurata sul sito.
+              </p>
+            </div>
+          ) : (
+            <>
+              <FieldGroup label="Marca">
+                <Input
+                  value={f.marca}
+                  onChange={(e) => set("marca", e.target.value)}
+                  placeholder="es. BMW, Volkswagen, Renault…"
+                  className="h-11"
+                />
+              </FieldGroup>
 
-          <FieldGroup label="Modello">
-            <Input
-              value={f.modello}
-              onChange={(e) => set("modello", e.target.value)}
-              placeholder="es. Golf, Classe A, Panda…"
-              className="h-11"
-            />
-          </FieldGroup>
+              <FieldGroup label="Modello">
+                <Input
+                  value={f.modello}
+                  onChange={(e) => set("modello", e.target.value)}
+                  placeholder="es. Golf, Classe A, Panda…"
+                  className="h-11"
+                />
+              </FieldGroup>
 
-          <FieldGroup label="Versione">
-            <Input
-              value={f.versione}
-              onChange={(e) => set("versione", e.target.value)}
-              placeholder="es. 320d Luxury Line, 1.5 TSI DSG…"
-              className="h-11"
-            />
-          </FieldGroup>
+              <FieldGroup label="Versione">
+                <Input
+                  value={f.versione}
+                  onChange={(e) => set("versione", e.target.value)}
+                  placeholder="es. 320d Luxury Line, 1.5 TSI DSG…"
+                  className="h-11"
+                />
+              </FieldGroup>
 
-          <FieldGroup label="Alimentazione">
-            <SelField
-              value={f.alimentazione}
-              onValueChange={(v) => set("alimentazione", v)}
-              placeholder="Seleziona…"
-              options={ALIMENTAZIONI}
-            />
-          </FieldGroup>
+              <FieldGroup label="Alimentazione">
+                <SelField
+                  value={f.alimentazione}
+                  onValueChange={(v) => set("alimentazione", v)}
+                  placeholder="Seleziona…"
+                  options={ALIMENTAZIONI}
+                />
+              </FieldGroup>
 
-          <FieldGroup label="Anticipo">
-            <SelField
-              value={f.anticipo}
-              onValueChange={(v) => set("anticipo", v)}
-              placeholder="Con o senza anticipo?"
-              options={[
-                { value: "con", label: "Con anticipo" },
-                { value: "senza", label: "Senza anticipo" },
-              ]}
-            />
-          </FieldGroup>
+              <FieldGroup label="Durata contratto">
+                <SelField
+                  value={f.durataMesi}
+                  onValueChange={(v) => set("durataMesi", v)}
+                  placeholder="Seleziona…"
+                  options={DURATA_OPTIONS}
+                />
+              </FieldGroup>
 
-          <FieldGroup label="Km annui previsti">
-            <SelField
-              value={f.kmAnnui}
-              onValueChange={(v) => set("kmAnnui", v)}
-              placeholder="Seleziona…"
-              options={KM_OPTIONS}
-            />
-          </FieldGroup>
+              <FieldGroup label="Km annui previsti">
+                <SelField
+                  value={f.kmAnnui}
+                  onValueChange={(v) => set("kmAnnui", v)}
+                  placeholder="Seleziona…"
+                  options={KM_OPTIONS}
+                />
+              </FieldGroup>
+
+              <FieldGroup label="Anticipo desiderato (€)">
+                <Input
+                  type="number"
+                  min="0"
+                  step="100"
+                  value={f.anticipoImporto}
+                  onChange={(e) => set("anticipoImporto", e.target.value)}
+                  placeholder="0"
+                  className="h-11"
+                />
+              </FieldGroup>
+            </>
+          )}
 
           <FieldGroup label="Note e preferenze aggiuntive">
             <Textarea

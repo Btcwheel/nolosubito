@@ -139,6 +139,13 @@ export default function PraticaDetail() {
               <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${(PRATICA_STATUS_COLORS[pratica.status] ?? DEFAULT_STATUS_COLOR).badge}`}>
                 {pratica.status}
               </span>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                pratica.richiesta_tipo === "bloccata"
+                  ? "bg-fuel-ev/10 text-fuel-ev border-fuel-ev/20"
+                  : "bg-fuel-petrol/10 text-fuel-petrol border-fuel-petrol/20"
+              }`}>
+                {pratica.richiesta_tipo === "bloccata" ? "Offerta sito" : "Personalizzata"}
+              </span>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
               Creata il {pratica.created_at ? format(new Date(pratica.created_at), "d MMMM yyyy", { locale: it }) : "—"}

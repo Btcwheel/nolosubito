@@ -229,8 +229,10 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
     if (!fixedModel) setSelectedModel("");
   }, [fixedModel]);
 
-  const handleRequestQuote = useCallback(() => {
+  // "Blocca questa offerta" — l'utente accetta esattamente la configurazione della box.
+  const handleLockOffer = useCallback(() => {
     onRequestQuote?.({
+      mode: "locked",
       make: selectedMake,
       model: selectedModel,
       segment: exactConfig?.segment ?? activeSegment,
@@ -238,9 +240,18 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
       annualKm,
       advance,
       monthlyRent: computedRent,
-      baseMonthlyRent: exactConfig?.monthly_rent ?? null,
     });
   }, [onRequestQuote, selectedMake, selectedModel, exactConfig, activeSegment, duration, annualKm, advance, computedRent]);
+
+  // "Personalizza offerta" — porta solo marca/modello, il resto lo compila il cliente nel form.
+  const handleCustomize = useCallback(() => {
+    onRequestQuote?.({
+      mode: "custom",
+      make: selectedMake,
+      model: selectedModel,
+      segment: exactConfig?.segment ?? activeSegment,
+    });
+  }, [onRequestQuote, selectedMake, selectedModel, exactConfig, activeSegment]);
 
   if (segment === "ReUse") {
     return (
@@ -482,14 +493,24 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
 
         {/* CTA */}
         {onRequestQuote ? (
-          <Button
-            onClick={handleRequestQuote}
-            disabled={!computedRent}
-            className={`${ctaClass} disabled:opacity-40`}
-            style={ctaStyle}
-          >
-            Richiedi Offerta Personalizzata <ArrowRight className="size-4 ml-2" />
-          </Button>
+          <div className="grid grid-cols-1 gap-2">
+            <Button
+              onClick={handleLockOffer}
+              disabled={!computedRent}
+              className={`${ctaClass} disabled:opacity-40`}
+              style={ctaStyle}
+            >
+              Blocca questa offerta <ArrowRight className="size-4 ml-2" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCustomize}
+              className={ctaClass}
+            >
+              Personalizza offerta
+            </Button>
+          </div>
         ) : vehicleLink ? (
           <Link to={vehicleLink} className="block">
             <Button className={ctaClass} style={ctaStyle}>

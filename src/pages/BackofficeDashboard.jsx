@@ -75,7 +75,17 @@ function PraticaRow({ p, basePath }) {
         {p.veicolo_marca ? `${p.veicolo_marca} ${p.veicolo_modello}` : <span className="italic text-muted-foreground/50">—</span>}
       </td>
       <td className="px-4 py-3">
-        <Badge variant="outline" className={`text-xs ${sc.badge}`}>{p.status}</Badge>
+        <div className="flex flex-wrap gap-1">
+          <Badge variant="outline" className={`text-xs ${sc.badge}`}>{p.status}</Badge>
+          <Badge
+            variant="outline"
+            className={`text-xs ${p.richiesta_tipo === "bloccata"
+              ? "bg-fuel-ev/10 text-fuel-ev border-fuel-ev/20"
+              : "bg-fuel-petrol/10 text-fuel-petrol border-fuel-petrol/20"}`}
+          >
+            {p.richiesta_tipo === "bloccata" ? "Offerta sito" : "Personalizzata"}
+          </Badge>
+        </div>
       </td>
       <td className="px-4 py-3">
         <div className="flex flex-col gap-1">

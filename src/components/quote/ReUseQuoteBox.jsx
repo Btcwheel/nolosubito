@@ -96,6 +96,7 @@ function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequest
     if (!selected) return;
     const config = options[`${selected.duration}|${selected.km}`];
     onRequestQuote?.({
+      mode: "locked",
       make: fixedMake,
       model: fixedModel,
       segment: reuseSegment,
@@ -103,7 +104,6 @@ function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequest
       annualKm: selected.km,
       advance: 0,
       monthlyRent: config?.monthly_rent ?? null,
-      baseMonthlyRent: config?.monthly_rent ?? null,
     });
   };
 
@@ -285,9 +285,10 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
     featuredInitialized.current = false;
   }, [fixedMake, fixedModel]);
 
-  const handleRequestQuote = useCallback(() => {
+  const handleLockOffer = useCallback(() => {
     if (!computedRent) return;
     onRequestQuote?.({
+      mode: "locked",
       make: fixedMake,
       model: fixedModel,
       segment: reuseSegment,
@@ -295,9 +296,17 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
       annualKm,
       advance,
       monthlyRent: computedRent,
-      baseMonthlyRent: exactConfig?.monthly_rent ?? null,
     });
-  }, [onRequestQuote, fixedMake, fixedModel, duration, annualKm, advance, computedRent, reuseSegment, exactConfig]);
+  }, [onRequestQuote, fixedMake, fixedModel, duration, annualKm, advance, computedRent, reuseSegment]);
+
+  const handleCustomize = useCallback(() => {
+    onRequestQuote?.({
+      mode: "custom",
+      make: fixedMake,
+      model: fixedModel,
+      segment: reuseSegment,
+    });
+  }, [onRequestQuote, fixedMake, fixedModel, reuseSegment]);
 
   const ctaClass = "w-full h-13 font-bold rounded-xl text-base py-3.5 cursor-pointer transition-all duration-200";
 
@@ -431,14 +440,19 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
       </AnimatePresence>
 
       {/* CTA */}
-      <Button
-        onClick={handleRequestQuote}
-        disabled={!computedRent}
-        className={`${ctaClass} disabled:opacity-40`}
-        style={computedRent ? { backgroundColor: TEAL, color: "#fff", boxShadow: `0 4px 6px -1px ${TEAL}40` } : {}}
-      >
-        Richiedi Offerta Personalizzata <ArrowRight className="size-4 ml-2" />
-      </Button>
+      <div className="grid grid-cols-1 gap-2">
+        <Button
+          onClick={handleLockOffer}
+          disabled={!computedRent}
+          className={`${ctaClass} disabled:opacity-40`}
+          style={computedRent ? { backgroundColor: TEAL, color: "#fff", boxShadow: `0 4px 6px -1px ${TEAL}40` } : {}}
+        >
+          Blocca questa offerta <ArrowRight className="size-4 ml-2" />
+        </Button>
+        <Button type="button" variant="outline" onClick={handleCustomize} className={ctaClass}>
+          Personalizza offerta
+        </Button>
+      </div>
 
       {/* Trust */}
       <div className="flex items-center justify-center gap-4 pt-1">
