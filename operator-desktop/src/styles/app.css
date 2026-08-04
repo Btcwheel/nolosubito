@@ -145,6 +145,61 @@ header h1 {
   color: #64748b;
 }
 
+.btn-ai-toggle {
+  border: 1px solid transparent;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-ai-toggle.on {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.btn-ai-toggle.off {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+/* Avviso chat in attesa: lampeggiante, cliccabile per prenderla al volo */
+.floating-alert {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 16px;
+  cursor: pointer;
+  animation: floating-alert-blink 1.1s ease-in-out infinite;
+}
+
+.floating-alert-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dc2626;
+}
+
+@keyframes floating-alert-blink {
+  0%, 100% { background: #fef3c7; }
+  50% { background: #fde68a; }
+}
+
+.taken-by {
+  font-size: 13px;
+  color: #64748b;
+}
+
 /* Tabs */
 .tabs {
   display: flex;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../services/supabase';
 import { logout } from '../services/supabase';
+import { chatSettingsService } from '../services/chatSettings';
 import ChatView from './ChatView';
 
 const STATUS_LABELS = {
@@ -14,6 +15,7 @@ export default function EscalationList({ user }) {
   const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(null);
   const [filter, setFilter] = useState('active');
+  const [aiEnabled, setAiEnabled] = useState(true);
   const audioRef = useRef(null);
   const notifiedRef = useRef(new Set());
 
@@ -23,7 +25,10 @@ export default function EscalationList({ user }) {
     return true;
   });
 
-  const waitingCount = sessions.filter(s => s.status === 'waiting').length;
+  const waitingSessions = sessions
+    .filter(s => s.status === 'waiting')
+    .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  const waitingCount = waitingSessions.length;
 
   useEffect(() => {
     fetchSessions();
@@ -44,9 +49,13 @@ export default function EscalationList({ user }) {
 
     window.electronAPI?.setBadgeCount?.(0);
 
+    chatSettingsService.get().then(s => setAiEnabled(s.ai_enabled !== false));
+    const unsubscribeAi = chatSettingsService.subscribe(enabled => setAiEnabled(enabled !== false));
+
     return () => {
       supabase.removeChannel(channel);
       if (typeof cleanupMainProcess === 'function') cleanupMainProcess();
+      unsubscribeAi();
     };
   }, []);
 
@@ -102,7 +111,9 @@ export default function EscalationList({ user }) {
       .eq('id', user.id)
       .single();
 
-    await supabase
+    // Aggiorna solo se la chat e' ancora in attesa: evita che due operatori
+    // la prendano in carico contemporaneamente.
+    const { data, error } = await supabase
       .from('escalated_sessions')
       .update({
         operator_id: user.id,
@@ -110,8 +121,22 @@ export default function EscalationList({ user }) {
         status: 'operator_joined',
         taken_at: new Date().toISOString(),
       })
-      .eq('id', session.id);
+      .eq('id', session.id)
+      .eq('status', 'waiting')
+      .select()
+      .single();
+
+    if (error || !data) {
+      fetchSessions();
+      return;
+    }
     setActiveSessionId(session.id);
+  };
+
+  const toggleAi = async () => {
+    const next = !aiEnabled;
+    setAiEnabled(next);
+    await chatSettingsService.setAiEnabled(next, user.id);
   };
 
   const closeSession = async (sessionId) => {
@@ -134,10 +159,26 @@ export default function EscalationList({ user }) {
           </span>
         </div>
         <div className="header-right">
+          <button
+            onClick={toggleAi}
+            className={`btn-ai-toggle ${aiEnabled ? 'on' : 'off'}`}
+            title={aiEnabled ? 'Clicca per sospendere Luca (AI)' : 'Clicca per riattivare Luca (AI)'}
+          >
+            {aiEnabled ? '🤖 AI Attiva' : '⏸ AI Sospesa'}
+          </button>
           <span className="user-name">{user.email}</span>
           <button onClick={logout} className="btn-logout">Esci</button>
         </div>
       </header>
+
+      {waitingSessions.length > 0 && (
+        <button className="floating-alert" onClick={() => takeOver(waitingSessions[0])}>
+          <span className="floating-alert-dot" />
+          {waitingSessions.length === 1
+            ? 'Nuova chat in attesa — clicca per prenderla'
+            : `${waitingSessions.length} chat in attesa — clicca per prendere la più vecchia`}
+        </button>
+      )}
 
       {activeSession ? (
         <ChatView
@@ -168,7 +209,9 @@ export default function EscalationList({ user }) {
                       {s.source === 'direct' ? 'Chat diretta' : 'Escalation'}
                     </span>
                     <span className={`status-badge ${s.status}`}>
-                      {STATUS_LABELS[s.status] || s.status}
+                      {s.status === 'operator_joined' && s.operator_name
+                        ? `In corso — ${s.operator_name}`
+                        : (STATUS_LABELS[s.status] || s.status)}
                     </span>
                   </div>
                   <span className="session-time">
@@ -183,9 +226,13 @@ export default function EscalationList({ user }) {
                   </button>
                 )}
                 {s.status === 'operator_joined' && (
-                  <button onClick={() => setActiveSessionId(s.id)} className="btn-open">
-                    Apri chat
-                  </button>
+                  s.operator_id === user.id ? (
+                    <button onClick={() => setActiveSessionId(s.id)} className="btn-open">
+                      Apri chat
+                    </button>
+                  ) : (
+                    <span className="taken-by">🔒 In carico a {s.operator_name || 'un collega'}</span>
+                  )
                 )}
               </div>
             ))}

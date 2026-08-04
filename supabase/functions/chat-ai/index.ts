@@ -482,6 +482,9 @@ Deno.serve(async (req: Request) => {
     supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const lastUserMessage = (messages[messages.length - 1]?.content ?? "").slice(0, 200);
 
+    // Le sessioni di addestramento (Knowledge) ignorano il toggle AI: LUCA risponde sempre.
+    const isTrainingSession = String(sessionId).startsWith("training_");
+
     // ── TAKE-OVER GUARD ──────────────────────────────────────────────
     const { data: takeover } = await supabase
       .from("escalated_sessions")
@@ -507,7 +510,7 @@ Deno.serve(async (req: Request) => {
         .eq("id", "global")
         .maybeSingle();
 
-      if (aiSettings && !aiSettings.ai_enabled) {
+      if (aiSettings && !aiSettings.ai_enabled && !isTrainingSession) {
         console.log(`[${VERSION}] ai-disabled: routing session ${sessionId} to operator`);
         const lastQuestion = messages[messages.length - 1]?.content ?? "";
         await supabase.from("escalated_sessions").upsert({
@@ -533,7 +536,7 @@ Deno.serve(async (req: Request) => {
     console.log(`[${VERSION}] routing: complexity=${complexity}`);
 
     // ── ESCALATION DETERMINISTICA ─────────────────────────────────────
-    if (shouldEscalate(lastUserMessage)) {
+    if (shouldEscalate(lastUserMessage) && !isTrainingSession) {
       await escalateToOperator(supabase, { question: lastUserMessage }, sessionId, messages);
       return new Response(JSON.stringify({
         reply: ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"],
@@ -579,9 +582,13 @@ Deno.serve(async (req: Request) => {
 
       const escalateTool = content.find((b: any) => b.type === "tool_use" && b.name === "escalate_to_operator");
       if (escalateTool?.input) {
-        await escalateToOperator(supabase, escalateTool.input as Record<string, string>, sessionId, messages);
-        escalated = true;
-        replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
+        if (isTrainingSession) {
+          replyParts = ["Non ho una risposta certa su questo punto — mi corregga e imparerò per le prossime volte."];
+        } else {
+          await escalateToOperator(supabase, escalateTool.input as Record<string, string>, sessionId, messages);
+          escalated = true;
+          replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
+        }
       } else {
         const toolUse = content.find((b: any) => b.type === "tool_use");
         if (toolUse?.input) {
@@ -628,9 +635,13 @@ Deno.serve(async (req: Request) => {
         try { input = JSON.parse(tc.function.arguments); } catch { input = {}; }
 
         if (name === "escalate_to_operator") {
-          await escalateToOperator(supabase, input, sessionId, messages);
-          escalated = true;
-          replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
+          if (isTrainingSession) {
+            replyParts = ["Non ho una risposta certa su questo punto — mi corregga e imparerò per le prossime volte."];
+          } else {
+            await escalateToOperator(supabase, input, sessionId, messages);
+            escalated = true;
+            replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
+          }
         } else {
           isToolCall = true;
           toolName = name;

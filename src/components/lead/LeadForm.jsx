@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { praticheService } from "@/services/pratiche";
 import { useToast } from "@/components/ui/use-toast";
+import { isValidEmail, isValidPhone, isValidCf, isValidPiva } from "@/lib/validation";
 import {
   ArrowRight, Loader2, CheckCircle2, Mail, ExternalLink,
   User, Briefcase, Building,
@@ -84,13 +85,16 @@ const CLIENT_TYPES = [
 
 // ─── Small helpers ───────────────────────────────────────────────────────────
 
-function FieldGroup({ label, required, children }) {
+function FieldGroup({ label, required, error = null, children }) {
   return (
     <div>
       <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
         {label}{required && " *"}
       </Label>
       {children}
+      {error && (
+        <p className="text-xs text-red-500 font-medium mt-1">{error}</p>
+      )}
     </div>
   );
 }
@@ -162,6 +166,40 @@ export default function LeadForm({ prefilledConfig }) {
   const [privacy1, setPrivacy1] = useState(false);
   const [privacy2, setPrivacy2] = useState(false);
 
+  const [errors, setErrors] = useState({
+    cf: null,
+    piva: null,
+    telefono: null,
+    email: null,
+  });
+
+  const validateField = (key, value) => {
+    switch (key) {
+      case "telefono":
+        if (!value.trim()) return "Numero di telefono richiesto.";
+        if (!isValidPhone(value)) return "Inserisci un numero di telefono valido.";
+        return null;
+      case "email":
+        if (!value.trim()) return "Email richiesta.";
+        if (!isValidEmail(value)) return "Inserisci un'email valida.";
+        return null;
+      case "cf":
+        if (!isValidCf(value)) return "Codice fiscale non valido (16 caratteri alfanumerici).";
+        return null;
+      case "piva":
+        if (!isValidPiva(value)) return "Partita IVA non valida (11 cifre).";
+        return null;
+      default:
+        return null;
+    }
+  };
+
+  const setError = (key, error) =>
+    setErrors((prev) => ({ ...prev, [key]: error }));
+
+  const handleBlur = (key, value) =>
+    setError(key, validateField(key, value));
+
   // ── Submit ──────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -173,6 +211,30 @@ export default function LeadForm({ prefilledConfig }) {
       });
       return;
     }
+
+    const nextErrors = {};
+    if (clientType === "Privato") {
+      const cfError = validateField("cf", f.cf);
+      if (cfError) nextErrors.cf = cfError;
+    } else {
+      const pivaError = validateField("piva", f.piva);
+      if (pivaError) nextErrors.piva = pivaError;
+    }
+    const phoneError = validateField("telefono", f.telefono);
+    if (phoneError) nextErrors.telefono = phoneError;
+    const emailError = validateField("email", f.email);
+    if (emailError) nextErrors.email = emailError;
+
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      toast({
+        title: "Controlla i dati inseriti",
+        description: "Alcuni campi non sono validi: correggili per procedere.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSending(true);
     try {
       const clienteNome =
@@ -351,52 +413,57 @@ export default function LeadForm({ prefilledConfig }) {
 
           {/* Codice Fiscale (Privato) */}
           {clientType === "Privato" && (
-            <FieldGroup label="Codice Fiscale" required>
+            <FieldGroup label="Codice Fiscale" required error={errors.cf}>
               <Input
                 required
                 value={f.cf}
-                onChange={(e) => set("cf", e.target.value.toUpperCase())}
+                onChange={(e) => { set("cf", e.target.value.toUpperCase()); setError("cf", null); }}
+                onBlur={(e) => handleBlur("cf", e.target.value)}
                 placeholder="RSSMRA80A01H501Z"
                 maxLength={16}
-                className="h-11 font-mono tracking-widest"
+                className={`h-11 font-mono tracking-widest ${errors.cf ? "border-red-500 focus-visible:ring-red-500" : ""}`}
               />
             </FieldGroup>
           )}
 
           {/* Partita IVA (P.IVA / Azienda) */}
           {(clientType === "P.IVA" || clientType === "Azienda") && (
-            <FieldGroup label="Partita IVA" required>
+            <FieldGroup label="Partita IVA" required error={errors.piva}>
               <Input
                 required
                 value={f.piva}
-                onChange={(e) => set("piva", e.target.value)}
+                onChange={(e) => { set("piva", e.target.value); setError("piva", null); }}
+                onBlur={(e) => handleBlur("piva", e.target.value)}
                 placeholder="12345678901"
                 maxLength={11}
-                className="h-11"
+                inputMode="numeric"
+                className={`h-11 ${errors.piva ? "border-red-500 focus-visible:ring-red-500" : ""}`}
               />
             </FieldGroup>
           )}
 
           {/* Telefono + Email */}
           <div className="grid grid-cols-2 gap-3">
-            <FieldGroup label="Telefono" required>
+            <FieldGroup label="Telefono" required error={errors.telefono}>
               <Input
                 required
                 type="tel"
                 value={f.telefono}
-                onChange={(e) => set("telefono", e.target.value)}
+                onChange={(e) => { set("telefono", e.target.value); setError("telefono", null); }}
+                onBlur={(e) => handleBlur("telefono", e.target.value)}
                 placeholder="+39 333 123456"
-                className="h-11"
+                className={`h-11 ${errors.telefono ? "border-red-500 focus-visible:ring-red-500" : ""}`}
               />
             </FieldGroup>
-            <FieldGroup label="Email" required>
+            <FieldGroup label="Email" required error={errors.email}>
               <Input
                 required
                 type="email"
                 value={f.email}
-                onChange={(e) => set("email", e.target.value)}
+                onChange={(e) => { set("email", e.target.value); setError("email", null); }}
+                onBlur={(e) => handleBlur("email", e.target.value)}
                 placeholder="mario@email.it"
-                className="h-11"
+                className={`h-11 ${errors.email ? "border-red-500 focus-visible:ring-red-500" : ""}`}
               />
             </FieldGroup>
           </div>

@@ -35,8 +35,13 @@ ACCOUNTS.md
 
 # Graphify knowledge graph (generated)
 graphify-out/
+.graphify/
 public/gigi/
 _backup_inutili/
+
+# Debug screenshots and scratch assets
+public/bug/
+public/Audi Avant.jpeg
 
 # Lighthouse reports
 lighthouse-*.json
