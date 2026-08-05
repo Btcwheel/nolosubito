@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Search, Eye, ClipboardList, Car, TrendingUp,
+  Search, Eye, EyeOff, ClipboardList, Car, TrendingUp,
   CheckCircle2, Clock, AlertCircle, Zap, Layers,
   BarChart2, ArrowUpRight, ChevronRight, Circle, Trash2, Loader2, Users, Tag, X,
 } from "lucide-react";
@@ -346,11 +346,11 @@ export default function AdminDashboard() {
                             }}
                           />
                         </th>
-                        {["Codice", "Cliente", "Veicolo", "Stato", "Agente", "Operatore", "Data", ""].map((h, i) => (
+                        {["Codice", "Cliente", "Veicolo", "Stato", "Preventivo", "Agente", "Operatore", "Data", ""].map((h, i) => (
                           <th key={i} className={`text-left px-4 py-3 text-[11px] font-bold text-muted-foreground uppercase tracking-wider ${
                             i === 2 ? "hidden md:table-cell" :
-                            i === 4 || i === 5 || i === 6 ? "hidden lg:table-cell" :
-                            i === 7 ? "text-right" : ""
+                            i === 5 || i === 6 || i === 7 ? "hidden lg:table-cell" :
+                            i === 8 ? "text-right" : ""
                           }`}>{h}</th>
                         ))}
                       </tr>
@@ -358,6 +358,9 @@ export default function AdminDashboard() {
                     <tbody className="divide-y divide-border/25">
                       {filteredPratiche.map((p, idx) => {
                         const statusCfg = PRATICA_STATUS_COLORS[p.status] ?? DEFAULT_STATUS_COLOR;
+                        const prevInviati = (p.preventivi || []).filter(pr => pr.status === 'Inviato');
+                        const prevLetti = prevInviati.filter(pr => pr.letto_at);
+                        const prevNonLetti = prevInviati.filter(pr => !pr.letto_at);
                         return (
                           <motion.tr
                             key={p.id}
@@ -412,6 +415,23 @@ export default function AdminDashboard() {
                                 <span className={`size-1.5 rounded-full ${statusCfg.dot}`} />
                                 {p.status}
                               </span>
+                            </td>
+
+                            {/* Preventivo */}
+                            <td className="px-4 py-3.5">
+                              {prevNonLetti.length > 0 ? (
+                                <span className="flex items-center gap-1 text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full w-fit whitespace-nowrap">
+                                  <EyeOff className="size-3" />
+                                  Non aperto
+                                </span>
+                              ) : prevLetti.length > 0 ? (
+                                <span className="flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full w-fit whitespace-nowrap">
+                                  <Eye className="size-3" />
+                                  Letto
+                                </span>
+                              ) : (
+                                <span className="text-xs text-muted-foreground/50 italic">—</span>
+                              )}
                             </td>
 
                             {/* Agente */}
