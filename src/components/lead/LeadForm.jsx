@@ -171,6 +171,11 @@ export default function LeadForm({ prefilledConfig }) {
     piva: null,
     telefono: null,
     email: null,
+    marca: null,
+    modello: null,
+    versione: null,
+    durataMesi: null,
+    kmAnnui: null,
   });
 
   const validateField = (key, value) => {
@@ -188,6 +193,21 @@ export default function LeadForm({ prefilledConfig }) {
         return null;
       case "piva":
         if (!isValidPiva(value)) return "Partita IVA non valida (11 cifre).";
+        return null;
+      case "marca":
+        if (!value.trim()) return "Marca obbligatoria.";
+        return null;
+      case "modello":
+        if (!value.trim()) return "Modello obbligatorio.";
+        return null;
+      case "versione":
+        if (!value.trim()) return "Versione obbligatoria.";
+        return null;
+      case "durataMesi":
+        if (!value) return "Seleziona la durata del contratto.";
+        return null;
+      case "kmAnnui":
+        if (!value) return "Seleziona i km annui previsti.";
         return null;
       default:
         return null;
@@ -225,6 +245,21 @@ export default function LeadForm({ prefilledConfig }) {
     const emailError = validateField("email", f.email);
     if (emailError) nextErrors.email = emailError;
 
+    // In modalità "locked" marca/modello/versione/durata/km arrivano già valorizzati
+    // e non modificabili dall'offerta bloccata sul sito: da validare solo in "custom".
+    if (mode === "custom") {
+      const marcaError = validateField("marca", f.marca);
+      if (marcaError) nextErrors.marca = marcaError;
+      const modelloError = validateField("modello", f.modello);
+      if (modelloError) nextErrors.modello = modelloError;
+      const versioneError = validateField("versione", f.versione);
+      if (versioneError) nextErrors.versione = versioneError;
+      const durataError = validateField("durataMesi", f.durataMesi);
+      if (durataError) nextErrors.durataMesi = durataError;
+      const kmError = validateField("kmAnnui", f.kmAnnui);
+      if (kmError) nextErrors.kmAnnui = kmError;
+    }
+
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       toast({
@@ -250,6 +285,18 @@ export default function LeadForm({ prefilledConfig }) {
       const anticipoValue  = mode === "locked" ? (prefilledConfig?.advance ?? 0) : (f.anticipoImporto !== "" ? parseFloat(f.anticipoImporto) : null);
       const canoneValue     = mode === "locked" ? (prefilledConfig?.monthlyRent ?? null) : null;
 
+      // Il segmento del preventivo riflette il tab prezzi attivo sulla pagina veicolo al
+      // momento della richiesta, che può non coincidere col tipo cliente scelto qui nel form
+      // (es. cliente ha confrontato i prezzi P.IVA ma si dichiara Privato). Per i listini
+      // Privati/P.IVA il segmento salvato deve seguire il tipo cliente dichiarato; le categorie
+      // di veicolo (Veicoli Commerciali, ReUse) restano invariate perché non dipendono dal cliente.
+      const requestedSegment = ["P.IVA","Veicoli Commerciali","Privati","ReUse"].includes(prefilledConfig?.segment)
+        ? prefilledConfig.segment
+        : null;
+      const segmentoValue = (requestedSegment === "P.IVA" || requestedSegment === "Privati")
+        ? (clientType === "Privato" ? "Privati" : "P.IVA")
+        : requestedSegment;
+
       await praticheService.create({
         cliente_nome:             clienteNome,
         cliente_cognome:          f.cognome.trim()  || null,
@@ -272,7 +319,7 @@ export default function LeadForm({ prefilledConfig }) {
         veicolo_versione:         f.versione.trim()  || null,
         veicolo_alimentazione:    f.alimentazione    || null,
         anticipo:                 anticipoValue,
-        segmento:                 ["P.IVA","Veicoli Commerciali","Privati","ReUse"].includes(prefilledConfig?.segment) ? prefilledConfig.segment : null,
+        segmento:                 segmentoValue,
         durata_mesi:              durataValue,
         km_annui:                 kmValue,
         canone_mensile:           canoneValue,
@@ -648,30 +695,36 @@ export default function LeadForm({ prefilledConfig }) {
             </div>
           ) : (
             <>
-              <FieldGroup label="Marca">
+              <FieldGroup label="Marca" required error={errors.marca}>
                 <Input
+                  required
                   value={f.marca}
-                  onChange={(e) => set("marca", e.target.value)}
+                  onChange={(e) => { set("marca", e.target.value); setError("marca", null); }}
+                  onBlur={(e) => handleBlur("marca", e.target.value)}
                   placeholder="es. BMW, Volkswagen, Renault…"
-                  className="h-11"
+                  className={`h-11 ${errors.marca ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                 />
               </FieldGroup>
 
-              <FieldGroup label="Modello">
+              <FieldGroup label="Modello" required error={errors.modello}>
                 <Input
+                  required
                   value={f.modello}
-                  onChange={(e) => set("modello", e.target.value)}
+                  onChange={(e) => { set("modello", e.target.value); setError("modello", null); }}
+                  onBlur={(e) => handleBlur("modello", e.target.value)}
                   placeholder="es. Golf, Classe A, Panda…"
-                  className="h-11"
+                  className={`h-11 ${errors.modello ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                 />
               </FieldGroup>
 
-              <FieldGroup label="Versione">
+              <FieldGroup label="Versione" required error={errors.versione}>
                 <Input
+                  required
                   value={f.versione}
-                  onChange={(e) => set("versione", e.target.value)}
+                  onChange={(e) => { set("versione", e.target.value); setError("versione", null); }}
+                  onBlur={(e) => handleBlur("versione", e.target.value)}
                   placeholder="es. 320d Luxury Line, 1.5 TSI DSG…"
-                  className="h-11"
+                  className={`h-11 ${errors.versione ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                 />
               </FieldGroup>
 
@@ -684,19 +737,19 @@ export default function LeadForm({ prefilledConfig }) {
                 />
               </FieldGroup>
 
-              <FieldGroup label="Durata contratto">
+              <FieldGroup label="Durata contratto" required error={errors.durataMesi}>
                 <SelField
                   value={f.durataMesi}
-                  onValueChange={(v) => set("durataMesi", v)}
+                  onValueChange={(v) => { set("durataMesi", v); setError("durataMesi", null); }}
                   placeholder="Seleziona…"
                   options={DURATA_OPTIONS}
                 />
               </FieldGroup>
 
-              <FieldGroup label="Km annui previsti">
+              <FieldGroup label="Km annui previsti" required error={errors.kmAnnui}>
                 <SelField
                   value={f.kmAnnui}
-                  onValueChange={(v) => set("kmAnnui", v)}
+                  onValueChange={(v) => { set("kmAnnui", v); setError("kmAnnui", null); }}
                   placeholder="Seleziona…"
                   options={KM_OPTIONS}
                 />
