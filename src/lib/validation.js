@@ -24,3 +24,8 @@ export function isValidPiva(piva) {
   if (!piva || typeof piva !== "string") return false;
   return /^\d{11}$/.test(piva);
 }
+
+export function isValidCap(cap) {
+  if (!cap || typeof cap !== "string") return false;
+  return /^\d{5}$/.test(cap.trim());
+}

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { praticheService } from "@/services/pratiche";
 import { useToast } from "@/components/ui/use-toast";
-import { isValidEmail, isValidPhone, isValidCf, isValidPiva } from "@/lib/validation";
+import { isValidEmail, isValidPhone, isValidCf, isValidPiva, isValidCap } from "@/lib/validation";
 import {
   ArrowRight, Loader2, CheckCircle2, Mail, ExternalLink,
   User, Briefcase, Building,
@@ -171,6 +171,10 @@ export default function LeadForm({ prefilledConfig }) {
     piva: null,
     telefono: null,
     email: null,
+    indirizzo: null,
+    citta: null,
+    provincia: null,
+    cap: null,
     marca: null,
     modello: null,
     versione: null,
@@ -193,6 +197,18 @@ export default function LeadForm({ prefilledConfig }) {
         return null;
       case "piva":
         if (!isValidPiva(value)) return "Partita IVA non valida (11 cifre).";
+        return null;
+      case "indirizzo":
+        if (!value.trim()) return "Indirizzo obbligatorio.";
+        return null;
+      case "citta":
+        if (!value.trim()) return "Città obbligatoria.";
+        return null;
+      case "provincia":
+        if (!value) return "Seleziona la provincia.";
+        return null;
+      case "cap":
+        if (!isValidCap(value)) return "CAP non valido (5 cifre).";
         return null;
       case "marca":
         if (!value.trim()) return "Marca obbligatoria.";
@@ -244,6 +260,15 @@ export default function LeadForm({ prefilledConfig }) {
     if (phoneError) nextErrors.telefono = phoneError;
     const emailError = validateField("email", f.email);
     if (emailError) nextErrors.email = emailError;
+
+    const indirizzoError = validateField("indirizzo", f.indirizzo);
+    if (indirizzoError) nextErrors.indirizzo = indirizzoError;
+    const cittaError = validateField("citta", f.citta);
+    if (cittaError) nextErrors.citta = cittaError;
+    const provinciaError = validateField("provincia", f.provincia);
+    if (provinciaError) nextErrors.provincia = provinciaError;
+    const capError = validateField("cap", f.cap);
+    if (capError) nextErrors.cap = capError;
 
     // In modalità "locked" marca/modello/versione/durata/km arrivano già valorizzati
     // e non modificabili dall'offerta bloccata sul sito: da validare solo in "custom".
@@ -516,46 +541,51 @@ export default function LeadForm({ prefilledConfig }) {
           </div>
 
           {/* Indirizzo */}
-          <FieldGroup label="Indirizzo">
+          <FieldGroup label="Indirizzo" required error={errors.indirizzo}>
             <Input
+              required
               value={f.indirizzo}
-              onChange={(e) => set("indirizzo", e.target.value)}
+              onChange={(e) => { set("indirizzo", e.target.value); setError("indirizzo", null); }}
+              onBlur={(e) => handleBlur("indirizzo", e.target.value)}
               placeholder="Via Roma, 1"
-              className="h-11"
+              className={`h-11 ${errors.indirizzo ? "border-red-500 focus-visible:ring-red-500" : ""}`}
             />
           </FieldGroup>
 
           {/* Città + Provincia + CAP */}
           <div className="grid grid-cols-5 gap-2">
             <div className="col-span-2">
-              <FieldGroup label="Città" required>
+              <FieldGroup label="Città" required error={errors.citta}>
                 <Input
                   required
                   value={f.citta}
-                  onChange={(e) => set("citta", e.target.value)}
+                  onChange={(e) => { set("citta", e.target.value); setError("citta", null); }}
+                  onBlur={(e) => handleBlur("citta", e.target.value)}
                   placeholder="Milano"
-                  className="h-11"
+                  className={`h-11 ${errors.citta ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                 />
               </FieldGroup>
             </div>
             <div className="col-span-2">
-              <FieldGroup label="Provincia" required>
+              <FieldGroup label="Provincia" required error={errors.provincia}>
                 <SelField
                   value={f.provincia}
-                  onValueChange={(v) => set("provincia", v)}
+                  onValueChange={(v) => { set("provincia", v); setError("provincia", null); }}
                   placeholder="Prov."
                   options={PROVINCE}
                 />
               </FieldGroup>
             </div>
             <div>
-              <FieldGroup label="CAP">
+              <FieldGroup label="CAP" required error={errors.cap}>
                 <Input
+                  required
                   value={f.cap}
-                  onChange={(e) => set("cap", e.target.value)}
+                  onChange={(e) => { set("cap", e.target.value); setError("cap", null); }}
+                  onBlur={(e) => handleBlur("cap", e.target.value)}
                   placeholder="20121"
                   maxLength={5}
-                  className="h-11"
+                  className={`h-11 ${errors.cap ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                 />
               </FieldGroup>
             </div>
