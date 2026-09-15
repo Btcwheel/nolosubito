@@ -2,8 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { ArrowRight, Tag, X } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { offersService } from "@/services/offers";
+import { useHomeCatalog } from "@/hooks/useHomeCatalog";
 import { useCountdown } from "@/hooks/useCountdown";
 import { usePageVisible } from "@/hooks/usePageVisible";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
@@ -195,11 +194,7 @@ export default function PromoHero() {
   const [idx, setIdx]       = useState(0);
   const [paused, setPaused] = useState(false);
 
-  const { data: vehicles = [], isLoading } = useQuery({
-    queryKey: ["offers-home-catalog"],
-    queryFn:  () => offersService.listWithMinPrice(),
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: vehicles = [], isLoading } = useHomeCatalog();
 
   const promos = vehicles
     .filter(v => v.promo_expires_at && new Date(v.promo_expires_at) > new Date())
