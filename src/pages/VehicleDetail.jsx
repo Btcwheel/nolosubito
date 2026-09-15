@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
 import { offersService } from "@/services/offers";
 import { useQuery } from "@tanstack/react-query";
+import { useHomeCatalog } from "@/hooks/useHomeCatalog";
 import QuoteBox from "../components/quote/QuoteBox";
 import LeadForm from "../components/lead/LeadForm";
 import VehicleCard from "../components/vehicles/VehicleCard";
@@ -172,11 +173,7 @@ export default function VehicleDetail() {
     enabled:  !!vehicle,
   });
 
-  const { data: allVehicles = [] } = useQuery({
-    queryKey: ["offers-home-catalog"],
-    queryFn:  () => offersService.listWithMinPrice(),
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: allVehicles = [] } = useHomeCatalog();
 
   const preferredSegment = useMemo(() => {
     if (!vehicle) return segmentFromState || null;

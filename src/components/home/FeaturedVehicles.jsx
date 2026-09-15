@@ -4,7 +4,7 @@ import { ChevronDown, Car, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import VehicleCard from "../vehicles/VehicleCard";
-import { offersService } from "@/services/offers";
+import { useHomeCatalog } from "@/hooks/useHomeCatalog";
 import { supabase } from "@/lib/supabase";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -81,11 +81,7 @@ export default function FeaturedVehicles() {
   const resultsRef = useRef(null);
   const observerRef = useRef(null);
 
-  const { data: vehicles = [], isLoading } = useQuery({
-    queryKey: ["offers-home-catalog"],
-    queryFn: () => offersService.listWithMinPrice(),
-    staleTime: 5 * 60 * 1000,
-  });
+  const { data: vehicles = [], isLoading, isError, refetch } = useHomeCatalog();
 
   // Hero image da CMS (fallback a Unsplash)
   const { data: heroImg } = useQuery({
@@ -430,8 +426,24 @@ export default function FeaturedVehicles() {
           </div>
         ) : visible.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
-            <p className="text-lg font-semibold mb-2">Nessun veicolo trovato</p>
-            <p className="text-sm">Prova a modificare i filtri di ricerca</p>
+            {isError ? (
+              <>
+                <p className="text-lg font-semibold mb-2 text-gray-600">Impossibile caricare i veicoli</p>
+                <p className="text-sm mb-4">Controlla la connessione e riprova</p>
+                <button
+                  type="button"
+                  onClick={() => refetch()}
+                  className="px-5 py-2.5 rounded-xl bg-navy hover:bg-navy/90 text-white text-sm font-bold transition-colors cursor-pointer"
+                >
+                  Riprova
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-lg font-semibold mb-2">Nessun veicolo trovato</p>
+                <p className="text-sm">Prova a modificare i filtri di ricerca</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
