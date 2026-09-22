@@ -9,6 +9,7 @@ import {
   formatAdvanceAmount,
   formatDisplayedRent,
   computeNetMonthlyRent,
+  isMotoCategory,
 } from "@/lib/vehiclePricing";
 
 const TEAL = "#0d9488";
@@ -17,23 +18,17 @@ const NAVY = "#2D2E82";
 
 const STOCK_DURATIONS = [12, 24];
 const STOCK_KM = [10000, 20000];
+const STOCK_KM_MOTO = [5000, 8000];
 
 const ALL_DURATIONS = [12, 24, 36, 48, 60];
 const ALL_KM = [10000, 15000, 20000, 25000, 30000];
+const ALL_KM_MOTO = [5000, 8000, 10000, 12000];
 
 const STEPS = [
   { n: 1, label: "Durata" },
   { n: 2, label: "Chilometri" },
   { n: 3, label: "Anticipo" },
 ];
-
-function isStockConfig(c) {
-  return (
-    STOCK_DURATIONS.includes(c.duration_months) &&
-    STOCK_KM.includes(c.annual_km) &&
-    Number(c.advance_payment ?? 0) === 0
-  );
-}
 
 function StepLabel({ n, children }) {
   return (
@@ -74,7 +69,7 @@ function OptionButton({ selected, available = true, onClick, children }) {
 
 /* ── Card UI (solo stock) ──────────────────────────────────────────────────── */
 
-function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequestQuote, reuseSegment = "ReUse" }) {
+function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequestQuote, reuseSegment = "ReUse", stockKm = STOCK_KM }) {
   const [selected, setSelected] = React.useState(null);
 
   React.useEffect(() => {
@@ -125,7 +120,7 @@ function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequest
       <div className="space-y-3">
         {STOCK_DURATIONS.map(duration => (
           <div key={duration} className="grid grid-cols-2 gap-2.5">
-            {STOCK_KM.map(km => {
+            {stockKm.map(km => {
               const config = options[`${duration}|${km}`];
               const available = !!config;
               const cardLogical = logicalFromConfigSeg(config?.segment ?? reuseSegment);
@@ -213,9 +208,9 @@ function StockCardView({ reuseConfigs, options, fixedMake, fixedModel, onRequest
 
 /* ── QuoteBox UI (config extra presenti) ───────────────────────────────────── */
 
-function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuote, reuseSegment }) {
+function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuote, reuseSegment, allKm = ALL_KM }) {
   const [duration, setDuration] = useState(12);
-  const [annualKm, setAnnualKm] = useState(10000);
+  const [annualKm, setAnnualKm] = useState(allKm[0]);
   const [advance, setAdvance] = useState(0);
   const featuredInitialized = React.useRef(false);
 
@@ -269,10 +264,10 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
 
   useEffect(() => {
     if (activeConfigs.length && !availableKm.has(annualKm)) {
-      const first = ALL_KM.find(k => availableKm.has(k));
+      const first = allKm.find(k => availableKm.has(k));
       if (first) setAnnualKm(first);
     }
-  }, [duration, availableKm]);
+  }, [duration, availableKm, allKm]);
 
   useEffect(() => {
     if (activeConfigs.length && !availableDurations.has(duration)) {
@@ -354,7 +349,7 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
       <div>
         <StepLabel n={2}>Chilometri annui</StepLabel>
         <div className="grid grid-cols-5 gap-2">
-          {ALL_KM.map(k => {
+          {allKm.map(k => {
             const available = availableKm.has(k);
             return (
               <OptionButton
@@ -470,7 +465,17 @@ function ConfigQuoteBoxView({ reuseConfigs, fixedMake, fixedModel, onRequestQuot
 
 /* ── Main component ────────────────────────────────────────────────────────── */
 
-export default function ReUseQuoteBox({ fixedMake, fixedModel, onRequestQuote, segment: reuseSegment = "ReUse" }) {
+export default function ReUseQuoteBox({ fixedMake, fixedModel, onRequestQuote, segment: reuseSegment = "ReUse", vehicleCategory }) {
+  const isMoto = isMotoCategory(vehicleCategory);
+  const stockKm = isMoto ? STOCK_KM_MOTO : STOCK_KM;
+  const allKm = isMoto ? ALL_KM_MOTO : ALL_KM;
+
+  const isStockConfig = useCallback(c => (
+    STOCK_DURATIONS.includes(c.duration_months) &&
+    stockKm.includes(c.annual_km) &&
+    Number(c.advance_payment ?? 0) === 0
+  ), [stockKm]);
+
   const { data: configs = [], isLoading } = useQuery({
     queryKey: ["offer-configs", fixedMake, fixedModel, "ReUse"],
     queryFn: () => offersService.getConfigs(fixedMake, fixedModel),
@@ -533,8 +538,8 @@ export default function ReUseQuoteBox({ fixedMake, fixedModel, onRequestQuote, s
           </div>
         ) : (
           hasNonStock
-            ? <ConfigQuoteBoxView reuseConfigs={reuseConfigs} fixedMake={fixedMake} fixedModel={fixedModel} onRequestQuote={onRequestQuote} reuseSegment={reuseSegment} />
-            : <StockCardView reuseConfigs={reuseConfigs} options={options} fixedMake={fixedMake} fixedModel={fixedModel} onRequestQuote={onRequestQuote} reuseSegment={reuseSegment} />
+            ? <ConfigQuoteBoxView reuseConfigs={reuseConfigs} fixedMake={fixedMake} fixedModel={fixedModel} onRequestQuote={onRequestQuote} reuseSegment={reuseSegment} allKm={allKm} />
+            : <StockCardView reuseConfigs={reuseConfigs} options={options} fixedMake={fixedMake} fixedModel={fixedModel} onRequestQuote={onRequestQuote} reuseSegment={reuseSegment} stockKm={stockKm} />
         )}
 
         {/* Trust — solo per stock */}

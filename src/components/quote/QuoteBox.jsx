@@ -260,6 +260,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
         fixedModel={fixedModel}
         onRequestQuote={onRequestQuote}
         segment={segment}
+        vehicleCategory={currentVehicle?.category}
       />
     );
   }

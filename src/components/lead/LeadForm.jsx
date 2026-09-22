@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,8 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { praticheService } from "@/services/pratiche";
+import { offersService } from "@/services/offers";
 import { useToast } from "@/components/ui/use-toast";
 import { isValidEmail, isValidPhone, isValidCf, isValidPiva, isValidCap } from "@/lib/validation";
+import { isMotoCategory } from "@/lib/vehiclePricing";
 import {
   ArrowRight, Loader2, CheckCircle2, Mail, ExternalLink,
   User, Briefcase, Building,
@@ -68,6 +71,23 @@ const KM_OPTIONS = [
   { value: "30000",  label: "30.000 km/anno" },
   { value: "40000",  label: "40.000 km/anno" },
   { value: "50000",  label: "50.000 km/anno" },
+];
+
+const KM_OPTIONS_MOTO = [
+  { value: "5000",   label: "5.000 km/anno" },
+  { value: "8000",   label: "8.000 km/anno" },
+  { value: "10000",  label: "10.000 km/anno" },
+  { value: "12000",  label: "12.000 km/anno" },
+];
+
+const KM_OPTIONS_WITH_CUSTOM = [
+  ...KM_OPTIONS,
+  { value: "custom", label: "Altro (specifica manualmente)" },
+];
+
+const KM_OPTIONS_MOTO_WITH_CUSTOM = [
+  ...KM_OPTIONS_MOTO,
+  { value: "custom", label: "Altro (specifica manualmente)" },
 ];
 
 const DURATA_OPTIONS = [12, 24, 36, 48, 60].map((d) => ({ value: String(d), label: `${d} mesi` }));
@@ -134,6 +154,14 @@ export default function LeadForm({ prefilledConfig }) {
   const [submitted, setSubmitted]         = useState(false);
   const [sending, setSending]             = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
+  const [kmCustomValue, setKmCustomValue] = useState("");
+
+  // Fetch veicoli per determinare se è una moto
+  const { data: vehicles = [] } = useQuery({
+    queryKey: ["offers-list"],
+    queryFn: () => offersService.list(),
+    staleTime: 5 * 60 * 1000,
+  });
 
   // "locked" = offerta bloccata dalla box (config esatta, non modificabile).
   // "custom" = richiesta personalizzata: solo marca/modello arrivano dalla box (se presente),
@@ -163,6 +191,17 @@ export default function LeadForm({ prefilledConfig }) {
   });
   const set = (k, v) => setF((prev) => ({ ...prev, [k]: v }));
 
+  // Determina se il veicolo corrente è una moto
+  const currentVehicle = useMemo(() => {
+    if (!f.marca || !f.modello) return null;
+    return vehicles.find(v => v.make === f.marca && v.model === f.modello);
+  }, [f.marca, f.modello, vehicles]);
+
+  const isMoto = isMotoCategory(currentVehicle?.category);
+  const kmOptions = isMoto
+    ? KM_OPTIONS_MOTO_WITH_CUSTOM
+    : KM_OPTIONS_WITH_CUSTOM;
+
   const [privacy1, setPrivacy1] = useState(false);
   const [privacy2, setPrivacy2] = useState(false);
 
@@ -180,6 +219,7 @@ export default function LeadForm({ prefilledConfig }) {
     versione: null,
     durataMesi: null,
     kmAnnui: null,
+    kmCustomValue: null,
   });
 
   const validateField = (key, value) => {
@@ -224,6 +264,9 @@ export default function LeadForm({ prefilledConfig }) {
         return null;
       case "kmAnnui":
         if (!value) return "Seleziona i km annui previsti.";
+        return null;
+      case "kmCustomValue":
+        if (value && (isNaN(value) || Number(value) <= 0)) return "Inserisci un numero valido.";
         return null;
       default:
         return null;
@@ -283,6 +326,10 @@ export default function LeadForm({ prefilledConfig }) {
       if (durataError) nextErrors.durataMesi = durataError;
       const kmError = validateField("kmAnnui", f.kmAnnui);
       if (kmError) nextErrors.kmAnnui = kmError;
+      if (f.kmAnnui === "custom") {
+        const kmCustomError = validateField("kmCustomValue", kmCustomValue);
+        if (kmCustomError) nextErrors.kmCustomValue = kmCustomError;
+      }
     }
 
     setErrors(nextErrors);
@@ -306,7 +353,7 @@ export default function LeadForm({ prefilledConfig }) {
       // In modalità "custom" durata/km/anticipo li specifica il cliente; non esiste un canone
       // calcolato — lo definisce l'operatore in backoffice in base alla richiesta.
       const durataValue    = mode === "locked" ? (prefilledConfig?.duration || null) : (f.durataMesi ? parseInt(f.durataMesi) : null);
-      const kmValue         = mode === "locked" ? (prefilledConfig?.annualKm || null) : (f.kmAnnui ? parseInt(f.kmAnnui) : null);
+      const kmValue         = mode === "locked" ? (prefilledConfig?.annualKm || null) : (f.kmAnnui === "custom" ? (kmCustomValue ? parseInt(kmCustomValue) : null) : (f.kmAnnui ? parseInt(f.kmAnnui) : null));
       const anticipoValue  = mode === "locked" ? (prefilledConfig?.advance ?? 0) : (f.anticipoImporto !== "" ? parseFloat(f.anticipoImporto) : null);
       const canoneValue     = mode === "locked" ? (prefilledConfig?.monthlyRent ?? null) : null;
 
@@ -776,13 +823,32 @@ export default function LeadForm({ prefilledConfig }) {
                 />
               </FieldGroup>
 
-              <FieldGroup label="Km annui previsti" required error={errors.kmAnnui}>
+              <FieldGroup label="Km annui previsti" required error={errors.kmAnnui || errors.kmCustomValue}>
                 <SelField
                   value={f.kmAnnui}
-                  onValueChange={(v) => { set("kmAnnui", v); setError("kmAnnui", null); }}
+                  onValueChange={(v) => {
+                    set("kmAnnui", v);
+                    setError("kmAnnui", null);
+                    if (v !== "custom") setKmCustomValue("");
+                  }}
                   placeholder="Seleziona…"
-                  options={KM_OPTIONS}
+                  options={kmOptions}
                 />
+                {f.kmAnnui === "custom" && (
+                  <Input
+                    type="number"
+                    min="0"
+                    step="100"
+                    value={kmCustomValue}
+                    onChange={(e) => {
+                      setKmCustomValue(e.target.value);
+                      setError("kmCustomValue", null);
+                    }}
+                    onBlur={() => setError("kmCustomValue", validateField("kmCustomValue", kmCustomValue))}
+                    placeholder="Es. 5000, 8000, 15000…"
+                    className="h-11 mt-2"
+                  />
+                )}
               </FieldGroup>
 
               <FieldGroup label="Anticipo desiderato (€)">
