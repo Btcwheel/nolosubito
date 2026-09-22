@@ -35,12 +35,14 @@ serve(async (req: Request) => {
     });
   }
 
-  let praticaId: string, testo: string, autoreNome: string;
+  let body: any;
   try {
-    ({ praticaId, testo, autoreNome } = await req.json());
+    body = await req.json();
   } catch {
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: CORS });
   }
+
+  const { praticaId, testo, autoreNome, magicLink } = body;
 
   if (!praticaId || !testo) {
     return new Response(JSON.stringify({ error: "Missing required fields: praticaId, testo" }), {
@@ -83,6 +85,7 @@ serve(async (req: Request) => {
         testo,
         autore:    autoreNome,
         areaLink,
+        magicLink,
       }),
     });
   } catch (err) {
@@ -112,6 +115,7 @@ interface EmailData {
   testo: string;
   autore: string;
   areaLink: string;
+  magicLink?: string;
 }
 
 function buildEmail(d: EmailData): string {
@@ -142,6 +146,13 @@ function buildEmail(d: EmailData): string {
       ${preview}
     </div>
     <div style="text-align:center;margin:0 0 8px;">
+      ${d.magicLink ? `
+      <p style="margin:0 0 12px;font-size:13px;color:#6b7280;"><strong>Puoi rispondere direttamente a questo messaggio:</strong></p>
+      <a href="${d.magicLink}" style="display:inline-block;background:#10b981;color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:10px;font-size:15px;font-weight:700;margin-bottom:12px;">
+        Rispondi al messaggio &rarr;
+      </a>
+      <p style="margin:12px 0 0;font-size:12px;color:#9ca3af;">oppure accedi all'area riservata</p>
+      ` : ''}
       <a href="${d.areaLink}" style="display:inline-block;background:#F96209;color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:10px;font-size:15px;font-weight:700;">
         Accedi all'area pratica &rarr;
       </a>

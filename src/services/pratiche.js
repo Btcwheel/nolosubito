@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { generateMagicToken, createMagicLink } from '@/lib/magicLink';
 
 export const praticheService = {
   // ── Pratiche ──────────────────────────────────────────────
@@ -160,23 +161,43 @@ export const praticheService = {
   // ── Note ──────────────────────────────────────────────────
 
   async addNota(praticaId, testo, autorNome, autoreRuolo, visibileCliente = false) {
+    const noteData = {
+      pratica_id: praticaId,
+      testo,
+      autore_nome: autorNome,
+      autore_ruolo: autoreRuolo,
+      visibile_cliente: visibileCliente,
+    };
+
+    // Genera magic link se visibile al cliente
+    let magicLink = null;
+    if (visibileCliente) {
+      const token = generateMagicToken();
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 giorni
+      magicLink = { token, expiresAt };
+      noteData.link_token = token;
+      noteData.link_token_expires_at = expiresAt.toISOString();
+    }
+
     const { data, error } = await supabase
       .from('pratica_note')
-      .insert({
-        pratica_id: praticaId,
-        testo,
-        autore_nome: autorNome,
-        autore_ruolo: autoreRuolo,
-        visibile_cliente: visibileCliente,
-      })
+      .insert(noteData)
       .select()
       .single();
     if (error) throw error;
 
-    if (visibileCliente) {
+    if (visibileCliente && magicLink) {
       try {
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+        const magicLinkUrl = `${baseUrl}/risposta/${magicLink.token}`;
         const { data: fnData, error: fnError } = await supabase.functions.invoke('notify-nota-cliente', {
-          body: { praticaId, testo, autoreNome: autorNome },
+          body: {
+            praticaId,
+            testo,
+            autoreNome: autorNome,
+            magicLink: magicLinkUrl,
+            noteId: data.id,
+          },
         });
         if (fnError) console.error('notify-nota-cliente error:', fnError);
         else console.log('notify-nota-cliente ok:', fnData);
