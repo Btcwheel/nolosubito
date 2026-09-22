@@ -27,8 +27,10 @@ serve(async (req: Request) => {
     return new Response("Method Not Allowed", { status: 405, headers: CORS });
   }
 
+  console.log("[notify-nota-cliente] START", { SMTP_HOST: !!SMTP_HOST, SMTP_USER: !!SMTP_USER, SMTP_PASS: !!SMTP_PASS });
+
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-    console.warn("Configurazione SMTP mancante — email non inviata");
+    console.warn("[notify-nota-cliente] SMTP NOT CONFIGURED", { SMTP_HOST, SMTP_USER, SMTP_PASS });
     return new Response(JSON.stringify({ ok: true, skipped: true, reason: "SMTP not configured" }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...CORS },
@@ -38,13 +40,17 @@ serve(async (req: Request) => {
   let body: any;
   try {
     body = await req.json();
-  } catch {
+    console.log("[notify-nota-cliente] BODY", body);
+  } catch (e) {
+    console.error("[notify-nota-cliente] JSON PARSE ERROR", e);
     return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: CORS });
   }
 
   const { praticaId, testo, autoreNome, magicLink } = body;
+  console.log("[notify-nota-cliente] EXTRACTED", { praticaId, testo: testo?.slice(0, 50), autoreNome, magicLink: !!magicLink });
 
   if (!praticaId || !testo) {
+    console.error("[notify-nota-cliente] MISSING FIELDS", { praticaId, testo: !!testo });
     return new Response(JSON.stringify({ error: "Missing required fields: praticaId, testo" }), {
       status: 400,
       headers: { "Content-Type": "application/json", ...CORS },
@@ -59,8 +65,10 @@ serve(async (req: Request) => {
     .eq("id", praticaId)
     .single();
 
+  console.log("[notify-nota-cliente] PRATICA QUERY", { praticaId, found: !!pratica, error: pe?.message });
+
   if (pe || !pratica) {
-    console.error("Pratica non trovata:", pe?.message);
+    console.error("[notify-nota-cliente] PRATICA NOT FOUND", { praticaId, error: pe?.message });
     return new Response(JSON.stringify({ error: "Pratica not found" }), { status: 404, headers: CORS });
   }
 
@@ -75,7 +83,8 @@ serve(async (req: Request) => {
   });
 
   try {
-    await transporter.sendMail({
+    console.log("[notify-nota-cliente] SENDING EMAIL", { to: pratica.cliente_email, codice: pratica.codice });
+    const result = await transporter.sendMail({
       from:    SMTP_FROM,
       to:      pratica.cliente_email,
       subject: `Nuovo messaggio dal team Nolosubito — Pratica ${pratica.codice}`,
@@ -88,14 +97,16 @@ serve(async (req: Request) => {
         magicLink,
       }),
     });
+    console.log("[notify-nota-cliente] EMAIL SENT SUCCESS", { messageId: result.messageId, response: result.response });
   } catch (err) {
-    console.error("Errore SMTP:", err);
+    console.error("[notify-nota-cliente] SMTP ERROR", { error: String(err), stack: err instanceof Error ? err.stack : undefined });
     return new Response(JSON.stringify({ error: String(err) }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...CORS },
     });
   }
 
+  console.log("[notify-nota-cliente] COMPLETE SUCCESS");
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
     headers: { "Content-Type": "application/json", ...CORS },
