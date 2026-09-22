@@ -602,6 +602,7 @@ Linee guida pratiche:
 - Se il documento mostra solo km totali, converti in km annui usando la durata.
 - Se trovi una versione/allestimento ripetuta nel modello, separala nel campo versione e lascia il modello pulito.
 - Se un servizio è esplicitamente incluso ma il suo nome non è standard, preservalo come stringa leggibile e deduplicala solo per equivalenza semantica.
+- PER I KM ANNUI: estrai il VALORE ESATTO trovato nel documento, senza arrotondamenti o normalizzazioni. Accetta valori come 5000, 8000, 10000, 12000, 15000, 20000, ecc. Se vedi "5.000 km/anno" o "8,000 km" o varianti, converti a numero intero (5000, 8000). NON arrotondare mai a un multiplo di 10000.
 `;
 
 Deno.serve(async (req: Request) => {

@@ -45,6 +45,16 @@ const KM_OPTIONS = [
   { value: 50000,  label: "50.000 km/anno" },
 ];
 
+const KM_OPTIONS_MOTO = [
+  { value: 5000,   label: "5.000 km/anno" },
+  { value: 8000,   label: "8.000 km/anno" },
+  { value: 10000,  label: "10.000 km/anno" },
+  { value: 12000,  label: "12.000 km/anno" },
+];
+
+// Tutte le opzioni KM combinate (auto + moto)
+const ALL_KM_OPTIONS = [...KM_OPTIONS_MOTO, ...KM_OPTIONS].filter((v, i, a) => a.findIndex(x => x.value === v.value) === i);
+
 const STATUS_CFG = {
   Bozza:     { label: "Bozza",    cls: "bg-muted text-muted-foreground border-border" },
   Inviato:   { label: "Inviato",  cls: "style={{backgroundColor:'#71BAED'}}/10 style={{color:'#71BAED'}} style={{borderColor:'#71BAED'}}/20" },
@@ -487,7 +497,9 @@ export default function PreventiviSection({ praticaId, clienteNome, pratica }) {
         if (error) throw new Error(error);
 
         const kmValue = extracted.km_annui
-          ? KM_OPTIONS.find(k => Math.abs(k.value - Number(extracted.km_annui)) < 2500)?.value ?? extracted.km_annui
+          ? ALL_KM_OPTIONS.find(k => k.value === Number(extracted.km_annui))?.value ??
+            ALL_KM_OPTIONS.find(k => Math.abs(k.value - Number(extracted.km_annui)) < 2500)?.value ??
+            extracted.km_annui
           : '';
         const durataValue = extracted.durata_mesi
           ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
@@ -558,7 +570,9 @@ export default function PreventiviSection({ praticaId, clienteNome, pratica }) {
         if (error) throw new Error(error);
 
         const kmValue = extracted.km_annui
-          ? KM_OPTIONS.find(k => Math.abs(k.value - Number(extracted.km_annui)) < 2500)?.value ?? extracted.km_annui
+          ? ALL_KM_OPTIONS.find(k => k.value === Number(extracted.km_annui))?.value ??
+            ALL_KM_OPTIONS.find(k => Math.abs(k.value - Number(extracted.km_annui)) < 2500)?.value ??
+            extracted.km_annui
           : '';
         const durataValue = extracted.durata_mesi
           ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
