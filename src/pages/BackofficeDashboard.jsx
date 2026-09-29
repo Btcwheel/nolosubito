@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 import { praticheService } from "@/services/pratiche";
 import { profilesService } from "@/services/profiles";
 import { useAuth } from "@/lib/AuthContext";
@@ -15,7 +16,7 @@ import { useToast } from "@/components/ui/use-toast";
 import {
   Search, Eye, ClipboardList, Clock, CheckCircle2,
   AlertCircle, FileCheck, FileX, ChevronRight, Users, MessageSquareWarning, BookOpen, EyeOff,
-  Loader2,
+  Loader2, MessageSquare,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -61,6 +62,10 @@ function PraticaRow({ p, basePath }) {
   const prevLetti   = prevInviati.filter(pr => pr.letto_at);
   const prevNonLetti = prevInviati.filter(pr => !pr.letto_at);
 
+  // Risposte cliente non ancora lette dallo staff
+  const risposteNonLette = (p.pratica_note || [])
+    .filter(n => n.autore_ruolo === 'cliente' && !n.letta_operatore_at).length;
+
   return (
     <tr className="border-b border-border/30 hover:bg-muted/20 transition-colors">
       <td className="px-4 py-3">
@@ -89,6 +94,12 @@ function PraticaRow({ p, basePath }) {
       </td>
       <td className="px-4 py-3">
         <div className="flex flex-col gap-1">
+          {risposteNonLette > 0 && (
+            <span className="flex items-center gap-1 text-xs font-semibold text-electric bg-electric/10 px-2 py-0.5 rounded-full w-fit">
+              <MessageSquare className="size-3" />
+              {risposteNonLette > 1 ? `${risposteNonLette} risposte cliente` : "Risposta cliente"}
+            </span>
+          )}
           {docDaVerificare > 0 && (
             <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full w-fit">
               {docDaVerificare} doc da verificare
@@ -106,7 +117,7 @@ function PraticaRow({ p, basePath }) {
               Preventivo letto
             </span>
           )}
-          {docDaVerificare === 0 && prevInviati.length === 0 && (
+          {docDaVerificare === 0 && prevInviati.length === 0 && risposteNonLette === 0 && (
             <span className="text-xs text-muted-foreground/50">—</span>
           )}
         </div>
@@ -257,7 +268,36 @@ export default function BackofficeDashboard() {
     consegnate:  pratiche.filter(p => p.status === "Consegnata").length,
     docsInAttesa: pratiche.reduce((acc, p) =>
       acc + (p.pratica_documenti || []).filter(d => d.stato_verifica === "In attesa").length, 0),
+    risposteNonLette: pratiche.reduce((acc, p) =>
+      acc + (p.pratica_note || []).filter(n => n.autore_ruolo === "cliente" && !n.letta_operatore_at).length, 0),
   }), [pratiche]);
+
+  // Notifica realtime quando un cliente risponde via magic link
+  useEffect(() => {
+    const channel = supabase
+      .channel('pratica_note_risposte_cliente')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'pratica_note',
+        filter: 'autore_ruolo=eq.cliente',
+      }, (payload) => {
+        qc.invalidateQueries({ queryKey: ["pratiche-backoffice"] });
+        toast({
+          title: "Nuova risposta cliente",
+          description: payload.new?.testo?.slice(0, 100) || "Un cliente ha risposto a una nota.",
+        });
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('Nuova risposta cliente', {
+            body: payload.new?.testo?.slice(0, 120) || '',
+            icon: '/favicon.ico',
+          });
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [qc, toast]);
 
   // Filtri
   const filtered = useMemo(() => pratiche.filter(p => {
@@ -287,11 +327,12 @@ export default function BackofficeDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
           <StatCard label="Pratiche totali"       value={stats.totali}      icon={ClipboardList}  colorClass="text-navy bg-navy/8" />
           <StatCard label="Nuove"                  value={stats.nuove}       icon={AlertCircle}    colorClass="text-amber-600 bg-amber-50" />
           <StatCard label="Documenti caricati"     value={stats.docCaricati} icon={FileCheck}      colorClass="text-blue-600 bg-blue-50" />
           <StatCard label="Doc. da verificare"     value={stats.docsInAttesa}icon={FileX}          colorClass="text-red-500 bg-red-50" />
+          <StatCard label="Risposte cliente"       value={stats.risposteNonLette} icon={MessageSquare} colorClass="text-electric bg-electric/10" />
           <StatCard label="Consegnate"             value={stats.consegnate}  icon={CheckCircle2}   colorClass="text-green-600 bg-green-50" />
         </div>
 
@@ -315,6 +356,11 @@ export default function BackofficeDashboard() {
               {id === "documenti" && stats.docsInAttesa > 0 && (
                 <span className="bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
                   {stats.docsInAttesa}
+                </span>
+              )}
+              {id === "pratiche" && stats.risposteNonLette > 0 && (
+                <span className="bg-electric text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                  {stats.risposteNonLette}
                 </span>
               )}
             </button>

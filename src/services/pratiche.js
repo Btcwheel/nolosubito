@@ -167,6 +167,8 @@ export const praticheService = {
       autore_nome: autorNome,
       autore_ruolo: autoreRuolo,
       visibile_cliente: visibileCliente,
+      // Lo staff l'ha appena scritta: è già "letta" ai fini del badge risposte
+      letta_operatore_at: new Date().toISOString(),
     };
 
     // Genera magic link se visibile al cliente
@@ -214,6 +216,16 @@ export const praticheService = {
       .from('pratica_note')
       .delete()
       .eq('id', notaId);
+    if (error) throw error;
+  },
+
+  async segnaRisposteClienteLette(praticaId) {
+    const { error } = await supabase
+      .from('pratica_note')
+      .update({ letta_operatore_at: new Date().toISOString() })
+      .eq('pratica_id', praticaId)
+      .eq('autore_ruolo', 'cliente')
+      .is('letta_operatore_at', null);
     if (error) throw error;
   },
 
