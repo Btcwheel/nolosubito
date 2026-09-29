@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 import { praticheService } from "@/services/pratiche";
 import { offersService } from "@/services/offers";
 import { Link } from "react-router-dom";
@@ -12,6 +13,7 @@ import {
   Search, Eye, ClipboardList, Car, TrendingUp,
   CheckCircle2, Clock, AlertCircle, Zap, Layers,
   BarChart2, ArrowUpRight, ChevronRight, Circle, Trash2, Loader2, Users, Tag, X,
+  MessageSquare,
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
@@ -61,6 +63,33 @@ export default function AdminDashboard() {
     queryKey: ["offers-admin"],
     queryFn: () => offersService.list(),
   });
+
+  // Notifica realtime quando un cliente risponde via magic link
+  useEffect(() => {
+    const channel = supabase
+      .channel('pratica_note_risposte_cliente_admin')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'pratica_note',
+        filter: 'autore_ruolo=eq.cliente',
+      }, (payload) => {
+        qc.invalidateQueries({ queryKey: ["pratiche-admin"] });
+        toast({
+          title: "Nuova risposta cliente",
+          description: payload.new?.testo?.slice(0, 100) || "Un cliente ha risposto a una nota.",
+        });
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('Nuova risposta cliente', {
+            body: payload.new?.testo?.slice(0, 120) || '',
+            icon: '/favicon.ico',
+          });
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [qc, toast]);
 
   const toggleActive = useMutation({
     mutationFn: ({ id, is_active }) => offersService.update(id, { is_active }),
@@ -122,6 +151,8 @@ export default function AdminDashboard() {
     consegnate:   pratiche.filter(p => p.status === "Consegnata").length,
     canone:       pratiche.filter(p => p.canone_mensile).reduce((s, p) => s + (p.canone_mensile || 0), 0),
     agenti:       new Set(pratiche.map(p => p.agente_id).filter(Boolean)).size,
+    risposteNonLette: pratiche.reduce((acc, p) =>
+      acc + (p.pratica_note || []).filter(n => n.autore_ruolo === "cliente" && !n.letta_operatore_at).length, 0),
   }), [pratiche]);
 
   const filteredPratiche = useMemo(() => pratiche.filter(p => {
@@ -267,6 +298,11 @@ export default function AdminDashboard() {
                     {count}
                   </span>
                 )}
+                {id === "pratiche" && stats.risposteNonLette > 0 && (
+                  <span className="bg-electric text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
+                    {stats.risposteNonLette}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -390,6 +426,11 @@ export default function AdminDashboard() {
                             <td className="px-4 py-3.5">
                               <p className="font-semibold text-foreground text-sm leading-none">{p.cliente_nome}</p>
                               <p className="text-xs text-muted-foreground mt-1">{p.cliente_email}</p>
+                              {(p.pratica_note || []).some(n => n.autore_ruolo === "cliente" && !n.letta_operatore_at) && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-electric bg-electric/10 px-1.5 py-0.5 rounded-full mt-1 w-fit">
+                                  <MessageSquare className="size-2.5" /> Risposta cliente
+                                </span>
+                              )}
                             </td>
 
                             {/* Veicolo */}
