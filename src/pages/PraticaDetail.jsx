@@ -68,6 +68,7 @@ export default function PraticaDetail() {
       setNewStatus("");
       toast({ title: "Stato aggiornato" });
     },
+    onError: (err) => toast({ title: "Errore aggiornamento stato", description: err.message, variant: "destructive" }),
   });
 
   const saveProvvigione = useMutation({
