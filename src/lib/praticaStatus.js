@@ -26,6 +26,7 @@ export const PRATICA_STATUS_COLORS = {
   "Chiusa":                        { badge: "bg-muted text-muted-foreground border-border",              dot: "bg-muted-foreground" },
   "Crif negativa":                 { badge: "bg-destructive/10 text-destructive border-destructive/20",   dot: "bg-destructive" },
   "bocciato":                      { badge: "bg-destructive/5 text-destructive/70 border-destructive/10", dot: "bg-destructive/70" },
+  "Sblocco anagrafica":            { badge: "bg-fuel-petrol/10 text-fuel-petrol border-fuel-petrol/20",   dot: "bg-fuel-petrol" },
 };
 
 /** Fallback per stati non mappati */
