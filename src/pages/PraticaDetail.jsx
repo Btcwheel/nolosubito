@@ -69,6 +69,7 @@ export default function PraticaDetail() {
       .then(() => {
         qc.invalidateQueries(["pratica", id]);
         qc.invalidateQueries(["pratiche-backoffice"]);
+        qc.invalidateQueries(["pratiche-admin"]);
       })
       .catch(() => {});
   }, [pratica?.id]);
