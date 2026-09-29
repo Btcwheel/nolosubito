@@ -29,7 +29,7 @@ const ALL_STATUSES = [
   "Nuova", "In Lavorazione", "Documenti Richiesti", "Documenti Caricati",
   "Attesa Affidamento Finanziaria", "Affidamento Ricevuto",
   "Stipula Contratto", "Attesa Consegna", "Approvata", "Consegnata", "Chiusa",
-  "Crif negativa", "bocciato",
+  "Crif negativa", "bocciato", "Sblocco anagrafica",
 ];
 
 const ALL_TABS = [
