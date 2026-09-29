@@ -59,6 +59,20 @@ export default function PraticaDetail() {
     [pratica]
   );
 
+  // Segna come lette le risposte cliente non ancora viste, appena si apre la pratica
+  useEffect(() => {
+    const nonLette = (pratica?.pratica_note ?? []).some(
+      n => n.autore_ruolo === "cliente" && !n.letta_operatore_at
+    );
+    if (!nonLette) return;
+    praticheService.segnaRisposteClienteLette(id)
+      .then(() => {
+        qc.invalidateQueries(["pratica", id]);
+        qc.invalidateQueries(["pratiche-backoffice"]);
+      })
+      .catch(() => {});
+  }, [pratica?.id]);
+
   const updateStatus = useMutation({
     mutationFn: (status) => praticheService.updateStatus(id, status),
     onSuccess: () => {
@@ -441,13 +455,22 @@ export default function PraticaDetail() {
             {note.length === 0 && (
               <p className="text-sm text-muted-foreground text-center py-4">Nessuna nota ancora.</p>
             )}
-            {note.map(n => (
+            {note.map(n => {
+              const nonLetta = n.autore_ruolo === "cliente" && !n.letta_operatore_at;
+              return (
               <div key={n.id} className={`rounded-xl p-3 text-sm ${
-                n.autore_ruolo === "cliente" ? "bg-blue-50 border border-blue-100" : "bg-muted/50"
+                nonLetta
+                  ? "bg-blue-100 border-2 border-blue-300"
+                  : n.autore_ruolo === "cliente" ? "bg-blue-50 border border-blue-100" : "bg-muted/50"
               }`}>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-semibold text-foreground">{n.autore_nome}</span>
                   <span className="text-xs text-muted-foreground capitalize">{n.autore_ruolo}</span>
+                  {nonLetta && (
+                    <span className="flex items-center gap-1 text-xs font-semibold text-blue-700">
+                      <span className="size-1.5 rounded-full bg-blue-600" /> Nuova risposta
+                    </span>
+                  )}
                   {n.visibile_cliente && (
                     <span className="ml-auto flex items-center gap-1 text-xs text-green-600">
                       <Eye className="size-3" /> Visibile al cliente
@@ -464,7 +487,8 @@ export default function PraticaDetail() {
                   {n.created_at ? format(new Date(n.created_at), "d MMM yyyy HH:mm", { locale: it }) : ""}
                 </p>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Add nota */}
