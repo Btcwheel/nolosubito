@@ -283,7 +283,7 @@ export default function AdminDashboard() {
               <button type="button"
                 key={id}
                 onClick={() => setActiveTab(id)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
+                className={`relative flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer ${
                   activeTab === id
                     ? "bg-white shadow-sm text-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -299,8 +299,8 @@ export default function AdminDashboard() {
                   </span>
                 )}
                 {id === "pratiche" && stats.risposteNonLette > 0 && (
-                  <span className="bg-electric text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 leading-none">
-                    {stats.risposteNonLette}
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full leading-none ring-2 ring-white">
+                    {stats.risposteNonLette > 9 ? "9+" : stats.risposteNonLette}
                   </span>
                 )}
               </button>
