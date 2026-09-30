@@ -65,12 +65,34 @@ function copyLeanPublicPlugin() {
   };
 }
 
+/**
+ * Genera dist/app.html: come index.html ma senza il guscio hero della home.
+ * vercel.json lo usa per il fallback SPA di tutte le rotte diverse da "/", così i crawler
+ * senza JS non vedono l'h1 della home su ogni pagina.
+ */
+function spaFallbackPlugin() {
+  return {
+    name: 'spa-fallback-html',
+    apply: 'build',
+    async writeBundle(options) {
+      const outDir = options.dir || path.resolve(__dirname, 'dist');
+      const html = await fs.readFile(path.resolve(outDir, 'index.html'), 'utf8');
+      const stripped = html.replace(/[ \t]*<!--hero-shell:start-->[\s\S]*?<!--hero-shell:end-->\n?/g, '');
+      if (stripped === html || stripped.includes('hero-shell')) {
+        throw new Error('spa-fallback-html: marcatori hero-shell non trovati o rimozione incompleta');
+      }
+      await fs.writeFile(path.resolve(outDir, 'app.html'), stripped);
+    },
+  };
+}
+
 export default defineConfig(({ command }) => ({
   publicDir: command === 'build' ? false : 'public',
   plugins: [
     react(),
     deferExternalCssPlugin(),
     copyLeanPublicPlugin(),
+    spaFallbackPlugin(),
     // Genera file .gz e .br pre-compressi durante il build
     compression({ algorithm: 'gzip', ext: '.gz' }),
     compression({ algorithm: 'brotliCompress', ext: '.br' }),

@@ -14,6 +14,18 @@ const HERO_WIDTHS = [480, 800, 1280];
 const HERO_SIZES = "(min-width: 1280px) 1280px, 100vw";
 const DEFAULT_HERO_SRCSET = HERO_WIDTHS.map((w) => `/images/hero-${w}.webp ${w}w`).join(", ");
 
+// Rimuove il guscio HTML dell'hero (index.html) quando l'immagine React è pronta, per non avere buchi visivi
+const dismissHeroShell = (img) => {
+  const shell = document.getElementById("hero-shell");
+  if (!shell || !img) return;
+  const remove = () => shell.remove();
+  if (img.complete && img.naturalWidth) remove();
+  else {
+    img.addEventListener("load", remove, { once: true });
+    img.addEventListener("error", remove, { once: true });
+  }
+};
+
 // srcset: varianti locali per il default, resize via ?w= per le immagini Unsplash, nessuno per altri host
 const buildHeroSrcSet = (url) => {
   if (url === DEFAULT_HERO_IMG) return DEFAULT_HERO_SRCSET;
@@ -223,6 +235,7 @@ export default function FeaturedVehicles() {
           {/* ── Immagine & Testo ── */}
           <div className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-lg h-[300px] sm:h-[400px]">
             <img
+              ref={dismissHeroShell}
               src={heroImage}
               srcSet={buildHeroSrcSet(heroImage)}
               sizes={HERO_SIZES}
