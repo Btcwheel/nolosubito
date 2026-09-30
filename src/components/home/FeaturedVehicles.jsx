@@ -9,7 +9,17 @@ import { supabase } from "@/lib/supabase";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 9;
-const DEFAULT_HERO_IMG = "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&h=533&q=80&auto=format&fit=crop&crop=center";
+const DEFAULT_HERO_IMG = "/images/hero-800.webp";
+const HERO_WIDTHS = [480, 800, 1280];
+const HERO_SIZES = "(min-width: 1280px) 1280px, 100vw";
+const DEFAULT_HERO_SRCSET = HERO_WIDTHS.map((w) => `/images/hero-${w}.webp ${w}w`).join(", ");
+
+// srcset: varianti locali per il default, resize via ?w= per le immagini Unsplash, nessuno per altri host
+const buildHeroSrcSet = (url) => {
+  if (url === DEFAULT_HERO_IMG) return DEFAULT_HERO_SRCSET;
+  if (!url?.startsWith("https://images.unsplash.com/")) return undefined;
+  return HERO_WIDTHS.map((w) => `${url.replace(/([?&])w=\d+/, `$1w=${w}`)} ${w}w`).join(", ");
+};
 
 const TIPOLOGIA_OPTIONS = [
   { value: "all", label: "Tutti" },
@@ -214,6 +224,8 @@ export default function FeaturedVehicles() {
           <div className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-lg h-[300px] sm:h-[400px]">
             <img
               src={heroImage}
+              srcSet={buildHeroSrcSet(heroImage)}
+              sizes={HERO_SIZES}
               alt="Noleggio Lungo Termine"
               width="1280"
               height="533"

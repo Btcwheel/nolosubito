@@ -1,0 +1,29 @@
+# Nolosubito
+
+> Nolosubito (https://nolosubito.it) è una piattaforma italiana di noleggio a lungo termine (NLT) di auto, veicoli commerciali e moto per aziende, partite IVA e privati, con canone mensile all-inclusive e preventivo online.
+
+## Offerte
+
+- [Offerte aziende e P.IVA](https://nolosubito.it/offers): noleggio lungo termine per aziende e professionisti
+- [Offerte privati](https://nolosubito.it/private-offers): canoni mensili per clienti privati
+- [Veicoli commerciali](https://nolosubito.it/commercial): furgoni e veicoli da lavoro
+- [Moto e scooter](https://nolosubito.it/moto): noleggio di moto e scooter
+- [Soluzioni flotte](https://nolosubito.it/fleet): gestione flotte aziendali
+- [Mobilità green](https://nolosubito.it/green): auto elettriche e ibride
+- [Usato e Reuse](https://nolosubito.it/usato): veicoli usati e riutilizzo
+
+## Informazioni
+
+- [News](https://nolosubito.it/news): novità e approfondimenti sul noleggio
+- [Contatti](https://nolosubito.it/contact): richiesta di preventivo e assistenza
+- [Lavora con noi](https://nolosubito.it/careers): posizioni aperte e collaborazioni
+
+## Note legali
+
+- [Privacy policy](https://nolosubito.it/privacy)
+- [Cookie policy](https://nolosubito.it/cookie-policy)
+- [Termini e condizioni](https://nolosubito.it/termini)
+
+## Optional
+
+- [Sitemap](https://nolosubito.it/sitemap.xml)
