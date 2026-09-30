@@ -51,10 +51,15 @@
         });
       };
     </script>
-    <!-- Google Analytics 4 — loaded after first render to protect mobile TBT; il tracking resta "denied" fino al consenso (Consent Mode v2) -->
+    <!-- Google Analytics 4 — caricato alla prima interazione (o dopo 8s) per proteggere LCP/TBT su mobile; il tracking resta "denied" fino al consenso (Consent Mode v2) -->
     <script>
       window.addEventListener('load', () => {
+        const events = ['pointerdown', 'keydown', 'scroll', 'touchstart'];
+        let started = false;
         const loadAnalytics = () => {
+          if (started) return;
+          started = true;
+          events.forEach((e) => window.removeEventListener(e, loadAnalytics));
           const script = document.createElement('script');
           script.src = 'https://www.googletagmanager.com/gtag/js?id=G-KVKGSKMKLK';
           script.async = true;
@@ -62,11 +67,8 @@
           gtag('js', new Date());
           gtag('config', 'G-KVKGSKMKLK');
         };
-        if ('requestIdleCallback' in window) {
-          requestIdleCallback(loadAnalytics, { timeout: 3000 });
-        } else {
-          setTimeout(loadAnalytics, 3000);
-        }
+        events.forEach((e) => window.addEventListener(e, loadAnalytics, { once: true, passive: true }));
+        setTimeout(loadAnalytics, 8000);
       });
     </script>
   </head>
