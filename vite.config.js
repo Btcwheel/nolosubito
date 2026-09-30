@@ -5,6 +5,7 @@ import fs from 'fs/promises'
 import compression from 'vite-plugin-compression'
 
 const publicEntriesToCopy = [
+  '.well-known',
   'brands',
   'fonts',
   'favicon.png',
