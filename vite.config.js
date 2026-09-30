@@ -66,6 +66,46 @@ function copyLeanPublicPlugin() {
 }
 
 /**
+ * main.jsx carica l'app con import('./bootstrap.jsx') dopo il primo paint. Vite precarica
+ * nell'HTML solo le dipendenze statiche dell'entry (ora minima), quindi qui aggiungiamo
+ * il modulepreload del chunk bootstrap e delle sue dipendenze statiche, per non allungare
+ * la catena di download.
+ */
+function preloadBootstrapPlugin() {
+  return {
+    name: 'preload-bootstrap',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, ctx) {
+        const bundle = ctx.bundle;
+        if (!bundle) return html;
+        const boot = Object.values(bundle).find(
+          (c) => c.type === 'chunk' && Object.keys(c.modules).some((id) => id.endsWith('/src/bootstrap.jsx')),
+        );
+        if (!boot) throw new Error('preload-bootstrap: chunk src/bootstrap.jsx non trovato');
+        const seen = new Set();
+        const walk = (file) => {
+          if (seen.has(file) || !bundle[file]) return;
+          seen.add(file);
+          (bundle[file].imports || []).forEach(walk);
+        };
+        walk(boot.fileName);
+        const tags = [...seen]
+          .filter((f) => !html.includes(`/${f}"`))
+          .filter((f) => !/charts|pdf-render|pdf-libs|canvas/.test(f))
+          .map((f) => ({
+            tag: 'link',
+            attrs: { rel: 'modulepreload', crossorigin: true, href: `/${f}` },
+            injectTo: 'head',
+          }));
+        return { html, tags };
+      },
+    },
+  };
+}
+
+/**
  * Genera dist/app.html: come index.html ma senza il guscio hero della home.
  * vercel.json lo usa per il fallback SPA di tutte le rotte diverse da "/", così i crawler
  * senza JS non vedono l'h1 della home su ogni pagina.
@@ -92,6 +132,7 @@ export default defineConfig(({ command }) => ({
     react(),
     deferExternalCssPlugin(),
     copyLeanPublicPlugin(),
+    preloadBootstrapPlugin(),
     spaFallbackPlugin(),
     // Genera file .gz e .br pre-compressi durante il build
     compression({ algorithm: 'gzip', ext: '.gz' }),

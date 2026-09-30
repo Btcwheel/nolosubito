@@ -1,0 +1,18 @@
+import { Buffer } from 'buffer';
+globalThis.Buffer = Buffer;
+
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from '@/App.jsx'
+
+
+// Registra Service Worker per notifiche push backoffice
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <App />
+)
