@@ -11,6 +11,8 @@ const start = () => {
   import('./bootstrap.jsx');
 };
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const shellImg = document.querySelector('#hero-shell img');
 const heroReady =
   shellImg && !shellImg.complete
@@ -20,7 +22,13 @@ const heroReady =
       })
     : Promise.resolve();
 
-// Doppio rAF = almeno un frame dipinto. Il timeout copre tab in background (rAF sospeso)
-// e reti lente (immagine hero che non arriva).
-heroReady.then(() => requestAnimationFrame(() => requestAnimationFrame(start)));
-setTimeout(start, 3000);
+// Doppio rAF = almeno un frame dipinto. rAF è sospeso nelle schede in background/coperte,
+// quindi ogni attesa ha un tetto: nel caso peggiore l'app parte dopo ~1,2 s, non oltre.
+const afterPaint = () =>
+  Promise.race([
+    new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    sleep(400),
+  ]);
+
+if (document.visibilityState === 'hidden') start();
+else Promise.race([heroReady, sleep(800)]).then(afterPaint).then(start);
