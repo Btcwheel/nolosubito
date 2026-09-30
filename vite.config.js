@@ -9,6 +9,7 @@ const publicEntriesToCopy = [
   'fonts',
   'favicon.png',
   'gigi-images.json',
+  'images',
   'logo-bianco.png',
   'logo-blu.png',
   'logo-blu.svg',
