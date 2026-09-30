@@ -71,9 +71,29 @@
         setTimeout(loadAnalytics, 8000);
       });
     </script>
+    <!--hero-shell:start-->
+    <!-- Hero shell: stesso layout dell'hero React (FeaturedVehicles), presente nell'HTML per LCP e per i crawler senza JS. CSS inline perché quello esterno è differito. Rimosso da FeaturedVehicles quando l'hero React è caricata. -->
+    <style>
+      #hero-shell{position:absolute;top:0;left:0;right:0;z-index:40;pointer-events:none;background:#F5F6FA;padding-top:64px;font-family:'Inter',sans-serif}
+      #hero-shell .hs-wrap{max-width:80rem;margin:0 auto;padding:32px 16px 16px}
+      #hero-shell .hs-box{position:relative;overflow:hidden;height:300px;border-radius:16px;box-shadow:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1)}
+      #hero-shell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+      #hero-shell .hs-ov{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.2),rgba(0,0,0,.1),rgba(0,0,0,.6))}
+      #hero-shell .hs-tx{position:absolute;bottom:0;left:0;right:0;padding:0 20px 40px;z-index:10}
+      #hero-shell h1{margin:0;color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;line-height:36px;text-shadow:0 4px 3px rgba(0,0,0,.07),0 2px 2px rgba(0,0,0,.06)}
+      #hero-shell p{margin:6px 0 0;max-width:28rem;color:rgba(255,255,255,.85);font-size:14px;line-height:20px;text-shadow:0 4px 3px rgba(0,0,0,.07),0 2px 2px rgba(0,0,0,.06)}
+      @media(min-width:640px){#hero-shell .hs-wrap{padding:40px 24px 16px}#hero-shell .hs-box{height:400px;border-radius:24px}#hero-shell .hs-tx{padding:0 32px 24px}#hero-shell h1{font-size:36px;line-height:40px}#hero-shell p{margin-top:8px;font-size:16px;line-height:24px}}
+      @media(min-width:768px){#hero-shell{padding-top:80px}}
+      @media(min-width:1024px){#hero-shell .hs-wrap{padding-left:32px;padding-right:32px}#hero-shell .hs-tx{padding:0 40px 24px}#hero-shell h1{font-size:48px;line-height:1}}
+    </style>
+    <!--hero-shell:end-->
   </head>
   <body>
     <div id="root"></div>
+    <!--hero-shell:start-->
+    <div id="hero-shell"><div class="hs-wrap"><div class="hs-box"><img src="/images/hero-800.webp" srcset="/images/hero-480.webp 480w, /images/hero-800.webp 800w, /images/hero-1280.webp 1280w" sizes="(min-width: 1280px) 1280px, 100vw" width="1280" height="533" alt="Noleggio Lungo Termine" fetchpriority="high" decoding="async" /><div class="hs-ov"></div><div class="hs-tx"><h1>Noleggiamo il Futuro</h1><p>Canone chiaro, tutto incluso: zero pensieri, dovrai solo pensare a guidare.</p></div></div></div></div>
+    <script>if(location.pathname!=='/'){var hs=document.getElementById('hero-shell');hs&&hs.remove();}</script>
+    <!--hero-shell:end-->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
