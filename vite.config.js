@@ -12,6 +12,7 @@ const publicEntriesToCopy = [
   'images',
   'logo-bianco.png',
   'logo-blu.png',
+  'llms.txt',
   'logo-blu.svg',
   'robots.txt',
   'sitemap.xml',
