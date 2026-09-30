@@ -122,7 +122,9 @@ export default defineConfig(({ command }) => ({
           if (id.includes('node_modules/react-pdf')) return 'pdf-render';
           if (id.includes('node_modules/jspdf') || id.includes('node_modules/pdfmake')) return 'pdf-libs';
           if (id.includes('node_modules/html2canvas')) return 'canvas';
-          if (id.includes('node_modules/react') && !id.includes('@')) return 'core-react';
+          // Solo runtime React + router: il vecchio test su 'node_modules/react' catturava anche
+          // react-quill, react-markdown, react-smooth... (quill ~515 KB) e li precaricava su ogni pagina.
+          if (/node_modules\/(react|react-dom|scheduler|react-router|react-router-dom|@remix-run\/router)\//.test(id)) return 'core-react';
         }
       }
     }
