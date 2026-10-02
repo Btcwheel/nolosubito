@@ -114,6 +114,16 @@ const rules = [];
 // 1) www → apex
 rules.push(R('/:path*', 'https://nolosubito.it/:path*', { has: [{ type: 'host', value: 'www.nolosubito.it' }] }));
 
+// 1b) Redirect manuali confermati (articolo vecchio → articolo nuovo con slug diverso)
+const MANUAL_ARTICLES = [
+  { from: 'approfondimenti-di-settore/batteria-auto', toSlug: 'batteria-auto-2' },
+];
+for (const { from, toSlug } of MANUAL_ARTICLES) {
+  if (!goodSlugs.includes(toSlug)) throw new Error(`MANUAL_ARTICLES: il post "${toSlug}" non esiste tra quelli pubblicati`);
+  rules.push(R(`/${from}`, `/news/${toSlug}`));
+  rules.push(R(`/${from}/amp`, `/news/${toSlug}`));
+}
+
 // 2) Articoli: /<sezione>[/<categoria>]/<slug>[/amp] → /news/<slug>
 for (const slug of goodSlugs) {
   rules.push(R(`/${SECTION_PARAM}/:cat?/${slug}`, `/news/${slug}`));

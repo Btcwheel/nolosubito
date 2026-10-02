@@ -12,6 +12,16 @@
       ]
     },
     {
+      "source": "/approfondimenti-di-settore/batteria-auto{/}?",
+      "destination": "/news/batteria-auto-2",
+      "permanent": true
+    },
+    {
+      "source": "/approfondimenti-di-settore/batteria-auto/amp{/}?",
+      "destination": "/news/batteria-auto-2",
+      "permanent": true
+    },
+    {
       "source": "/:s(novita-sul-mondo-auto|approfondimenti-di-settore|curiosita|guide|senza-categoria|consigli-fiscali)/:cat?/10-consigli-prima-di-affrontare-un-viaggio-check-up{/}?",
       "destination": "/news/10-consigli-prima-di-affrontare-un-viaggio-check-up",
       "permanent": true
