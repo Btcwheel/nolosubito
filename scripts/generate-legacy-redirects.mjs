@@ -106,7 +106,9 @@ if (CSV_DIR) {
 const oldProducts = [...new Set(csvRows.filter((r) => r.path.startsWith('/prodotto/')).map((r) => r.path.split('/')[2]))];
 
 // ── Regole (l'ordine conta: vince la prima che combacia) ─────────────────────
-const R = (source, destination, extra = {}) => ({ source, destination, permanent: true, ...extra });
+// {/}? = slash finale opzionale: gli URL di WordPress finiscono quasi tutti con "/", e in vercel.json
+// "/a/b" NON combacia con "/a/b/" (verificato su preview).
+const R = (source, destination, extra = {}) => ({ source: source.endsWith('*') && extra.has ? source : `${source}{/}?`, destination, permanent: true, ...extra });
 const rules = [];
 
 // 1) www → apex
@@ -157,9 +159,12 @@ const postSet = new Set(posts.map((p) => p.slug));
 const existsNow = (p) => VALID_STATIC.has(p) || p.startsWith('/vehicle/') || (p.startsWith('/news/') && postSet.has(p.slice(6)));
 let covered = 0, coveredClicks = 0, chains = 0;
 const uncovered = [];
+let slashMismatch = 0;
 for (const row of csvRows) {
   const f = final(row.path);
-  if (f.r) { covered++; coveredClicks += row.clicks; if (f.hops > 1) chains++; }
+  const fSlash = final(`${row.path}/`);
+  if (!!f.r !== !!fSlash.r || (f.r && f.dest !== fSlash.dest)) slashMismatch++;
+  if (f.r && fSlash.r) { covered++; coveredClicks += row.clicks; if (f.hops > 1) chains++; }
   else if (!existsNow(row.path)) uncovered.push(row);
 }
 
@@ -171,7 +176,7 @@ console.log(`Regole generate: ${rules.length} (limite Vercel 2048) | post con sl
 if (badSlugs.length) console.log('  slug non validi (da correggere in Supabase, nessun redirect generato):', badSlugs.map((s) => JSON.stringify(s)).join(', '));
 console.log(`Prodotti vecchi: ${oldProducts.length} | con offerta corrispondente: ${productMap.filter((x) => x.to !== '/offers').length}`);
 if (csvRows.length) {
-  console.log(`URL dei CSV (esclusi quelli già validi nel sito nuovo) coperti da un redirect: ${covered}/${total} (${coveredClicks}/${totalClicks} clic) | catene: ${chains}`);
+  console.log(`URL dei CSV (esclusi quelli già validi nel sito nuovo) coperti da un redirect (con e senza slash finale): ${covered}/${total} (${coveredClicks}/${totalClicks} clic) | catene: ${chains} | esito diverso con/senza slash: ${slashMismatch}`);
   const byClicks = uncovered.sort((a, b) => b.clicks - a.clicks);
   console.log(`Non coperti: ${byClicks.length} (${byClicks.reduce((s, r) => s + r.clicks, 0)} clic). Primi 12:`);
   const bySection = {};
