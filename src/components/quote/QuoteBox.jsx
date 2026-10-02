@@ -343,6 +343,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
               <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Marca</label>
               <select
                 value={selectedMake}
+                aria-label="Marca"
                 onChange={handleMakeChange}
                 className="w-full h-11 rounded-xl border border-input bg-muted/30 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-electric/50"
                 style={{ "--tw-ring-color": `${ACCENT}30` }}
@@ -355,6 +356,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
               <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Modello</label>
               <select
                 value={selectedModel}
+                aria-label="Modello"
                 onChange={e => setSelectedModel(e.target.value)}
                 disabled={!selectedMake}
                 className="w-full h-11 rounded-xl border border-input bg-muted/30 px-3 py-2 text-sm focus:outline-none disabled:opacity-40"
