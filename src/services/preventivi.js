@@ -127,6 +127,29 @@ export const preventiviService = {
     });
   },
 
+  /**
+   * Salva un'offerta carrier come fonte interna del preventivo (mai visibile al cliente).
+   * Il file va nel bucket privato preventivi-broker; in tabella resta il path, non un URL.
+   */
+  async addFonte(preventivoId, { file, extracted, usata }) {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const path = `${preventivoId}/fonti/${crypto.randomUUID()}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from('preventivi-broker')
+      .upload(path, file);
+    if (upErr) throw upErr;
+
+    const { error } = await supabase.from('preventivo_fonti').insert({
+      preventivo_id: preventivoId,
+      carrier: extracted?.carrier || null,
+      dati: extracted || {},
+      documento_path: path,
+      documento_nome: file.name,
+      usata: !!usata,
+    });
+    if (error) throw error;
+  },
+
   // Segna come letti tutti i preventivi Inviato non ancora letti della pratica
   async segnaLetti(praticaId) {
     await supabase
