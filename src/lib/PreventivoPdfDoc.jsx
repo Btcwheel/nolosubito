@@ -848,9 +848,8 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
   ];
 
   const formatPenale = (codice, penale) => {
-    if (penale == null || penale === '') {
-      return codice === 'FURTO_INCENDIO' ? 'Penale 0%' : '';
-    }
+    // Penale assente = dato non noto: non va presentata come "0%" al cliente
+    if (penale == null || penale === '') return '';
     const valore = String(penale).trim();
     if (codice === 'FURTO_INCENDIO') {
       return valore.endsWith('%') ? `Penale ${valore}` : `Penale ${valore}%`;
@@ -876,9 +875,6 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
 
     if (originalLooksDetailed) {
       return originale;
-    }
-    if (codice === 'FURTO_INCENDIO') {
-      return formatPenale(codice, penale);
     }
     if (penale != null && penale !== '') {
       return formatPenale(codice, penale);
@@ -1014,6 +1010,15 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
         return mapped ? [mapped[0], 'Disponibile su richiesta'] : null;
       })
       .filter(Boolean);
+
+  // Stesso servizio da più voci del carrier (es. "Furto" + "Incendio e Furto"): tieni la prima occorrenza
+  const nomiVisti = new Set();
+  serviziInclusi = serviziInclusi.filter(([nome]) => {
+    const key = normalizeServiceKey(nome || '');
+    if (nomiVisti.has(key)) return false;
+    nomiVisti.add(key);
+    return true;
+  });
 
   const col1 = serviziInclusi.filter((_, i) => i % 3 === 0);
   const col2 = serviziInclusi.filter((_, i) => i % 3 === 1);
