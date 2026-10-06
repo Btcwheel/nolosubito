@@ -22,9 +22,9 @@ import DOMPurify from "dompurify";
 // Converte path locale → URL Supabase Storage
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 function toStorageUrl(gigiPath) {
-  // /gigi/uploads/2026/03/rombo.png → .../gigi-images/uploads/2026/03/rombo.webp
+  // /gigi/uploads/2026/03/rombo.png → .../news-images/gigi/uploads/2026/03/rombo.webp
   const rel = gigiPath.replace('/gigi/', '').replace(/\.[^.]+$/, '.webp');
-  return `${SUPABASE_URL}/storage/v1/object/public/gigi-images/${rel}`;
+  return `${SUPABASE_URL}/storage/v1/object/public/news-images/gigi/${rel}`;
 }
 
 // ── Image Picker (archivio Supabase Storage, già migrate) ─────────────────────
