@@ -529,7 +529,7 @@ export default function CmsNews() {
       });
 
       const path = `news/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
-      const { error } = await supabase.storage.from('news-images').upload(path, webpBlob, { contentType: "image/webp", upsert: false });
+      const { error } = await supabase.storage.from('news-images').upload(path, webpBlob, { contentType: "image/webp", upsert: false, cacheControl: "31536000" });
       if (error) throw error;
       const { data: { publicUrl } } = supabase.storage.from('news-images').getPublicUrl(path);
       set("cover_image_url", publicUrl);
@@ -570,7 +570,7 @@ export default function CmsNews() {
           img.src = URL.createObjectURL(file);
         });
         const path = `news/${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
-        const { error } = await supabase.storage.from('news-images').upload(path, webpBlob, { contentType: "image/webp" });
+        const { error } = await supabase.storage.from('news-images').upload(path, webpBlob, { contentType: "image/webp", cacheControl: "31536000" });
         if (error) throw error;
         const { data: { publicUrl } } = supabase.storage.from('news-images').getPublicUrl(path);
         return publicUrl;

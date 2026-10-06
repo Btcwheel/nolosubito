@@ -58,7 +58,7 @@ async function uploadVehicleImage(file, make, model) {
 
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
-    .upload(path, optimizedFile, { upsert: true, contentType: optimizedFile.type });
+    .upload(path, optimizedFile, { upsert: true, contentType: optimizedFile.type, cacheControl: "31536000" });
 
   if (uploadError) throw uploadError;
 
