@@ -18,7 +18,7 @@ async function uploadSiteImage(file, prefix) {
 
   const { error: uploadError } = await supabase.storage
     .from(SITE_IMAGES_BUCKET)
-    .upload(path, file, { upsert: true, contentType: file.type });
+    .upload(path, file, { upsert: true, contentType: file.type, cacheControl: "31536000" });
 
   if (uploadError) throw uploadError;
 

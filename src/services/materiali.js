@@ -28,7 +28,7 @@ export const materialiService = {
 
     const { error: uploadError } = await supabase.storage
       .from('materiali')
-      .upload(path, file);
+      .upload(path, file, { cacheControl: "31536000" });
     if (uploadError) throw uploadError;
 
     const { data: { publicUrl } } = supabase.storage
