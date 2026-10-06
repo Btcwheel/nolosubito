@@ -732,14 +732,14 @@ const SERVIZI_CANONICAL_MAP = {
 
 // Mappa servizio normalizzato → [etichetta display, descrizione breve] (legacy)
 const SERVIZI_MAP = {
-  'rca': ['R.C.A. Responsabilità Civile', 'Massimale e penale variano in base al carrier scelto'],
-  'copertura danni': ['Copertura Danni', 'Penale variabile in base al carrier scelto'],
-  'copertura danni kasko': ['Copertura Danni', 'Penale variabile in base al carrier scelto'],
-  'kasko': ['Copertura Danni', 'Penale variabile in base al carrier scelto'],
-  'furto': ['Furto e Incendio', 'Penale variabile in base al carrier scelto'],
-  'furto incendio': ['Furto e Incendio', 'Penale variabile in base al carrier scelto'],
-  'copertura incendio e furto': ['Incendio e Furto', 'Penale variabile in base al carrier scelto'],
-  'incendio e furto': ['Incendio e Furto', 'Penale variabile in base al carrier scelto'],
+  'rca': ['R.C.A. Responsabilità Civile', 'Massimale e penale variano in base alla società di noleggio'],
+  'copertura danni': ['Copertura Danni', 'Penale variabile in base alla società di noleggio'],
+  'copertura danni kasko': ['Copertura Danni', 'Penale variabile in base alla società di noleggio'],
+  'kasko': ['Copertura Danni', 'Penale variabile in base alla società di noleggio'],
+  'furto': ['Furto e Incendio', 'Penale variabile in base alla società di noleggio'],
+  'furto incendio': ['Furto e Incendio', 'Penale variabile in base alla società di noleggio'],
+  'copertura incendio e furto': ['Incendio e Furto', 'Penale variabile in base alla società di noleggio'],
+  'incendio e furto': ['Incendio e Furto', 'Penale variabile in base alla società di noleggio'],
   'manutenzione ordinaria e straordinaria': ['Manutenzione', 'Ordinaria e Straordinaria'],
   'manutenzione ordinaria': ['Manutenzione Ordinaria', 'Tagliandi periodici programmati'],
   'manutenzione straordinaria': ['Manutenzione Straordinaria', 'Riparazioni per usura'],
@@ -763,6 +763,19 @@ const SERVIZI_MAP = {
   'traino standard': ['Soccorso Stradale', 'Soccorso e traino incluso'],
   'gestione sinistri': ['Gestione Sinistri', 'Supporto pratiche sinistro'],
 };
+
+// Il cliente non deve poter risalire al carrier: via nomi e servizi brandizzati dai testi dei servizi
+const CARRIER_TERMS_RE = /\b(i[- ]?care(?:\s+(?:smart|protection|box|connect))?|my\s?leasys(?:\s+app)?|my\s?ayvens|ayvens|ald(?:\s+automotive)?(?:\s+italia)?|leasys|drivalia|santander(?:\s+consumer\s+renting)?|volkswagen\s+financial\s+services|promo\s+start\s*&\s*go)\b/gi;
+
+function stripCarrierTerms(text) {
+  if (!text) return text;
+  return String(text)
+    .replace(CARRIER_TERMS_RE, '')
+    .replace(/\(\s*\)|\[\s*\]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([,.;:])/g, '$1')
+    .trim();
+}
 
 function normalizeServiceKey(value) {
   return String(value)
@@ -848,9 +861,8 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
   ];
 
   const formatPenale = (codice, penale) => {
-    if (penale == null || penale === '') {
-      return codice === 'FURTO_INCENDIO' ? 'Penale 0%' : '';
-    }
+    // Penale assente = dato non noto: non va presentata come "0%" al cliente
+    if (penale == null || penale === '') return '';
     const valore = String(penale).trim();
     if (codice === 'FURTO_INCENDIO') {
       return valore.endsWith('%') ? `Penale ${valore}` : `Penale ${valore}%`;
@@ -876,9 +888,6 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
 
     if (originalLooksDetailed) {
       return originale;
-    }
-    if (codice === 'FURTO_INCENDIO') {
-      return formatPenale(codice, penale);
     }
     if (penale != null && penale !== '') {
       return formatPenale(codice, penale);
@@ -1014,6 +1023,17 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
         return mapped ? [mapped[0], 'Disponibile su richiesta'] : null;
       })
       .filter(Boolean);
+
+  serviziInclusi = serviziInclusi.map(([nome, nota, ...rest]) => [stripCarrierTerms(nome) || nome, stripCarrierTerms(nota), ...rest]);
+
+  // Stesso servizio da più voci del carrier (es. "Furto" + "Incendio e Furto"): tieni la prima occorrenza
+  const nomiVisti = new Set();
+  serviziInclusi = serviziInclusi.filter(([nome]) => {
+    const key = normalizeServiceKey(nome || '');
+    if (nomiVisti.has(key)) return false;
+    nomiVisti.add(key);
+    return true;
+  });
 
   const col1 = serviziInclusi.filter((_, i) => i % 3 === 0);
   const col2 = serviziInclusi.filter((_, i) => i % 3 === 1);

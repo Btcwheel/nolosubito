@@ -491,8 +491,20 @@ function normalizeVehicleFields(raw: JsonRecord) {
   };
 }
 
+// Se listino + optional + accessori non torna con il "Totale veicolo" del documento,
+// lo stesso importo è stato contato due volte (es. optional IVA esclusa e accessori IVA inclusa).
+function reconcileVehicleValues(vehicle: ReturnType<typeof normalizeVehicleFields>, totale: number | null) {
+  const { valore_listing: listing, valore_optional: optional, valore_accessori: accessori } = vehicle;
+  if (!totale || !listing || !optional || !accessori) return vehicle;
+  const close = (a: number, b: number) => Math.abs(a - b) < 1;
+  if (close(listing + optional + accessori, totale)) return vehicle;
+  if (close(listing + accessori, totale)) return { ...vehicle, valore_optional: 0 };
+  if (close(listing + optional, totale)) return { ...vehicle, valore_accessori: 0 };
+  return vehicle;
+}
+
 function normalizePreventivo(raw: JsonRecord, rawText?: string | null): NormalizedPreventivo {
-  const vehicle = normalizeVehicleFields(raw);
+  const vehicle = reconcileVehicleValues(normalizeVehicleFields(raw), toNumber(raw.valore_totale_veicolo));
   let servizi = normalizeServices(raw.servizi);
 
   const textSource = rawText || textOrNull(raw.note_aggiuntive);
@@ -579,6 +591,7 @@ Campi richiesti:
   "valore_listing": number|null,
   "valore_optional": number|null,
   "valore_accessori": number|null,
+  "valore_totale_veicolo": number|null,
   "servizi": string[],
   "note_aggiuntive": string|null
 }
@@ -596,6 +609,10 @@ Se un servizio non ha penale indicata, ometti la penale dal nome.
 Se la penale è una percentuale, includi il simbolo % (es. "Penale 10%").
 I campi "quota_veicolo" e "quota_servizi" rappresentano la suddivisione del canone mensile tra quota veicolo e quota servizi, così come riportata nel preventivo broker originale. Estrai SEMPRE i valori che trovi nel documento, senza calcolarli. Usa valori IVA inclusa quando presenti. Se il documento non ha la suddivisione, lascia null.
 Il campo "valore_listing" è il prezzo totale del veicolo (es. "Valore veicolo", "Prezzo veicolo", "Valore di listino", "Prezzo di listino"). Cercalo in tutte le pagine, spesso nella sezione "Scheda tecnica" o "Dati veicolo" o nella sezione economica.
+Il campo "valore_totale_veicolo" è il "Totale veicolo" riportato nel documento (listino + optional + accessori), copiato così com'è. Serve solo come controllo di coerenza.
+REGOLE ANTI DOPPIO CONTEGGIO: "valore_listing" + "valore_optional" + "valore_accessori" deve dare "valore_totale_veicolo". Se il documento mostra lo stesso importo sia come riga di optional/accessorio (IVA inclusa) sia come "Totale optional" (spesso lo stesso importo IVA esclusa), conta l'importo UNA sola volta e usa la versione IVA inclusa, coerente con il listino.
+QUOTE CANONE: "quota_veicolo" è la parte di canone relativa al veicolo (in ALD/Ayvens la colonna "Puro noleggio"), "quota_servizi" è la parte relativa ai servizi (in ALD/Ayvens la colonna "Servizi"). Rispetta le intestazioni di colonna del documento, non l'ordine in cui compaiono i numeri.
+PENALI ALD/AYVENS: "limitazione di responsabilità in caso di furto totale, con quota a carico del cliente del 10% del valore commerciale" → "Incendio e Furto Penale 10%". "furto parziale, incendio e danni al veicolo ... quota a carico del cliente fino a € 500 per evento" → "Copertura Danni Penale 500". Non scrivere mai una penale 0% se il documento non la indica esplicitamente.
 Linee guida pratiche:
 - DRIVALIA: il valore canone è normalmente IVA esclusa, quindi usa il totale quando indicato e convertilo a IVA inclusa solo se il documento lo richiede.
 - AYVENS/ALD, LEASYS, VW, SANTANDER: preferisci sempre i valori IVA inclusa quando esplicitati.

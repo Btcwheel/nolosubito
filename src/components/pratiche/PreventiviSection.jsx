@@ -435,11 +435,108 @@ export default function PreventiviSection({ praticaId, clienteNome, pratica }) {
   const [form, setForm] = useState(BLANK_FORM);
   const [extracting, setExtracting] = useState(false);
   const [brokerFile, setBrokerFile] = useState(null);
+  const [fonti, setFonti] = useState([]);
+  const [fonteUsata, setFonteUsata] = useState(null);
   const [limitModal, setLimitModal] = useState({ open: false, inclusiCount: 0, richiestiCount: 0 });
   const [servizioDaAggiungere, setServizioDaAggiungere] = useState("");
   const fileInputRef = useRef(null);
   const set = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
 
+  function calcRichiedibili(estrattiServizi) {
+    const codiciInclusi = new Set(
+      (estrattiServizi || []).map((s) => {
+        const obj = (typeof s === 'string' && s.startsWith('{'))
+          ? (() => { try { return JSON.parse(s); } catch (e) { return null; } })()
+          : s;
+        return obj && typeof obj === 'object' && !Array.isArray(obj) ? obj.codice : null;
+      }).filter(Boolean),
+    );
+    return SERVIZI_RICHIEDIBILI
+      .filter((cod) => !codiciInclusi.has(cod))
+      .map((codice) => ({ codice, richiesto: false, prezzo: null }));
+  }
+
+  // Riporta i dati estratti dall'offerta carrier sul form, senza cancellare i campi già compilati
+  function applyExtraction(prev, extracted, text) {
+    const kmValue = extracted.km_annui
+      ? ALL_KM_OPTIONS.find(k => k.value === Number(extracted.km_annui))?.value ??
+        ALL_KM_OPTIONS.find(k => Math.abs(k.value - Number(extracted.km_annui)) < 2500)?.value ??
+        extracted.km_annui
+      : '';
+    const durataValue = extracted.durata_mesi
+      ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
+      : '';
+    const nuoviServizi = extracted.servizi?.length ? extracted.servizi : prev.servizi;
+    return {
+      ...prev,
+      veicolo_marca:        extracted.veicolo_marca || prev.veicolo_marca,
+      veicolo_modello:      extracted.veicolo_modello || prev.veicolo_modello,
+      veicolo_versione:     extracted.veicolo_versione || extracted.veicolo_allestimento || prev.veicolo_versione,
+      alimentazione:        extracted.alimentazione || prev.alimentazione,
+      colore_esterno:       extracted.colore_esterno || prev.colore_esterno,
+      interni:              extracted.interni || prev.interni,
+      cambio:               extracted.cambio || prev.cambio,
+      carrozzeria:          extracted.carrozzeria || prev.carrozzeria,
+      potenza:              isPresent(extracted.potenza) ? toFormNumber(extracted.potenza) : prev.potenza,
+      durata_mesi:          durataValue ? String(durataValue) : prev.durata_mesi,
+      km_annui:             kmValue ? String(kmValue) : prev.km_annui,
+      anticipo:             isPresent(extracted.anticipo) ? toFormNumber(extracted.anticipo) : prev.anticipo,
+      deposito_cauzionale:  isPresent(extracted.deposito_cauzionale) ? toFormNumber(extracted.deposito_cauzionale) : prev.deposito_cauzionale,
+      canone_mensile:       isPresent(extracted.canone_mensile) ? toFormNumber(extracted.canone_mensile) : prev.canone_mensile,
+      quota_veicolo:        isPresent(extracted.quota_veicolo) ? toFormNumber(extracted.quota_veicolo) : prev.quota_veicolo,
+      quota_servizi:        isPresent(extracted.quota_servizi) ? toFormNumber(extracted.quota_servizi) : prev.quota_servizi,
+      valore_listing:       isPresent(extracted.valore_listing) ? toFormNumber(extracted.valore_listing) : prev.valore_listing,
+      valore_optional:      isPresent(extracted.valore_optional) ? toFormNumber(extracted.valore_optional) : prev.valore_optional,
+      valore_accessori:     isPresent(extracted.valore_accessori) ? toFormNumber(extracted.valore_accessori) : prev.valore_accessori,
+      carrier:              extracted.carrier || prev.carrier,
+      servizi:              nuoviServizi,
+      servizi_richiesti:    calcRichiedibili(nuoviServizi),
+      note_operative:       buildNoteOperativa(extracted.note_aggiuntive, text, prev.note_operative),
+    };
+  }
+
+  async function analyzeFile(file) {
+    const headers = {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+    };
+    let body;
+    let text = '';
+    if (file.type === 'application/pdf') {
+      // Polyfill per browser che non supportano Promise.withResolvers (ES2024)
+      if (typeof Promise.withResolvers === 'undefined') {
+        Promise.withResolvers = function() {
+          let resolve, reject;
+          const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+          return { promise, resolve, reject };
+        };
+      }
+      const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist');
+      GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).href;
+      const buffer = await file.arrayBuffer();
+      const pdf = await getDocument({ data: buffer }).promise;
+
+      // Renderizza le prime pagine come immagini JPEG — Claude Vision legge
+      // le tabelle dei servizi correttamente, il testo grezzo le distorce
+      const rendered = await renderPdfPagesAndText(pdf);
+      text = rendered.text;
+      body = { pages: rendered.pages, text };
+    } else {
+      const b64 = await new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = ev => resolve(ev.target.result.split(',')[1]);
+        reader.readAsDataURL(file);
+      });
+      body = { base64: b64, mediaType: file.type };
+    }
+
+    const res = await fetch(ANALYZE_URL, { method: 'POST', headers, body: JSON.stringify(body) });
+    const { data: extracted, error } = await res.json();
+    if (error) throw new Error(error);
+    return { extracted, text };
+  }
+
+  // Ogni upload è una fonte interna: la prima compila il form, le altre si scelgono con "Usa"
   async function handleBrokerFile(e) {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -452,170 +549,36 @@ export default function PreventiviSection({ praticaId, clienteNome, pratica }) {
     setExtracting(true);
     if (!showForm) setShowForm(true);
 
-    function calcRichiedibili(estrattiServizi) {
-      const codiciInclusi = new Set(
-        (estrattiServizi || []).map((s) => {
-          const obj = (typeof s === 'string' && s.startsWith('{'))
-            ? (() => { try { return JSON.parse(s); } catch(e) { return null; } })()
-            : s;
-          return obj && typeof obj === 'object' && !Array.isArray(obj) ? obj.codice : null;
-        }).filter(Boolean),
-      );
-      return SERVIZI_RICHIEDIBILI
-        .filter((cod) => !codiciInclusi.has(cod))
-        .map((codice) => ({ codice, richiesto: false, prezzo: null }));
-    }
-
     try {
-      if (file.type === 'application/pdf') {
-        // Polyfill per browser che non supportano Promise.withResolvers (ES2024)
-        if (typeof Promise.withResolvers === 'undefined') {
-          Promise.withResolvers = function() {
-            let resolve, reject;
-            const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
-            return { promise, resolve, reject };
-          };
-        }
-        const { getDocument, GlobalWorkerOptions } = await import('pdfjs-dist');
-        GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.mjs', import.meta.url).href;
-        const buffer = await file.arrayBuffer();
-        const pdf = await getDocument({ data: buffer }).promise;
-
-        // Renderizza le prime 3 pagine come immagini JPEG — Claude Vision legge
-        // le tabelle dei servizi correttamente, il testo grezzo le distorce
-        const { pages, text } = await renderPdfPagesAndText(pdf);
-
-        const res = await fetch(ANALYZE_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({ pages, text }),
-        });
-        const { data: extracted, error } = await res.json();
-        if (error) throw new Error(error);
-
-        const kmValue = extracted.km_annui
-          ? ALL_KM_OPTIONS.find(k => k.value === Number(extracted.km_annui))?.value ??
-            ALL_KM_OPTIONS.find(k => Math.abs(k.value - Number(extracted.km_annui)) < 2500)?.value ??
-            extracted.km_annui
-          : '';
-        const durataValue = extracted.durata_mesi
-          ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
-          : '';
-
-        function calcRichiedibili(estrattiServizi) {
-          const codiciInclusi = new Set(
-            (estrattiServizi || []).map((s) => (s && typeof s === 'object' && !Array.isArray(s) ? s.codice : null)).filter(Boolean),
-          );
-          return SERVIZI_RICHIEDIBILI
-            .filter((cod) => !codiciInclusi.has(cod))
-            .map((codice) => ({ codice, richiesto: false, prezzo: null }));
-        }
-
-        const applyExtraction = (prev) => {
-          const nuoviServizi = extracted.servizi?.length ? extracted.servizi : prev.servizi;
-          return {
-            ...prev,
-            veicolo_marca:        extracted.veicolo_marca || prev.veicolo_marca,
-            veicolo_modello:      extracted.veicolo_modello || prev.veicolo_modello,
-            veicolo_versione:     extracted.veicolo_versione || extracted.veicolo_allestimento || prev.veicolo_versione,
-            alimentazione:        extracted.alimentazione || prev.alimentazione,
-            colore_esterno:       extracted.colore_esterno || prev.colore_esterno,
-            interni:              extracted.interni || prev.interni,
-            cambio:               extracted.cambio || prev.cambio,
-            carrozzeria:          extracted.carrozzeria || prev.carrozzeria,
-            potenza:              isPresent(extracted.potenza) ? toFormNumber(extracted.potenza) : prev.potenza,
-            durata_mesi:          durataValue ? String(durataValue) : prev.durata_mesi,
-            km_annui:             kmValue ? String(kmValue) : prev.km_annui,
-            anticipo:             isPresent(extracted.anticipo) ? toFormNumber(extracted.anticipo) : prev.anticipo,
-            deposito_cauzionale:  isPresent(extracted.deposito_cauzionale) ? toFormNumber(extracted.deposito_cauzionale) : prev.deposito_cauzionale,
-            canone_mensile:       isPresent(extracted.canone_mensile) ? toFormNumber(extracted.canone_mensile) : prev.canone_mensile,
-            quota_veicolo:        isPresent(extracted.quota_veicolo) ? toFormNumber(extracted.quota_veicolo) : prev.quota_veicolo,
-            quota_servizi:        isPresent(extracted.quota_servizi) ? toFormNumber(extracted.quota_servizi) : prev.quota_servizi,
-            valore_listing:       isPresent(extracted.valore_listing) ? toFormNumber(extracted.valore_listing) : prev.valore_listing,
-            valore_optional:      isPresent(extracted.valore_optional) ? toFormNumber(extracted.valore_optional) : prev.valore_optional,
-            valore_accessori:     isPresent(extracted.valore_accessori) ? toFormNumber(extracted.valore_accessori) : prev.valore_accessori,
-            carrier:              extracted.carrier || prev.carrier,
-            servizi:              nuoviServizi,
-            servizi_richiesti:    calcRichiedibili(nuoviServizi),
-            note_operative:       buildNoteOperativa(extracted.note_aggiuntive, text, prev.note_operative),
-          };
-        };
-
-        setForm(applyExtraction);
-
+      const { extracted, text } = await analyzeFile(file);
+      const fonte = { key: crypto.randomUUID(), file, extracted, text };
+      const prima = fonti.length === 0;
+      setFonti((prev) => [...prev, fonte]);
+      if (prima) {
+        setForm((prev) => applyExtraction(prev, extracted, text));
+        setFonteUsata(fonte.key);
         setBrokerFile(file);
-        toast({ title: `Preventivo broker caricato — controlla e aggiusta i campi.` });
-        setExtracting(false);
-        return; // early return: tutto già gestito
+        toast({ title: 'Preventivo broker caricato — controlla e aggiusta i campi.' });
       } else {
-        // Immagine: invia direttamente come base64
-        const b64 = await new Promise(resolve => {
-          const reader = new FileReader();
-          reader.onload = ev => resolve(ev.target.result.split(',')[1]);
-          reader.readAsDataURL(file);
-        });
-
-        const res = await fetch(ANALYZE_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({ base64: b64, mediaType: file.type }),
-        });
-        const { data: extracted, error } = await res.json();
-        if (error) throw new Error(error);
-
-        const kmValue = extracted.km_annui
-          ? ALL_KM_OPTIONS.find(k => k.value === Number(extracted.km_annui))?.value ??
-            ALL_KM_OPTIONS.find(k => Math.abs(k.value - Number(extracted.km_annui)) < 2500)?.value ??
-            extracted.km_annui
-          : '';
-        const durataValue = extracted.durata_mesi
-          ? DURATE.find(d => d === Number(extracted.durata_mesi)) ?? ''
-          : '';
-
-        setForm((prev) => {
-          const imgServizi = extracted.servizi?.length ? extracted.servizi : prev.servizi;
-          return {
-            ...prev,
-            veicolo_marca:        extracted.veicolo_marca || prev.veicolo_marca,
-            veicolo_modello:      extracted.veicolo_modello || prev.veicolo_modello,
-            veicolo_versione:     extracted.veicolo_versione || extracted.veicolo_allestimento || prev.veicolo_versione,
-            alimentazione:        extracted.alimentazione || prev.alimentazione,
-            colore_esterno:       extracted.colore_esterno || prev.colore_esterno,
-            interni:              extracted.interni || prev.interni,
-            cambio:               extracted.cambio || prev.cambio,
-            carrozzeria:          extracted.carrozzeria || prev.carrozzeria,
-            potenza:              isPresent(extracted.potenza) ? toFormNumber(extracted.potenza) : prev.potenza,
-            durata_mesi:          durataValue ? String(durataValue) : prev.durata_mesi,
-            km_annui:             kmValue ? String(kmValue) : prev.km_annui,
-            anticipo:             isPresent(extracted.anticipo) ? toFormNumber(extracted.anticipo) : prev.anticipo,
-            deposito_cauzionale:  isPresent(extracted.deposito_cauzionale) ? toFormNumber(extracted.deposito_cauzionale) : prev.deposito_cauzionale,
-            canone_mensile:       isPresent(extracted.canone_mensile) ? toFormNumber(extracted.canone_mensile) : prev.canone_mensile,
-            quota_veicolo:        isPresent(extracted.quota_veicolo) ? toFormNumber(extracted.quota_veicolo) : prev.quota_veicolo,
-            quota_servizi:        isPresent(extracted.quota_servizi) ? toFormNumber(extracted.quota_servizi) : prev.quota_servizi,
-            valore_listing:       isPresent(extracted.valore_listing) ? toFormNumber(extracted.valore_listing) : prev.valore_listing,
-            valore_optional:      isPresent(extracted.valore_optional) ? toFormNumber(extracted.valore_optional) : prev.valore_optional,
-            valore_accessori:     isPresent(extracted.valore_accessori) ? toFormNumber(extracted.valore_accessori) : prev.valore_accessori,
-            carrier:              extracted.carrier || prev.carrier,
-            servizi:              imgServizi,
-            servizi_richiesti:    calcRichiedibili(imgServizi),
-            note_operative:       extracted.note_aggiuntive || prev.note_operative,
-          };
-        });
-
-        setBrokerFile(file);
-        toast({ title: `Preventivo broker caricato — controlla e aggiusta i campi.` });
+        toast({ title: 'Offerta carrier aggiunta — scegli quale usare per il preventivo.' });
       }
     } catch (err) {
       toast({ title: "Errore nell'analisi del documento", description: String(err), variant: 'destructive' });
     } finally {
       setExtracting(false);
     }
+  }
+
+  function usaFonte(fonte) {
+    setForm((prev) => applyExtraction(prev, fonte.extracted, fonte.text));
+    setFonteUsata(fonte.key);
+    setBrokerFile(fonte.file);
+  }
+
+  function resetFonti() {
+    setFonti([]);
+    setFonteUsata(null);
+    setBrokerFile(null);
   }
 
   const { data: preventivi = [], isLoading } = useQuery({
@@ -679,8 +642,16 @@ export default function PreventiviSection({ praticaId, clienteNome, pratica }) {
         } catch (e) {
           console.warn('[preventivi] upload broker doc fallito:', e.message);
         }
-        setBrokerFile(null);
       }
+      // Tutte le offerte carrier restano come fonti interne del preventivo
+      for (const f of fonti) {
+        try {
+          await preventiviService.addFonte(created.id, { file: f.file, extracted: f.extracted, usata: f.key === fonteUsata });
+        } catch (e) {
+          console.warn('[preventivi] salvataggio fonte carrier fallito:', e.message);
+        }
+      }
+      resetFonti();
       invalidate();
       setForm(BLANK_FORM);
       setShowForm(false);
@@ -806,6 +777,34 @@ export default function PreventiviSection({ praticaId, clienteNome, pratica }) {
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40 pb-2">
             Nuovo preventivo
           </p>
+
+          {fonti.length > 0 && (
+            <div className="rounded-lg border border-border/50 bg-background p-3 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">
+                Offerte carrier caricate · interne, il cliente non le vede
+              </p>
+              {fonti.map((f) => (
+                <div key={f.key} className="flex items-center justify-between gap-3 text-sm">
+                  <div className="min-w-0">
+                    <span className="font-medium">{f.extracted.carrier || 'Carrier non riconosciuto'}</span>
+                    <span className="text-muted-foreground">
+                      {' · '}
+                      {isPresent(f.extracted.canone_mensile) ? `€${Number(f.extracted.canone_mensile).toLocaleString('it-IT')}/mese` : 'canone n/d'}
+                      {' · '}
+                      {[f.extracted.veicolo_marca, f.extracted.veicolo_modello].filter(Boolean).join(' ') || f.file.name}
+                    </span>
+                  </div>
+                  {fonteUsata === f.key ? (
+                    <span className="text-xs font-medium text-electric shrink-0">In uso</span>
+                  ) : (
+                    <Button type="button" variant="outline" size="sm" className="h-7 text-xs shrink-0" onClick={() => usaFonte(f)}>
+                      Usa questa
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Veicolo */}
@@ -1162,7 +1161,7 @@ export default function PreventiviSection({ praticaId, clienteNome, pratica }) {
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-border/30">
-            <Button variant="outline" size="sm" onClick={() => { setShowForm(false); setForm(BLANK_FORM); setBrokerFile(null); }}>
+            <Button variant="outline" size="sm" onClick={() => { setShowForm(false); setForm(BLANK_FORM); resetFonti(); }}>
               Annulla
             </Button>
             <Button
