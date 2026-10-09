@@ -26,7 +26,7 @@ const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error('Servono VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (node --env-file=.env ...)');
 
-const SECTIONS = ['novita-sul-mondo-auto', 'approfondimenti-di-settore', 'curiosita', 'guide', 'senza-categoria', 'consigli-fiscali'];
+const SECTIONS = ['novita-sul-mondo-auto', 'approfondimenti-di-settore', 'curiosita', 'guide', 'senza-categoria', 'consigli-fiscali', 'guides'];
 const SECTION_PARAM = `:s(${SECTIONS.join('|')})`;
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -140,18 +140,55 @@ for (const slug of oldProducts.sort()) {
 rules.push(R('/prodotto/:path*', '/offers'));
 
 // 4) Archivi WooCommerce/WordPress e paginazioni AMP
-for (const base of ['tipo-di-contratto', 'tg-vc', 'ct-vc', 'marchio', 'veicoli']) rules.push(R(`/${base}/:path*`, '/offers'));
+for (const base of ['tipo-di-contratto', 'tg-vc', 'ct-vc', 'marchio', 'veicoli', 'tipo-veicolo', 'compagnia-noleggio', 'segmento']) rules.push(R(`/${base}/:path*`, '/offers'));
 for (const base of ['tag', 'cat']) rules.push(R(`/${base}/:path*`, '/news'));
 rules.push(R('/news/amp/:path*', '/news'));
 rules.push(R('/news/page/:n(\\d+)', '/news'));
 rules.push(R('/amp/:path*', '/'));
 rules.push(R('/amp', '/'));
+// Articoli di sezione già eliminati dal vecchio sito prima del backup (non recuperabili): /news
+rules.push(R(`/${SECTION_PARAM}/:path*`, '/news'));
 rules.push(R(`/${SECTION_PARAM}`, '/news'));
 
 // 5) Pagine istituzionali
 rules.push(R('/contatti', '/contact'));
 rules.push(R('/azienda', '/'));
 rules.push(R('/homepage-1-2', '/'));
+
+// Pagine del vecchio WordPress (dal backup del 30/04/2026): istituzionali verso la route equivalente,
+// tecniche (carrello, checkout, account, ecc.) e senza equivalente verso la home.
+const LEGACY_PAGES = {
+  'privacy-policy': '/privacy',
+  'termini-e-condizioni': '/termini',
+  'lavora-con-noi-nolosubito': '/careers',
+  'privati': '/private-offers',
+  'noleggio-lungo-termine-privati': '/private-offers',
+  'noleggio-lungo-termine-aziende': '/fleet',
+  'noleggio-n1': '/commercial',
+  'preventivo': '/offers',
+  'faq': '/contact',
+  'cuorisita-e-novita': '/news',
+  'noleggio-vs-acquisto': '/news/noleggio-a-lungo-termine-vs-acquisto-veicolo',
+  'noleggio-vs-leasing': '/news/leasing-o-noleggio',
+  'noleggio-lungo-termine': '/',
+  'vantaggi-noleggio-lungo-termine': '/',
+  'servizi': '/',
+  'homepage-1': '/',
+  'carrello': '/',
+  'checkout': '/',
+  'mio-account': '/',
+  'cancel-payment': '/',
+  'questions_and_answers_unsubscription': '/',
+};
+for (const [from, to] of Object.entries(LEGACY_PAGES)) {
+  if (to.startsWith('/news/') && !goodSlugs.includes(to.slice(6))) throw new Error(`LEGACY_PAGES: il post "${to.slice(6)}" non esiste tra quelli pubblicati`);
+  rules.push(R(`/${from}`, to));
+  rules.push(R(`/${from}/amp`, to));
+}
+for (const from of ['contatti', 'azienda', 'homepage-1-2']) rules.push(R(`/${from}/amp`, from === 'contatti' ? '/contact' : '/'));
+rules.push(R('/noleggio', '/'));
+rules.push(R('/index.php', '/'));
+for (const base of ['durata-e-mesi', 'rl_gallery']) rules.push(R(`/${base}/:path*`, base === 'rl_gallery' ? '/' : '/offers'));
 
 // ── Simulazione di Vercel sugli URL reali dei CSV ────────────────────────────
 const compiled = rules.map((r) => ({ r, re: pathToRegexp(r.source) }));
