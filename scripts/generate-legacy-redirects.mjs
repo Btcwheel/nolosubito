@@ -153,6 +153,36 @@ rules.push(R('/contatti', '/contact'));
 rules.push(R('/azienda', '/'));
 rules.push(R('/homepage-1-2', '/'));
 
+// Pagine del vecchio WordPress (dal backup del 30/04/2026): istituzionali verso la route equivalente,
+// tecniche (carrello, checkout, account, ecc.) e senza equivalente verso la home.
+const LEGACY_PAGES = {
+  'privacy-policy': '/privacy',
+  'termini-e-condizioni': '/termini',
+  'lavora-con-noi-nolosubito': '/careers',
+  'privati': '/private-offers',
+  'noleggio-lungo-termine-privati': '/private-offers',
+  'noleggio-lungo-termine-aziende': '/fleet',
+  'noleggio-n1': '/commercial',
+  'preventivo': '/offers',
+  'faq': '/contact',
+  'cuorisita-e-novita': '/news',
+  'noleggio-vs-acquisto': '/news/noleggio-a-lungo-termine-vs-acquisto-veicolo',
+  'noleggio-vs-leasing': '/news/leasing-o-noleggio',
+  'noleggio-lungo-termine': '/',
+  'vantaggi-noleggio-lungo-termine': '/',
+  'servizi': '/',
+  'homepage-1': '/',
+  'carrello': '/',
+  'checkout': '/',
+  'mio-account': '/',
+  'cancel-payment': '/',
+  'questions_and_answers_unsubscription': '/',
+};
+for (const [from, to] of Object.entries(LEGACY_PAGES)) {
+  if (to.startsWith('/news/') && !goodSlugs.includes(to.slice(6))) throw new Error(`LEGACY_PAGES: il post "${to.slice(6)}" non esiste tra quelli pubblicati`);
+  rules.push(R(`/${from}`, to));
+}
+
 // ── Simulazione di Vercel sugli URL reali dei CSV ────────────────────────────
 const compiled = rules.map((r) => ({ r, re: pathToRegexp(r.source) }));
 const apply = (p, host = 'nolosubito.it') => {
