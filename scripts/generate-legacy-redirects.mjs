@@ -108,7 +108,7 @@ const oldProducts = [...new Set(csvRows.filter((r) => r.path.startsWith('/prodot
 // ── Regole (l'ordine conta: vince la prima che combacia) ─────────────────────
 // {/}? = slash finale opzionale: gli URL di WordPress finiscono quasi tutti con "/", e in vercel.json
 // "/a/b" NON combacia con "/a/b/" (verificato su preview).
-const R = (source, destination, extra = {}) => ({ source: source.endsWith('*') && extra.has ? source : `${source}{/}?`, destination, permanent: true, ...extra });
+const R = (source, destination, extra = {}) => ({ source: `${source}{/}?`, destination, permanent: true, ...extra });
 const rules = [];
 
 // 1) www → apex
