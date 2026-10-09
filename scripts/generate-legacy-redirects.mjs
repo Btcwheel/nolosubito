@@ -26,7 +26,7 @@ const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = process.env.VITE_SUPABASE_ANON_KEY;
 if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error('Servono VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY (node --env-file=.env ...)');
 
-const SECTIONS = ['novita-sul-mondo-auto', 'approfondimenti-di-settore', 'curiosita', 'guide', 'senza-categoria', 'consigli-fiscali'];
+const SECTIONS = ['novita-sul-mondo-auto', 'approfondimenti-di-settore', 'curiosita', 'guide', 'senza-categoria', 'consigli-fiscali', 'guides'];
 const SECTION_PARAM = `:s(${SECTIONS.join('|')})`;
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -140,12 +140,14 @@ for (const slug of oldProducts.sort()) {
 rules.push(R('/prodotto/:path*', '/offers'));
 
 // 4) Archivi WooCommerce/WordPress e paginazioni AMP
-for (const base of ['tipo-di-contratto', 'tg-vc', 'ct-vc', 'marchio', 'veicoli']) rules.push(R(`/${base}/:path*`, '/offers'));
+for (const base of ['tipo-di-contratto', 'tg-vc', 'ct-vc', 'marchio', 'veicoli', 'tipo-veicolo', 'compagnia-noleggio', 'segmento']) rules.push(R(`/${base}/:path*`, '/offers'));
 for (const base of ['tag', 'cat']) rules.push(R(`/${base}/:path*`, '/news'));
 rules.push(R('/news/amp/:path*', '/news'));
 rules.push(R('/news/page/:n(\\d+)', '/news'));
 rules.push(R('/amp/:path*', '/'));
 rules.push(R('/amp', '/'));
+// Articoli di sezione già eliminati dal vecchio sito prima del backup (non recuperabili): /news
+rules.push(R(`/${SECTION_PARAM}/:path*`, '/news'));
 rules.push(R(`/${SECTION_PARAM}`, '/news'));
 
 // 5) Pagine istituzionali
