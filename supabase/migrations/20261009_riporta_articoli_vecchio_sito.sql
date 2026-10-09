@@ -347,7 +347,7 @@ Nel 2024, in Italia, l'alimentazione delle auto più scelta è quella <em><stron
 
 Qui trovate le nostre auto in offerte! <a href="https://www.nolosubito.it/ct-vc/auto/">https://www.nolosubito.it/ct-vc/auto/</a>
 
-noleggiata 2024$a12$, $a12$https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/06/più-noleggiata.png$a12$, 'Notizie', '2024-06-17 07:52:19+00'::timestamptz, true),
+noleggiata 2024$a12$, $a12$https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/06/piu-noleggiata.png$a12$, 'Notizie', '2024-06-17 07:52:19+00'::timestamptz, true),
   ($a13$Cosa fare in caso di spiacevoli eventi con il noleggio$a13$, 'cosa-fare-in-caso-di-guasto-multe-furto-con-il-noleggio-lungo-termine', $a13$Noleggio lungo termine In parecchi ci chiedete cosa succede nel caso si riceve un furto, incendio, un guasto al veicolo o una multa con una macchina a noleggio? In quest'articolo vi chiariremo…$a13$, $a13$Noleggio lungo termine
 In parecchi ci chiedete cosa succede nel caso si riceve un furto, incendio, un guasto al veicolo o una multa con una macchina a noleggio? In quest'articolo vi chiariremo ogni dubbio!
 <ul>
