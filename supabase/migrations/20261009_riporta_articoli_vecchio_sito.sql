@@ -647,7 +647,7 @@ Gli interni, invece, sono spaziosi per la categoria, con materiali di qualità e
 </ul>
 <img class="size-medium wp-image-2062543" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/12/Senza-titolo-45-300x300.png" alt="Hyundai i10 1.0 MPI A/T Connectline" width="300" height="300" />
 
-<img class="size-medium wp-image-2062537" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/12/hyundai-i10-300x300.png" alt="Hyundai i10 1.0 MPI A/T Connectline" width="300" height="300" />
+
 
 <em><strong>HYUNDAI I10 1.0 MPI A/T Connectline a soli € 328,00 + iva qui la vettura ----&gt; <a href="https://www.nolosubito.it/prodotto/hyundai-i10/">https://www.nolosubito.it/prodotto/hyundai-i10/</a></strong></em>
 
@@ -737,7 +737,7 @@ Un SUV compatto che combina eleganza, versatilità e performance.
 </ul>
 <strong>BMW X1 sDrive 18i DCT </strong>tua a soli <strong>€492,00 + iva. ---&gt; <a href="https://www.nolosubito.it/prodotto/bmw-x1-sdrive/">https://www.nolosubito.it/prodotto/bmw-x1-sdrive/</a></strong>
 
-<img class="size-medium wp-image-2062600" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/12/x1-300x300.png" alt="BMW X1 sDrive 18i DCT" width="300" height="300" />
+
 
 ---------------------------------------------
 
@@ -772,13 +772,13 @@ Un SUV compatto che combina eleganza, versatilità e performance.
 
 &nbsp;
 
-<img class="size-medium wp-image-2062604" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/12/BMW-X2-sdrive-18d-dct-300x300.png" alt="BMW X2 sDrive 18d DCT" width="300" height="300" />
+
 
 ------------------------------------
 
 BMW X3 xDrive 20d rappresenta l’equilibrio perfetto tra prestazioni, comfort e versatilità. Grazie alla trazione integrale intelligente <strong>xDrive</strong>, è pronta ad affrontare qualsiasi percorso, dalla città alle avventure più audaci. Il design moderno e sportivo si unisce a un’esperienza di guida premium, rendendola il SUV perfetto per chi cerca l’eccellenza.
 
-<img class="size-medium wp-image-2062494" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/08/BMWX3-NATALE-300x300.png" alt="BMW X3 xDrive 20d" width="300" height="300" />
+
 
 <strong>Motorizzazione e prestazioni</strong>
 <ul>
@@ -872,7 +872,7 @@ L’Audi Q3 Sportback 35 TDI S tronic Business Plus offre una combinazione perfe
 
 <em><strong>Audi Q3 Sportback 35 TDI S tronic Business Plus</strong></em> <em>a soli <strong>€ 535,00 + iva</strong> qui la vettura<strong> ----&gt; <a href="https://www.nolosubito.it/prodotto/audi-q3/">https://www.nolosubito.it/prodotto/audi-q3/</a></strong></em>
 
-[caption id="attachment_2062591" align="alignnone" width="300"]<img class="size-medium wp-image-2062591" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/12/q3sportback-300x300.png" alt="Audi Q3 Sportback 35 TDI S tronic Business Plus" width="300" height="300" /> --------------------[/caption]
+[caption id="attachment_2062591" align="alignnone" width="300"] --------------------[/caption]
 
 <strong>DS 7 BlueHDi 130 Automatica Pallas
 </strong>
@@ -923,13 +923,13 @@ La raffinatezza incontra l’efficienza nella DS 7 BlueHDi 130 Automatica Pallas
 </ul>
 La <strong>DS 7 BlueHDi 130 Automatica Pallas</strong> è l'auto ideale per chi cerca un SUV esclusivo, raffinato e funzionale. Il motore diesel efficiente si combina con comfort e tecnologia di alto livello, offrendo un’esperienza di guida unica e distintiva. Perfetta per distinguersi in ogni contesto.
 
-<img class="size-medium wp-image-2062497" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/11/ds7-natale-300x300.png" alt="DS 7 BlueHDi 130 Automatica Pallas" width="300" height="300" />
+
 
 <strong>DS 7 BlueHDi 130 Automatica Pallas <em>a soli € 439,00 + iva qui la vettura ----&gt; https://www.nolosubito.it/prodotto/ds-7-pallas-2/</em></strong>$a26$, null, 'Notizie', '2024-12-12 09:39:20+00'::timestamptz, true),
   ($a27$Il Santa Car dai regali inaspettati! Citroën C3 e C5 Aircross$a27$, 'il-santa-car-dai-regali-inaspettati-citroen-c3-e-c5-aircross', $a27$Citroën C3 e C5 Aircross La Citroën C3 Turbo 100 S&S Max iniziamo vol dire che può essere guidata anche dai Neopatentati , essa unisce il design iconico e moderno della C3 a prestazioni vivaci,…$a27$, $a27$<strong>Citroën C3 e C5 Aircross
 </strong>
 
-<img class="size-medium wp-image-2062586" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/06/c3-1-300x300.png" alt="citroen c3 turbo 100 s&amp;s you" width="300" height="300" />
+
 
 La <strong>Citroën C3 Turbo 100 S&amp;S Max</strong> iniziamo vol dire che può essere guidata anche dai <strong>Neopatentati</strong>, essa unisce il design iconico e moderno della C3 a prestazioni vivaci, garantendo un’esperienza di guida unica. Con il suo motore turbo, l’efficienza dei consumi e una dotazione tecnologica all’avanguardia, è l’auto perfetta per affrontare sia la città che i lunghi viaggi. Lasciati conquistare dal comfort tipico di Citroën e dall'energia del motore turbo.
 <ul>
@@ -948,7 +948,7 @@ Ciclo combinato WLTP di circa <strong>4,7-5,2 l/100 km</strong>, con emissioni d
 </ul>
 </li>
 </ul>
-<img class="alignnone size-medium wp-image-334187" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2017/09/citroen-c3-interno-300x225.jpg" alt="" width="300" height="225" /> può essere richiesta anche con il cambio automatico ma non per il motore da <strong>100 CV.</strong>
+ può essere richiesta anche con il cambio automatico ma non per il motore da <strong>100 CV.</strong>
 <ul>
  	<li>La motorizzazione <strong>PureTech Turbo 1.2 da 110 CV</strong> può essere abbinata a un cambio automatico <strong>EAT6</strong> a 6 rapporti, che garantisce una guida fluida e confortevole, ideale per il traffico cittadino e i lunghi viaggi.</li>
 </ul>
@@ -962,7 +962,7 @@ La <strong>Citroën C3 Turbo 100 S&amp;S Max </strong>può essere tua a soli  <
 
 La <strong>Citroën C5 Aircross BlueHDi 130 S&amp;S Max EAT8</strong> è un SUV versatile ed elegante, particolarmente apprezzato per il comfort, l'efficienza del motore diesel e il cambio automatico fluido.
 
-<img class="size-medium wp-image-2062496" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/11/C5-NATALE-300x300.png" alt="C5" width="300" height="300" />
+
 
 Con il suo design robusto e distintivo, quindi, la <strong>Citroën C5 Aircross BlueHDi 130 S&amp;S Max EAT8</strong> offre un’esperienza di guida unica. Equipaggiata con il motore diesel da 130 CV e il cambio automatico EAT8, questa versione è ideale per chi cerca comfort, efficienza e tecnologia in un SUV spazioso e pratico. Perfetta per i viaggi in famiglia o per affrontare la quotidianità con stile.
 <ul>
@@ -1029,7 +1029,7 @@ La <strong>Citroën C5 Aircross BlueHDi 130 S&amp;S Max EAT8 </strong>può esser
 
 <strong>ALFA ROMEO TONALE 1.6 Diesel 130cv TCT6 Sprint</strong> è un SUV compatto che combina design italiano, efficienza e tecnologia avanzata. Questo modello diesel è ideale per chi cerca prestazioni brillanti unite a consumi ridotti e un’esperienza di guida dinamica e confortevole.
 
-<img class="size-medium wp-image-2062492" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/11/tonale-NATALE-1-300x300.png" alt="Alfa Romeo Stelvio 2.2 TD 160 CV Sprint AT8 RWD" width="300" height="300" />
+
 
 <strong>Motorizzazione e Prestazioni</strong>
 <ul>
@@ -1108,7 +1108,7 @@ L’allestimento Sprint offre una dotazione ricca di serie, che combina comfort,
 
 <strong>ALFA ROMEO STELVIO 2.2 TD 160 CV Sprint AT8 RWD </strong>è un SUV di lusso che unisce prestazioni dinamiche, eleganza senza tempo e tecnologie innovative. Questo modello, dotato di motore diesel potente e trazione posteriore, offre un’esperienza di guida entusiasmante, fedele al DNA sportivo del marchio.
 
-<img class="alignnone size-medium wp-image-2062512" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/11/stelvio-1-300x300.png" alt="" width="300" height="300" />
+
 
 <strong>Motorizzazione e Prestazioni</strong>
 <ul>
@@ -1196,7 +1196,7 @@ L’allestimento <strong>Sprint</strong> offre un mix perfetto di sportività, c
 
 <strong>ALFA ROMEO JUNIOR 1.2 136CV Hybrid eDCT6 ibrida </strong>è una vettura compatta ibrida che coniuga stile, prestazioni e sostenibilità, perfetta per chi cerca un'auto che si distingue per eleganza e innovazione tecnologica. Ecco le caratteristiche principali:
 
-<img class="size-medium wp-image-2062550" src="https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/news-images/gigi/uploads/2024/12/JUNIOR-NATALE-300x300.png" alt="ALFA ROMEO - JUNIOR 1.2 136CV Hybrid eDCT6 ibrida" width="300" height="300" />
+
 
 <strong>Motorizzazione Ibrida</strong>
 <ul>
