@@ -2877,7 +2877,17 @@
       "permanent": true
     },
     {
+      "source": "/privacy-policy/amp{/}?",
+      "destination": "/privacy",
+      "permanent": true
+    },
+    {
       "source": "/termini-e-condizioni{/}?",
+      "destination": "/termini",
+      "permanent": true
+    },
+    {
+      "source": "/termini-e-condizioni/amp{/}?",
       "destination": "/termini",
       "permanent": true
     },
@@ -2887,7 +2897,17 @@
       "permanent": true
     },
     {
+      "source": "/lavora-con-noi-nolosubito/amp{/}?",
+      "destination": "/careers",
+      "permanent": true
+    },
+    {
       "source": "/privati{/}?",
+      "destination": "/private-offers",
+      "permanent": true
+    },
+    {
+      "source": "/privati/amp{/}?",
       "destination": "/private-offers",
       "permanent": true
     },
@@ -2897,7 +2917,17 @@
       "permanent": true
     },
     {
+      "source": "/noleggio-lungo-termine-privati/amp{/}?",
+      "destination": "/private-offers",
+      "permanent": true
+    },
+    {
       "source": "/noleggio-lungo-termine-aziende{/}?",
+      "destination": "/fleet",
+      "permanent": true
+    },
+    {
+      "source": "/noleggio-lungo-termine-aziende/amp{/}?",
       "destination": "/fleet",
       "permanent": true
     },
@@ -2907,7 +2937,17 @@
       "permanent": true
     },
     {
+      "source": "/noleggio-n1/amp{/}?",
+      "destination": "/commercial",
+      "permanent": true
+    },
+    {
       "source": "/preventivo{/}?",
+      "destination": "/offers",
+      "permanent": true
+    },
+    {
+      "source": "/preventivo/amp{/}?",
       "destination": "/offers",
       "permanent": true
     },
@@ -2917,7 +2957,17 @@
       "permanent": true
     },
     {
+      "source": "/faq/amp{/}?",
+      "destination": "/contact",
+      "permanent": true
+    },
+    {
       "source": "/cuorisita-e-novita{/}?",
+      "destination": "/news",
+      "permanent": true
+    },
+    {
+      "source": "/cuorisita-e-novita/amp{/}?",
       "destination": "/news",
       "permanent": true
     },
@@ -2927,7 +2977,17 @@
       "permanent": true
     },
     {
+      "source": "/noleggio-vs-acquisto/amp{/}?",
+      "destination": "/news/noleggio-a-lungo-termine-vs-acquisto-veicolo",
+      "permanent": true
+    },
+    {
       "source": "/noleggio-vs-leasing{/}?",
+      "destination": "/news/leasing-o-noleggio",
+      "permanent": true
+    },
+    {
+      "source": "/noleggio-vs-leasing/amp{/}?",
       "destination": "/news/leasing-o-noleggio",
       "permanent": true
     },
@@ -2937,7 +2997,17 @@
       "permanent": true
     },
     {
+      "source": "/noleggio-lungo-termine/amp{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
       "source": "/vantaggi-noleggio-lungo-termine{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/vantaggi-noleggio-lungo-termine/amp{/}?",
       "destination": "/",
       "permanent": true
     },
@@ -2947,7 +3017,17 @@
       "permanent": true
     },
     {
+      "source": "/servizi/amp{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
       "source": "/homepage-1{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/homepage-1/amp{/}?",
       "destination": "/",
       "permanent": true
     },
@@ -2957,7 +3037,17 @@
       "permanent": true
     },
     {
+      "source": "/carrello/amp{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
       "source": "/checkout{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/checkout/amp{/}?",
       "destination": "/",
       "permanent": true
     },
@@ -2967,12 +3057,62 @@
       "permanent": true
     },
     {
+      "source": "/mio-account/amp{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
       "source": "/cancel-payment{/}?",
       "destination": "/",
       "permanent": true
     },
     {
+      "source": "/cancel-payment/amp{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
       "source": "/questions_and_answers_unsubscription{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/questions_and_answers_unsubscription/amp{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/contatti/amp{/}?",
+      "destination": "/contact",
+      "permanent": true
+    },
+    {
+      "source": "/azienda/amp{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/homepage-1-2/amp{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/noleggio{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/index.php{/}?",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/durata-e-mesi/:path*{/}?",
+      "destination": "/offers",
+      "permanent": true
+    },
+    {
+      "source": "/rl_gallery/:path*{/}?",
       "destination": "/",
       "permanent": true
     }

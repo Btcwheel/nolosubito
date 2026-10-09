@@ -183,7 +183,12 @@ const LEGACY_PAGES = {
 for (const [from, to] of Object.entries(LEGACY_PAGES)) {
   if (to.startsWith('/news/') && !goodSlugs.includes(to.slice(6))) throw new Error(`LEGACY_PAGES: il post "${to.slice(6)}" non esiste tra quelli pubblicati`);
   rules.push(R(`/${from}`, to));
+  rules.push(R(`/${from}/amp`, to));
 }
+for (const from of ['contatti', 'azienda', 'homepage-1-2']) rules.push(R(`/${from}/amp`, from === 'contatti' ? '/contact' : '/'));
+rules.push(R('/noleggio', '/'));
+rules.push(R('/index.php', '/'));
+for (const base of ['durata-e-mesi', 'rl_gallery']) rules.push(R(`/${base}/:path*`, base === 'rl_gallery' ? '/' : '/offers'));
 
 // ── Simulazione di Vercel sugli URL reali dei CSV ────────────────────────────
 const compiled = rules.map((r) => ({ r, re: pathToRegexp(r.source) }));
