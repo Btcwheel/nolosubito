@@ -27,6 +27,7 @@ serve(async (req: Request) => {
     return new Response("Method Not Allowed", { status: 405, headers: CORS });
   }
 
+  const startTime = Date.now();
   console.log("[notify-nota-cliente] START", { SMTP_HOST: !!SMTP_HOST, SMTP_USER: !!SMTP_USER, SMTP_PASS: !!SMTP_PASS });
 
   if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
@@ -42,8 +43,9 @@ serve(async (req: Request) => {
     body = await req.json();
     console.log("[notify-nota-cliente] BODY", body);
   } catch (e) {
-    console.error("[notify-nota-cliente] JSON PARSE ERROR", e);
-    return new Response(JSON.stringify({ error: "Invalid JSON body" }), { status: 400, headers: CORS });
+    const err = e instanceof Error ? e.message : String(e);
+    console.error("[notify-nota-cliente] JSON PARSE ERROR", err);
+    return new Response(JSON.stringify({ error: "Invalid JSON body", detail: err }), { status: 400, headers: { "Content-Type": "application/json", ...CORS } });
   }
 
   const { praticaId, testo, autoreNome, magicLink } = body;
@@ -59,30 +61,30 @@ serve(async (req: Request) => {
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-  const { data: pratica, error: pe } = await supabase
-    .from("pratiche")
-    .select("cliente_nome, cliente_email, codice")
-    .eq("id", praticaId)
-    .single();
-
-  console.log("[notify-nota-cliente] PRATICA QUERY", { praticaId, found: !!pratica, error: pe?.message });
-
-  if (pe || !pratica) {
-    console.error("[notify-nota-cliente] PRATICA NOT FOUND", { praticaId, error: pe?.message });
-    return new Response(JSON.stringify({ error: "Pratica not found" }), { status: 404, headers: CORS });
-  }
-
-  const areaLink = `${SITE_URL}/mia-pratica?email=${encodeURIComponent(pratica.cliente_email)}`;
-
-  const transporter = nodemailer.createTransport({
-    host:   SMTP_HOST,
-    port:   SMTP_PORT,
-    secure: SMTP_SECURE,
-    auth:   { user: SMTP_USER, pass: SMTP_PASS },
-    tls:    { rejectUnauthorized: false },
-  });
-
   try {
+    const { data: pratica, error: pe } = await supabase
+      .from("pratiche")
+      .select("cliente_nome, cliente_email, codice")
+      .eq("id", praticaId)
+      .single();
+
+    console.log("[notify-nota-cliente] PRATICA QUERY", { praticaId, found: !!pratica, error: pe?.message });
+
+    if (pe || !pratica) {
+      console.error("[notify-nota-cliente] PRATICA NOT FOUND", { praticaId, error: pe?.message });
+      return new Response(JSON.stringify({ error: "Pratica not found", detail: pe?.message }), { status: 404, headers: { "Content-Type": "application/json", ...CORS } });
+    }
+
+    const areaLink = `${SITE_URL}/mia-pratica?email=${encodeURIComponent(pratica.cliente_email)}`;
+
+    const transporter = nodemailer.createTransport({
+      host:   SMTP_HOST,
+      port:   SMTP_PORT,
+      secure: SMTP_SECURE,
+      auth:   { user: SMTP_USER, pass: SMTP_PASS },
+      tls:    { rejectUnauthorized: false },
+    });
+
     console.log("[notify-nota-cliente] SENDING EMAIL", { to: pratica.cliente_email, codice: pratica.codice });
     const result = await transporter.sendMail({
       from:    SMTP_FROM,
@@ -98,19 +100,21 @@ serve(async (req: Request) => {
       }),
     });
     console.log("[notify-nota-cliente] EMAIL SENT SUCCESS", { messageId: result.messageId, response: result.response });
+
+    console.log("[notify-nota-cliente] COMPLETE SUCCESS", { elapsed: Date.now() - startTime });
+    return new Response(JSON.stringify({ ok: true, messageId: result.messageId }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...CORS },
+    });
   } catch (err) {
-    console.error("[notify-nota-cliente] SMTP ERROR", { error: String(err), stack: err instanceof Error ? err.stack : undefined });
-    return new Response(JSON.stringify({ error: String(err) }), {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    const errStack = err instanceof Error ? err.stack : undefined;
+    console.error("[notify-nota-cliente] CRITICAL ERROR", { error: errMsg, stack: errStack });
+    return new Response(JSON.stringify({ error: errMsg, type: err?.constructor?.name }), {
       status: 500,
       headers: { "Content-Type": "application/json", ...CORS },
     });
   }
-
-  console.log("[notify-nota-cliente] COMPLETE SUCCESS");
-  return new Response(JSON.stringify({ ok: true }), {
-    status: 200,
-    headers: { "Content-Type": "application/json", ...CORS },
-  });
 });
 
 // ─── Template ───────────────────────────────────────────────────────────────
