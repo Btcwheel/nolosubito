@@ -48,9 +48,9 @@ export default function HeroSection({ variant = "default" } = {}) {
           </div>
 
           <h1 className="mt-5 max-w-xl font-heading text-[2.45rem] leading-[0.95] tracking-tight text-white sm:text-5xl lg:text-7xl">
-            Noleggiamo
+            Nolosubito:
             <br />
-            il futuro
+            noleggiamo il futuro
           </h1>
 
           <p className="mt-4 max-w-lg text-[0.98rem] leading-7 text-white/72 sm:text-lg">

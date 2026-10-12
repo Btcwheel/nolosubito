@@ -6,6 +6,7 @@ import compression from 'vite-plugin-compression'
 
 const publicEntriesToCopy = [
   '.well-known',
+  'ai',
   'brands',
   'fonts',
   'favicon.png',
