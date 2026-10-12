@@ -15,6 +15,7 @@
 ## Informazioni
 
 - [News](https://nolosubito.it/news): novità e approfondimenti sul noleggio
+- [Chi siamo](https://nolosubito.it/chi-siamo): chi è Nolosubito e come contattarci
 - [Contatti](https://nolosubito.it/contact): richiesta di preventivo e assistenza
 - [Lavora con noi](https://nolosubito.it/careers): posizioni aperte e collaborazioni
 

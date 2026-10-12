@@ -164,7 +164,7 @@ const apply = (p, host = 'nolosubito.it') => {
 };
 const final = (p, depth = 0) => { const r = apply(p); if (!r || r.destination.startsWith('http')) return { r, hops: depth + (r ? 1 : 0), dest: r ? r.destination : p }; const d = r.destination; return depth > 5 ? { r, hops: depth, dest: 'LOOP' } : (apply(d) ? final(d, depth + 1) : { r, hops: depth + 1, dest: d }); };
 
-const VALID_STATIC = new Set(['/', '/offers', '/fleet', '/green', '/contact', '/private-offers', '/careers', '/commercial', '/moto', '/reuse', '/usato', '/news', '/privacy', '/cookie-policy', '/termini', '/hero-compare']);
+const VALID_STATIC = new Set(['/', '/offers', '/fleet', '/green', '/contact', '/private-offers', '/careers', '/chi-siamo', '/commercial', '/moto', '/reuse', '/usato', '/news', '/privacy', '/cookie-policy', '/termini', '/hero-compare']);
 const postSet = new Set(posts.map((p) => p.slug));
 const existsNow = (p) => VALID_STATIC.has(p) || p.startsWith('/vehicle/') || (p.startsWith('/news/') && postSet.has(p.slice(6)));
 let covered = 0, coveredClicks = 0, chains = 0;

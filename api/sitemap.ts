@@ -78,6 +78,7 @@ function generateSitemap(
     { url: "/reuse", priority: 0.7, changefreq: "monthly" },
     { url: "/usato", priority: 0.7, changefreq: "monthly" },
     { url: "/news", priority: 0.9, changefreq: "daily" },
+    { url: "/chi-siamo", priority: 0.6, changefreq: "monthly" },
     { url: "/contact", priority: 0.6, changefreq: "monthly" },
     { url: "/careers", priority: 0.6, changefreq: "monthly" },
     { url: "/privacy", priority: 0.3, changefreq: "yearly" },

@@ -34,6 +34,7 @@ export default function Footer() {
           <div>
             <h4 className="font-heading font-semibold text-white mb-4">Azienda</h4>
             <ul className="space-y-3 text-sm">
+              <li><Link to="/chi-siamo" className="hover:text-electric transition-colors duration-200">Chi siamo</Link></li>
               <li><Link to="/contact" className="hover:text-electric transition-colors duration-200">Contattaci</Link></li>
               <li><Link to="/careers" className="hover:text-electric transition-colors duration-200">Diventa Partner</Link></li>
               <li><Link to="/accedi" className="hover:text-electric transition-colors duration-200">Area Clienti</Link></li>

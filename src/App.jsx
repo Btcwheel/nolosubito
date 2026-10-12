@@ -27,6 +27,7 @@ const ReuseOffers      = lazy(() => import('./pages/ReuseOffers'));
 const PrivacyPolicy    = lazy(() => import('./pages/PrivacyPolicy'));
 const CookiePolicy     = lazy(() => import('./pages/CookiePolicy'));
 const TerminiCondizioni = lazy(() => import('./pages/TerminiCondizioni'));
+const ChiSiamo         = lazy(() => import('./pages/ChiSiamo'));
 const Login            = lazy(() => import('./pages/Login'));
 const PasswordReset    = lazy(() => import('./pages/PasswordReset'));
 const MagicLinkReply   = lazy(() => import('./pages/MagicLinkReply'));
@@ -97,6 +98,7 @@ const AppRoutes = () => {
           <Route path="/privacy"              element={<PrivacyPolicy />} />
           <Route path="/cookie-policy"        element={<CookiePolicy />} />
           <Route path="/termini"              element={<TerminiCondizioni />} />
+          <Route path="/chi-siamo"            element={<ChiSiamo />} />
         </Route>
 
         {/* ── Area Admin ── */}
