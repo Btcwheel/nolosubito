@@ -56,9 +56,32 @@ function useSeoMeta(post) {
       post.cover_image_url ? setMeta("og:image", post.cover_image_url, "property") : null,
     ].filter(Boolean);
 
+    const url = `https://nolosubito.it/news/${post.slug}`;
+    const ld = document.createElement("script");
+    ld.type = "application/ld+json";
+    ld.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: (post.seo_title || post.title).slice(0, 110),
+      description: desc,
+      ...(post.cover_image_url && { image: [post.cover_image_url] }),
+      datePublished: post.published_date || post.created_at,
+      dateModified: post.updated_at || post.published_date,
+      inLanguage: "it-IT",
+      mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      author: { "@type": "Organization", name: "Nolosubito", url: "https://nolosubito.it/" },
+      publisher: {
+        "@type": "Organization",
+        name: "Nolosubito",
+        logo: { "@type": "ImageObject", url: "https://nolosubito.it/logo-blu.png", width: 281, height: 78 },
+      },
+    });
+    document.head.appendChild(ld);
+
     return () => {
       document.title = prevTitle;
       created.forEach(el => el.parentNode?.removeChild(el));
+      ld.parentNode?.removeChild(ld);
     };
   }, [post]);
 }
