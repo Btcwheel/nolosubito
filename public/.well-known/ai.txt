@@ -13,9 +13,6 @@ Disallow: /agente
 User-Agent: meta-externalagent
 Disallow: /
 
-# Citazione e uso nelle risposte: consentiti, con attribuzione a Nolosubito e link alla pagina originale.
-# Addestramento di modelli: non autorizzato senza accordo scritto (info@nolosubito.it).
-
 Contact: info@nolosubito.it
 Sitemap: https://nolosubito.it/sitemap.xml
 Feed: https://nolosubito.it/feed.xml

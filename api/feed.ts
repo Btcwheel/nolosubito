@@ -20,12 +20,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { data: posts } = await supabase
+    const { data: posts, error } = await supabase
       .from('posts')
-      .select('slug,title,summary,category,cover_image_url,published_date')
+      .select('slug,title,summary,category,published_date')
       .eq('is_published', true)
       .order('published_date', { ascending: false })
       .limit(MAX_ITEMS);
+
+    if (error) throw error;
 
     res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8');
     res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
@@ -50,7 +52,6 @@ type FeedPost = {
   title: string;
   summary: string | null;
   category: string | null;
-  cover_image_url: string | null;
   published_date: string | null;
 };
 
@@ -67,8 +68,7 @@ function generateFeed(posts: FeedPost[]): string {
       <guid isPermaLink="true">${link}</guid>
       <pubDate>${new Date(post.published_date as string).toUTCString()}</pubDate>${post.category ? `
       <category>${escapeXml(post.category)}</category>` : ""}${post.summary ? `
-      <description>${escapeXml(post.summary)}</description>` : ""}${post.cover_image_url ? `
-      <enclosure url="${escapeXml(post.cover_image_url)}" type="${enclosureType(post.cover_image_url)}" length="0" />` : ""}
+      <description>${escapeXml(post.summary)}</description>` : ""}
     </item>`;
   });
 
@@ -83,12 +83,4 @@ function generateFeed(posts: FeedPost[]): string {
     <lastBuildDate>${lastBuild.toUTCString()}</lastBuildDate>${items.join("")}
   </channel>
 </rss>`;
-}
-
-function enclosureType(url: string): string {
-  const ext = url.split("?")[0].split(".").pop()?.toLowerCase();
-  if (ext === "png") return "image/png";
-  if (ext === "webp") return "image/webp";
-  if (ext === "gif") return "image/gif";
-  return "image/jpeg";
 }

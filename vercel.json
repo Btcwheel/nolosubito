@@ -3126,7 +3126,6 @@
       "source": "/robots.txt",
       "destination": "/api/robots"
     },
-
     {
       "source": "/feed.xml",
       "destination": "/api/feed"
