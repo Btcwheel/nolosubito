@@ -1,0 +1,22 @@
+# ai.txt — Nolosubito (https://nolosubito.it)
+# Indicazioni per i crawler e gli assistenti AI. Non è uno standard formale:
+# vale come dichiarazione di intenti, in linea con robots.txt.
+
+User-Agent: *
+Allow: /
+Disallow: /admin
+Disallow: /cms
+Disallow: /backoffice
+Disallow: /agente
+
+# Meta: nessuna autorizzazione (come in robots.txt)
+User-Agent: meta-externalagent
+Disallow: /
+
+# Citazione e uso nelle risposte: consentiti, con attribuzione a Nolosubito e link alla pagina originale.
+# Addestramento di modelli: non autorizzato senza accordo scritto (info@nolosubito.it).
+
+Contact: info@nolosubito.it
+Sitemap: https://nolosubito.it/sitemap.xml
+Feed: https://nolosubito.it/feed.xml
+LLMs: https://nolosubito.it/llms.txt

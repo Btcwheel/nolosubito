@@ -15,6 +15,7 @@
 ## Informazioni
 
 - [News](https://nolosubito.it/news): novità e approfondimenti sul noleggio
+- [Feed RSS](https://nolosubito.it/feed.xml): ultimi articoli
 - [Contatti](https://nolosubito.it/contact): richiesta di preventivo e assistenza
 - [Lavora con noi](https://nolosubito.it/careers): posizioni aperte e collaborazioni
 
