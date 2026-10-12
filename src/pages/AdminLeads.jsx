@@ -11,8 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import {
-  Search, Plus, ArrowRight, X, Loader2, Mail, Phone, User, Trash2,
-  Clock, MessageSquare, Bot, UserCheck, Calendar, ChevronRight,
+  Search, Plus, ArrowRight, X, Loader2, Mail, Phone, User, Trash2, MessageSquare, Bot, UserCheck, Calendar, ChevronRight,
   Activity, Car, Fuel, Timer, Euro, AlertCircle, CheckCircle2,
   Filter, RotateCcw,
 } from "lucide-react";

@@ -3,9 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { materialiService } from "@/services/materiali";
 import { useAuth } from "@/lib/AuthContext";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, FileText, Download, ExternalLink, Clock } from "lucide-react";
+import { Search, FileText, Download, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 

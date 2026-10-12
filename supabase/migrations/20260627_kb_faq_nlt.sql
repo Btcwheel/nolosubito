@@ -1,7 +1,7 @@
 -- ============================================================
 -- KB: FAQ Noleggio Lungo Termine
 -- 20 domande frequenti con risposte
--- ============================================================
+-- ======================================================
 
 INSERT INTO knowledge_documents (id, title, content, source) VALUES
   ('a0000000-0000-0000-0000-000000000002', 'FAQ Noleggio Lungo Termine', '', 'manual')

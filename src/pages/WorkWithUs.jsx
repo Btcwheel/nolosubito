@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  Briefcase, CheckCircle, TrendingUp, Users, ShieldCheck, BookOpen,
-  FileText, BarChart2, Bell, Car, ChevronRight, Star, Award, Zap,
-  ArrowRight, Building2, UserCheck, HandshakeIcon
+import { TrendingUp, Users, ShieldCheck, BookOpen,
+  FileText, ChevronRight, Star, Award,
+  ArrowRight, Building2, UserCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

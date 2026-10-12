@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { BookOpen, Plus, Trash2, CheckCircle2, FileText, ChevronDown, ChevronUp, Send, ThumbsUp, ThumbsDown, RotateCcw, Paperclip, X, Loader2 } from 'lucide-react';
+import { BookOpen, Plus, Trash2, FileText, ChevronDown, ChevronUp, Send, ThumbsUp, ThumbsDown, RotateCcw, Paperclip, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

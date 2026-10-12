@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react";
 import VehicleCard from "@/components/vehicles/VehicleCard";
 import { offersService } from "@/services/offers";
 import { PageHeader, FilterBar, NativeSelect, CardSkeleton, Pagination } from "@/components/layout/ListingLayout";

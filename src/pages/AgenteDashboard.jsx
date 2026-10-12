@@ -8,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Search, Eye, ClipboardList, TrendingUp, Clock, CheckCircle2,
-  Users, Car, ChevronRight, ArrowUpRight, AlertCircle, Zap, BarChart2, Euro
+  Search, ClipboardList, CheckCircle2, Car, ChevronRight, AlertCircle, Zap, BarChart2, Euro
 } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";

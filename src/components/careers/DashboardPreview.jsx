@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, FileText, BarChart2, BookOpen, Bell, Car,
-  TrendingUp, CheckCircle, Clock, AlertCircle, ChevronRight,
+  TrendingUp, CheckCircle,
   Euro, Users, Award, Plus
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";

@@ -12,7 +12,8 @@
     "electron:build:mac:universal": "vite build && electron-builder --mac --universal",
     "electron:build:mac:intel": "vite build && electron-builder --mac --x64",
     "electron:build:mac:arm": "vite build && electron-builder --mac --arm64",
-    "electron:build:win": "vite build && electron-builder --win"
+    "electron:build:win": "vite build && electron-builder --win",
+    "release:mac": "bash scripts/release.sh"
   },
   "build": {
     "appId": "it.nolosubito.operator",
