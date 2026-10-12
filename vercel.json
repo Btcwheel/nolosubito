@@ -3127,7 +3127,11 @@
       "destination": "/api/robots"
     },
     {
-      "source": "/((?!\\.well-known/|robots\\.txt|sitemap\\.xml|llms\\.txt|favicon\\.png|og-image\\.png|assets/).*)",
+      "source": "/feed.xml",
+      "destination": "/api/feed"
+    },
+    {
+      "source": "/((?!\\.well-known/|robots\\.txt|sitemap\\.xml|feed\\.xml|llms\\.txt|favicon\\.png|og-image\\.png|assets/).*)",
       "destination": "/app.html"
     }
   ],
