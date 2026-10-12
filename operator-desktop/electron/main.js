@@ -11,6 +11,7 @@ const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI
 
 let mainWindow = null;
 let tray = null;
+let supabase = null;
 let supabaseSubscription = null;
 
 function getTrayIcon() {
@@ -101,15 +102,11 @@ function createWindow() {
     console.log('Renderer console:', message);
   });
 
-  mainWindow.on('close', (event) => {
+  mainWindow.on('close', () => {
     if (!app.isQuitting) {
-      event.preventDefault();
-      mainWindow.hide();
+      app.isQuitting = true;
+      app.quit();
     }
-  });
-
-  mainWindow.on('minimize', () => {
-    mainWindow.hide();
   });
 }
 
@@ -122,7 +119,7 @@ app.whenReady().then(() => {
 
   function setupSupabaseSubscription() {
     try {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       supabaseSubscription = supabase
         .channel('main_escalation_panel')
         .on('postgres_changes', {
@@ -167,8 +164,7 @@ app.whenReady().then(() => {
   setupSupabaseSubscription();
 
   app.on('will-quit', () => {
-    if (supabaseSubscription) {
-      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (supabase && supabaseSubscription) {
       supabase.removeChannel(supabaseSubscription);
     }
   });
@@ -202,9 +198,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
+  app.quit();
 });
 
 app.on('activate', () => {
