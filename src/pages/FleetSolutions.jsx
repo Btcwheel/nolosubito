@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users, BarChart3, Settings, Shield, ArrowRight, Building2, Truck, Package, Wrench, Zap } from "lucide-react";
+import { Users, BarChart3, Settings, Shield, ArrowRight, Truck, Package, Wrench, Zap } from "lucide-react";
 import { PageHeader } from "@/components/layout/ListingLayout";
 
 const features = [

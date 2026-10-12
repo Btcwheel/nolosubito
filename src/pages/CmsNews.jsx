@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink, FolderOpen, Search, Upload, Loader2, ChevronDown, ChevronUp, GripVertical, Image as ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink, FolderOpen, Search, Upload, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import ReactQuill from "react-quill";

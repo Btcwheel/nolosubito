@@ -10,9 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Search, Eye, ClipboardList, Car, TrendingUp,
-  CheckCircle2, Clock, AlertCircle, Zap, Layers,
-  BarChart2, ArrowUpRight, ChevronRight, Circle, Trash2, Loader2, Users, Tag, X,
+  Search, ClipboardList, Car, Layers,
+  BarChart2, ChevronRight, Trash2, Loader2, Users, Tag, X,
   MessageSquare,
 } from "lucide-react";
 import { format } from "date-fns";

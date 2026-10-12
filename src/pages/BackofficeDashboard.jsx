@@ -2,7 +2,6 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { praticheService } from "@/services/pratiche";
-import { profilesService } from "@/services/profiles";
 import { useAuth } from "@/lib/AuthContext";
 import { canAccess } from "@/lib/permissions";
 import { chatSettingsService } from "@/services/chatSettings";
@@ -14,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import {
-  Search, Eye, ClipboardList, Clock, CheckCircle2,
+  Search, Eye, ClipboardList, CheckCircle2,
   AlertCircle, FileCheck, FileX, ChevronRight, Users, MessageSquareWarning, BookOpen, EyeOff,
   Loader2, MessageSquare,
 } from "lucide-react";

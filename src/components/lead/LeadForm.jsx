@@ -18,7 +18,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { isValidEmail, isValidPhone, isValidCf, isValidPiva, isValidCap } from "@/lib/validation";
 import { isMotoCategory } from "@/lib/vehiclePricing";
 import {
-  ArrowRight, Loader2, CheckCircle2, Mail, ExternalLink,
+  ArrowRight, Loader2, Mail,
   User, Briefcase, Building,
 } from "lucide-react";
 import { motion } from "framer-motion";
