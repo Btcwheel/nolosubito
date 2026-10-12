@@ -62,7 +62,7 @@ function useSeoMeta(post) {
     ld.textContent = JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Article",
-      headline: post.seo_title || post.title,
+      headline: (post.seo_title || post.title).slice(0, 110),
       description: desc,
       ...(post.cover_image_url && { image: [post.cover_image_url] }),
       datePublished: post.published_date || post.created_at,
@@ -73,7 +73,7 @@ function useSeoMeta(post) {
       publisher: {
         "@type": "Organization",
         name: "Nolosubito",
-        logo: { "@type": "ImageObject", url: "https://nolosubito.it/logo-blu.png" },
+        logo: { "@type": "ImageObject", url: "https://nolosubito.it/logo-blu.png", width: 281, height: 78 },
       },
     });
     document.head.appendChild(ld);
