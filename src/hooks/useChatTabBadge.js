@@ -18,7 +18,7 @@ function buildBadgedFavicon(callback) {
     const ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0, size, size);
     ctx.beginPath();
-    ctx.arc(size - 16, 16, 15, 0, 2 * Math.PI);
+    ctx.arc(size - 20, 20, 18, 0, 2 * Math.PI);
     ctx.fillStyle = "#ef4444";
     ctx.fill();
     ctx.lineWidth = 4;
