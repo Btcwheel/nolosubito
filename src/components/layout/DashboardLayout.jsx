@@ -251,7 +251,7 @@ export default function DashboardLayout() {
     }
   }, [role]);
 
-  useChatTabBadge(role === 'backoffice');
+  useChatTabBadge(role === 'backoffice' || role === 'admin');
   const config = NAV_BY_ROLE[role] ?? NAV_BY_ROLE.cliente;
 
   const handleLogout = async () => {
