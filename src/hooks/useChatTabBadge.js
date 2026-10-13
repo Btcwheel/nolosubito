@@ -43,6 +43,9 @@ export function useChatTabBadge(enabled) {
     const originalHref = link?.getAttribute("href") ?? FAVICON_SRC;
     let badgedHref = null;
     let unread = 0;
+    // Le escalation vengono create con upsert: possono arrivare come INSERT o UPDATE.
+    // Conto ogni sessione una sola volta finché resta in "waiting".
+    const waitingIds = new Set();
 
     buildBadgedFavicon((url) => {
       badgedHref = url;
@@ -69,8 +72,15 @@ export function useChatTabBadge(enabled) {
     const channel = supabase
       .channel("tab_badge_chat")
       .on("postgres_changes",
-        { event: "INSERT", schema: "public", table: "escalated_sessions" },
-        (payload) => { if (payload.new?.status === "waiting") bump(); })
+        { event: "*", schema: "public", table: "escalated_sessions" },
+        (payload) => {
+          const row = payload.new;
+          if (!row?.id) return;
+          if (row.status !== "waiting") { waitingIds.delete(row.id); return; }
+          if (waitingIds.has(row.id)) return;
+          waitingIds.add(row.id);
+          bump();
+        })
       .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "operator_chat_messages" },
         (payload) => { if (payload.new?.sender === "customer") bump(); })
