@@ -43,18 +43,35 @@ export function useChatTabBadge(enabled) {
     const originalHref = link?.getAttribute("href") ?? FAVICON_SRC;
     let badgedHref = null;
     let unread = 0;
+    let blinkTimer = null;
+    let blinkOn = true;
     // Le escalation vengono create con upsert: possono arrivare come INSERT o UPDATE.
     // Conto ogni sessione una sola volta finché resta in "waiting".
     const waitingIds = new Set();
 
     buildBadgedFavicon((url) => {
       badgedHref = url;
-      if (unread > 0 && link) link.setAttribute("href", url);
+      paintFavicon();
     });
 
+    function paintFavicon() {
+      if (!link) return;
+      const showBadge = unread > 0 && badgedHref && blinkOn;
+      link.setAttribute("href", showBadge ? badgedHref : originalHref);
+    }
+
+    // Il favicon lampeggia (badge/icona normale) finché ci sono messaggi non letti.
     function render() {
       document.title = unread > 0 ? `(${unread}) ${baseTitle}` : baseTitle;
-      if (link) link.setAttribute("href", unread > 0 && badgedHref ? badgedHref : originalHref);
+      if (unread > 0 && !blinkTimer) {
+        blinkOn = true;
+        blinkTimer = setInterval(() => { blinkOn = !blinkOn; paintFavicon(); }, 800);
+      } else if (unread === 0 && blinkTimer) {
+        clearInterval(blinkTimer);
+        blinkTimer = null;
+      }
+      blinkOn = true;
+      paintFavicon();
     }
 
     function bump() {
