@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { useChatTabBadge } from "@/hooks/useChatTabBadge";
 import OnboardingWelcome from "@/components/onboarding/OnboardingWelcome";
 
 // ── Modal cambio password (recovery + primo accesso) ─────────────────────────
@@ -249,6 +250,8 @@ export default function DashboardLayout() {
       Notification.requestPermission();
     }
   }, [role]);
+
+  useChatTabBadge(role === 'backoffice' || role === 'admin');
   const config = NAV_BY_ROLE[role] ?? NAV_BY_ROLE.cliente;
 
   const handleLogout = async () => {
