@@ -77,8 +77,10 @@ function spaFallbackPlugin() {
     async writeBundle(options) {
       const outDir = options.dir || path.resolve(__dirname, 'dist');
       const html = await fs.readFile(path.resolve(outDir, 'index.html'), 'utf8');
-      const stripped = html.replace(/[ \t]*<!--hero-shell:start-->[\s\S]*?<!--hero-shell:end-->\n?/g, '');
-      if (stripped === html || stripped.includes('hero-shell')) {
+      let stripped = html.replace(/[ \t]*<!--hero-shell:start-->[\s\S]*?<!--hero-shell:end-->\n?/g, '')
+      // canonical e og:url della home su ogni rotta sarebbero sbagliati: li imposta CanonicalLink dopo il render
+      stripped = stripped.replace(/[ \t]*<link rel="canonical"[^>]*>\n?/, '').replace(/[ \t]*<meta property="og:url"[^>]*>\n?/, '');
+      if (stripped === html || stripped.includes('hero-shell') || stripped.includes('rel="canonical"')) {
         throw new Error('spa-fallback-html: marcatori hero-shell non trovati o rimozione incompleta');
       }
       await fs.writeFile(path.resolve(outDir, 'app.html'), stripped);

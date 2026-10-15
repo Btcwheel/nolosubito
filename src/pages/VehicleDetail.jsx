@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
+import { canonicalPath } from "@/lib/CanonicalLink";
 import { offersService } from "@/services/offers";
 import { useQuery } from "@tanstack/react-query";
 import { useHomeCatalog } from "@/hooks/useHomeCatalog";
@@ -149,8 +150,8 @@ function PromoBox({ expiresAt, discountPct, baseRent, segment, vehicleCategory, 
 export default function VehicleDetail() {
   const { make, model } = useParams();
   const location = useLocation();
-  const decodedMake  = decodeURIComponent(make);
-  const decodedModel = decodeURIComponent(model);
+  const urlMake  = decodeURIComponent(make);
+  const urlModel = decodeURIComponent(model);
   const segmentFromState = location.state?.segment;
 
   const [quoteConfig,    setQuoteConfig]    = useState(null);
@@ -163,9 +164,13 @@ export default function VehicleDetail() {
   useEffect(() => { window.scrollTo(0, 0); }, [make, model]);
 
   const { data: vehicle, isLoading } = useQuery({
-    queryKey: ["offer", decodedMake, decodedModel],
-    queryFn:  () => offersService.getByMakeModel(decodedMake, decodedModel),
+    queryKey: ["offer", urlMake, urlModel],
+    queryFn:  () => offersService.getByMakeModel(urlMake, urlModel),
   });
+
+  // Marca/modello come nel DB (maiuscoli): l'URL può avere lo slug minuscolo di sitemap e redirect
+  const decodedMake  = vehicle?.make ?? urlMake;
+  const decodedModel = vehicle?.model ?? urlModel;
 
   const { data: configs = [] } = useQuery({
     queryKey: ["offer-configs", decodedMake, decodedModel],
@@ -248,7 +253,7 @@ export default function VehicleDetail() {
       ? `Noleggio a lungo termine ${decodedMake} ${decodedModel} · ${bestOffer.category} · ${bestOffer.fuel_type || ''}`
       : `Scopri l'offerta di noleggio per ${decodedMake} ${decodedModel}`;
     const image = bestOffer.vehicle_image || "https://nolosubito.it/og-image.png";
-    const url = `https://nolosubito.it/vehicle/${encodeURIComponent(decodedMake)}/${encodeURIComponent(decodedModel)}`;
+    const url = `https://nolosubito.it${canonicalPath(`/vehicle/${encodeURIComponent(decodedMake)}/${encodeURIComponent(decodedModel)}`)}`;
 
     const setMeta = (property, content) => {
       let meta = document.querySelector(`meta[property="${property}"]`);

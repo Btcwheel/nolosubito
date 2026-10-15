@@ -3,6 +3,9 @@
  * Genera la sezione "redirects" di vercel.json per gli URL del vecchio sito WordPress
  * (www.nolosubito.it) → pagine del sito attuale. Possiede l'intero array "redirects":
  * va rieseguito (idempotente) quando cambiano post o offerte, non modificato a mano.
+ * Gli URL vecchi senza pagina equivalente NON vanno in redirect verso /offers o /news (Google li tratta come
+ * soft 404): finiscono in "rewrites" verso /api/gone, che risponde 410. Anche i rewrite verso /api/gone sono
+ * posseduti da questo script.
  *
  * Uso (dry-run: stampa il report, non scrive):
  *   node --env-file=.env scripts/generate-legacy-redirects.mjs --csv-dir "<cartella con Pagine.csv e Tabella.csv>"
@@ -108,11 +111,14 @@ const oldProducts = [...new Set(csvRows.filter((r) => r.path.startsWith('/prodot
 // ── Regole (l'ordine conta: vince la prima che combacia) ─────────────────────
 // {/}? = slash finale opzionale: gli URL di WordPress finiscono quasi tutti con "/", e in vercel.json
 // "/a/b" NON combacia con "/a/b/" (verificato su preview).
-const R = (source, destination, extra = {}) => ({ source: `${source}{/}?`, destination, permanent: true, ...extra });
+// Destinazioni assolute: così anche un URL www.* arriva a destinazione con un solo redirect (altrimenti
+// prima passa dalla regola www → apex e poi da quella del contenuto: 2 salti).
+const ORIGIN = 'https://nolosubito.it';
+const R = (source, destination, extra = {}) => ({ source: `${source}{/}?`, destination: destination.startsWith('/') ? `${ORIGIN}${destination}` : destination, permanent: true, ...extra });
 const rules = [];
-
-// 1) www → apex
-rules.push(R('/:path*', 'https://nolosubito.it/:path*', { has: [{ type: 'host', value: 'www.nolosubito.it' }] }));
+// URL vecchi senza equivalente → 410 (rewrite verso /api/gone)
+const gone = [];
+const G = (source) => gone.push({ source: `${source}{/}?`, destination: '/api/gone' });
 
 // 1b) Redirect manuali confermati (articolo vecchio → articolo nuovo con slug diverso)
 const MANUAL_ARTICLES = [
@@ -137,17 +143,18 @@ for (const slug of oldProducts.sort()) {
   productMap.push({ slug, to: o ? vehicleUrl(o) : '/offers' });
   if (o) rules.push(R(`/prodotto/${slug}`, vehicleUrl(o)));
 }
-rules.push(R('/prodotto/:path*', '/offers'));
+G('/prodotto/:path*');
 
 // 4) Archivi WooCommerce/WordPress e paginazioni AMP
-for (const base of ['tipo-di-contratto', 'tg-vc', 'ct-vc', 'marchio', 'veicoli', 'tipo-veicolo', 'compagnia-noleggio', 'segmento']) rules.push(R(`/${base}/:path*`, '/offers'));
-for (const base of ['tag', 'cat']) rules.push(R(`/${base}/:path*`, '/news'));
-rules.push(R('/news/amp/:path*', '/news'));
-rules.push(R('/news/page/:n(\\d+)', '/news'));
-rules.push(R('/amp/:path*', '/'));
-rules.push(R('/amp', '/'));
-// Articoli di sezione già eliminati dal vecchio sito prima del backup (non recuperabili): /news
-rules.push(R(`/${SECTION_PARAM}/:path*`, '/news'));
+for (const base of ['tipo-di-contratto', 'tg-vc', 'ct-vc', 'marchio', 'veicoli', 'tipo-veicolo', 'compagnia-noleggio', 'segmento', 'tag', 'cat']) G(`/${base}/:path*`);
+G('/news/amp/:path*');
+G('/news/page/:n(\\d+)');
+G('/amp/:path*');
+G('/amp');
+// Articoli di sezione già eliminati dal vecchio sito prima del backup (non recuperabili): 410.
+// (i redirect valgono prima dei rewrite, quindi gli articoli ripubblicati restano coperti dalla regola 2)
+G(`/${SECTION_PARAM}/:path*`);
+// L'archivio di sezione (es. /guide) ha un equivalente reale: l'elenco news
 rules.push(R(`/${SECTION_PARAM}`, '/news'));
 
 // 5) Pagine istituzionali
@@ -174,32 +181,36 @@ const LEGACY_PAGES = {
   'vantaggi-noleggio-lungo-termine': '/',
   'servizi': '/',
   'homepage-1': '/',
-  'carrello': '/',
-  'checkout': '/',
-  'mio-account': '/',
-  'cancel-payment': '/',
-  'questions_and_answers_unsubscription': '/',
 };
+// Pagine tecniche WooCommerce senza equivalente nel sito nuovo: 410
+const GONE_PAGES = ['carrello', 'checkout', 'mio-account', 'cancel-payment', 'questions_and_answers_unsubscription'];
 for (const [from, to] of Object.entries(LEGACY_PAGES)) {
   if (to.startsWith('/news/') && !goodSlugs.includes(to.slice(6))) throw new Error(`LEGACY_PAGES: il post "${to.slice(6)}" non esiste tra quelli pubblicati`);
   rules.push(R(`/${from}`, to));
   rules.push(R(`/${from}/amp`, to));
 }
+for (const from of GONE_PAGES) { G(`/${from}`); G(`/${from}/amp`); }
 for (const from of ['contatti', 'azienda', 'homepage-1-2']) rules.push(R(`/${from}/amp`, from === 'contatti' ? '/contact' : '/'));
 rules.push(R('/noleggio', '/'));
 rules.push(R('/index.php', '/'));
-for (const base of ['durata-e-mesi', 'rl_gallery']) rules.push(R(`/${base}/:path*`, base === 'rl_gallery' ? '/' : '/offers'));
+for (const base of ['durata-e-mesi', 'rl_gallery', 'wp-content', 'wp-includes', 'wp-admin', 'wp-json']) G(`/${base}/:path*`);
+
+// www → apex per tutto il resto. Per ultima: le regole sopra, che combaciano anche con www, hanno già la
+// destinazione assoluta e fanno un solo salto.
+rules.push(R('/:path*', ORIGIN + '/:path*', { has: [{ type: 'host', value: 'www.nolosubito.it' }] }));
 
 // ── Simulazione di Vercel sugli URL reali dei CSV ────────────────────────────
 const compiled = rules.map((r) => ({ r, re: pathToRegexp(r.source) }));
+const compiledGone = gone.map((r) => ({ r: { ...r, gone: true }, re: pathToRegexp(r.source) }));
+// Come su Vercel: prima i redirect, poi i rewrite
 const apply = (p, host = 'nolosubito.it') => {
-  for (const { r, re } of compiled) {
+  for (const { r, re } of [...compiled, ...compiledGone]) {
     if (r.has && host !== 'www.nolosubito.it') continue;
     if (re.exec(p)) return r;
   }
   return null;
 };
-const final = (p, depth = 0) => { const r = apply(p); if (!r || r.destination.startsWith('http')) return { r, hops: depth + (r ? 1 : 0), dest: r ? r.destination : p }; const d = r.destination; return depth > 5 ? { r, hops: depth, dest: 'LOOP' } : (apply(d) ? final(d, depth + 1) : { r, hops: depth + 1, dest: d }); };
+const final = (p, depth = 0) => { const r = apply(p); if (r && r.gone) return { r, hops: 0, dest: '410' }; if (!r || r.destination.startsWith('http')) return { r, hops: depth + (r ? 1 : 0), dest: r ? r.destination : p }; const d = r.destination; return depth > 5 ? { r, hops: depth, dest: 'LOOP' } : (apply(d) ? final(d, depth + 1) : { r, hops: depth + 1, dest: d }); };
 
 const VALID_STATIC = new Set(['/', '/offers', '/fleet', '/green', '/contact', '/private-offers', '/careers', '/commercial', '/moto', '/reuse', '/usato', '/news', '/privacy', '/cookie-policy', '/termini', '/hero-compare']);
 const postSet = new Set(posts.map((p) => p.slug));
@@ -219,7 +230,7 @@ for (const row of csvRows) {
 const needing = csvRows.filter((r) => !existsNow(r.path));
 const total = needing.length;
 const totalClicks = needing.reduce((s, r) => s + r.clicks, 0);
-console.log(`Regole generate: ${rules.length} (limite Vercel 2048) | post con slug valido: ${goodSlugs.length} | slug scartati: ${badSlugs.length}`);
+console.log(`Regole generate: ${rules.length} redirect + ${gone.length} regole 410 (limite Vercel 2048) | post con slug valido: ${goodSlugs.length} | slug scartati: ${badSlugs.length}`);
 if (badSlugs.length) console.log('  slug non validi (da correggere in Supabase, nessun redirect generato):', badSlugs.map((s) => JSON.stringify(s)).join(', '));
 console.log(`Prodotti vecchi: ${oldProducts.length} | con offerta corrispondente: ${productMap.filter((x) => x.to !== '/offers').length}`);
 if (csvRows.length) {
@@ -244,7 +255,9 @@ if (csvRows.length) {
 if (WRITE) {
   const file = path.resolve('vercel.json');
   const cfg = JSON.parse(fs.readFileSync(file, 'utf8'));
-  const out = { redirects: rules, ...Object.fromEntries(Object.entries(cfg).filter(([k]) => k !== 'redirects')) };
+  const rest = Object.fromEntries(Object.entries(cfg).filter(([k]) => k !== 'redirects'));
+  rest.rewrites = [...gone, ...(rest.rewrites || []).filter((w) => w.destination !== '/api/gone')];
+  const out = { redirects: rules, ...rest };
   fs.writeFileSync(file, JSON.stringify(out, null, 2) + '\n');
-  console.log(`\nvercel.json aggiornato (${rules.length} redirect).`);
+  console.log(`\nvercel.json aggiornato (${rules.length} redirect, ${gone.length} regole 410).`);
 } else console.log('\nDry-run: vercel.json non modificato (usa --write).');
