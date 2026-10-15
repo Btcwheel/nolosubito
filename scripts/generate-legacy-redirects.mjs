@@ -130,6 +130,17 @@ for (const { from, toSlug } of MANUAL_ARTICLES) {
   rules.push(R(`/${from}/amp`, `/news/${toSlug}`));
 }
 
+// 1c) Slug non validi (tab, spazi, ":") corretti in Supabase: i vecchi URL /news/<slug> vanno al nuovo slug
+const RENAMED_NEWS = [
+  { from: 'Porsche%20Macan%20elettrica\\:%20il%20SUV%20premium%20-%20Noleggio%20lungo%20termine', toSlug: 'porsche-macan-elettrica-il-suv-premium-noleggio-lungo-termine' },
+  { from: 'Porsche%20Macan%20elettrica%3A%20il%20SUV%20premium%20-%20Noleggio%20lungo%20termine', toSlug: 'porsche-macan-elettrica-il-suv-premium-noleggio-lungo-termine' },
+  { from: '%09mobilita-accessibile-noleggio-lungo-termine', toSlug: 'mobilita-accessibile-noleggio-lungo-termine' },
+];
+for (const { from, toSlug } of RENAMED_NEWS) {
+  if (!goodSlugs.includes(toSlug)) throw new Error(`RENAMED_NEWS: il post "${toSlug}" non esiste tra quelli pubblicati`);
+  rules.push(R(`/news/${from}`, `/news/${toSlug}`));
+}
+
 // 2) Articoli: /<sezione>[/<categoria>]/<slug>[/amp] → /news/<slug>
 for (const slug of goodSlugs) {
   rules.push(R(`/${SECTION_PARAM}/:cat?/${slug}`, `/news/${slug}`));
