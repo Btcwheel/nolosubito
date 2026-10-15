@@ -83,9 +83,20 @@ export const offersService = {
       .select('*')
       .eq('make', make)
       .eq('model', model)
-      .single();
+      .maybeSingle();
     if (error) throw error;
-    return data;
+    if (data) return data;
+
+    // Nel DB make/model sono in maiuscolo ("ABARTH"/"500"), ma sitemap, canonical e redirect del vecchio
+    // sito usano lo slug minuscolo ("abarth"/"500"): senza questo fallback quegli URL mostravano un 404.
+    const { data: rows, error: listError } = await supabase.from('offers').select('id, make, model');
+    if (listError) throw listError;
+    const slug = (s) => String(s).trim().toLowerCase().replace(/\s+/g, '-');
+    const match = rows.find((r) => slug(r.make) === slug(make) && slug(r.model) === slug(model));
+    if (!match) throw new Error('Veicolo non trovato');
+    const { data: offer, error: offerError } = await supabase.from('offers').select('*').eq('id', match.id).single();
+    if (offerError) throw offerError;
+    return offer;
   },
 
   uploadVehicleImage,

@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import AppLayout from './components/layout/AppLayout';
 import DashboardLayout from './components/layout/DashboardLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+import CanonicalLink from '@/lib/CanonicalLink';
 
 // Lazy loading — ogni pagina è un chunk separato
 const Home             = lazy(() => import('./pages/Home'));
@@ -154,6 +155,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <RecoveryHandler />
+          <CanonicalLink />
           <AppRoutes />
         </Router>
         <Toaster />

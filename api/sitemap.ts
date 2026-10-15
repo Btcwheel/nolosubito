@@ -96,6 +96,8 @@ function generateSitemap(
 
   // News dinamiche
   for (const post of posts) {
+    // Slug con spazi, tab o ":" non sono URL validi: Google scarterebbe la riga come errore di sitemap
+    if (!/^[A-Za-z0-9]+(-[A-Za-z0-9]+)*$/.test(post.slug)) continue;
     const lastmod = new Date(post.published_date).toISOString().split("T")[0];
     urls.push(`
   <url>
@@ -108,12 +110,12 @@ function generateSitemap(
 
   // Vehicle details dinamici
   for (const offer of offers) {
-    const makeSlug = offer.make.toLowerCase().replace(/\s+/g, "-");
-    const modelSlug = offer.model.toLowerCase().replace(/\s+/g, "-");
+    const makeSlug = offer.make.trim().toLowerCase().replace(/\s+/g, "-");
+    const modelSlug = offer.model.trim().toLowerCase().replace(/\s+/g, "-");
     const lastmod = new Date(offer.created_at).toISOString().split("T")[0];
     urls.push(`
   <url>
-    <loc>${DOMAIN}/vehicle/${escapeXml(makeSlug)}/${escapeXml(modelSlug)}</loc>
+    <loc>${DOMAIN}/vehicle/${escapeXml(encodeURIComponent(makeSlug))}/${escapeXml(encodeURIComponent(modelSlug))}</loc>
     <lastmod>${lastmod}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
