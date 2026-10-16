@@ -21,6 +21,11 @@
       "permanent": true
     },
     {
+      "source": "/news/Bollo-Auto-2027-quali-veicoli-sono-esenti-e-come-verificare{/}?",
+      "destination": "https://nolosubito.it/news/bollo-auto-2027-quali-veicoli-sono-esenti-e-come-verificare",
+      "permanent": true
+    },
+    {
       "source": "/news/%09mobilita-accessibile-noleggio-lungo-termine{/}?",
       "destination": "https://nolosubito.it/news/mobilita-accessibile-noleggio-lungo-termine",
       "permanent": true
@@ -243,6 +248,16 @@
     {
       "source": "/:s(novita-sul-mondo-auto|approfondimenti-di-settore|curiosita|guide|senza-categoria|consigli-fiscali|guides)/:cat?/be-free-noleggio/amp{/}?",
       "destination": "https://nolosubito.it/news/be-free-noleggio",
+      "permanent": true
+    },
+    {
+      "source": "/:s(novita-sul-mondo-auto|approfondimenti-di-settore|curiosita|guide|senza-categoria|consigli-fiscali|guides)/:cat?/bollo-auto-2027-quali-veicoli-sono-esenti-e-come-verificare{/}?",
+      "destination": "https://nolosubito.it/news/bollo-auto-2027-quali-veicoli-sono-esenti-e-come-verificare",
+      "permanent": true
+    },
+    {
+      "source": "/:s(novita-sul-mondo-auto|approfondimenti-di-settore|curiosita|guide|senza-categoria|consigli-fiscali|guides)/:cat?/bollo-auto-2027-quali-veicoli-sono-esenti-e-come-verificare/amp{/}?",
+      "destination": "https://nolosubito.it/news/bollo-auto-2027-quali-veicoli-sono-esenti-e-come-verificare",
       "permanent": true
     },
     {

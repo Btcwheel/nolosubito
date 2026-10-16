@@ -134,6 +134,7 @@ for (const { from, toSlug } of MANUAL_ARTICLES) {
 const RENAMED_NEWS = [
   { from: 'Porsche%20Macan%20elettrica\\:%20il%20SUV%20premium%20-%20Noleggio%20lungo%20termine', toSlug: 'porsche-macan-elettrica-il-suv-premium-noleggio-lungo-termine' },
   { from: 'Porsche%20Macan%20elettrica%3A%20il%20SUV%20premium%20-%20Noleggio%20lungo%20termine', toSlug: 'porsche-macan-elettrica-il-suv-premium-noleggio-lungo-termine' },
+  { from: 'Bollo-Auto-2027-quali-veicoli-sono-esenti-e-come-verificare', toSlug: 'bollo-auto-2027-quali-veicoli-sono-esenti-e-come-verificare' },
   { from: '%09mobilita-accessibile-noleggio-lungo-termine', toSlug: 'mobilita-accessibile-noleggio-lungo-termine' },
 ];
 for (const { from, toSlug } of RENAMED_NEWS) {
