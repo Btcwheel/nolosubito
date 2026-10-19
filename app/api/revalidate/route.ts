@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 // Richiede la variabile d'ambiente REVALIDATE_SECRET; senza, risponde 503 e non fa nulla.
 export const dynamic = 'force-dynamic';
 
-const PATHS = ['/'];
+const PATHS = ['/', '/offers', '/private-offers', '/commercial', '/moto', '/reuse', '/green'];
 
 export async function POST(request: Request) {
   const secret = process.env.REVALIDATE_SECRET;
