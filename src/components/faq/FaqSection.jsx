@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import Link from "@/lib/AppLink";
 import { ChevronDown } from "lucide-react";
 
 // Le risposte arrivano dal CMS come testo semplice: righe con "• " diventano elenco,

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import VehicleCard from "../vehicles/VehicleCard";
 import { useHomeCatalog } from "@/hooks/useHomeCatalog";
 import { useHomeSegment } from "./HomeSegmentContext";
+import { useNow } from "@/lib/NowContext";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 9;
@@ -57,6 +58,7 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
   const observerRef = useRef(null);
 
   const { data: vehicles = [], isLoading, isError, refetch } = useHomeCatalog();
+  const now = useNow();
 
   const MOTO_CATS = ["Moto", "Scooter", "Moto e Scooter"];
 
@@ -82,12 +84,11 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
       .filter(v => heroCategory === "all" || (HERO_CATEGORY_MATCHERS[heroCategory]?.(v) ?? true))
       .filter(v => !prontoConsegna || v.is_ready_delivery === true)
       .sort((a, b) => {
-        const now = new Date();
-        const aPromo = a.promo_expires_at && new Date(a.promo_expires_at) > now ? 1 : 0;
-        const bPromo = b.promo_expires_at && new Date(b.promo_expires_at) > now ? 1 : 0;
+        const aPromo = a.promo_expires_at && new Date(a.promo_expires_at).getTime() > now ? 1 : 0;
+        const bPromo = b.promo_expires_at && new Date(b.promo_expires_at).getTime() > now ? 1 : 0;
         return bPromo - aPromo;
       });
-  }, [vehicles, tipologia, prontoConsegna, searchText, heroBudget, heroAdvance, heroCategory]);
+  }, [vehicles, tipologia, prontoConsegna, searchText, heroBudget, heroAdvance, heroCategory, now]);
 
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   const hasMore = visibleCount < filtered.length;

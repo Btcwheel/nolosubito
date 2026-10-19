@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "@/lib/AppLink";
 import { ChevronDown, Search } from "lucide-react";
 import { useCountdown } from "@/hooks/useCountdown";
+import { useNow } from "@/lib/NowContext";
 import { useHomeCatalog } from "@/hooks/useHomeCatalog";
 import { useHomeSegment } from "./HomeSegmentContext";
 import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing";
@@ -38,12 +39,12 @@ const MIN_SLIDES = 3;
 const MAX_SLIDES = 6;
 const SLIDE_MS = 6000;
 
-const isPromoActive = (v) => v.promo_expires_at && new Date(v.promo_expires_at).getTime() > Date.now();
+const isPromoActive = (v, now) => v.promo_expires_at && new Date(v.promo_expires_at).getTime() > now;
 
 // Le offerte a tempo che scadono per prime; se sono meno di tre completa con le pronta consegna più convenienti
-function pickLineup(vehicles) {
+function pickLineup(vehicles, now) {
   const promos = vehicles
-    .filter((v) => isPromoActive(v) && v.monthly_rent)
+    .filter((v) => isPromoActive(v, now) && v.monthly_rent)
     .sort((a, b) => new Date(a.promo_expires_at) - new Date(b.promo_expires_at))
     .slice(0, MAX_SLIDES);
   if (promos.length >= MIN_SLIDES) return promos;
@@ -153,9 +154,10 @@ function PromoSlide({ vehicle, segment, first }) {
 function Lineup({ vehicles, segment, loading }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [reduceMotion] = useState(
-    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-  );
+  const [reduceMotion, setReduceMotion] = useState(false);
+  useEffect(() => {
+    setReduceMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }, []);
   const touchX = useRef(null);
   const count = vehicles.length;
 
@@ -252,12 +254,8 @@ export default function HomeHero({
 }) {
   const { data: vehicles = [], isLoading } = useHomeCatalog();
   const { segment } = useHomeSegment();
-  const lineup = useMemo(() => pickLineup(vehicles), [vehicles]);
-
-  // Rimuove il guscio HTML dell'hero (index.html) una volta montata quella React
-  useEffect(() => {
-    document.getElementById("hero-shell")?.remove();
-  }, []);
+  const now = useNow();
+  const lineup = useMemo(() => pickLineup(vehicles, now), [vehicles, now]);
 
   const isTabActive = (value) => (value === ADVANCE_ZERO_TAB ? advance === "zero" : category === value);
 

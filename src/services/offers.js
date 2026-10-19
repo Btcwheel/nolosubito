@@ -237,7 +237,8 @@ export const offersService = {
   //     e NON fanno listing nelle pagine Privati/P.IVA: un veicolo ReUse sta SOLO in /reuse.
   //   - array:  lista esplicita di segmenti. Utile per /reuse che mostra tutte le varianti.
   //   - null/undefined: tutti i segmenti.
-  async listWithMinPrice(segmentOrSegments) {
+  // `client`: di default il client del browser; il server (ISR) passa un client senza sessione.
+  async listWithMinPrice(segmentOrSegments, client = supabase) {
     const normKey = (make, model) => `${make?.trim().toUpperCase()}|${model?.trim().toUpperCase()}`;
 
     // Segmenti di listing (mutuamente esclusivi). Le varianti ReUse-Privati /
@@ -259,8 +260,8 @@ export const offersService = {
     }
 
     const [offersRes, pricesRes] = await Promise.all([
-      supabase.from('offers').select('*').eq('is_active', true).order('make'),
-      supabase.rpc('get_vehicle_prices', segments ? { p_segments: segments } : {}),
+      client.from('offers').select('*').eq('is_active', true).order('make'),
+      client.rpc('get_vehicle_prices', segments ? { p_segments: segments } : {}),
     ]);
 
     if (offersRes.error) throw offersRes.error;

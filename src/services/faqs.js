@@ -4,8 +4,8 @@ const SELECT = '*, faq_targets(id, target_type, target_value)';
 
 export const faqsService = {
   // Pubbliche: la RLS espone comunque solo le pubblicate ai visitatori.
-  async listPublished() {
-    const { data, error } = await supabase
+  async listPublished(client = supabase) {
+    const { data, error } = await client
       .from('faqs')
       .select(SELECT)
       .eq('is_published', true)

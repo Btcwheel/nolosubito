@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "react-router-dom";
 import { canonicalPath } from "@/lib/CanonicalLink";
+import { readRememberedSegment } from "@/lib/AppLink";
 import { offersService } from "@/services/offers";
 import { useQuery } from "@tanstack/react-query";
 import { useHomeCatalog } from "@/hooks/useHomeCatalog";
@@ -156,7 +157,7 @@ export default function VehicleDetail() {
   const location = useLocation();
   const urlMake  = decodeURIComponent(make);
   const urlModel = decodeURIComponent(model);
-  const segmentFromState = location.state?.segment;
+  const segmentFromState = location.state?.segment ?? readRememberedSegment();
 
   const [quoteConfig,    setQuoteConfig]    = useState(null);
   const [showForm,       setShowForm]       = useState(false);
