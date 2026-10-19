@@ -115,7 +115,7 @@ export default function Login({ context = "internal" }) {
     }
     setResetLoading(true);
     try {
-      const siteUrl = (import.meta.env.VITE_SITE_URL ?? window.location.origin).replace(/\/$/, "");
+      const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin).replace(/\/$/, "");
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${siteUrl}/password-reset`,
       });

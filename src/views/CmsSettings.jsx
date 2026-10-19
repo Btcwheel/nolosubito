@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Upload, Loader2, Image as ImageIcon, Share2, Save, Eye } from "lucide-react";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SITE_IMAGES_BUCKET = "site-images";
 
 // ── Helper: upload immagine su site-images ────────────────────────────────────

@@ -1,19 +1,15 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
+
+// Sitemap generata a runtime dal catalogo e dalle news; cache CDN di un'ora.
+export const dynamic = 'force-dynamic';
 
 const DOMAIN = "https://nolosubito.it";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method === "OPTIONS") {
-    res.status(200).end();
-    return;
-  }
-
+export async function GET() {
   try {
-    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 
-                        process.env.VITE_SUPABASE_SERVICE_ROLE_KEY || 
-                        process.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+    // Solo lato server: la chiave service role non deve mai avere il prefisso NEXT_PUBLIC_
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
       throw new Error("Missing Supabase URL or Key in environment variables");
@@ -41,12 +37,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const xml = generateSitemap(posts || [], uniqueOffers);
 
-    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-    res.status(200).send(xml);
+    return new Response(xml, {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/xml; charset=utf-8',
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+      },
+    });
   } catch (err) {
     console.error("Sitemap error:", err);
-    res.status(500).send("Error generating sitemap");
+    return new Response("Error generating sitemap", { status: 500 });
   }
 }
 

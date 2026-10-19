@@ -22,7 +22,7 @@ import { it } from "date-fns/locale";
 import { PRATICA_STATUS_COLORS, DEFAULT_STATUS_COLOR } from "@/lib/praticaStatus";
 import EscalationPanel from "@/components/backoffice/EscalationPanel";
 import KnowledgePanel from "@/components/backoffice/KnowledgePanel";
-import AdminLeads from "@/pages/AdminLeads";
+import AdminLeads from "@/views/AdminLeads";
 
 const ALL_STATUSES = [
   "Nuova", "In Lavorazione", "Documenti Richiesti", "Documenti Caricati",

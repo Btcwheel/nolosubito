@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { MODULI, RUOLI_BASE, DEFAULT_PERMISSIONS, getEffectivePermissions } from '@/lib/permissions';
 
-const INVITE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/invite-team-member`;
+const INVITE_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/invite-team-member`;
 
 const TIPI_ACCOUNT = [
   { id: 'backoffice', label: 'Backoffice', desc: 'Operatore con permessi per modulo' },
@@ -312,7 +312,7 @@ export default function AdminTeam() {
       }
 
       const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const token = session?.access_token ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
       const res = await fetch(INVITE_URL, {
         method: 'POST',

@@ -20,7 +20,7 @@ import ReactMarkdown from "react-markdown";
 import DOMPurify from "dompurify";
 
 // Converte path locale → URL Supabase Storage
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 function toStorageUrl(gigiPath) {
   // /gigi/uploads/2026/03/rombo.png → .../news-images/gigi/uploads/2026/03/rombo.webp
   const rel = gigiPath.replace('/gigi/', '').replace(/\.[^.]+$/, '.webp');
@@ -244,7 +244,7 @@ function GenerateArticleModal({ onClose, onSuccess }) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-news-article`,
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/generate-news-article`,
         {
           method: "POST",
           headers: {
@@ -430,7 +430,7 @@ function AiDraftsSection({ onEditDraft }) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-news-drafts`,
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/generate-news-drafts`,
         {
           method: "POST",
           headers: {

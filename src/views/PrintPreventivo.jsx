@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { scaricaPreventivoPDF } from '@/lib/preventivoPrint';
 
-const EDGE_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/fetch-preventivo-print`;
+const EDGE_FUNCTION_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/fetch-preventivo-print`;
 
 export default function PrintPreventivo() {
   const { id } = useParams();
@@ -16,7 +16,7 @@ export default function PrintPreventivo() {
     async function run() {
       try {
         const fnRes = await fetch(`${EDGE_FUNCTION_URL}?id=${encodeURIComponent(id)}`, {
-          headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
+          headers: { Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}` },
         });
         if (!fnRes.ok) throw new Error('Preventivo non trovato');
         const { preventivo: prev, pratica } = await fnRes.json();
