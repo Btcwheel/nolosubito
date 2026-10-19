@@ -9,15 +9,13 @@
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
-    "preview": "vite preview",
+    "preview": "next start",
     "perf": "npx lighthouse https://nolosubito.quixel.it --output html --output-path ./lighthouse-report.html --form-factor mobile && start lighthouse-report.html",
     "perf:desktop": "npx lighthouse https://nolosubito.quixel.it --output html --output-path ./lighthouse-report-desktop.html --preset desktop && start lighthouse-report-desktop.html",
     "perf:site": "npx unlighthouse --site https://nolosubito.quixel.it",
     "index-images": "node scripts/index-gigi-images.cjs",
     "migrate-images": "node scripts/migrate-images.cjs",
-    "start": "next start",
-    "dev:vite": "vite",
-    "build:vite": "vite build"
+    "start": "next start"
   },
   "dependencies": {
     "@fontsource/dm-mono": "^5.2.7",

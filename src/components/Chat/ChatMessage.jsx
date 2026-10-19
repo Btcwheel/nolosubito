@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Link } from 'react-router-dom';
+import Link from '@/lib/AppLink';
 import { User, Bot } from 'lucide-react';
 
 const AIAvatar = ({ size = 'sm' }) => (

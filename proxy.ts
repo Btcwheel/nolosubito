@@ -12,7 +12,7 @@ const SOCIAL_UA = /facebookexternalhit|Twitterbot|WhatsApp|LinkedInBot|TelegramB
 // Google era una pagina da ~200 caratteri = soft 404). Qui si controlla solo che l'URL esista.
 const SEARCH_UA = /Googlebot|Google-InspectionTool|GoogleOther|bingbot/i;
 
-export default async function middleware(request: Request): Promise<Response | void> {
+export default async function proxy(request: Request): Promise<Response | void> {
   const ua = request.headers.get('user-agent') || '';
   const isSocial = SOCIAL_UA.test(ua);
   const isSearch = SEARCH_UA.test(ua);

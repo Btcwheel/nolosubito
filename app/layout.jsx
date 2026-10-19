@@ -1,4 +1,10 @@
+import Script from "next/script";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "@/index.css";
+
+// Font self-hosted da next/font (niente richiesta a Google Fonts). Le variabili sono lette da index.css.
+const inter = Inter({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700", "800"], display: "swap", variable: "--font-inter" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["500", "600", "700"], display: "swap", variable: "--font-space-grotesk" });
 
 export const metadata = {
   metadataBase: new URL("https://nolosubito.it"),
@@ -28,8 +34,6 @@ export const viewport = { width: "device-width", initialScale: 1 };
 
 const ORGANIZATION_JSON_LD = {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://nolosubito.it/#organization","name":"Nolosubito","legalName":"Nolosubito S.r.l.","url":"https://nolosubito.it/","logo":{"@type":"ImageObject","url":"https://nolosubito.it/logo-blu.png","width":281,"height":78},"vatID":"IT08350931211","email":"info@nolosubito.it","telephone":"+39 06 4004 9490","address":{"@type":"PostalAddress","streetAddress":"Via Nuova Poggioreale, 60L","postalCode":"80143","addressLocality":"Napoli","addressCountry":"IT"},"contactPoint":[{"@type":"ContactPoint","contactType":"customer service","telephone":"+39 06 4004 9490","email":"info@nolosubito.it","areaServed":"IT","availableLanguage":"it"}]},{"@type":"WebSite","@id":"https://nolosubito.it/#website","url":"https://nolosubito.it/","name":"Nolosubito","inLanguage":"it-IT","publisher":{"@id":"https://nolosubito.it/#organization"}}]};
 
-const FONTS_URL = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap";
-
 // Google Consent Mode v2: "denied" finché l'utente non sceglie dal banner cookie.
 const CONSENT_SCRIPT = `
 window.dataLayer = window.dataLayer || [];
@@ -46,7 +50,7 @@ window.__updateConsent = (prefs) => {
 
 // GA4 caricato alla prima interazione (o dopo 8s) per proteggere LCP/TBT su mobile.
 const ANALYTICS_SCRIPT = `
-window.addEventListener('load', () => {
+(function () {
   const events = ['pointerdown', 'keydown', 'scroll', 'touchstart'];
   let started = false;
   const loadAnalytics = () => {
@@ -62,23 +66,22 @@ window.addEventListener('load', () => {
   };
   events.forEach((e) => window.addEventListener(e, loadAnalytics, { once: true, passive: true }));
   setTimeout(loadAnalytics, 8000);
-});`;
+})();`;
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="it">
+    <html lang="it" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }} />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link rel="preconnect" href="https://nowoiywrzfnjocvsbmih.supabase.co" crossOrigin="" />
         <link rel="dns-prefetch" href="https://nowoiywrzfnjocvsbmih.supabase.co" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
-        <link rel="stylesheet" href={FONTS_URL} />
-        <script dangerouslySetInnerHTML={{ __html: CONSENT_SCRIPT }} />
-        <script dangerouslySetInnerHTML={{ __html: ANALYTICS_SCRIPT }} />
+        <Script id="consent-mode" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: CONSENT_SCRIPT }} />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Script id="ga4-loader" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: ANALYTICS_SCRIPT }} />
+      </body>
     </html>
   );
 }

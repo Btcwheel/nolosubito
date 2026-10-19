@@ -1,5 +1,8 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import Link from "@/lib/AppLink";
+import { usePathname } from "@/lib/usePathname";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { useHomeSegment } from "@/components/home/HomeSegmentContext";
 
@@ -48,13 +51,13 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOffersOpen, setMobileOffersOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const location = useLocation();
-  const isHomePage = location.pathname === "/";
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
 
   useEffect(() => {
     setIsOpen(false);
     setDropdownOpen(false);
-  }, [location.pathname]);
+  }, [pathname]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -66,7 +69,7 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isOffersActive = offersDropdown.some(o => location.pathname === o.path);
+  const isOffersActive = offersDropdown.some(o => pathname === o.path);
 
   const linkBase   = "text-slate-600 hover:text-[#1A1F5E] hover:bg-slate-100";
   const linkActive = "text-[#1A1F5E] bg-[#3B82F6]/10";
@@ -100,9 +103,9 @@ export default function Navbar() {
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`block px-4 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors duration-200 ${location.pathname === item.path ? "bg-slate-50" : ""}`}
+                    className={`block px-4 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors duration-200 ${pathname === item.path ? "bg-slate-50" : ""}`}
                   >
-                    <p className={`text-sm font-medium ${location.pathname === item.path ? "text-[#3B82F6]" : "text-slate-800"}`}>{item.label}</p>
+                    <p className={`text-sm font-medium ${pathname === item.path ? "text-[#3B82F6]" : "text-slate-800"}`}>{item.label}</p>
                     <p className="text-xs mt-0.5 text-slate-500">{item.desc}</p>
                   </Link>
                 ))}
@@ -113,7 +116,7 @@ export default function Navbar() {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${location.pathname === link.path ? linkActive : linkBase}`}
+                className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${pathname === link.path ? linkActive : linkBase}`}
               >
                 {link.label}
               </Link>
@@ -174,7 +177,7 @@ export default function Navbar() {
                           key={item.path}
                           to={item.path}
                           className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                            location.pathname === item.path ? "text-[#3B82F6]" : "text-slate-600 hover:text-[#1A1F5E]"
+                            pathname === item.path ? "text-[#3B82F6]" : "text-slate-600 hover:text-[#1A1F5E]"
                           }`}
                         >
                           {item.label}
@@ -189,7 +192,7 @@ export default function Navbar() {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${location.pathname === link.path ? linkActive : linkBase}`}
+                  className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${pathname === link.path ? linkActive : linkBase}`}
                 >
                   {link.label}
                 </Link>
