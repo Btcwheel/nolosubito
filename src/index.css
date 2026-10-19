@@ -102,3 +102,11 @@
     @apply bg-background text-foreground font-body;
   }
 }
+/* Linea di avanzamento del carosello dell'hero: riempimento da sinistra per la durata della slide */
+@keyframes hero-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.hero-progress {
+  animation: hero-progress linear forwards;
+}
