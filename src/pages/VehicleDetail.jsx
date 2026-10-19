@@ -19,8 +19,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { getVehicleDetailSrcSet, getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
 import { splitVehicleDescription } from "@/lib/vehicleText";
-import { formatDisplayedRent, resolvePricingSegment, computeNetMonthlyRent } from "@/lib/vehiclePricing";
+import { formatDisplayedRent, resolvePricingSegment, computeNetMonthlyRent, isVatIncludedForDisplay } from "@/lib/vehiclePricing";
 import { useCountdown } from "@/hooks/useCountdown";
+import FaqSection from "../components/faq/FaqSection";
+import { useFaqs } from "@/hooks/useFaqs";
+import { selectVehicleFaqs } from "@/lib/faqMatch";
+import { buildModelFaqs } from "@/lib/vehicleFaq";
 
 const MOCK_GALLERY_EXTRAS = [
   { src: "https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?w=1200&q=85", label: "3/4 anteriore" },
@@ -234,6 +238,24 @@ export default function VehicleDetail() {
       .filter(v => v.category === bestOffer.category || v.make === decodedMake)
       .slice(0, 3);
   }, [allVehicles, decodedMake, decodedModel, bestOffer]);
+
+  const { data: faqs = [] } = useFaqs();
+  const vehicleFaqs = useMemo(() => {
+    if (!bestOffer) return [];
+    const pricingOpts = { segment: currentSegment, vehicleCategory: bestOffer.category, vehicleSegments: bestOffer.segments || [] };
+    const price = bestOffer.monthly_rent ? formatDisplayedRent(bestOffer.monthly_rent, pricingOpts) : null;
+    const generated = buildModelFaqs({
+      make: decodedMake,
+      model: decodedModel,
+      vehicle: bestOffer,
+      configs,
+      price,
+      vatIncluded: isVatIncludedForDisplay(pricingOpts),
+      segment: currentSegment,
+    });
+    // Al massimo 6 voci: prima quelle composte sul modello, poi le più specifiche del CMS
+    return [...generated.slice(0, 3), ...selectVehicleFaqs(faqs, bestOffer, 3)];
+  }, [bestOffer, configs, currentSegment, decodedMake, decodedModel, faqs]);
 
   useEffect(() => {
     if (isLoading || bestOffer) return;
@@ -727,6 +749,19 @@ export default function VehicleDetail() {
             </motion.div>
           </div>
         </div>
+
+        {/* ── FAQ ───────────────────────────────────────────────── */}
+        {vehicleFaqs.length > 0 && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+            <div className="border-t border-gray-200 pt-10">
+              <FaqSection
+                faqs={vehicleFaqs}
+                eyebrow="Domande frequenti"
+                title={`Domande su ${decodedMake} ${decodedModel}`}
+              />
+            </div>
+          </div>
+        )}
 
         {/* ── Similar vehicles ──────────────────────────────────── */}
         {similarVehicles.length > 0 && (

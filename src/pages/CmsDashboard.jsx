@@ -1,16 +1,18 @@
 import React, { useState } from "react";
-import { Car, Newspaper, Tag, FolderOpen, SlidersHorizontal, Settings } from "lucide-react";
+import { Car, Newspaper, Tag, FolderOpen, SlidersHorizontal, Settings, HelpCircle } from "lucide-react";
 import CmsVehicles from "./CmsVehicles.jsx";
 import CmsOffers from "./CmsOffers.jsx";
 import CmsNews from "./CmsNews.jsx";
 import CmsMateriali from "./CmsMateriali.jsx";
 import CmsVehicleOptions from "./CmsVehicleOptions.jsx";
 import CmsSettings from "./CmsSettings.jsx";
+import CmsFaq from "./CmsFaq.jsx";
 
 const TABS = [
   { id: "vehicles",  label: "Veicoli",    icon: Car,                desc: "Catalogo auto con foto e dettagli" },
   { id: "prices",    label: "Prezzi",     icon: Tag,                desc: "Configurazioni canoni QuoteBox" },
   { id: "news",      label: "News",       icon: Newspaper,          desc: "Articoli e notizie pubbliche" },
+  { id: "faq", label: "FAQ", icon: HelpCircle, desc: "Domande frequenti per home e schede veicolo" },
   { id: "materiali", label: "Materiali",  icon: FolderOpen,         desc: "Documenti per gli agenti" },
   { id: "options",   label: "Opzioni",    icon: SlidersHorizontal,  desc: "Categorie, carburanti e cambi" },
   { id: "settings",  label: "Impostazioni", icon: Settings,         desc: "SEO, Open Graph e immagini globali" },
@@ -49,6 +51,7 @@ export default function CmsDashboard() {
         {tab === "vehicles"  && <CmsVehicles />}
         {tab === "prices"    && <CmsOffers />}
         {tab === "news"      && <CmsNews />}
+        {tab === "faq"       && <CmsFaq />}
         {tab === "materiali" && <CmsMateriali />}
         {tab === "options"   && <CmsVehicleOptions />}
         {tab === "settings"  && <CmsSettings />}

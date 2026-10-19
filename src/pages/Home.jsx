@@ -1,6 +1,9 @@
-import React, { useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import FeaturedVehicles from "../components/home/FeaturedVehicles";
 import HomeHero from "../components/home/HomeHero";
+import FaqSection from "../components/faq/FaqSection";
+import { useFaqs } from "@/hooks/useFaqs";
+import { selectHomeFaqs } from "@/lib/faqMatch";
 
 export default function Home() {
   const [searchText, setSearchText] = useState("");
@@ -8,6 +11,8 @@ export default function Home() {
   const [advance, setAdvance] = useState("all");
   const [category, setCategory] = useState("all");
   const resultsRef = useRef(null);
+  const { data: faqs = [] } = useFaqs();
+  const homeFaqs = useMemo(() => selectHomeFaqs(faqs), [faqs]);
 
   const scrollToResults = () => {
     requestAnimationFrame(() => {
@@ -35,6 +40,13 @@ export default function Home() {
         heroCategory={category}
         resultsRef={resultsRef}
       />
+      <div className="bg-[#F8F9FA]">
+        <FaqSection
+          faqs={homeFaqs}
+          title="Tutto quello che c'è da sapere sul noleggio"
+          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14"
+        />
+      </div>
     </>
   );
 }
