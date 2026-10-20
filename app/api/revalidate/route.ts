@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 // Richiede la variabile d'ambiente REVALIDATE_SECRET; senza, risponde 503 e non fa nulla.
 export const dynamic = 'force-dynamic';
 
-const PATHS = ['/', '/offers', '/private-offers', '/commercial', '/moto', '/reuse', '/green'];
+const PATHS = ['/', '/offers', '/private-offers', '/commercial', '/moto', '/reuse', '/green', '/news'];
 
 export async function POST(request: Request) {
   const secret = process.env.REVALIDATE_SECRET;
@@ -14,5 +14,6 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Non autorizzato' }, { status: 401 });
   }
   for (const path of PATHS) revalidatePath(path);
+  revalidatePath('/news/[slug]', 'page');
   return Response.json({ revalidated: PATHS, at: new Date().toISOString() });
 }

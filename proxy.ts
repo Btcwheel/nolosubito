@@ -1,5 +1,5 @@
 export const config = {
-  matcher: ['/', '/vehicle/:make/:model', '/news/:path+'],
+  matcher: ['/', '/vehicle/:make/:model'],
 };
 
 const DOMAIN = 'https://nolosubito.it';
@@ -38,17 +38,11 @@ export default async function proxy(request: Request): Promise<Response | void> 
     return handleVehicle(make, model, url.toString());
   }
 
-  // ── News detail: /news/:slug ───────────────────────────────────────────
-  const slug = pathname.replace(/^\/news\//, '').split('/')[0];
-  if (slug) {
-    return handleNews(slug, url.toString());
-  }
-
   // Fallback: let the SPA handle it
   return;
 }
 
-// ── Motori di ricerca: 404 vero per news e veicoli inesistenti ───────────────
+// ── Motori di ricerca: 404 vero per veicoli inesistenti (le news sono servite da Next.js) ───────────────
 // La SPA risponde sempre 200 anche per slug sconosciuti: Google li segnala come soft 404.
 async function handleSearchBot(pathname: string): Promise<Response | void> {
   try {
@@ -59,11 +53,6 @@ async function handleSearchBot(pathname: string): Promise<Response | void> {
       return (await vehicleExists(make, model)) ? undefined : notFoundResponse();
     }
 
-    const parts = pathname.replace(/^\/news\//, '').split('/').filter(Boolean);
-    if (parts.length === 0) return;
-    // /news/amp/..., /news/page/N: vecchi URL WordPress, il 410 lo dà il rewrite di vercel.json
-    if (parts.length > 1 || parts[0] === 'amp' || parts[0] === 'page') return;
-    return (await postExists(decodeURIComponent(parts[0]))) ? undefined : notFoundResponse();
   } catch {
     // Se Supabase non risponde meglio servire la pagina che un 404 sbagliato
     return;
@@ -80,11 +69,6 @@ async function supabaseGet(query: string): Promise<any[]> {
   });
   if (!res.ok) throw new Error(`Supabase ${res.status}`);
   return res.json();
-}
-
-async function postExists(slug: string): Promise<boolean> {
-  const rows = await supabaseGet(`posts?slug=eq.${encodeURIComponent(slug)}&is_published=eq.true&select=slug&limit=1`);
-  return rows.length > 0;
 }
 
 // Nel DB make/model sono maiuscoli, gli URL usano lo slug minuscolo: si confrontano gli slug.
@@ -179,35 +163,6 @@ async function handleVehicle(make: string, model: string, pageUrl: string): Prom
         : `Scopri l'offerta di noleggio per ${vehicle.make} ${vehicle.model}`
     );
     const image = vehicle.vehicle_image || `${DOMAIN}/og-image.png`;
-
-    return ogResponse(title, description, image, pageUrl, 'article');
-  } catch {
-    return;
-  }
-}
-
-// ── News handler ─────────────────────────────────────────────────────────────
-async function handleNews(slug: string, pageUrl: string): Promise<Response | void> {
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/posts?slug=eq.${encodeURIComponent(slug)}&is_published=eq.true&select=title,seo_title,seo_description,summary,cover_image_url`,
-      {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`,
-          Accept: 'application/json',
-        },
-      }
-    );
-
-    const posts = await res.json();
-    const post = posts?.[0];
-
-    if (!post) return;
-
-    const title = esc(post.seo_title || post.title || 'Nolosubito');
-    const description = esc(post.seo_description || post.summary || '');
-    const image = post.cover_image_url || `${DOMAIN}/og-image.png`;
 
     return ogResponse(title, description, image, pageUrl, 'article');
   } catch {
