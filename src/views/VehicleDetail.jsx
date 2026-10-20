@@ -1,10 +1,9 @@
+"use client";
+
 import React, { useMemo, useState, useEffect } from "react";
-import { useParams, Link, useLocation } from "react-router-dom";
-import { canonicalPath } from "@/lib/CanonicalLink";
-import { readRememberedSegment } from "@/lib/AppLink";
+import Link, { readRememberedSegment } from "@/lib/AppLink";
 import { offersService } from "@/services/offers";
 import { useQuery } from "@tanstack/react-query";
-import { useHomeCatalog } from "@/hooks/useHomeCatalog";
 import QuoteBox from "../components/quote/QuoteBox";
 import LeadForm from "../components/lead/LeadForm";
 import VehicleCard from "../components/vehicles/VehicleCard";
@@ -22,6 +21,7 @@ import { getVehicleDetailSrcSet, getVehicleCardSrcSet, getOptimizedSrc } from "@
 import { splitVehicleDescription } from "@/lib/vehicleText";
 import { formatDisplayedRent, resolvePricingSegment, computeNetMonthlyRent, isVatIncludedForDisplay } from "@/lib/vehiclePricing";
 import { useCountdown } from "@/hooks/useCountdown";
+import { useNow } from "@/lib/NowContext";
 import FaqSection from "../components/faq/FaqSection";
 import { useFaqs } from "@/hooks/useFaqs";
 import { selectVehicleFaqs } from "@/lib/faqMatch";
@@ -55,15 +55,12 @@ const INCLUDED = [
 
 function PromoBadge({ discountPct }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 }}
+    <div
       className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-red-600/90 backdrop-blur-sm text-white text-xs font-bold px-4 py-2 rounded-full shadow-lg shadow-red-600/40 whitespace-nowrap max-w-[calc(100%-1.5rem)] truncate"
     >
       <Tag className="size-3.5 shrink-0" />
       {discountPct > 0 ? `Offerta -${Math.round(discountPct)}% · Tempo limitato` : "Offerta Speciale · Tempo limitato"}
-    </motion.div>
+    </div>
   );
 }
 
@@ -109,10 +106,7 @@ function PromoBox({ expiresAt, discountPct, baseRent, segment, vehicleCategory, 
   const urgencyText = cd.days >= 3 ? "text-emerald-700" : cd.days >= 1 ? "text-amber-700" : "text-red-700";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+    <div
       className={`rounded-2xl border bg-gradient-to-br ${urgencyBg} p-4 space-y-3`}
     >
       <div className="flex items-center gap-2">
@@ -148,16 +142,17 @@ function PromoBox({ expiresAt, discountPct, baseRent, segment, vehicleCategory, 
           🎁 {promoServices}
         </p>
       )}
-    </motion.div>
+    </div>
   );
 }
 
-export default function VehicleDetail() {
-  const { make, model } = useParams();
-  const location = useLocation();
-  const urlMake  = decodeURIComponent(make);
-  const urlModel = decodeURIComponent(model);
-  const segmentFromState = location.state?.segment ?? readRememberedSegment();
+// make/model arrivano già decodificati dalla pagina Next; similarVehicles è calcolato sul server.
+export default function VehicleDetail({ make: urlMake, model: urlModel, similarVehicles = [] }) {
+  const now = useNow();
+  // Il segmento scelto in lista sta in sessionStorage (con next/link non c'è location.state): si legge dopo
+  // il montaggio, così il primo render coincide con l'HTML del server.
+  const [segmentFromState, setSegmentFromState] = useState(null);
+  useEffect(() => { setSegmentFromState(readRememberedSegment()); }, []);
 
   const [quoteConfig,    setQuoteConfig]    = useState(null);
   const [showForm,       setShowForm]       = useState(false);
@@ -165,8 +160,6 @@ export default function VehicleDetail() {
   const [imgKey,         setImgKey]         = useState(0);
   const [showAllDesc,    setShowAllDesc]    = useState(false);
   const [activeSegment,  setActiveSegment]  = useState(null); // controllato da tab header + QuoteBox
-
-  useEffect(() => { window.scrollTo(0, 0); }, [make, model]);
 
   const { data: vehicle, isLoading } = useQuery({
     queryKey: ["offer", urlMake, urlModel],
@@ -183,8 +176,6 @@ export default function VehicleDetail() {
     enabled:  !!vehicle,
   });
 
-  const { data: allVehicles = [] } = useHomeCatalog();
-
   const preferredSegment = useMemo(() => {
     if (!vehicle) return segmentFromState || null;
     return resolvePricingSegment({
@@ -193,11 +184,6 @@ export default function VehicleDetail() {
       vehicleSegments: vehicle.segments || [],
     });
   }, [vehicle, segmentFromState]);
-
-  // Inizializza activeSegment una sola volta quando preferredSegment è disponibile
-  useEffect(() => {
-    if (preferredSegment && !activeSegment) setActiveSegment(preferredSegment);
-  }, [preferredSegment]);
 
   // Segmenti disponibili per i tab: solo P.IVA / Privati / ReUse.
   // Le varianti ReUse-Privati / ReUse-Business sono etichette del canone
@@ -232,14 +218,6 @@ export default function VehicleDetail() {
     return { ...vehicle, monthly_rent: featuredNetPrice ?? minNetPrice };
   }, [vehicle, configs, currentSegment]);
 
-  const similarVehicles = useMemo(() => {
-    if (!bestOffer) return [];
-    return allVehicles
-      .filter(v => !(v.make === decodedMake && v.model === decodedModel))
-      .filter(v => v.category === bestOffer.category || v.make === decodedMake)
-      .slice(0, 3);
-  }, [allVehicles, decodedMake, decodedModel, bestOffer]);
-
   const { data: faqs = [] } = useFaqs();
   const vehicleFaqs = useMemo(() => {
     if (!bestOffer) return [];
@@ -257,68 +235,6 @@ export default function VehicleDetail() {
     // Al massimo 6 voci: prima quelle composte sul modello, poi le più specifiche del CMS
     return [...generated.slice(0, 3), ...selectVehicleFaqs(faqs, bestOffer, 3)];
   }, [bestOffer, configs, currentSegment, decodedMake, decodedModel, faqs]);
-
-  useEffect(() => {
-    if (isLoading || bestOffer) return;
-    const meta = document.createElement('meta');
-    meta.name = 'robots';
-    meta.content = 'noindex, nofollow';
-    document.head.appendChild(meta);
-    return () => document.head.removeChild(meta);
-  }, [isLoading, bestOffer]);
-
-  // OG meta tags dinamici per social sharing
-  useEffect(() => {
-    if (!bestOffer) return;
-
-    const title = `${decodedMake} ${decodedModel}${bestOffer.version ? ` ${bestOffer.version}` : ''} | Noleggio Lungo Termine`;
-    const description = bestOffer.category
-      ? `Noleggio a lungo termine ${decodedMake} ${decodedModel} · ${bestOffer.category} · ${bestOffer.fuel_type || ''}`
-      : `Scopri l'offerta di noleggio per ${decodedMake} ${decodedModel}`;
-    const image = bestOffer.vehicle_image || "https://nolosubito.it/og-image.png";
-    const url = `https://nolosubito.it${canonicalPath(`/vehicle/${encodeURIComponent(decodedMake)}/${encodeURIComponent(decodedModel)}`)}`;
-
-    const setMeta = (property, content) => {
-      let meta = document.querySelector(`meta[property="${property}"]`);
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.setAttribute('property', property);
-        document.head.appendChild(meta);
-      }
-      meta.setAttribute('content', content);
-    };
-
-    const setTitle = (content) => {
-      document.title = content;
-      let meta = document.querySelector('meta[property="og:title"]');
-      if (!meta) {
-        meta = document.createElement('meta');
-        meta.setAttribute('property', 'og:title');
-        document.head.appendChild(meta);
-      }
-      meta.setAttribute('content', content);
-    };
-
-    setTitle(title);
-    setMeta('og:description', description);
-    setMeta('og:image', image);
-    setMeta('og:url', url);
-    setMeta('og:type', 'article');
-
-    // Twitter Card
-    let twCard = document.querySelector('meta[name="twitter:card"]');
-    if (!twCard) {
-      twCard = document.createElement('meta');
-      twCard.setAttribute('name', 'twitter:card');
-      document.head.appendChild(twCard);
-    }
-    twCard.setAttribute('content', 'summary_large_image');
-
-    return () => {
-      // Pulizia: rimuovi meta tag aggiunti dinamicamente
-      document.querySelectorAll('meta[property="og:description"], meta[property="og:image"], meta[property="og:url"], meta[property="og:type"], meta[name="twitter:card"]').forEach(m => m.remove());
-    };
-  }, [bestOffer, decodedMake, decodedModel]);
 
   const handleRequestQuote = (config) => {
     setQuoteConfig({ ...config, version: bestOffer.version || "", fuelType: bestOffer.fuel_type || "" });
@@ -346,25 +262,15 @@ export default function VehicleDetail() {
     );
   }
 
-  if (!bestOffer) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center px-4">
-          <p className="text-foreground text-xl font-heading font-bold mb-2">Veicolo non trovato</p>
-          <p className="text-muted-foreground text-sm mb-6">Il veicolo richiesto non è disponibile.</p>
-          <Link to="/offers">
-            <Button className="bg-electric hover:bg-electric/90 text-white">← Torna alle Offerte</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  // Veicolo inesistente: la pagina Next risponde 404 prima di montare questo componente.
+  if (!bestOffer) return null;
 
   const imgSrc       = bestOffer.vehicle_image || getVehicleImage(bestOffer);
   const imgPos       = getVehicleImagePosition(bestOffer);
   const isElectric   = bestOffer.fuel_type === "Electric";
   const isHybrid     = bestOffer.fuel_type === "Hybrid";
   const descParagraphs = splitVehicleDescription(bestOffer.description);
+  const promoActive = !!bestOffer.promo_expires_at && new Date(bestOffer.promo_expires_at).getTime() > now;
 
   const galleryImages = [
     { src: imgSrc, label: "Esterno" },
@@ -374,20 +280,6 @@ export default function VehicleDetail() {
   const handleThumb = (i) => {
     setCurrentIndex(i);
     setImgKey(k => k + 1);
-  };
-
-  const schemaData = {
-    "@context": "https://schema.org", "@type": "Car",
-    "name": `${decodedMake} ${decodedModel}`,
-    "brand": { "@type": "Brand", "name": decodedMake },
-    "model": decodedModel,
-    "fuelType": bestOffer.fuel_type || "Unknown",
-    "vehicleTransmission": bestOffer.transmission || "Unknown",
-    "offers": configs.map(o => ({
-      "@type": "Offer", "priceCurrency": "EUR",
-      "price": computeNetMonthlyRent(o.monthly_rent, o.advance_payment, o.duration_months),
-      "description": `${o.duration_months} mesi, ${o.annual_km?.toLocaleString()} km/anno`,
-    })),
   };
 
   const displayPrice = bestOffer.monthly_rent
@@ -400,8 +292,6 @@ export default function VehicleDetail() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }} />
-
       <div className="bg-surface min-h-screen">
 
         {/* ── Header ─────────────────────────────────────────────── */}
@@ -420,11 +310,7 @@ export default function VehicleDetail() {
               <span className="text-gray-500">{decodedMake} {decodedModel}</span>
             </nav>
 
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            >
+            <div>
               <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
 
                 {/* ── Left: brand / model / specs ── */}
@@ -525,7 +411,7 @@ export default function VehicleDetail() {
                 </div>
 
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
 
@@ -534,30 +420,24 @@ export default function VehicleDetail() {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8 items-start">
 
             {/* ── Left column ── */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
+            <div
               className="space-y-6"
             >
               {/* Main image */}
               <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-white to-gray-100 border border-gray-100">
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={imgKey}
-                    src={getOptimizedSrc(galleryImages[currentIndex].src, 1200)}
-                    srcSet={getVehicleDetailSrcSet(galleryImages[currentIndex].src)}
-                    sizes="(max-width: 640px) 100vw, (max-width: 1280px) 60vw, 800px"
-                    alt={`${decodedMake} ${decodedModel}`}
-                    className="w-full aspect-[16/9] object-cover"
-                    style={{ objectPosition: imgPos }}
-                    initial={{ opacity: 0, scale: 1.02 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    onError={(e) => { e.target.src = getVehicleImage({ make: decodedMake }); }}
-                  />
-                </AnimatePresence>
+                <img
+                  key={imgKey}
+                  src={getOptimizedSrc(galleryImages[currentIndex].src, 1200)}
+                  srcSet={getVehicleDetailSrcSet(galleryImages[currentIndex].src)}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1280px) 60vw, 800px"
+                  alt={`${decodedMake} ${decodedModel}`}
+                  width={1200}
+                  height={675}
+                  fetchPriority="high"
+                  className="w-full aspect-[16/9] object-cover"
+                  style={{ objectPosition: imgPos }}
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = getVehicleImage({ make: decodedMake }); }}
+                />
 
                 {/* Top badges */}
                 <div className="absolute top-3 left-3 flex gap-2">
@@ -577,7 +457,7 @@ export default function VehicleDetail() {
                 </div>
 
                 {/* Ribbon promo diagonale */}
-                {bestOffer.promo_expires_at && new Date(bestOffer.promo_expires_at) > new Date() && (
+                {promoActive && (
                   <PromoBadge discountPct={bestOffer.promo_discount_pct} />
                 )}
 
@@ -720,16 +600,13 @@ export default function VehicleDetail() {
                   </div>
                 </div>
               )}
-            </motion.div>
+            </div>
 
             {/* ── Right column — QuoteBox ── */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
+            <div
               className="lg:sticky lg:top-24 self-start space-y-4"
             >
-              {bestOffer.promo_expires_at && new Date(bestOffer.promo_expires_at) > new Date() && (
+              {promoActive && (
                 <PromoBox
                   expiresAt={bestOffer.promo_expires_at}
                   discountPct={bestOffer.promo_discount_pct}
@@ -747,7 +624,7 @@ export default function VehicleDetail() {
                 onSegmentChange={setActiveSegment}
                 onRequestQuote={handleRequestQuote}
               />
-            </motion.div>
+            </div>
           </div>
         </div>
 

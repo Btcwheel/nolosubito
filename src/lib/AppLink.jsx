@@ -8,7 +8,7 @@ import { Link as RouterLink, useInRouterContext } from "react-router-dom";
 // completa (<a>): il Link di React Router mostrerebbe la vecchia versione della pagina nella SPA.
 // Da aggiornare a ogni rotta migrata.
 const NEXT_ROUTES = new Set(["/", "/offers", "/private-offers", "/commercial", "/moto", "/reuse", "/green", "/news"]);
-const isNextPath = (path) => NEXT_ROUTES.has(path) || path.startsWith("/news/");
+const isNextPath = (path) => NEXT_ROUTES.has(path) || path.startsWith("/news/") || path.startsWith("/vehicle/");
 
 const SEGMENT_KEY = "nolo:segment";
 
@@ -37,7 +37,7 @@ export default function AppLink({ to, href, state, onClick, ...props }) {
   const inRouter = useInRouterContext();
   if (inRouter) {
     const path = typeof target === "string" ? target.split(/[?#]/)[0] : "";
-    if (isNextPath(path)) return <a href={target} onClick={onClick} {...props} />;
+    if (isNextPath(path)) return <a href={target} onClick={(e) => { rememberSegment(state); onClick?.(e); }} {...props} />;
     return <RouterLink to={target} state={state} onClick={onClick} {...props} />;
   }
   return (

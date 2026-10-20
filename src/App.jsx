@@ -13,7 +13,6 @@ import CanonicalLink from '@/lib/CanonicalLink';
 const Home             = lazy(() => import('./views/Home'));
 const HeroCompare      = lazy(() => import('./views/HeroCompare'));
 const BusinessOffers   = lazy(() => import('./views/BusinessOffers'));
-const VehicleDetail    = lazy(() => import('./views/VehicleDetail'));
 const FleetSolutions   = lazy(() => import('./views/FleetSolutions'));
 const GreenMobility    = lazy(() => import('./views/GreenMobility'));
 const Contact          = lazy(() => import('./views/Contact'));
@@ -83,7 +82,6 @@ const AppRoutes = () => {
           <Route path="/"                     element={<Home />} />
           <Route path="/hero-compare"         element={<HeroCompare />} />
           <Route path="/offers"               element={<BusinessOffers />} />
-          <Route path="/vehicle/:make/:model" element={<VehicleDetail />} />
           <Route path="/fleet"                element={<FleetSolutions />} />
           <Route path="/green"                element={<GreenMobility />} />
           <Route path="/contact"              element={<Contact />} />
