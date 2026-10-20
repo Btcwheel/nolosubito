@@ -1,5 +1,7 @@
+"use client";
+
 import React from "react";
-import { Link } from "react-router-dom";
+import Link from "@/lib/AppLink";
 import { ArrowLeft } from "lucide-react";
 
 const Section = ({ title, children }) => (
@@ -19,7 +21,7 @@ export default function PrivacyPolicy() {
         </Link>
 
         <h1 className="font-heading font-bold text-3xl text-foreground mb-2">Privacy Policy</h1>
-        <p className="text-sm text-muted-foreground mb-10">
+        <p className="text-sm text-muted-foreground mb-10" suppressHydrationWarning>
           Ultimo aggiornamento: {new Date().toLocaleDateString("it-IT", { day: "numeric", month: "long", year: "numeric" })}
         </p>
 

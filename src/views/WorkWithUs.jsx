@@ -1,5 +1,6 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { TrendingUp, Users, ShieldCheck, BookOpen,
   FileText, ChevronRight, Star, Award,
   ArrowRight, Building2, UserCheck
@@ -53,7 +54,7 @@ export default function WorkWithUs() {
       <div className="bg-white border-b border-gray-100">
         <div className="pt-2 sm:pt-4 pb-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <div>
               <div className="inline-flex items-center gap-2 bg-electric/10 border border-electric/20 rounded-full px-4 py-2 mb-6">
                 <Building2 className="size-4 text-electric" />
                 <span className="text-sm text-electric font-medium">Partner Program</span>
@@ -86,34 +87,23 @@ export default function WorkWithUs() {
                   Vedi l'Area Riservata
                 </Button>
               </div>
-            </motion.div>
+            </div>
 
             {/* Stats */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              className="grid grid-cols-2 gap-4"
-            >
+            <div className="grid grid-cols-2 gap-4">
               {[
                 { value: "15+", label: "Mandati attivi", sub: "Top società Noleggio Lungo Termine" },
                 { value: "500+", label: "Partner attivi", sub: "In tutta Italia" },
                 { value: "€3.200", label: "Commissione media", sub: "Per contratto chiuso" },
                 { value: "48h", label: "Attivazione", sub: "Dall'iscrizione al primo mandato" },
               ].map((stat, i) => (
-                <motion.div
-                  key={stat.label}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 + i * 0.08 }}
-                  className="bg-spec border border-navy/10 rounded-2xl p-5"
-                >
+                <div key={stat.label} className="bg-spec border border-navy/10 rounded-2xl p-5">
                   <div className="font-heading font-bold text-3xl text-electric">{stat.value}</div>
                   <div className="text-navy font-semibold text-sm mt-1">{stat.label}</div>
                   <div className="text-gray-400 text-xs mt-0.5">{stat.sub}</div>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
@@ -132,20 +122,13 @@ export default function WorkWithUs() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {benefits.map((b, i) => (
-              <motion.div
-                key={b.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: i * 0.07 }}
-                className="group p-6 bg-card rounded-2xl border border-border/50 hover:border-electric/30 hover:shadow-lg transition-all duration-300"
-              >
+              <div key={b.title} className="group p-6 bg-card rounded-2xl border border-border/50 hover:border-electric/30 hover:shadow-lg transition-all duration-300">
                 <div className="size-12 rounded-xl bg-electric/10 flex items-center justify-center mb-4 group-hover:bg-electric/20 transition-colors">
                   <b.icon className="size-6 text-electric" />
                 </div>
                 <h3 className="font-heading font-semibold text-foreground mb-2">{b.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{b.desc}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </section>
@@ -176,14 +159,7 @@ export default function WorkWithUs() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {steps.map((step, i) => (
-              <motion.div
-                key={step.num}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: i * 0.1 }}
-                className="relative"
-              >
+              <div key={step.num} className="relative">
                 <div className="p-6 bg-card rounded-2xl border border-border/50 h-full">
                   <div className="font-heading font-bold text-4xl text-electric/20 mb-3">{step.num}</div>
                   <h3 className="font-heading font-semibold text-foreground mb-2">{step.title}</h3>
@@ -192,7 +168,7 @@ export default function WorkWithUs() {
                 {i < steps.length - 1 && (
                   <ChevronRight className="hidden lg:block absolute top-1/2 -right-3 -translate-y-1/2 size-5 text-electric/30 z-10" />
                 )}
-              </motion.div>
+              </div>
             ))}
           </div>
         </section>
@@ -207,14 +183,7 @@ export default function WorkWithUs() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
               {testimonials.map((t, i) => (
-                <motion.div
-                  key={t.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.3, delay: i * 0.1 }}
-                  className="p-6 bg-card rounded-2xl border border-border/50"
-                >
+                <div key={t.name} className="p-6 bg-card rounded-2xl border border-border/50">
                   <div className="flex gap-1 mb-3">
                     {Array(t.rating).fill(0).map((_, j) => (
                       <Star key={j} className="size-4 fill-yellow-400 text-yellow-400" />
@@ -225,7 +194,7 @@ export default function WorkWithUs() {
                     <div className="font-semibold text-foreground text-sm">{t.name}</div>
                     <div className="text-xs text-muted-foreground">{t.role}</div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -236,12 +205,7 @@ export default function WorkWithUs() {
           {showForm ? (
             <PartnerApplicationForm onCancel={() => setShowForm(false)} />
           ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-navy rounded-3xl p-10 sm:p-16 text-center relative overflow-hidden"
-            >
+            <div className="bg-navy rounded-3xl p-10 sm:p-16 text-center relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-electric/10 to-transparent pointer-events-none" />
               <UserCheck className="size-12 text-electric mx-auto mb-5" />
               <h2 className="font-heading font-bold text-3xl sm:text-4xl text-white mb-4">
@@ -256,7 +220,7 @@ export default function WorkWithUs() {
               >
                 Candidati ora — è gratuito <ArrowRight className="size-5 ml-2" />
               </Button>
-            </motion.div>
+            </div>
           )}
         </section>
       </div>

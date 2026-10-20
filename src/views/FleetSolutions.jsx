@@ -1,6 +1,7 @@
+"use client";
+
 import React from "react";
-import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import Link from "@/lib/AppLink";
 import { Button } from "@/components/ui/button";
 import { Users, BarChart3, Settings, Shield, ArrowRight, Truck, Package, Wrench, Zap } from "lucide-react";
 import { PageHeader } from "@/components/layout/ListingLayout";
@@ -32,20 +33,13 @@ export default function FleetSolutions() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((f, i) => (
-              <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: i * 0.08 }}
-                className="p-6 bg-card rounded-2xl border border-border/50"
-              >
+              <div key={f.title} className="p-6 bg-card rounded-2xl border border-border/50">
                 <div className="size-12 rounded-xl bg-electric/10 flex items-center justify-center mb-4">
                   <f.icon className="size-6 text-electric" />
                 </div>
                 <h3 className="font-heading font-semibold text-foreground mb-2">{f.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
@@ -110,18 +104,11 @@ export default function FleetSolutions() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {tiers.map((tier, i) => (
-              <motion.div
-                key={tier.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.3, delay: i * 0.1 }}
-                className={`rounded-2xl p-6 border ${
+              <div key={tier.name} className={`rounded-2xl p-6 border ${
                   tier.highlight
                     ? "bg-navy text-white style={{borderColor:'#71BAED'}} shadow-xl style={{boxShadow:'0 4px 6px -1px rgba(113,186,237,0.25)'}}/10"
                     : "bg-card border-border/50"
-                }`}
-              >
+                }`}>
                 <h3 className="font-heading font-bold text-xl">{tier.name}</h3>
                 <p className={`text-sm mt-1 ${tier.highlight ? "text-white/60" : "text-muted-foreground"}`}>
                   {tier.vehicles} veicoli
@@ -145,7 +132,7 @@ export default function FleetSolutions() {
                     Richiedi Preventivo <ArrowRight className="size-4 ml-1" />
                   </Button>
                 </Link>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>

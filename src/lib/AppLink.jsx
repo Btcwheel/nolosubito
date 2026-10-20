@@ -7,7 +7,7 @@ import { Link as RouterLink, useInRouterContext } from "react-router-dom";
 // Rotte già servite da pagine Next.js. Dalla SPA un link verso di esse deve fare una navigazione
 // completa (<a>): il Link di React Router mostrerebbe la vecchia versione della pagina nella SPA.
 // Da aggiornare a ogni rotta migrata.
-const NEXT_ROUTES = new Set(["/", "/offers", "/private-offers", "/commercial", "/moto", "/reuse", "/green", "/news"]);
+const NEXT_ROUTES = new Set(["/", "/offers", "/private-offers", "/commercial", "/moto", "/reuse", "/green", "/news", "/fleet", "/contact", "/careers", "/usato", "/privacy", "/cookie-policy", "/termini"]);
 const isNextPath = (path) => NEXT_ROUTES.has(path) || path.startsWith("/news/") || path.startsWith("/vehicle/");
 
 const SEGMENT_KEY = "nolo:segment";
