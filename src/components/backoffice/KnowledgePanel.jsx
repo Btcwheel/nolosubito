@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 
-const CHAT_AI_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat-ai`;
-const OCR_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/ocr-document`;
+const CHAT_AI_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat-ai`;
+const OCR_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-document`;
 
 const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
@@ -39,7 +39,7 @@ async function extractTextFromFile(file, toast) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
     },
     body: JSON.stringify({ base64, mediaType: file.type }),
   });
@@ -95,7 +95,7 @@ function TrainingChat({ currentUserId, onKbUpdated }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
         },
         body: JSON.stringify({ messages: apiMessages, session_id: sessionId }),
       });

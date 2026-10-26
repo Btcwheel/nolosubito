@@ -1,13 +1,77 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronDown, Car, Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
 import VehicleCard from "../vehicles/VehicleCard";
 import { useHomeCatalog } from "@/hooks/useHomeCatalog";
-import { useHomeSegment } from "./HomeSegmentContext";
-import { useNow } from "@/lib/NowContext";
+import { supabase } from "@/lib/supabase";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 9;
+const DEFAULT_HERO_IMG = "/images/hero-800.webp";
+const HERO_WIDTHS = [480, 800, 1280];
+const HERO_SIZES = "(min-width: 1280px) 1280px, 100vw";
+const DEFAULT_HERO_SRCSET = HERO_WIDTHS.map((w) => `/images/hero-${w}.webp ${w}w`).join(", ");
+
+// Rimuove il guscio HTML dell'hero (index.html) quando l'immagine React è pronta, per non avere buchi visivi
+const dismissHeroShell = (img) => {
+  const shell = document.getElementById("hero-shell");
+  if (!shell || !img) return;
+  const remove = () => shell.remove();
+  if (img.complete && img.naturalWidth) remove();
+  else {
+    img.addEventListener("load", remove, { once: true });
+    img.addEventListener("error", remove, { once: true });
+  }
+};
+
+// srcset: varianti locali per il default, resize via ?w= per le immagini Unsplash, nessuno per altri host
+const buildHeroSrcSet = (url) => {
+  if (url === DEFAULT_HERO_IMG) return DEFAULT_HERO_SRCSET;
+  if (!url?.startsWith("https://images.unsplash.com/")) return undefined;
+  return HERO_WIDTHS.map((w) => `${url.replace(/([?&])w=\d+/, `$1w=${w}`)} ${w}w`).join(", ");
+};
+
+const TIPOLOGIA_OPTIONS = [
+  { value: "all", label: "Tutti" },
+  { value: "P.IVA", label: "Business / P.IVA" },
+  { value: "Privati", label: "Privati" },
+  { value: "Moto", label: "Moto & Scooter" },
+];
+
+const BUDGET_OPTIONS = [
+  { value: "all", label: "Tutti i prezzi" },
+  { value: "0-200", label: "Fino a €200/mese" },
+  { value: "200-400", label: "€200 – €400/mese" },
+  { value: "400-600", label: "€400 – €600/mese" },
+  { value: "600+", label: "Oltre €600/mese" },
+];
+
+const QUICK_FILTERS = ["SUV", "Berlina", "Moto", "Scooter", "Elettriche", "Ibride"];
+
+// ── Filter dropdown ───────────────────────────────────────────────────────────
+function FilterSelect({ label, value, options, onChange }) {
+  return (
+    <div className="flex flex-col gap-1 min-w-0">
+      <label className="text-[11px] font-bold text-[#2D2E82] uppercase tracking-wide px-1">{label}</label>
+      <div className="relative">
+        <select
+          value={value}
+          aria-label={label}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full appearance-none bg-white border border-gray-200 rounded-xl px-3 py-2 text-sm font-medium text-gray-800 pr-8 focus:outline-none focus:ring-2 focus:ring-navy/20 cursor-pointer"
+        >
+          {options.map(opt => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+        <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+      </div>
+    </div>
+  );
+}
+
 // ── Toggle ────────────────────────────────────────────────────────────────────
 function Toggle({ checked, onChange }) {
   return (
@@ -26,47 +90,55 @@ function Toggle({ checked, onChange }) {
   );
 }
 
-const matchesHeroAdvance = (advance, amount) => {
-  if (advance === "zero") return amount === 0;
-  if (advance === "with") return amount > 0;
-  return true;
-};
-
 // ── Main component ────────────────────────────────────────────────────────────
-// Matcher per la tipologia scelta nella hero
-const HERO_CATEGORY_MATCHERS = {
-  suv: (v) => /suv|crossover/i.test(v.category ?? ""),
-  "citycar-ibride": (v) => /city/i.test(v.category ?? "") && v.fuel_type === "Hybrid",
-  "pronta-consegna": (v) => v.is_ready_delivery === true,
-  commerciali: (v) => /commerc|furgon|van|pick/i.test(`${v.category ?? ""} ${(v.segments ?? []).join(" ")}`),
-};
-
-const matchesHeroBudget = (budget, p) => {
-  if (budget === "0-250") return p < 250;
-  if (budget === "250-350") return p >= 250 && p < 350;
-  if (budget === "350-500") return p >= 350 && p < 500;
-  if (budget === "500+") return p >= 500;
-  return true;
-};
-
-// ── Main component ────────────────────────────────────────────────────────────
-// I filtri della hero (testo, budget, anticipo, categoria) arrivano da Home; il segmento Privati/P.IVA dalla Navbar.
-export default function FeaturedVehicles({ searchText = "", heroBudget = "all", heroAdvance = "all", heroCategory = "all", resultsRef }) {
-  const { segment: tipologia } = useHomeSegment();
+export default function FeaturedVehicles() {
+  const [tipologia, setTipologia] = useState("all");
+  const [makeFilter, setMakeFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [budgetFilter, setBudgetFilter] = useState("all");
+  const [quickFilter, setQuickFilter] = useState(null);
   const [prontoConsegna, setProntoConsegna] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const resultsRef = useRef(null);
   const observerRef = useRef(null);
 
   const { data: vehicles = [], isLoading, isError, refetch } = useHomeCatalog();
-  const now = useNow();
+
+  // Hero image da CMS (fallback a Unsplash)
+  const { data: heroImg } = useQuery({
+    queryKey: ["hero-image"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("site_settings")
+        .select("value")
+        .eq("key", "hero_image")
+        .single();
+      return data?.value?.url || DEFAULT_HERO_IMG;
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const heroImage = heroImg || DEFAULT_HERO_IMG;
+
+  const categories = useMemo(
+    () => [...new Set(vehicles.map(v => v.category?.trim()).filter(Boolean))].sort(),
+    [vehicles],
+  );
+
+  const brands = useMemo(
+    () => [...new Set(vehicles.map(v => v.make?.trim().toUpperCase()).filter(Boolean))].sort(),
+    [vehicles],
+  );
 
   const MOTO_CATS = ["Moto", "Scooter", "Moto e Scooter"];
 
   const filtered = useMemo(() => {
     return vehicles
       .filter(v => {
-        // Filtro tipologia (segmento); i commerciali hanno segmenti propri
-        if (tipologia === "all" || heroCategory === "commerciali") return true;
+        // Filtro tipologia (segmento)
+        if (tipologia === "all") return true;
         const cat = v.category?.trim();
         if (tipologia === "Moto") return MOTO_CATS.includes(cat);
         // P.IVA e Privati: escludi moto, filtra per segmento
@@ -74,21 +146,42 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
         if (!v.segments || !Array.isArray(v.segments)) return tipologia === "P.IVA"; // default
         return v.segments.includes(tipologia);
       })
+      .filter(v => makeFilter === "all" || v.make?.trim().toUpperCase() === makeFilter)
+      .filter(v => categoryFilter === "all" || v.category?.trim() === categoryFilter)
+      .filter(v => {
+        if (budgetFilter === "all") return true;
+        const p = v.monthly_rent ?? 0;
+        if (budgetFilter === "0-200") return p < 200;
+        if (budgetFilter === "200-400") return p >= 200 && p < 400;
+        if (budgetFilter === "400-600") return p >= 400 && p < 600;
+        if (budgetFilter === "600+") return p >= 600;
+        return true;
+      })
+      .filter(v => {
+        if (!quickFilter) return true;
+        const cat = v.category?.trim();
+        // Moto → matcha "Moto", "Moto e Scooter"
+        if (quickFilter === "Moto") return ["Moto", "Moto e Scooter"].includes(cat);
+        // Scooter → matcha "Scooter", "Moto e Scooter"
+        if (quickFilter === "Scooter") return ["Scooter", "Moto e Scooter"].includes(cat);
+        if (quickFilter === "SUV" || quickFilter === "Berlina") return cat === quickFilter;
+        if (quickFilter === "Ibride") return v.fuel_type === "Hybrid";
+        if (quickFilter === "Elettriche") return v.fuel_type === "Electric";
+        return true;
+      })
       .filter(v => {
         if (!searchText) return true;
         const q = searchText.toLowerCase();
         return `${v.make ?? ""} ${v.model ?? ""}`.toLowerCase().includes(q);
       })
-      .filter(v => matchesHeroBudget(heroBudget, v.monthly_rent ?? 0))
-      .filter(v => matchesHeroAdvance(heroAdvance, Number(v.advance_payment) || 0))
-      .filter(v => heroCategory === "all" || (HERO_CATEGORY_MATCHERS[heroCategory]?.(v) ?? true))
       .filter(v => !prontoConsegna || v.is_ready_delivery === true)
       .sort((a, b) => {
-        const aPromo = a.promo_expires_at && new Date(a.promo_expires_at).getTime() > now ? 1 : 0;
-        const bPromo = b.promo_expires_at && new Date(b.promo_expires_at).getTime() > now ? 1 : 0;
+        const now = new Date();
+        const aPromo = a.promo_expires_at && new Date(a.promo_expires_at) > now ? 1 : 0;
+        const bPromo = b.promo_expires_at && new Date(b.promo_expires_at) > now ? 1 : 0;
         return bPromo - aPromo;
       });
-  }, [vehicles, tipologia, prontoConsegna, searchText, heroBudget, heroAdvance, heroCategory, now]);
+  }, [vehicles, makeFilter, tipologia, categoryFilter, budgetFilter, quickFilter, prontoConsegna, searchText]);
 
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   const hasMore = visibleCount < filtered.length;
@@ -98,8 +191,6 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
   useEffect(() => { hasMoreRef.current = hasMore; }, [hasMore]);
 
   const resetPage = useCallback(() => setVisibleCount(PAGE_SIZE), []);
-
-  useEffect(() => { resetPage(); }, [tipologia, searchText, heroBudget, heroAdvance, heroCategory, resetPage]);
 
   // Callback ref: il sentinel viene montato solo quando hasMore diventa true
   // (cioè dopo il caricamento dei dati). Un useEffect con deps fisse non
@@ -123,22 +214,199 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
     }
   }, []);
 
+  const handleTipologia = (v) => { setTipologia(v); resetPage(); };
+  const handleMake = (v) => { setMakeFilter(v); resetPage(); };
+  const handleCategory = (v) => { setCategoryFilter(v); resetPage(); };
+  const handleBudget = (v) => { setBudgetFilter(v); resetPage(); };
+  const handleQuick = (v) => { setQuickFilter(prev => prev === v ? null : v); resetPage(); };
+
+  const scrollToResults = () => {
+    requestAnimationFrame(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  };
 
   return (
-    <section className="bg-[#F8F9FA]">
+    <section className="bg-surface">
+
+      {/* ── HERO ───────────────────────────────── */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-4">
+        <div className="flex flex-col sm:block relative w-full">
+
+          {/* ── Immagine & Testo ── */}
+          <div className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl shadow-lg h-[300px] sm:h-[400px]">
+            <img
+              ref={dismissHeroShell}
+              src={heroImage}
+              srcSet={buildHeroSrcSet(heroImage)}
+              sizes={HERO_SIZES}
+              alt="Noleggio Lungo Termine"
+              width="1280"
+              height="533"
+              className="absolute inset-0 w-full h-full object-cover object-center"
+              loading="eager"
+              fetchPriority="high"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/60" />
+
+            <div className="absolute bottom-0 inset-x-0 px-5 sm:px-8 lg:px-10 pb-10 sm:pb-6 z-10">
+              <motion.h1
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl text-white drop-shadow-md"
+              >
+                Noleggiamo il Futuro
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="mt-1.5 sm:mt-2 max-w-md text-sm sm:text-base text-white/85 drop-shadow-md"
+              >
+                Canone chiaro, tutto incluso: zero pensieri, dovrai solo pensare a guidare.
+              </motion.p>
+            </div>
+          </div>
+
+          {/* ── Barra filtri ── */}
+          <div className="relative sm:absolute sm:top-0 sm:inset-x-0 sm:pt-12 px-2 sm:px-8 lg:px-10 z-20 mt-3 sm:mt-0">
+            <div className="bg-white sm:bg-white/65 sm:backdrop-blur-xl rounded-2xl sm:rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] sm:shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 sm:border-white/60 p-4 sm:px-5 sm:py-4">
+
+              {/* MOBILE TOGGLE HEADER */}
+              <div
+                className="sm:hidden flex items-center justify-between cursor-pointer"
+                onClick={() => setIsMobileFiltersOpen(!isMobileFiltersOpen)}
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="size-8 rounded-xl bg-[#2D2E82]/10 flex items-center justify-center">
+                    <Search className="size-4 text-[#2D2E82]" />
+                  </div>
+                  <span className="text-sm font-bold text-[#2D2E82]">Ricerca avanzata veicoli</span>
+                </div>
+                <ChevronDown className={`size-5 text-gray-500 transition-transform ${isMobileFiltersOpen ? 'rotate-180' : ''}`} />
+              </div>
+
+              <div className={`grid grid-cols-2 gap-3 sm:flex sm:flex-row items-end sm:gap-2.5 mt-4 sm:mt-0 ${isMobileFiltersOpen ? 'block' : 'hidden sm:flex'}`}>
+
+                {/* Tipologia */}
+                <div className="col-span-2 sm:col-span-1 w-full sm:w-36 shrink-0">
+                  <FilterSelect
+                    label="Tipologia"
+                    value={tipologia}
+                    options={TIPOLOGIA_OPTIONS}
+                    onChange={handleTipologia}
+                  />
+                </div>
+
+                {/* Filtro marca */}
+                <div className="col-span-2 w-full sm:flex-1 min-w-0">
+                  <FilterSelect
+                    label="Marca"
+                    value={makeFilter}
+                    options={[
+                      { value: "all", label: "Tutte le marche" },
+                      ...brands.map(b => ({ value: b, label: b })),
+                    ]}
+                    onChange={handleMake}
+                  />
+                </div>
+
+                {/* Categoria */}
+                <div className="col-span-1 w-full sm:w-44 shrink-0">
+                  <FilterSelect
+                    label="Categoria"
+                    value={categoryFilter}
+                    options={[
+                      { value: "all", label: "Tutti i veicoli" },
+                      ...categories.map(c => ({ value: c, label: c })),
+                    ]}
+                    onChange={handleCategory}
+                  />
+                </div>
+
+                {/* Budget */}
+                <div className="col-span-1 w-full sm:w-40 shrink-0">
+                  <FilterSelect
+                    label="Budget Mensile"
+                    value={budgetFilter}
+                    options={BUDGET_OPTIONS}
+                    onChange={handleBudget}
+                  />
+                </div>
+
+                {/* Ricerca testo */}
+                <div className="col-span-2 w-full sm:w-44 shrink-0">
+                  <div className="flex flex-col gap-1 min-w-0">
+                    <label className="text-[11px] font-bold text-[#2D2E82] uppercase tracking-wide px-1">Cerca</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+                      <input
+                        type="text"
+                        value={searchText}
+                        onChange={e => { setSearchText(e.target.value); resetPage(); }}
+                        placeholder="Marca o modello…"
+                        className="w-full bg-white border border-gray-200 rounded-xl pl-9 pr-3 py-2 text-sm font-medium text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-navy/20"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <div className="col-span-2 w-full sm:w-auto shrink-0 flex flex-col gap-1 mt-1 sm:mt-0">
+                  <div className="h-[19px] hidden sm:block" /> {/* spacer per allineamento */}
+                  <button
+                    type="button"
+                    onClick={() => { resetPage(); setIsMobileFiltersOpen(false); scrollToResults(); }}
+                    className="flex items-center justify-center gap-2 bg-navy hover:bg-navy/90 text-white font-bold rounded-xl px-5 py-2.5 text-sm transition-colors cursor-pointer whitespace-nowrap shadow-md"
+                  >
+                    <Car className="size-4" />
+                    Trova Offerte
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ── Filtri rapidi + toggle ────────────────────────────────────── */}
+      <div className="bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-sm text-gray-500 font-medium">Filtri rapidi:</span>
+              {QUICK_FILTERS.map(f => (
+                <button type="button"
+                  key={f}
+
+                  onClick={() => handleQuick(f)}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors cursor-pointer ${quickFilter === f
+                    ? "bg-electric text-white border-electric"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-electric/50 hover:text-navy"
+                    }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs text-[#2477A8] font-medium">Mostra solo auto in pronta consegna</span>
+              <Toggle checked={prontoConsegna} onChange={setProntoConsegna} />
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* ── Results ──────────────────────────────────────────────────── */}
-      <div ref={resultsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8 scroll-mt-24">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3">
+      <div ref={resultsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 scroll-mt-4">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3 min-h-[64px]">
           <h2 className="font-heading font-bold text-2xl sm:text-3xl text-navy">
             Migliori Offerte Noleggio Lungo Termine
           </h2>
-          <div className="flex items-center gap-4 shrink-0">
-            <div className="flex items-center gap-2.5">
-              <span className="text-xs text-[#2477A8] font-medium">Solo pronta consegna</span>
-              <Toggle checked={prontoConsegna} onChange={setProntoConsegna} />
-            </div>
-            <div className="h-[20px] min-w-[110px]">
+          <div className="h-[20px] shrink-0">
             {!isLoading && (
               <AnimatePresence mode="wait">
                 <motion.p
@@ -151,7 +419,6 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
                 </motion.p>
               </AnimatePresence>
             )}
-            </div>
           </div>
         </div>
 

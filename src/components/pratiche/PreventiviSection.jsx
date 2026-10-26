@@ -22,7 +22,7 @@ import PreventivoModal from "@/components/preventivi/PreventivoModal";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 
-const ANALYZE_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/analyze-preventivo`;
+const ANALYZE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-preventivo`;
 
 const ACCEPTED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
@@ -498,7 +498,7 @@ export default function PreventiviSection({ praticaId, clienteNome, pratica }) {
   async function analyzeFile(file) {
     const headers = {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
     };
     let body;
     let text = '';

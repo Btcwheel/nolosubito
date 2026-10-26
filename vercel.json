@@ -3165,6 +3165,22 @@
     {
       "source": "/wp-json/:path*{/}?",
       "destination": "/api/gone"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/api/robots"
+    },
+    {
+      "source": "/feed.xml",
+      "destination": "/api/feed"
+    },
+    {
+      "source": "/((?!\\.well-known/|robots\\.txt|sitemap\\.xml|feed\\.xml|llms\\.txt|favicon\\.png|og-image\\.png|assets/).*)",
+      "destination": "/app.html"
     }
   ],
   "headers": [
@@ -3263,11 +3279,11 @@
       ]
     },
     {
-      "source": "/sw.js",
+      "source": "/index.html",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
+          "value": "public, max-age=300, stale-while-revalidate=3600"
         }
       ]
     },
@@ -3292,7 +3308,5 @@
         }
       ]
     }
-  ],
-  "framework": "nextjs",
-  "buildCommand": "next build"
+  ]
 }
