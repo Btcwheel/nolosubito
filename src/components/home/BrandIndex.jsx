@@ -50,7 +50,7 @@ export default function BrandIndex({ selectedMake = "", onSelectMake }) {
   if (brands.length === 0) return null;
 
   return (
-    <section aria-labelledby="indice-marche" className="border-t border-slate-200/70 bg-white">
+    <section id="marche" aria-labelledby="indice-marche" className="scroll-mt-24 border-t border-slate-200/70 bg-white">
       <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <h2 id="indice-marche" className="font-heading text-2xl font-bold text-navy sm:text-3xl">

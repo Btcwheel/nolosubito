@@ -1,7 +1,8 @@
+import { flushSync } from "react-dom";
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { ArrowDown, X } from "lucide-react";
 import VehicleCard from "../vehicles/VehicleCard";
 import { useHomeCatalog } from "@/hooks/useHomeCatalog";
 import { useHomeSegment } from "./HomeSegmentContext";
@@ -150,7 +151,24 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
               </button>
             )}
           </div>
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3 shrink-0">
+            <a
+              href="#marche"
+              // La sezione marche sta subito dopo l'ultimo punto di caricamento: arrivandoci con la lista a metà
+              // scatterebbe il caricamento infinito e la sezione scenderebbe. Si mostrano prima tutte le schede.
+              onClick={(e) => {
+                const target = document.getElementById("marche");
+                if (!target) return;
+                e.preventDefault();
+                flushSync(() => setVisibleCount(filtered.length));
+                target.scrollIntoView({ behavior: "instant", block: "start" });
+                history.replaceState(null, "", "#marche");
+              }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#1A1F5E]/15 bg-white px-3.5 py-1.5 text-sm font-semibold text-[#1A1F5E] transition-colors hover:border-[#1A1F5E]/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#71BAED]"
+            >
+              Sfoglia per marca
+              <ArrowDown className="size-4 text-[#71BAED]" aria-hidden="true" />
+            </a>
             <div className="flex items-center gap-2.5">
               <span className="text-xs text-[#2477A8] font-medium">Solo pronta consegna</span>
               <Toggle checked={prontoConsegna} onChange={setProntoConsegna} />
