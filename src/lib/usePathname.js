@@ -9,5 +9,13 @@ import { usePathname as useNextPathname } from "next/navigation";
 export function usePathname() {
   const routerLocation = useContext(UNSAFE_LocationContext)?.location;
   const nextPathname = useNextPathname();
-  return routerLocation?.pathname ?? nextPathname ?? "/";
+  const raw = routerLocation?.pathname ?? nextPathname ?? "/";
+  return normalizePath(raw);
+}
+
+// Server e browser devono vedere la stessa stringa per "/", altrimenti l'idratazione fallisce:
+// niente slash finale e "/index" o vuoto valgono "/".
+function normalizePath(path) {
+  const clean = String(path).replace(/\/+$/, "");
+  return clean === "" || clean === "/index" ? "/" : clean;
 }

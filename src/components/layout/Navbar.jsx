@@ -75,7 +75,7 @@ export default function Navbar() {
   const linkActive = "text-[#1A1F5E] bg-[#3B82F6]/10";
 
   return (
-    <nav className="fixed top-2 sm:top-3 inset-x-2 sm:inset-x-4 z-50">
+    <nav data-pathname={String(pathname)} className="fixed top-2 sm:top-3 inset-x-2 sm:inset-x-4 z-50">
       <div className="max-w-7xl mx-auto rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm">
         <div className="flex items-center justify-between h-14 md:h-16 px-3 sm:px-5 gap-3">
           <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="Nolosubito - Home">
