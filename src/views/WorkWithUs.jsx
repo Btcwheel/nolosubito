@@ -10,6 +10,9 @@ import { Badge } from "@/components/ui/badge";
 import PartnerApplicationForm from "@/components/careers/PartnerApplicationForm";
 import DashboardPreview from "@/components/careers/DashboardPreview";
 
+// Anteprima dell'area riservata partner: nascosta per il momento. Rimettere true per riattivare sezione e pulsante.
+const SHOW_PARTNER_AREA = false;
+
 const benefits = [
   { icon: Award, title: "Mandati con i Top Player Noleggio a lungo termine", desc: "Accedi ai contratti con le migliori società di noleggio a lungo termine del mercato:  Leasys, Ayvens, Drivalia e Santander e altre." },
   { icon: BookOpen, title: "Formazione Completa", desc: "Percorso di formazione professionale su prodotti, normative fiscali, tecniche di vendita e gestione del cliente." },
@@ -79,13 +82,15 @@ export default function WorkWithUs() {
                 >
                   Diventa Partner <ArrowRight className="size-4 ml-2" />
                 </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => document.getElementById('dashboard-preview')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="h-12 px-8 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl text-base cursor-pointer"
-                >
-                  Vedi l'Area Riservata
-                </Button>
+                {SHOW_PARTNER_AREA && (
+                  <Button
+                    variant="outline"
+                    onClick={() => document.getElementById('dashboard-preview')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="h-12 px-8 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl text-base cursor-pointer"
+                  >
+                    Vedi l'Area Riservata
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -133,21 +138,23 @@ export default function WorkWithUs() {
           </div>
         </section>
 
-        {/* Dashboard Preview */}
-        <section id="dashboard-preview" className="bg-muted/40 py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <Badge className="bg-electric/10 text-electric border-electric/20 mb-4">Area Riservata Partner</Badge>
-              <h2 className="font-heading font-bold text-3xl sm:text-4xl text-foreground">
-                Il Tuo Pannello di Controllo
-              </h2>
-              <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
-                Una dashboard completa per gestire preventivi, pratiche, commissioni e formazione — tutto in un unico posto.
-              </p>
+        {/* Dashboard Preview: vedi SHOW_PARTNER_AREA */}
+        {SHOW_PARTNER_AREA && (
+          <section id="dashboard-preview" className="bg-muted/40 py-20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <Badge className="bg-electric/10 text-electric border-electric/20 mb-4">Area Riservata Partner</Badge>
+                <h2 className="font-heading font-bold text-3xl sm:text-4xl text-foreground">
+                  Il Tuo Pannello di Controllo
+                </h2>
+                <p className="mt-3 text-muted-foreground max-w-2xl mx-auto">
+                  Una dashboard completa per gestire preventivi, pratiche, commissioni e formazione — tutto in un unico posto.
+                </p>
+              </div>
+              <DashboardPreview />
             </div>
-            <DashboardPreview />
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* Process */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
