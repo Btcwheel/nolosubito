@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "@/lib/AppLink";
 import { usePathname } from "@/lib/usePathname";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, User } from "lucide-react";
 import { useHomeSegment } from "@/components/home/HomeSegmentContext";
 
 const offersDropdown = [
@@ -17,6 +17,7 @@ const offersDropdown = [
 const navLinks = [
   { label: "Come Funziona",  path: "/fleet" },
   { label: "Usato Sicuro",   path: "/usato" },
+  { label: "News",           path: "/news" },
   { label: "Sedi & Contatti", path: "/contact" },
 ];
 
@@ -35,7 +36,7 @@ function SegmentToggle({ className = "" }) {
           type="button"
           aria-pressed={segment === s.value}
           onClick={() => setSegment(s.value)}
-          className={`rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+          className={`rounded-full px-2.5 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
             segment === s.value ? "bg-[#1A1F5E] text-white shadow-sm" : "text-slate-600 hover:text-[#1A1F5E]"
           }`}
         >
@@ -76,21 +77,21 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-2 sm:top-3 inset-x-2 sm:inset-x-4 z-50">
-      <div className="max-w-7xl mx-auto rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm">
+      <div className="max-w-7xl 2xl:max-w-[88rem] mx-auto rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm">
         <div className="flex items-center justify-between h-14 md:h-16 px-3 sm:px-5 gap-3">
           <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="Nolosubito - Home">
             <img src="/logo-blu.svg" alt="Nolosubito" width="281" height="78" className="h-9 md:h-10 w-auto" />
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden xl:flex items-center gap-1">
             <div className="relative" ref={dropdownRef}>
               <button type="button"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 aria-expanded={dropdownOpen}
-                className={`flex items-center gap-1 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${isOffersActive ? linkActive : linkBase}`}
+                className={`flex items-center gap-1 whitespace-nowrap px-2.5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${isOffersActive ? linkActive : linkBase}`}
               >
-                Catalogo Auto
+                Offerte Noleggio
                 <ChevronDown className={`size-4 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`} />
               </button>
 
@@ -116,7 +117,7 @@ export default function Navbar() {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${pathname === link.path ? linkActive : linkBase}`}
+                className={`whitespace-nowrap px-2.5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${pathname === link.path ? linkActive : linkBase}`}
               >
                 {link.label}
               </Link>
@@ -127,13 +128,16 @@ export default function Navbar() {
             {isHomePage && <SegmentToggle />}
             <Link
               to="/accedi"
-              className="hidden xl:block px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-[#1A1F5E] hover:bg-slate-100 transition-colors duration-200"
+              aria-label="Area Cliente"
+              title="Area Cliente"
+              className="hidden xl:flex items-center rounded-lg p-2 text-sm font-medium text-slate-600 hover:text-[#1A1F5E] hover:bg-slate-100 transition-colors duration-200 whitespace-nowrap 2xl:px-3"
             >
-              Area Cliente
+              <User className="size-5 2xl:hidden" aria-hidden="true" />
+              <span className="hidden 2xl:inline">Area Cliente</span>
             </Link>
             <Link
               to="/contact"
-              className="rounded-full bg-[#1A1F5E] hover:bg-[#3B82F6] text-white text-sm font-semibold px-5 py-2 transition-colors duration-200 whitespace-nowrap"
+              className="rounded-full bg-[#1A1F5E] hover:bg-[#3B82F6] text-white text-sm font-semibold px-4 py-2 transition-colors duration-200 whitespace-nowrap"
             >
               Preventivo Rapido
             </Link>
@@ -141,7 +145,7 @@ export default function Navbar() {
 
           <button type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 text-[#1A1F5E]"
+            className="xl:hidden p-2 text-[#1A1F5E]"
             aria-label={isOpen ? "Chiudi menu" : "Apri menu"}
             aria-expanded={isOpen}
           >
@@ -151,7 +155,7 @@ export default function Navbar() {
 
         {/* Mobile Menu — CSS grid trick per height: 0 → auto */}
         <div
-          className={`md:hidden border-t border-slate-200 transition-all duration-200 overflow-hidden ${
+          className={`xl:hidden border-t border-slate-200 transition-all duration-200 overflow-hidden ${
             isOpen ? "opacity-100" : "opacity-0 pointer-events-none border-transparent"
           }`}
           style={{ display: "grid", gridTemplateRows: isOpen ? "1fr" : "0fr" }}
@@ -166,7 +170,7 @@ export default function Navbar() {
                   aria-expanded={mobileOffersOpen}
                   className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${isOffersActive ? linkActive : linkBase}`}
                 >
-                  Catalogo Auto
+                  Offerte Noleggio
                   <ChevronDown className={`size-4 transition-transform duration-200 ${mobileOffersOpen ? "rotate-180" : ""}`} />
                 </button>
                 <div style={{ display: "grid", gridTemplateRows: mobileOffersOpen ? "1fr" : "0fr", transition: "grid-template-rows 150ms ease" }}>
@@ -188,7 +192,7 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {[...navLinks, { label: "News", path: "/news" }, { label: "Lavora con Noi", path: "/careers" }].map((link) => (
+              {[...navLinks, { label: "Lavora con Noi", path: "/careers" }].map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
