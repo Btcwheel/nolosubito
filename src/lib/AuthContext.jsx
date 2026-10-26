@@ -272,7 +272,7 @@ export const AuthProvider = ({ children }) => {
 
   const signInWithMagicLink = async (email) => {
     const sb = await getSupabase();
-    const siteUrl = import.meta.env.VITE_SITE_URL ?? "https://nolosubito.it";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nolosubito.it";
     const { error } = await sb.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${siteUrl}/mia-pratica` },
@@ -282,7 +282,7 @@ export const AuthProvider = ({ children }) => {
 
   const sendOtp = async (email) => {
     const sb = await getSupabase();
-    const siteUrl = import.meta.env.VITE_SITE_URL ?? "https://nolosubito.it";
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nolosubito.it";
     const { error } = await sb.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: `${siteUrl}/mia-pratica` },

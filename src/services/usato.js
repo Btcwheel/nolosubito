@@ -11,8 +11,8 @@
  *     headers: { "Content-Type": "application/json" },
  *     body: JSON.stringify({
  *       grant_type: "client_credentials",
- *       client_id: import.meta.env.VITE_AS24_CLIENT_ID,
- *       client_secret: import.meta.env.VITE_AS24_CLIENT_SECRET,
+ *       client_id: process.env.NEXT_PUBLIC_AS24_CLIENT_ID,
+ *       client_secret: process.env.NEXT_PUBLIC_AS24_CLIENT_SECRET,
  *     }),
  *   });
  *   const data = await res.json();

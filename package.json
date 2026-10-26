@@ -4,17 +4,18 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "dev": "next dev",
+    "build": "next build",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
-    "preview": "vite preview",
+    "preview": "next start",
     "perf": "npx lighthouse https://nolosubito.quixel.it --output html --output-path ./lighthouse-report.html --form-factor mobile && start lighthouse-report.html",
     "perf:desktop": "npx lighthouse https://nolosubito.quixel.it --output html --output-path ./lighthouse-report-desktop.html --preset desktop && start lighthouse-report-desktop.html",
     "perf:site": "npx unlighthouse --site https://nolosubito.quixel.it",
     "index-images": "node scripts/index-gigi-images.cjs",
-    "migrate-images": "node scripts/migrate-images.cjs"
+    "migrate-images": "node scripts/migrate-images.cjs",
+    "start": "next start"
   },
   "dependencies": {
     "@fontsource/dm-mono": "^5.2.7",
@@ -69,6 +70,7 @@
     "jspdf": "^4.0.0",
     "lucide-react": "^0.475.0",
     "marked": "^18.0.5",
+    "next": "^16.4.2",
     "next-themes": "^0.4.4",
     "pdfjs-dist": "^5.7.284",
     "pdfmake": "^0.3.8",
@@ -82,6 +84,7 @@
     "react-resizable-panels": "^2.1.7",
     "react-router-dom": "^6.26.0",
     "recharts": "^2.15.4",
+    "sanitize-html": "^2.18.1",
     "sonner": "^2.0.1",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",

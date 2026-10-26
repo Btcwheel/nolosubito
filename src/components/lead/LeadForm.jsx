@@ -22,7 +22,7 @@ import {
   User, Briefcase, Building,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import Link from "@/lib/AppLink";
 
 // ─── Static data ────────────────────────────────────────────────────────────
 

@@ -1,25 +1,14 @@
-import React, { lazy, Suspense } from "react";
+import React from "react";
 import { Outlet } from "react-router-dom";
-import Navbar from "./Navbar";
-import Footer from "./Footer";
+import SiteShell from "./SiteShell";
 import ScrollToTop from "./ScrollToTop";
 
-const ChatWidget = lazy(() => import("@/components/Chat/ChatWidget"));
-const CookieBanner = lazy(() => import("@/components/CookieBanner"));
-
+// Layout delle rotte pubbliche ancora gestite dalla SPA (React Router).
 export default function AppLayout() {
   return (
-    <div className="min-h-screen flex flex-col">
+    <SiteShell>
       <ScrollToTop />
-      <Navbar />
-      <main className="flex-1 pt-16 md:pt-20">
-        <Outlet />
-      </main>
-      <Footer />
-      <Suspense fallback={null}>
-        <ChatWidget />
-        <CookieBanner />
-      </Suspense>
-    </div>
+      <Outlet />
+    </SiteShell>
   );
 }
