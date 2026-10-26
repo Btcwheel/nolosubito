@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 import VehicleCard from "../vehicles/VehicleCard";
 import { useHomeCatalog } from "@/hooks/useHomeCatalog";
 import { useHomeSegment } from "./HomeSegmentContext";
@@ -33,13 +34,17 @@ const matchesHeroAdvance = (advance, amount) => {
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
+const MOTO_CATS = ["Moto", "Scooter", "Moto e Scooter"];
+
 // Matcher per la tipologia scelta nella hero
 const HERO_CATEGORY_MATCHERS = {
   suv: (v) => /suv|crossover/i.test(v.category ?? ""),
   "citycar-ibride": (v) => /city/i.test(v.category ?? "") && v.fuel_type === "Hybrid",
-  "pronta-consegna": (v) => v.is_ready_delivery === true,
+  moto: (v) => MOTO_CATS.includes(v.category?.trim()),
   commerciali: (v) => /commerc|furgon|van|pick/i.test(`${v.category ?? ""} ${(v.segments ?? []).join(" ")}`),
 };
+
+const makeKey = (v) => (v.make ?? "").trim().toUpperCase();
 
 const matchesHeroBudget = (budget, p) => {
   if (budget === "0-250") return p < 250;
@@ -51,7 +56,7 @@ const matchesHeroBudget = (budget, p) => {
 
 // ── Main component ────────────────────────────────────────────────────────────
 // I filtri della hero (testo, budget, anticipo, categoria) arrivano da Home; il segmento Privati/P.IVA dalla Navbar.
-export default function FeaturedVehicles({ searchText = "", heroBudget = "all", heroAdvance = "all", heroCategory = "all", resultsRef }) {
+export default function FeaturedVehicles({ searchText = "", heroBudget = "all", heroAdvance = "all", heroCategory = "all", selectedMake = "", onSelectMake, resultsRef }) {
   const { segment: tipologia } = useHomeSegment();
   const [prontoConsegna, setProntoConsegna] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -60,13 +65,11 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
   const { data: vehicles = [], isLoading, isError, refetch } = useHomeCatalog();
   const now = useNow();
 
-  const MOTO_CATS = ["Moto", "Scooter", "Moto e Scooter"];
-
   const filtered = useMemo(() => {
     return vehicles
       .filter(v => {
-        // Filtro tipologia (segmento); i commerciali hanno segmenti propri
-        if (tipologia === "all" || heroCategory === "commerciali") return true;
+        // Filtro tipologia (segmento); commerciali, moto e una marca scelta dall'indice non seguono Privati/P.IVA
+        if (tipologia === "all" || heroCategory === "commerciali" || heroCategory === "moto" || selectedMake) return true;
         const cat = v.category?.trim();
         if (tipologia === "Moto") return MOTO_CATS.includes(cat);
         // P.IVA e Privati: escludi moto, filtra per segmento
@@ -79,6 +82,7 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
         const q = searchText.toLowerCase();
         return `${v.make ?? ""} ${v.model ?? ""}`.toLowerCase().includes(q);
       })
+      .filter(v => !selectedMake || makeKey(v) === selectedMake)
       .filter(v => matchesHeroBudget(heroBudget, v.monthly_rent ?? 0))
       .filter(v => matchesHeroAdvance(heroAdvance, Number(v.advance_payment) || 0))
       .filter(v => heroCategory === "all" || (HERO_CATEGORY_MATCHERS[heroCategory]?.(v) ?? true))
@@ -88,7 +92,7 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
         const bPromo = b.promo_expires_at && new Date(b.promo_expires_at).getTime() > now ? 1 : 0;
         return bPromo - aPromo;
       });
-  }, [vehicles, tipologia, prontoConsegna, searchText, heroBudget, heroAdvance, heroCategory, now]);
+  }, [vehicles, tipologia, prontoConsegna, searchText, selectedMake, heroBudget, heroAdvance, heroCategory, now]);
 
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   const hasMore = visibleCount < filtered.length;
@@ -99,7 +103,7 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
 
   const resetPage = useCallback(() => setVisibleCount(PAGE_SIZE), []);
 
-  useEffect(() => { resetPage(); }, [tipologia, searchText, heroBudget, heroAdvance, heroCategory, resetPage]);
+  useEffect(() => { resetPage(); }, [tipologia, searchText, selectedMake, heroBudget, heroAdvance, heroCategory, resetPage]);
 
   // Callback ref: il sentinel viene montato solo quando hasMore diventa true
   // (cioè dopo il caricamento dei dati). Un useEffect con deps fisse non
@@ -130,9 +134,22 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
       {/* ── Results ──────────────────────────────────────────────────── */}
       <div ref={resultsRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-8 scroll-mt-24">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3">
-          <h2 className="font-heading font-bold text-2xl sm:text-3xl text-navy">
-            Migliori Offerte Noleggio Lungo Termine
-          </h2>
+          <div>
+            <h2 className="font-heading font-bold text-2xl sm:text-3xl text-navy">
+              Migliori Offerte Noleggio Lungo Termine
+            </h2>
+            {selectedMake && (
+              <button
+                type="button"
+                onClick={() => onSelectMake?.("")}
+                className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-full border border-[#1A1F5E]/15 bg-white py-1.5 pl-3.5 pr-2.5 text-sm font-semibold text-[#1A1F5E] transition-colors hover:border-[#1A1F5E]/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#71BAED]"
+              >
+                Marca: {selectedMake}
+                <X className="size-4 text-slate-500" aria-hidden="true" />
+                <span className="sr-only">Rimuovi filtro marca</span>
+              </button>
+            )}
+          </div>
           <div className="flex items-center gap-4 shrink-0">
             <div className="flex items-center gap-2.5">
               <span className="text-xs text-[#2477A8] font-medium">Solo pronta consegna</span>

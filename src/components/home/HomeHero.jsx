@@ -23,16 +23,12 @@ export const HOME_ADVANCE_OPTIONS = [
   { value: "with", label: "Con anticipo" },
 ];
 
-// "Anticipo Zero" non è una categoria: attiva il filtro anticipo
-const ADVANCE_ZERO_TAB = "anticipo-zero";
-
 export const HOME_CATEGORIES = [
   { value: "all", label: "Tutte le Offerte" },
   { value: "suv", label: "SUV & Crossover" },
   { value: "citycar-ibride", label: "Citycar Ibride" },
-  { value: "pronta-consegna", label: "Pronta Consegna" },
-  { value: ADVANCE_ZERO_TAB, label: "Anticipo Zero" },
   { value: "commerciali", label: "Veicoli Commerciali" },
+  { value: "moto", label: "Moto e Scooter" },
 ];
 
 const MIN_SLIDES = 3;
@@ -257,16 +253,8 @@ export default function HomeHero({
   const now = useNow();
   const lineup = useMemo(() => pickLineup(vehicles, now), [vehicles, now]);
 
-  const isTabActive = (value) => (value === ADVANCE_ZERO_TAB ? advance === "zero" : category === value);
-
-  const selectTab = (value) => {
-    if (value === ADVANCE_ZERO_TAB) {
-      onAdvance(advance === "zero" ? "all" : "zero");
-      return;
-    }
-    onCategory(value);
-    if (value === "all") onAdvance("all");
-  };
+  const isTabActive = (value) => category === value;
+  const selectTab = (value) => onCategory(value);
 
   return (
     <section className="bg-[#F8F9FA] text-[#1A1F5E]">
