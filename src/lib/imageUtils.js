@@ -1,4 +1,4 @@
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 /**
  * Converte un URL pubblico Supabase Storage in un URL della Transform API.

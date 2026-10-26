@@ -19,7 +19,9 @@ import {
 const FONT_BASE = (
   typeof process !== 'undefined' && process.env?.FONT_BASE_PATH
     ? process.env.FONT_BASE_PATH
-    : '/'
+    : typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL
+      ? import.meta.env.BASE_URL
+      : '/'
 ).replace(/\/?$/, '/');
 Font.register({
   family: 'Manrope',

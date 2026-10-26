@@ -61,7 +61,7 @@ async function fetchVehicleImage(marca, modello) {
 }
 
 async function buildAssets(prev) {
-  const assetBase = '/'.replace(/\/?$/, '/');
+  const assetBase = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/');
   const [logoB64, vehicleImageB64] = await Promise.all([
     fetchAsDataUrl(`${assetBase}logo-blu.png`),
     fetchVehicleImage(prev.veicolo_marca, prev.veicolo_modello),

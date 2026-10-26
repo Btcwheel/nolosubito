@@ -71,8 +71,3 @@ public/graph-tree.html
 # Misc PDFs in public
 public/brands/*.pdf
 
-
-# Next.js
-.next
-next-env.d.ts
-*.tsbuildinfo

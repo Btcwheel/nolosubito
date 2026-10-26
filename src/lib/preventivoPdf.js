@@ -98,7 +98,7 @@ export async function scaricaPreventivoPDF(prev, clienteNome) {
  * Usato da send-preventivo-custom per allegare il PDF all'email.
  */
 export async function generaPreventivoPDFBase64(prev, clienteNome) {
-  const assetBase = '/'.replace(/\/?$/, '/');
+  const assetBase = (import.meta.env.BASE_URL || '/').replace(/\/?$/, '/');
 
   const logoB64 = (await fetchAsDataUrl(`${assetBase}logo-blu.png`)) || null;
   const vehicleImageB64 = await fetchVehicleImage(prev.veicolo_marca, prev.veicolo_modello);

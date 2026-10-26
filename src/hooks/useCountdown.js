@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { usePageVisible } from "@/hooks/usePageVisible";
-import { useServerNow } from "@/lib/NowContext";
 
-function calcRemaining(expiresAt, nowMs = Date.now()) {
-  const diff = new Date(expiresAt).getTime() - nowMs;
+function calcRemaining(expiresAt) {
+  const diff = new Date(expiresAt).getTime() - Date.now();
   if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true, totalMs: 0 };
   const totalMs = diff;
   const days    = Math.floor(diff / 86_400_000);
@@ -14,9 +13,8 @@ function calcRemaining(expiresAt, nowMs = Date.now()) {
 }
 
 export function useCountdown(expiresAt) {
-  const serverNow = useServerNow();
   const [state, setState] = useState(() =>
-    expiresAt ? calcRemaining(expiresAt, serverNow ?? Date.now()) : null
+    expiresAt ? calcRemaining(expiresAt) : null
   );
 
   const visible = usePageVisible();

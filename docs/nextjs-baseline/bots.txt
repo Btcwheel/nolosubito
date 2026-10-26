@@ -1,8 +1,0 @@
-Mozilla/5.0    /                          9064B  h1=1 jsonld=1
-Mozilla/5.0    /vehicle/FIAT/PANDINA      6275B  h1=0 jsonld=1
-Googlebot/2.1  /                          9064B  h1=1 jsonld=1
-Googlebot/2.1  /vehicle/FIAT/PANDINA      6275B  h1=0 jsonld=1
-GPTBot/1.1     /                          9064B  h1=1 jsonld=1
-GPTBot/1.1     /vehicle/FIAT/PANDINA      6275B  h1=0 jsonld=1
-ClaudeBot/1.0  /                          9064B  h1=1 jsonld=1
-ClaudeBot/1.0  /vehicle/FIAT/PANDINA      6275B  h1=0 jsonld=1

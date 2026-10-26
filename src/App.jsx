@@ -10,35 +10,36 @@ import ProtectedRoute from './components/ProtectedRoute';
 import CanonicalLink from '@/lib/CanonicalLink';
 
 // Lazy loading — ogni pagina è un chunk separato
-const Home             = lazy(() => import('./views/Home'));
-const HeroCompare      = lazy(() => import('./views/HeroCompare'));
-const BusinessOffers   = lazy(() => import('./views/BusinessOffers'));
-const FleetSolutions   = lazy(() => import('./views/FleetSolutions'));
-const GreenMobility    = lazy(() => import('./views/GreenMobility'));
-const Contact          = lazy(() => import('./views/Contact'));
-const PrivateOffers    = lazy(() => import('./views/PrivateOffers'));
-const WorkWithUs       = lazy(() => import('./views/WorkWithUs'));
-const CommercialOffers = lazy(() => import('./views/CommercialOffers'));
-const News             = lazy(() => import('./views/News'));
-const NewsDetail       = lazy(() => import('./views/NewsDetail'));
-const Usato            = lazy(() => import('./views/Usato'));
-const MotoOffers       = lazy(() => import('./views/MotoOffers'));
-const ReuseOffers      = lazy(() => import('./views/ReuseOffers'));
-const PrivacyPolicy    = lazy(() => import('./views/PrivacyPolicy'));
-const CookiePolicy     = lazy(() => import('./views/CookiePolicy'));
-const TerminiCondizioni = lazy(() => import('./views/TerminiCondizioni'));
-const Login            = lazy(() => import('./views/Login'));
-const PasswordReset    = lazy(() => import('./views/PasswordReset'));
-const MagicLinkReply   = lazy(() => import('./views/MagicLinkReply'));
-const AdminDashboard      = lazy(() => import('./views/AdminDashboard'));
-const AdminLeads          = lazy(() => import('./views/AdminLeads'));
-const AgenteDashboard     = lazy(() => import('./views/AgenteDashboard'));
-const AgenteMateriali     = lazy(() => import('./views/AgenteMateriali'));
-const BackofficeDashboard = lazy(() => import('./views/BackofficeDashboard'));
-const PraticaDetail       = lazy(() => import('./views/PraticaDetail'));
-const MiaPratica          = lazy(() => import('./views/MiaPratica'));
-const PrintPreventivo     = lazy(() => import('./views/PrintPreventivo'));
-const CmsDashboard        = lazy(() => import('./views/CmsDashboard'));
+const Home             = lazy(() => import('./pages/Home'));
+const HeroCompare      = lazy(() => import('./pages/HeroCompare'));
+const BusinessOffers   = lazy(() => import('./pages/BusinessOffers'));
+const VehicleDetail    = lazy(() => import('./pages/VehicleDetail'));
+const FleetSolutions   = lazy(() => import('./pages/FleetSolutions'));
+const GreenMobility    = lazy(() => import('./pages/GreenMobility'));
+const Contact          = lazy(() => import('./pages/Contact'));
+const PrivateOffers    = lazy(() => import('./pages/PrivateOffers'));
+const WorkWithUs       = lazy(() => import('./pages/WorkWithUs'));
+const CommercialOffers = lazy(() => import('./pages/CommercialOffers'));
+const News             = lazy(() => import('./pages/News'));
+const NewsDetail       = lazy(() => import('./pages/NewsDetail'));
+const Usato            = lazy(() => import('./pages/Usato'));
+const MotoOffers       = lazy(() => import('./pages/MotoOffers'));
+const ReuseOffers      = lazy(() => import('./pages/ReuseOffers'));
+const PrivacyPolicy    = lazy(() => import('./pages/PrivacyPolicy'));
+const CookiePolicy     = lazy(() => import('./pages/CookiePolicy'));
+const TerminiCondizioni = lazy(() => import('./pages/TerminiCondizioni'));
+const Login            = lazy(() => import('./pages/Login'));
+const PasswordReset    = lazy(() => import('./pages/PasswordReset'));
+const MagicLinkReply   = lazy(() => import('./pages/MagicLinkReply'));
+const AdminDashboard      = lazy(() => import('./pages/AdminDashboard'));
+const AdminLeads          = lazy(() => import('./pages/AdminLeads'));
+const AgenteDashboard     = lazy(() => import('./pages/AgenteDashboard'));
+const AgenteMateriali     = lazy(() => import('./pages/AgenteMateriali'));
+const BackofficeDashboard = lazy(() => import('./pages/BackofficeDashboard'));
+const PraticaDetail       = lazy(() => import('./pages/PraticaDetail'));
+const MiaPratica          = lazy(() => import('./pages/MiaPratica'));
+const PrintPreventivo     = lazy(() => import('./pages/PrintPreventivo'));
+const CmsDashboard        = lazy(() => import('./pages/CmsDashboard'));
 const PageNotFound        = lazy(() => import('./lib/PageNotFound'));
 
 const PageLoader = () => (
@@ -82,6 +83,7 @@ const AppRoutes = () => {
           <Route path="/"                     element={<Home />} />
           <Route path="/hero-compare"         element={<HeroCompare />} />
           <Route path="/offers"               element={<BusinessOffers />} />
+          <Route path="/vehicle/:make/:model" element={<VehicleDetail />} />
           <Route path="/fleet"                element={<FleetSolutions />} />
           <Route path="/green"                element={<GreenMobility />} />
           <Route path="/contact"              element={<Contact />} />

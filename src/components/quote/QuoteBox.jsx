@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import Link from "@/lib/AppLink";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Calculator, Info, CheckCircle2, Shield, Clock } from "lucide-react";
@@ -87,7 +87,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
   // ── Data ──────────────────────────────────────────────────────────────────
   const { data: vehicles = [] } = useQuery({
     queryKey: ["offers-list"],
-    queryFn: () => offersService.list(),
+    queryFn: offersService.list,
     staleTime: 5 * 60 * 1000,
   });
 

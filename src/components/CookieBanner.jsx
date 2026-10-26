@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { LazyMotion, m, domAnimation, AnimatePresence } from "framer-motion";
-import Link from "@/lib/AppLink";
+import { Link } from "react-router-dom";
 import { Cookie, X, Check, Settings } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 

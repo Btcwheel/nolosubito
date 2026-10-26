@@ -1,10 +1,7 @@
-"use client";
-
 import React, { useState, useEffect, useRef } from "react";
-import Link from "@/lib/AppLink";
-import { usePathname } from "@/lib/usePathname";
+import { Link, useLocation } from "react-router-dom";
 import { Menu, X, ChevronDown } from "lucide-react";
-import { useHomeSegment } from "@/components/home/HomeSegmentContext";
+import { Button } from "@/components/ui/button";
 
 const offersDropdown = [
   { label: "Offerte Business",     path: "/offers",          desc: "P.IVA e aziende" },
@@ -15,49 +12,41 @@ const offersDropdown = [
 ];
 
 const navLinks = [
-  { label: "Come Funziona",  path: "/fleet" },
+  { label: "Home",           path: "/" },
+  { label: "News",           path: "/news" },
   { label: "Usato Sicuro",   path: "/usato" },
-  { label: "Sedi & Contatti", path: "/contact" },
+  { label: "Lavora con Noi", path: "/careers" },
+  { label: "Contatti",       path: "/contact" },
 ];
-
-const SEGMENTS = [
-  { value: "Privati", label: "Privati (IVA inclusa)" },
-  { value: "P.IVA",   label: "P.IVA & Flotte" },
-];
-
-function SegmentToggle({ className = "" }) {
-  const { segment, setSegment } = useHomeSegment();
-  return (
-    <div role="group" aria-label="Tipo di cliente" className={`inline-flex rounded-full bg-slate-100 p-0.5 ${className}`}>
-      {SEGMENTS.map((s) => (
-        <button
-          key={s.value}
-          type="button"
-          aria-pressed={segment === s.value}
-          onClick={() => setSegment(s.value)}
-          className={`rounded-full px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
-            segment === s.value ? "bg-[#1A1F5E] text-white shadow-sm" : "text-slate-600 hover:text-[#1A1F5E]"
-          }`}
-        >
-          {s.label}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 export default function Navbar() {
-  const [isOpen, setIsOpen]             = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isOpen, setIsOpen]               = useState(false);
+  const [scrolled, setScrolled]           = useState(false);
+  const [dropdownOpen, setDropdownOpen]   = useState(false);
   const [mobileOffersOpen, setMobileOffersOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const pathname = usePathname();
-  const isHomePage = pathname === "/";
+  const location = useLocation();
+
+  useEffect(() => {
+    let rafId = null;
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 20);
+        rafId = null;
+      });
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, []);
 
   useEffect(() => {
     setIsOpen(false);
     setDropdownOpen(false);
-  }, [pathname]);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -69,54 +58,83 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isOffersActive = offersDropdown.some(o => pathname === o.path);
+  const isOffersActive = offersDropdown.some(o => location.pathname === o.path);
+  const isHomePage = location.pathname === "/";
+  const isLight = scrolled && !isHomePage;
 
-  const linkBase   = "text-slate-600 hover:text-[#1A1F5E] hover:bg-slate-100";
-  const linkActive = "text-[#1A1F5E] bg-[#3B82F6]/10";
+  const navBg = scrolled
+    ? isHomePage
+      ? "bg-navy/95 backdrop-blur-md shadow-lg"
+      : "bg-white/95 backdrop-blur-md shadow-sm"
+    : "bg-navy";
+
+  const linkBase     = isLight ? "text-navy/70 hover:text-navy hover:bg-navy/5" : "text-white/80 hover:text-white hover:bg-white/10";
+  const linkActive   = isLight ? "text-navy" : "text-electric";
+  const linkActiveBg = isLight ? `${linkActive} bg-navy/8` : `${linkActive} bg-white/10`;
 
   return (
-    <nav className="fixed top-2 sm:top-3 inset-x-2 sm:inset-x-4 z-50">
-      <div className="max-w-7xl mx-auto rounded-2xl border border-slate-200 bg-white/80 backdrop-blur-md shadow-sm">
-        <div className="flex items-center justify-between h-14 md:h-16 px-3 sm:px-5 gap-3">
-          <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="Nolosubito - Home">
-            <img src="/logo-blu.svg" alt="Nolosubito" width="281" height="78" className="h-9 md:h-10 w-auto" />
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${navBg}`}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 md:h-20">
+          <Link to="/" className="flex items-center group">
+            <img
+              src="/logo-bianco.png"
+              alt="Nolosubito"
+              width="160"
+              height="40"
+              className="h-10 w-auto object-contain transition-all duration-300"
+              style={isLight ? { filter: "brightness(0) saturate(100%) invert(20%) sepia(90%) saturate(1500%) hue-rotate(215deg) brightness(75%)" } : undefined}
+            />
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1">
+            <Link
+              to="/"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${location.pathname === "/" ? linkActiveBg : linkBase}`}
+            >
+              Home
+            </Link>
+
+            {/* Offerte Dropdown — CSS-only animation */}
             <div className="relative" ref={dropdownRef}>
               <button type="button"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                aria-expanded={dropdownOpen}
-                className={`flex items-center gap-1 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${isOffersActive ? linkActive : linkBase}`}
+                className={`flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${isOffersActive ? linkActive : linkBase}`}
               >
-                Catalogo Auto
+                Offerte Noleggio
                 <ChevronDown className={`size-4 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`} />
               </button>
 
               <div
-                className={`absolute top-full left-0 mt-2 w-60 rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden transition-all duration-150 origin-top ${
+                className={`absolute top-full left-0 mt-2 w-56 backdrop-blur-md rounded-xl shadow-2xl overflow-hidden z-50 border transition-all duration-150 origin-top ${
                   dropdownOpen ? "opacity-100 scale-y-100 translate-y-0 pointer-events-auto" : "opacity-0 scale-y-95 -translate-y-1 pointer-events-none"
-                }`}
+                } ${isLight ? "bg-white border-border" : "bg-navy border-white/10"}`}
               >
                 {offersDropdown.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`block px-4 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors duration-200 ${pathname === item.path ? "bg-slate-50" : ""}`}
+                    className={`block px-4 py-3 transition-colors duration-200 border-b last:border-0 ${
+                      isLight
+                        ? `border-border/50 hover:bg-muted/50 ${location.pathname === item.path ? "bg-muted" : ""}`
+                        : `border-white/5 hover:bg-white/5 ${location.pathname === item.path ? "bg-white/10" : ""}`
+                    }`}
                   >
-                    <p className={`text-sm font-medium ${pathname === item.path ? "text-[#3B82F6]" : "text-slate-800"}`}>{item.label}</p>
-                    <p className="text-xs mt-0.5 text-slate-500">{item.desc}</p>
+                    <p className={`text-sm font-medium ${location.pathname === item.path ? linkActive : isLight ? "text-foreground" : "text-white"}`}>
+                      {item.label}
+                    </p>
+                    <p className={`text-xs mt-0.5 ${isLight ? "text-muted-foreground" : "text-white/40"}`}>{item.desc}</p>
                   </Link>
                 ))}
               </div>
             </div>
 
-            {navLinks.map((link) => (
+            {navLinks.slice(1).map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`px-3.5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${pathname === link.path ? linkActive : linkBase}`}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${location.pathname === link.path ? linkActive : linkBase}`}
               >
                 {link.label}
               </Link>
@@ -124,91 +142,101 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            {isHomePage && <SegmentToggle />}
             <Link
               to="/accedi"
-              className="hidden xl:block px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-[#1A1F5E] hover:bg-slate-100 transition-colors duration-200"
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                isLight ? "text-foreground/60 hover:text-foreground hover:bg-black/5" : "text-white/70 hover:text-white hover:bg-white/10"
+              }`}
             >
               Area Cliente
             </Link>
-            <Link
-              to="/contact"
-              className="rounded-full bg-[#1A1F5E] hover:bg-[#3B82F6] text-white text-sm font-semibold px-5 py-2 transition-colors duration-200 whitespace-nowrap"
-            >
-              Preventivo Rapido
+            <Link to="/contact">
+              <Button className="bg-electric hover:bg-electric/90 text-white font-semibold px-6 rounded-lg cursor-pointer">
+                Richiedi Preventivo
+              </Button>
             </Link>
           </div>
 
           <button type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 text-[#1A1F5E]"
+            className={`md:hidden p-2 ${isLight ? "text-foreground" : "text-white"}`}
             aria-label={isOpen ? "Chiudi menu" : "Apri menu"}
-            aria-expanded={isOpen}
           >
             {isOpen ? <X className="size-6" /> : <Menu className="size-6" />}
           </button>
         </div>
+      </div>
 
-        {/* Mobile Menu — CSS grid trick per height: 0 → auto */}
-        <div
-          className={`md:hidden border-t border-slate-200 transition-all duration-200 overflow-hidden ${
-            isOpen ? "opacity-100" : "opacity-0 pointer-events-none border-transparent"
-          }`}
-          style={{ display: "grid", gridTemplateRows: isOpen ? "1fr" : "0fr" }}
-        >
-          <div className="overflow-hidden">
-            <div className="px-3 py-3 space-y-1">
-              {isHomePage && <SegmentToggle className="w-full justify-center mb-2" />}
+      {/* Mobile Menu — CSS grid trick per height: 0 → auto */}
+      <div
+        className={`md:hidden backdrop-blur-md border-t transition-all duration-200 overflow-hidden ${
+          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        } ${isLight ? "bg-white/98 border-border" : "bg-navy/98 border-white/10"}`}
+        style={{ display: "grid", gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          <div className="px-4 py-4 space-y-1">
+            <Link
+              to="/"
+              className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${location.pathname === "/" ? linkActiveBg : linkBase}`}
+            >
+              Home
+            </Link>
 
-              <div>
-                <button type="button"
-                  onClick={() => setMobileOffersOpen(!mobileOffersOpen)}
-                  aria-expanded={mobileOffersOpen}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${isOffersActive ? linkActive : linkBase}`}
-                >
-                  Catalogo Auto
-                  <ChevronDown className={`size-4 transition-transform duration-200 ${mobileOffersOpen ? "rotate-180" : ""}`} />
-                </button>
-                <div style={{ display: "grid", gridTemplateRows: mobileOffersOpen ? "1fr" : "0fr", transition: "grid-template-rows 150ms ease" }}>
-                  <div className="overflow-hidden ml-4 mt-1 border-l border-slate-200 pl-3">
-                    <div className="space-y-1 py-1">
-                      {offersDropdown.map((item) => (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                            pathname === item.path ? "text-[#3B82F6]" : "text-slate-600 hover:text-[#1A1F5E]"
-                          }`}
-                        >
-                          {item.label}
-                        </Link>
-                      ))}
-                    </div>
+            {/* Mobile Offerte accordion */}
+            <div>
+              <button type="button"
+                onClick={() => setMobileOffersOpen(!mobileOffersOpen)}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 cursor-pointer ${isOffersActive ? linkActiveBg : linkBase}`}
+              >
+                Offerte Noleggio
+                <ChevronDown className={`size-4 transition-transform duration-200 ${mobileOffersOpen ? "rotate-180" : ""}`} />
+              </button>
+              <div
+                style={{ display: "grid", gridTemplateRows: mobileOffersOpen ? "1fr" : "0fr", transition: "grid-template-rows 150ms ease" }}
+              >
+                <div className={`overflow-hidden ml-4 mt-1 border-l pl-3 ${isLight ? "border-border" : "border-white/10"}`}>
+                  <div className="space-y-1 py-1">
+                    {offersDropdown.map((item) => (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                          location.pathname === item.path ? linkActive : isLight ? "text-foreground/60 hover:text-foreground" : "text-white/60 hover:text-white"
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
                   </div>
                 </div>
               </div>
+            </div>
 
-              {[...navLinks, { label: "News", path: "/news" }, { label: "Lavora con Noi", path: "/careers" }].map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${pathname === link.path ? linkActive : linkBase}`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+            {navLinks.slice(1).map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors duration-200 ${location.pathname === link.path ? linkActiveBg : linkBase}`}
+              >
+                {link.label}
+              </Link>
+            ))}
 
-              <div className="pt-2 space-y-2">
-                <Link to="/accedi" className="block px-4 py-3 rounded-lg text-sm font-medium text-slate-600 hover:text-[#1A1F5E] transition-colors">
-                  Area Cliente
-                </Link>
-                <Link
-                  to="/contact"
-                  className="block text-center rounded-full bg-[#1A1F5E] hover:bg-[#3B82F6] text-white text-sm font-semibold px-5 py-3 transition-colors"
-                >
-                  Preventivo Rapido
-                </Link>
-              </div>
+            <div className="pt-2 space-y-2">
+              <Link
+                to="/accedi"
+                className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                  isLight ? "text-foreground/60 hover:text-foreground" : "text-white/70 hover:text-white"
+                }`}
+              >
+                Area Cliente
+              </Link>
+              <Link to="/contact">
+                <Button className="w-full bg-electric hover:bg-electric/90 text-white font-semibold rounded-lg cursor-pointer">
+                  Richiedi Preventivo
+                </Button>
+              </Link>
             </div>
           </div>
         </div>

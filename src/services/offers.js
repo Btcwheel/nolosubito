@@ -68,8 +68,8 @@ async function uploadVehicleImage(file, make, model) {
 
 export const offersService = {
   // Catalogo veicoli
-  async list(client = supabase) {
-    const { data, error } = await client
+  async list() {
+    const { data, error } = await supabase
       .from('offers')
       .select('*')
       .order('created_at', { ascending: false });
@@ -77,8 +77,8 @@ export const offersService = {
     return data;
   },
 
-  async getByMakeModel(make, model, client = supabase) {
-    const { data, error } = await client
+  async getByMakeModel(make, model) {
+    const { data, error } = await supabase
       .from('offers')
       .select('*')
       .eq('make', make)
@@ -89,12 +89,12 @@ export const offersService = {
 
     // Nel DB make/model sono in maiuscolo ("ABARTH"/"500"), ma sitemap, canonical e redirect del vecchio
     // sito usano lo slug minuscolo ("abarth"/"500"): senza questo fallback quegli URL mostravano un 404.
-    const { data: rows, error: listError } = await client.from('offers').select('id, make, model');
+    const { data: rows, error: listError } = await supabase.from('offers').select('id, make, model');
     if (listError) throw listError;
     const slug = (s) => String(s).trim().toLowerCase().replace(/\s+/g, '-');
     const match = rows.find((r) => slug(r.make) === slug(make) && slug(r.model) === slug(model));
-    if (!match) throw Object.assign(new Error('Veicolo non trovato'), { code: 'NOT_FOUND' });
-    const { data: offer, error: offerError } = await client.from('offers').select('*').eq('id', match.id).single();
+    if (!match) throw new Error('Veicolo non trovato');
+    const { data: offer, error: offerError } = await supabase.from('offers').select('*').eq('id', match.id).single();
     if (offerError) throw offerError;
     return offer;
   },
@@ -131,8 +131,8 @@ export const offersService = {
   },
 
   // Configurazioni prezzi QuoteBox
-  async getConfigs(make, model, client = supabase) {
-    const { data, error } = await client
+  async getConfigs(make, model) {
+    const { data, error } = await supabase
       .from('offer_configs')
       .select('*')
       .eq('make', make)
@@ -237,8 +237,7 @@ export const offersService = {
   //     e NON fanno listing nelle pagine Privati/P.IVA: un veicolo ReUse sta SOLO in /reuse.
   //   - array:  lista esplicita di segmenti. Utile per /reuse che mostra tutte le varianti.
   //   - null/undefined: tutti i segmenti.
-  // `client`: di default il client del browser; il server (ISR) passa un client senza sessione.
-  async listWithMinPrice(segmentOrSegments, client = supabase) {
+  async listWithMinPrice(segmentOrSegments) {
     const normKey = (make, model) => `${make?.trim().toUpperCase()}|${model?.trim().toUpperCase()}`;
 
     // Segmenti di listing (mutuamente esclusivi). Le varianti ReUse-Privati /
@@ -260,8 +259,8 @@ export const offersService = {
     }
 
     const [offersRes, pricesRes] = await Promise.all([
-      client.from('offers').select('*').eq('is_active', true).order('make'),
-      client.rpc('get_vehicle_prices', segments ? { p_segments: segments } : {}),
+      supabase.from('offers').select('*').eq('is_active', true).order('make'),
+      supabase.rpc('get_vehicle_prices', segments ? { p_segments: segments } : {}),
     ]);
 
     if (offersRes.error) throw offersRes.error;
