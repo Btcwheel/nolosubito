@@ -16,7 +16,7 @@ const SHOW_PARTNER_AREA = false;
 const benefits = [
   { icon: Award, title: "Mandati con i Top Player Noleggio a lungo termine", desc: "Accedi ai contratti con le migliori società di noleggio a lungo termine del mercato:  Leasys, Ayvens, Drivalia e Santander e altre." },
   { icon: BookOpen, title: "Formazione Completa", desc: "Percorso di formazione professionale su prodotti, normative fiscali, tecniche di vendita e gestione del cliente." },
-  { icon: FileText, title: "Gestione Pratiche Digitale", desc: "Area riservata con tutti gli strumenti per gestire preventivi, pratiche e contratti in modo semplice e veloce." },
+  { icon: FileText, title: "Gestione Pratiche Digitale", desc: "Strumenti digitali per gestire preventivi, pratiche e contratti in modo semplice e veloce." },
   { icon: TrendingUp, title: "Commissioni Competitive", desc: "Struttura commissionale trasparente e vantaggiosa. Guadagni crescenti al crescere del tuo portafoglio clienti." },
   { icon: ShieldCheck, title: "Supporto Dedicato", desc: "Un account manager Nolosubito sempre a disposizione per supportarti nelle trattative e nelle pratiche più complesse." },
   { icon: Users, title: "Network di Professionisti", desc: "Entra in una community di agenti e consulenti Noleggio Lungo Termine. Condividi best practice e fai crescere il tuo business." },
@@ -26,12 +26,12 @@ const steps = [
   { num: "01", title: "Compila il Form", desc: "Inserisci i tuoi dati e il tuo profilo professionale. Ti ricontattiamo entro 48 ore." },
   { num: "02", title: "Colloquio Conoscitivo", desc: "Una call con il nostro team per capire le tue esigenze e presentarti le opportunità." },
   
-  { num: "03", title: "Onboarding & Formazione", desc: "Attivazione dei mandati, accesso all'area riservata e percorso di formazione iniziale." },
+  { num: "03", title: "Onboarding & Formazione", desc: "Attivazione dei mandati e percorso di formazione iniziale." },
   { num: "04", title: "Inizia a Guadagnare", desc: "Proponi le soluzioni Noleggio Lungo Termine ai tuoi clienti con tutto il supporto Nolosubito al tuo fianco." },
 ];
 
 const testimonials = [
-  { name: "Marco T.", role: "Agente Indipendente, Milano", text: "In 6 mesi ho chiuso 40 contratti Noleggio Lungo Termine grazie ai mandati e al supporto di Nolosubito. L'area riservata mi ha cambiato la vita.", rating: 5 },
+  { name: "Marco T.", role: "Agente Indipendente, Milano", text: "In 6 mesi ho chiuso 40 contratti Noleggio Lungo Termine grazie ai mandati e al supporto di Nolosubito.", rating: 5 },
   { name: "Silvia R.", role: "Titolare Agenzia Auto, Roma", desc: "Ho ampliato il mio business con il noleggio a lungo termine senza investire nulla. Nolosubito gestisce tutto.", text: "Ho ampliato il mio business con il noleggio a lungo termine senza investire nulla. Nolosubito gestisce tutto.", rating: 5 },
   { name: "Luca M.", role: "Consulente Aziendale, Torino", text: "La formazione è stata eccellente. Ora offro Noleggio Lungo Termine alle mie aziende clienti e genero revenue extra ogni mese.", rating: 5 },
 ];
