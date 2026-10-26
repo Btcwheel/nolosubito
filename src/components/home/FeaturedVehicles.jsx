@@ -7,6 +7,7 @@ import VehicleCard from "../vehicles/VehicleCard";
 import { useHomeCatalog } from "@/hooks/useHomeCatalog";
 import { useHomeSegment } from "./HomeSegmentContext";
 import { useNow } from "@/lib/NowContext";
+import { MOTO_CATEGORIES as MOTO_CATS, isPromoLive, promoMatchesSegment } from "@/lib/homePromo";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 9;
@@ -35,7 +36,6 @@ const matchesHeroAdvance = (advance, amount) => {
 };
 
 // ── Main component ────────────────────────────────────────────────────────────
-const MOTO_CATS = ["Moto", "Scooter", "Moto e Scooter"];
 
 // Matcher per la tipologia scelta nella hero
 const HERO_CATEGORY_MATCHERS = {
@@ -89,8 +89,9 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
       .filter(v => heroCategory === "all" || (HERO_CATEGORY_MATCHERS[heroCategory]?.(v) ?? true))
       .filter(v => !prontoConsegna || v.is_ready_delivery === true)
       .sort((a, b) => {
-        const aPromo = a.promo_expires_at && new Date(a.promo_expires_at).getTime() > now ? 1 : 0;
-        const bPromo = b.promo_expires_at && new Date(b.promo_expires_at).getTime() > now ? 1 : 0;
+        // In testa le promo a tempo valide per il segmento scelto
+        const aPromo = isPromoLive(a, now) && promoMatchesSegment(a, tipologia) ? 1 : 0;
+        const bPromo = isPromoLive(b, now) && promoMatchesSegment(b, tipologia) ? 1 : 0;
         return bPromo - aPromo;
       });
   }, [vehicles, tipologia, prontoConsegna, searchText, selectedMake, heroBudget, heroAdvance, heroCategory, now]);

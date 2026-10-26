@@ -8,6 +8,7 @@ import { useHomeSegment } from "./HomeSegmentContext";
 import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing";
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { getOptimizedSrc } from "@/lib/imageUtils";
+import { isPromoLive, promoMatchesSegment, matchesSegment } from "@/lib/homePromo";
 
 export const HOME_BUDGET_OPTIONS = [
   { value: "all", label: "Tutti" },
@@ -35,18 +36,17 @@ const MIN_SLIDES = 3;
 const MAX_SLIDES = 6;
 const SLIDE_MS = 6000;
 
-const isPromoActive = (v, now) => v.promo_expires_at && new Date(v.promo_expires_at).getTime() > now;
-
-// Le offerte a tempo che scadono per prime; se sono meno di tre completa con le pronta consegna più convenienti
-function pickLineup(vehicles, now) {
+// Le offerte a tempo del segmento scelto che scadono per prime; se sono meno di tre completa con le
+// pronta consegna più convenienti dello stesso segmento (quando una promo finisce, scala il resto)
+function pickLineup(vehicles, now, segment) {
   const promos = vehicles
-    .filter((v) => isPromoActive(v, now) && v.monthly_rent)
+    .filter((v) => isPromoLive(v, now) && promoMatchesSegment(v, segment) && v.monthly_rent)
     .sort((a, b) => new Date(a.promo_expires_at) - new Date(b.promo_expires_at))
     .slice(0, MAX_SLIDES);
   if (promos.length >= MIN_SLIDES) return promos;
   const taken = new Set(promos.map((v) => v.id));
   const fill = vehicles
-    .filter((v) => !taken.has(v.id) && v.is_ready_delivery && v.monthly_rent)
+    .filter((v) => !taken.has(v.id) && v.is_ready_delivery && v.monthly_rent && matchesSegment(v, segment))
     .sort((a, b) => a.monthly_rent - b.monthly_rent)
     .slice(0, MIN_SLIDES - promos.length);
   return [...promos, ...fill];
@@ -63,7 +63,7 @@ function slideInfo(vehicle, segment) {
     vehicleCategory: vehicle.category,
     vehicleSegments: vehicle.segments || [],
   };
-  const discountPct = isPromoActive(vehicle) ? Number(vehicle.promo_discount_pct) || 0 : 0;
+  const discountPct = isPromoLive(vehicle) && promoMatchesSegment(vehicle, segment) ? Number(vehicle.promo_discount_pct) || 0 : 0;
   const listPrice = formatDisplayedRent(vehicle.monthly_rent, pricing);
   const price = discountPct > 0
     ? formatDisplayedRent(Math.round(vehicle.monthly_rent * (1 - discountPct / 100)), pricing)
@@ -89,7 +89,8 @@ function Unit({ value, label }) {
 // Slide: foto a tutto banner, canone su una targa, conto alla rovescia in basso
 function PromoSlide({ vehicle, segment, first }) {
   const cd = useCountdown(vehicle.promo_expires_at);
-  const live = cd && !cd.expired;
+  // Timer e sconto solo se la promo vale per il segmento scelto; altrimenti è una normale pronta consegna
+  const live = cd && !cd.expired && vehicle.promo_active !== false && promoMatchesSegment(vehicle, segment);
   const { name, price, listPrice, discountPct } = slideInfo(vehicle, segment);
 
   return (
@@ -156,6 +157,10 @@ function Lineup({ vehicles, segment, loading }) {
   }, []);
   const touchX = useRef(null);
   const count = vehicles.length;
+
+  // Se cambiano le offerte (toggle Privati/P.IVA, promo scaduta) si riparte dalla prima
+  const lineupKey = vehicles.map((v) => v.id).join(",");
+  useEffect(() => { setIndex(0); }, [lineupKey]);
 
   if (loading && count === 0) {
     return <div className="aspect-[4/3] animate-pulse rounded-2xl bg-slate-200 sm:aspect-[16/10]" aria-hidden="true" />;
@@ -250,8 +255,15 @@ export default function HomeHero({
 }) {
   const { data: vehicles = [], isLoading } = useHomeCatalog();
   const { segment } = useHomeSegment();
-  const now = useNow();
-  const lineup = useMemo(() => pickLineup(vehicles, now), [vehicles, now]);
+  const startNow = useNow();
+  // L'ora avanza da sola: una promo che scade mentre la pagina è aperta esce dal carosello
+  const [now, setNow] = useState(startNow);
+  useEffect(() => {
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  const lineup = useMemo(() => pickLineup(vehicles, now, segment), [vehicles, now, segment]);
 
   const isTabActive = (value) => category === value;
   const selectTab = (value) => onCategory(value);

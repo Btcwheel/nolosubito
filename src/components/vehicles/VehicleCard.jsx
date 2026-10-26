@@ -9,6 +9,7 @@ import { getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
 import { formatDisplayedRent, formatAdvanceAmount, isVatIncludedForDisplay, resolvePricingSegment } from "@/lib/vehiclePricing";
 import { useCountdown } from "@/hooks/useCountdown";
 import { useNow } from "@/lib/NowContext";
+import { isPromoLive, promoMatchesSegment } from "@/lib/homePromo";
 
 const FUEL_IT = {
   Electric: "Elettrica",
@@ -130,10 +131,9 @@ const VehicleCard = memo(function VehicleCard({ vehicle, index = 0, segment, com
 
   // Promo
   const now = useNow();
-  const isInPromo = !!(
-    vehicle.promo_expires_at &&
-    new Date(vehicle.promo_expires_at).getTime() > now
-  );
+  // La promo vale per il segmento indicato nel CMS; il filtro vale solo per il toggle Privati/P.IVA della home
+  const isToggleSegment = segment === "Privati" || segment === "P.IVA";
+  const isInPromo = isPromoLive(vehicle, now) && (!isToggleSegment || promoMatchesSegment(vehicle, segment));
   const discountPct = Number(vehicle.promo_discount_pct);
   const promoRent = isInPromo && vehicle.monthly_rent && discountPct > 0
     ? Math.round(vehicle.monthly_rent * (1 - discountPct / 100))
