@@ -9,6 +9,7 @@ import { formatDisplayedRent, resolvePricingSegment } from "@/lib/vehiclePricing
 import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks";
 import { getOptimizedSrc } from "@/lib/imageUtils";
 import { isPromoLive, promoMatchesSegment, matchesSegment } from "@/lib/homePromo";
+import PromoExpiryBadge, { formatExpiryDate } from "@/components/vehicles/PromoExpiryBadge";
 
 export const HOME_BUDGET_OPTIONS = [
   { value: "all", label: "Tutti" },
@@ -109,6 +110,12 @@ function PromoSlide({ vehicle, segment, first }) {
       />
       <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/75 via-black/35 to-transparent" aria-hidden="true" />
 
+      {live && (
+        <div className="absolute left-3 top-3 sm:left-4 sm:top-4">
+          <PromoExpiryBadge expiresAt={vehicle.promo_expires_at} discountPct={discountPct} showTime={false} />
+        </div>
+      )}
+
       {/* Targa col canone mensile */}
       <div className="absolute right-4 top-4 flex items-stretch overflow-hidden rounded-md border-2 border-[#15146c] bg-white text-[#15146c]">
         <span className="flex w-6 flex-col items-center justify-center bg-[#2D2E82] text-[11px] font-bold text-white" aria-hidden="true">I</span>
@@ -124,6 +131,8 @@ function PromoSlide({ vehicle, segment, first }) {
           <p className="text-base font-medium">
             {discountPct > 0 ? (
               <>-{Math.round(discountPct)}%, prima <s>{listPrice.toLocaleString("it-IT")}€</s></>
+            ) : live ? (
+              `Kasko inclusa · fino al ${formatExpiryDate(vehicle.promo_expires_at)}`
             ) : (
               "Kasko inclusa"
             )}

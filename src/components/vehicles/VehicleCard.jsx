@@ -10,6 +10,7 @@ import { formatDisplayedRent, formatAdvanceAmount, isVatIncludedForDisplay, reso
 import { useCountdown } from "@/hooks/useCountdown";
 import { useNow } from "@/lib/NowContext";
 import { isPromoLive, promoMatchesSegment } from "@/lib/homePromo";
+import PromoExpiryBadge from "./PromoExpiryBadge";
 
 const FUEL_IT = {
   Electric: "Elettrica",
@@ -70,12 +71,9 @@ function PromoCountdownBadge({ expiresAt, discountPct, compact = false }) {
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-red-600 text-white rounded-[8px] px-2.5 py-[5px] shadow-lg shadow-red-600/30"
+      className="absolute top-3 left-3 z-10"
     >
-      <Tag className="size-3 shrink-0" />
-      <span className="text-[10px] font-bold uppercase tracking-wide leading-none">
-        {discountPct > 0 ? `-${Math.round(discountPct)}% · ` : ""}{label}
-      </span>
+      <PromoExpiryBadge expiresAt={expiresAt} discountPct={discountPct} showTime={false} />
     </motion.div>
   );
 }
