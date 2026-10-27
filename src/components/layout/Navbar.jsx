@@ -15,7 +15,7 @@ const offersDropdown = [
 ];
 
 const navLinks = [
-  { label: "Come Funziona",  path: "/fleet" },
+  { label: "Chi siamo",      path: "/chi-siamo" },
   { label: "Usato Sicuro",   path: "/usato" },
   { label: "News",           path: "/news" },
   { label: "Sedi & Contatti", path: "/contact" },
