@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDown, X } from "lucide-react";
 import VehicleCard from "../vehicles/VehicleCard";
 import { useHomeCatalog } from "@/hooks/useHomeCatalog";
+import { useZeroAdvanceConfigs } from "@/hooks/useZeroAdvanceConfigs";
 import { useHomeSegment } from "./HomeSegmentContext";
 import { useNow } from "@/lib/NowContext";
 import { MOTO_CATEGORIES as MOTO_CATS, isPromoLive, promoMatchesSegment } from "@/lib/homePromo";
@@ -46,6 +47,7 @@ const HERO_CATEGORY_MATCHERS = {
 };
 
 const makeKey = (v) => (v.make ?? "").trim().toUpperCase();
+const configKey = (make, model, segment) => `${(make ?? "").trim().toUpperCase()}|${(model ?? "").trim().toUpperCase()}|${segment ?? ""}`;
 
 const matchesHeroBudget = (budget, p) => {
   if (budget === "0-250") return p < 250;
@@ -66,8 +68,29 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
   const { data: vehicles = [], isLoading, isError, refetch } = useHomeCatalog();
   const now = useNow();
 
+  // Con "Anticipo 0€" le auto in evidenza con anticipo non spariscono: si mostra la loro
+  // configurazione a anticipo zero più economica (se esiste), come nel dettaglio veicolo.
+  const zeroOnly = heroAdvance === "zero";
+  const { data: zeroConfigs } = useZeroAdvanceConfigs(zeroOnly);
+  const catalog = useMemo(() => {
+    if (!zeroOnly) return vehicles;
+    if (!zeroConfigs) return vehicles;
+    const best = new Map();
+    for (const c of zeroConfigs) {
+      const key = configKey(c.make, c.model, c.segment);
+      const rent = Number(c.monthly_rent);
+      if (!best.has(key) || rent < Number(best.get(key).monthly_rent)) best.set(key, c);
+    }
+    return vehicles.map((v) => {
+      if ((Number(v.advance_payment) || 0) === 0) return v;
+      const c = best.get(configKey(v.make, v.model, v.config_segment));
+      if (!c) return v;
+      return { ...v, monthly_rent: Number(c.monthly_rent), advance_payment: 0, duration_months: c.duration_months, annual_km: c.annual_km };
+    });
+  }, [vehicles, zeroOnly, zeroConfigs]);
+
   const filtered = useMemo(() => {
-    return vehicles
+    return catalog
       .filter(v => {
         // Filtro tipologia (segmento); commerciali, moto e una marca scelta dall'indice non seguono Privati/P.IVA
         if (tipologia === "all" || heroCategory === "commerciali" || heroCategory === "moto" || selectedMake) return true;
@@ -94,7 +117,7 @@ export default function FeaturedVehicles({ searchText = "", heroBudget = "all", 
         const bPromo = isPromoLive(b, now) && promoMatchesSegment(b, tipologia) ? 1 : 0;
         return bPromo - aPromo;
       });
-  }, [vehicles, tipologia, prontoConsegna, searchText, selectedMake, heroBudget, heroAdvance, heroCategory, now]);
+  }, [catalog, tipologia, prontoConsegna, searchText, selectedMake, heroBudget, heroAdvance, heroCategory, now]);
 
   const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
   const hasMore = visibleCount < filtered.length;

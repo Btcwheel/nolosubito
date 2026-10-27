@@ -228,6 +228,26 @@ export const offersService = {
     if (error) throw error;
   },
 
+  // Configurazioni a anticipo zero (solo i campi per il prezzo), per il filtro "Anticipo 0€" della home.
+  // Pagina a blocchi da 1000 per aggirare il limite di PostgREST.
+  async listZeroAdvanceConfigs(client = supabase) {
+    const PAGE = 1000;
+    const rows = [];
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await client
+        .from('offer_configs')
+        .select('make, model, segment, monthly_rent, duration_months, annual_km')
+        .eq('is_active', true)
+        .eq('advance_payment', 0)
+        .order('id')
+        .range(from, from + PAGE - 1);
+      if (error) throw error;
+      rows.push(...data);
+      if (data.length < PAGE) break;
+    }
+    return rows;
+  },
+
   // Veicoli con prezzo per le pagine listing.
   // Usa RPC get_vehicle_prices() per aggregare featured/min lato DB,
   // evitando il limite di 1000 righe di PostgREST su offer_configs.
