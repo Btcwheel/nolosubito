@@ -4,14 +4,7 @@ import React, { useState } from "react";
 import { ArrowRight, Phone, MessageCircle, Mail } from "lucide-react";
 import Link from "@/lib/AppLink";
 
-const STORAGE = "https://nowoiywrzfnjocvsbmih.supabase.co/storage/v1/object/public/vehicle-images";
 
-// Veicoli del catalogo Nolosubito (foto di catalogo su fondo bianco)
-const HERO_VEHICLES = [
-  { src: `${STORAGE}/hyundai/tucson.jpg`, alt: "Hyundai Tucson" },
-  { src: `${STORAGE}/fiat/500.jpg`, alt: "Fiat 500" },
-  { src: `${STORAGE}/kia/ev3.png`, alt: "Kia EV3" },
-];
 
 const SEGMENTS = [
   {
@@ -121,20 +114,15 @@ export default function ChiSiamo() {
             </div>
           </div>
 
-          <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-10">
+          <div className="lg:col-span-7 photo-frame photo-enter">
             <img
-              src={HERO_VEHICLES[0].src}
-              alt={HERO_VEHICLES[0].alt}
-              width={800}
-              height={400}
+              src="/images/chi-siamo-hero.webp"
+              alt="Furgone Fiat, Jeep e scooter al tramonto tra le montagne"
+              width={1600}
+              height={1130}
               fetchPriority="high"
-              className="w-full h-auto"
+              className="photo-drift w-full h-full object-cover"
             />
-            <div className="grid grid-cols-2 gap-6 mt-2">
-              {HERO_VEHICLES.slice(1).map((v) => (
-                <img key={v.src} src={v.src} alt={v.alt} width={800} height={400} loading="lazy" className="w-full h-auto" />
-              ))}
-            </div>
           </div>
         </div>
       </section>
@@ -217,18 +205,18 @@ export default function ChiSiamo() {
               <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
             </Link>
           </div>
-          <figure className="lg:col-span-7 reveal reveal-late">
-            <img
-              src="/images/napoli-catel.webp"
-              alt="Dipinto del Golfo di Napoli con il Vesuvio visto da Posillipo"
-              width={1600}
-              height={1058}
-              loading="lazy"
-              className="w-full h-auto rounded-3xl"
-            />
-            <figcaption className="mt-3 text-sm text-[#777682]">
-              Franz Ludwig Catel, Napoli, Sant'Antonio a Posillipo, 1818-1820 circa. Pubblico dominio, via Wikimedia Commons.
-            </figcaption>
+          <figure className="lg:col-span-7">
+            <div className="photo-frame photo-scroll">
+              <img
+                src="/images/napoli-panorama.webp"
+                alt="Napoli e il Vesuvio al tramonto, vista dall'alto"
+                width={1800}
+                height={1208}
+                loading="lazy"
+                className="photo-drift w-full h-full object-cover"
+              />
+            </div>
+            <figcaption className="mt-3 text-sm text-[#777682]">Napoli, dove ha sede Nolosubito.</figcaption>
           </figure>
         </div>
       </section>
