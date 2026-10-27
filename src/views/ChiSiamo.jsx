@@ -51,7 +51,7 @@ function SegmentSection() {
     <section className="bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
         <div className="lg:col-span-5 reveal">
-          <h2 className="font-heading font-bold text-[1.75rem] sm:text-4xl text-navy-dark leading-[1.1] text-balance">
+          <h2 className="font-heading font-bold text-[1.75rem] sm:text-4xl lg:text-[2.5rem] text-navy-dark leading-[1.1] text-balance">
             Consulenza su misura, per ogni esigenza
           </h2>
           <div role="tablist" aria-label="Scegli il tipo di cliente" className="mt-8 inline-flex p-1.5 rounded-2xl bg-surface">
@@ -80,7 +80,7 @@ function SegmentSection() {
           key={current.value}
           className="lg:col-span-7 bg-surface rounded-3xl p-7 sm:p-10 reveal reveal-late"
         >
-          <p className="text-2xl text-navy-dark leading-snug font-medium">{current.text}</p>
+          <p className="text-xl text-navy-dark leading-snug font-medium">{current.text}</p>
           <ul className="mt-8 space-y-3">
             {current.points.map((point) => (
               <li key={point} className="text-xl font-semibold text-[#464651]">{point}</li>
@@ -101,12 +101,12 @@ export default function ChiSiamo() {
     <div className="bg-surface">
       {/* Hero */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14 pb-20 lg:pb-28">
-        <h1 className="font-heading font-bold text-[clamp(1.75rem,6.2vw,6rem)] text-navy leading-[1.02] tracking-tight text-balance">
+        <h1 className="font-heading font-bold text-[clamp(1.75rem,5vw,4.25rem)] text-navy leading-[1.02] tracking-tight text-balance">
           Il partner del noleggio a lungo termine
         </h1>
         <div className="mt-8 lg:mt-12 grid lg:grid-cols-12 gap-10 lg:gap-14 items-center">
           <div className="lg:col-span-5">
-            <p className="text-xl text-[#464651] leading-relaxed">
+            <p className="text-lg text-[#464651] leading-relaxed">
               Nolosubito è il partner ideale per il noleggio a lungo termine e la gestione della mobilità aziendale.
               Supportiamo privati e imprese con consulenze personalizzate e soluzioni su misura, per semplificare ogni fase del noleggio.
             </p>
@@ -146,10 +146,10 @@ export default function ChiSiamo() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
         <div className="bg-navy text-white rounded-3xl p-7 sm:p-12 lg:p-16 grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           <div className="lg:col-span-6 reveal">
-            <h2 className="font-heading font-bold text-[1.75rem] sm:text-4xl leading-[1.1] text-balance">
+            <h2 className="font-heading font-bold text-[1.75rem] sm:text-4xl lg:text-[2.5rem] leading-[1.1] text-balance">
               Siamo anche Clickar Point
             </h2>
-            <p className="mt-6 text-xl text-white/85 leading-relaxed">
+            <p className="mt-6 text-lg text-white/85 leading-relaxed">
               Siamo specializzati nella vendita di veicoli usati provenienti da flotte aziendali e da privati.
               Ogni vettura viene sottoposta a un rigoroso processo di selezione e a controlli accurati,
               per garantire standard qualitativi adeguati alla vendita.
@@ -177,10 +177,10 @@ export default function ChiSiamo() {
       {/* Partner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 lg:pb-28 grid lg:grid-cols-12 gap-10 lg:gap-16 items-start">
         <div className="lg:col-span-5 lg:sticky lg:top-28 reveal">
-          <h2 className="font-heading font-bold text-[1.75rem] sm:text-4xl text-navy-dark leading-[1.1] text-balance">
+          <h2 className="font-heading font-bold text-[1.75rem] sm:text-4xl lg:text-[2.5rem] text-navy-dark leading-[1.1] text-balance">
             I nostri partner
           </h2>
-          <p className="mt-6 text-xl text-[#464651] leading-relaxed">
+          <p className="mt-6 text-lg text-[#464651] leading-relaxed">
             Grazie alla nostra esperienza e alla collaborazione con partner qualificati accompagniamo ogni cliente
             nella scelta della soluzione più adatta alle proprie esigenze.
           </p>
@@ -189,7 +189,7 @@ export default function ChiSiamo() {
           {PARTNERS.map((name) => (
             <li
               key={name}
-              className="font-heading font-bold leading-[1.02] tracking-tight text-[clamp(2.75rem,10vw,6.5rem)] text-navy"
+              className="font-heading font-bold leading-[1.02] tracking-tight text-[clamp(2.25rem,8vw,3.75rem)] text-navy"
             >
               {name}
             </li>
@@ -201,15 +201,15 @@ export default function ChiSiamo() {
       <section className="bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
           <div className="lg:col-span-5 reveal">
-            <h2 className="font-heading font-bold text-[1.75rem] sm:text-4xl text-navy-dark leading-[1.1] text-balance">
+            <h2 className="font-heading font-bold text-[1.75rem] sm:text-4xl lg:text-[2.5rem] text-navy-dark leading-[1.1] text-balance">
               In tutta Italia, con sede a Napoli
             </h2>
-            <address className="mt-6 not-italic text-xl text-[#464651] leading-relaxed">
+            <address className="mt-6 not-italic text-lg text-[#464651] leading-relaxed">
               Via Nuova Poggioreale, 60L<br />
               Centro Polifunzionale INAIL, Torre 7<br />
               80143 Napoli
             </address>
-            <p className="mt-6 text-xl text-[#464651] leading-relaxed">
+            <p className="mt-6 text-lg text-[#464651] leading-relaxed">
               Le nostre filiali: <span className="font-semibold text-navy-dark">{BRANCHES.join(", ")}</span>.
             </p>
             <Link to="/contact" className="mt-8 inline-flex items-center gap-2 font-bold text-navy hover:text-navy-dark group">
@@ -236,10 +236,10 @@ export default function ChiSiamo() {
       {/* Chiusura */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 grid lg:grid-cols-12 gap-10 lg:gap-16 items-center">
         <div className="lg:col-span-7 reveal">
-          <h2 className="font-heading font-bold text-[1.75rem] sm:text-4xl text-navy leading-[1.1] text-balance">
+          <h2 className="font-heading font-bold text-[1.75rem] sm:text-4xl lg:text-[2.5rem] text-navy leading-[1.1] text-balance">
             Parliamone insieme
           </h2>
-          <p className="mt-6 text-xl text-[#464651] leading-relaxed max-w-xl">
+          <p className="mt-6 text-lg text-[#464651] leading-relaxed max-w-xl">
             Al centro del nostro lavoro ci sono affidabilità, competenza e attenzione al cliente.
           </p>
           <Link to="/contact" className={`${btnPrimary} mt-9`}>
