@@ -315,6 +315,13 @@ const S = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#EEF1F7',
   },
+  // Pagina 1 con molti servizi/note: stesse voci, margini più stretti (livello 1 e 2)
+  serviceItemDense1: { paddingVertical: 2 },
+  serviceItemDense2: { paddingVertical: 1 },
+  serviceMetaDense2: { lineHeight: 1.05 },
+  noteBoxDense1: { paddingVertical: 3, marginBottom: 3 },
+  noteBoxDense2: { paddingVertical: 2, marginBottom: 2 },
+  noteTxtDense2: { fontSize: 7, lineHeight: 1.12 },
   serviceTextWrap: { flex: 1 },
   serviceTitle: { fontSize: 8, fontWeight: 'bold', color: '#111827', marginBottom: 1 },
   serviceMeta: { fontSize: 7, color: '#374151', lineHeight: 1.15 },
@@ -603,12 +610,12 @@ const WIcon = ({ type }) => {
   return <View>{map[type]}</View>;
 };
 
-const CheckItem = ({ nome, nota, highlight = false, icon = 'check' }) => (
-  <View style={S.serviceItem}>
+const CheckItem = ({ nome, nota, highlight = false, icon = 'check', dense = 0 }) => (
+  <View style={[S.serviceItem, dense === 1 && S.serviceItemDense1, dense === 2 && S.serviceItemDense2]}>
     <SmallIcon type={icon} />
     <View style={S.serviceTextWrap}>
       <Text style={S.serviceTitle}>{nome}</Text>
-      <Text style={[S.serviceMeta, highlight && S.serviceMetaHighlight]}>{nota}</Text>
+      <Text style={[S.serviceMeta, dense === 2 && S.serviceMetaDense2, highlight && S.serviceMetaHighlight]}>{nota}</Text>
     </View>
   </View>
 );
@@ -1049,6 +1056,20 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
     return true;
   });
 
+  // La pagina 1 non si spezza (wrap={false}): se il contenuto sfora l'A4 finisce tutto in pagina 2 e la 1 resta vuota.
+  // Stima il carico (righe servizi + nota cliente + richiedibili) e stringe i margini prima che succeda.
+  const notaCliente = prev.note_cliente?.trim() || '';
+  const notaCompatta = notaCliente.replace(/\s*\n\s*\n+\s*/g, '\n'); // righe vuote tra paragrafi: costano una riga intera
+  const righeNota = notaCompatta
+    ? notaCompatta.split('\n').reduce((tot, riga) => tot + Math.max(1, Math.ceil(riga.length / 105)), 0)
+    : 0;
+  const caricoPagina1 = Math.ceil(serviziInclusi.length / 3)
+    + (serviziRichiedibili.length > 0 ? 1.5 : 0)
+    + righeNota * 0.5;
+  const dense = caricoPagina1 >= 6.5 ? 2 : caricoPagina1 >= 5.5 ? 1 : 0;
+  // Caso estremo (oltre 12 servizi con nota lunga): anche compatta non entra, quindi salta la sezione generica dei richiedibili
+  const mostraRichiedibili = serviziRichiedibili.length > 0 && caricoPagina1 < 8;
+
   const col1 = serviziInclusi.filter((_, i) => i % 3 === 0);
   const col2 = serviziInclusi.filter((_, i) => i % 3 === 1);
   const col3 = serviziInclusi.filter((_, i) => i % 3 === 2);
@@ -1190,20 +1211,20 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
         </View>
 
         {prev.note_cliente?.trim() ? (
-          <View style={S.noteBox}>
-            <Text style={S.noteTxt}>{prev.note_cliente.trim()}</Text>
+          <View style={[S.noteBox, dense === 1 && S.noteBoxDense1, dense === 2 && S.noteBoxDense2]}>
+            <Text style={[S.noteTxt, dense === 2 && S.noteTxtDense2]}>{dense > 0 ? notaCompatta : notaCliente}</Text>
           </View>
         ) : null}
 
         <View style={S.servicesGrid}>
-          <View style={S.servicesCol}>{col1.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} />)}</View>
-          <View style={S.servicesCol}>{col2.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} />)}</View>
-          <View style={S.servicesCol}>{col3.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} />)}</View>
+          <View style={S.servicesCol}>{col1.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} dense={dense} />)}</View>
+          <View style={S.servicesCol}>{col2.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} dense={dense} />)}</View>
+          <View style={S.servicesCol}>{col3.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} dense={dense} />)}</View>
         </View>
 
-        {serviziRichiedibili.length > 0 && (
+        {mostraRichiedibili && (
           <>
-            <View style={[S.sectionTitleRow, { marginTop: 5 }]}>
+            <View style={[S.sectionTitleRow, { marginTop: dense > 0 ? 2 : 5 }]}>
               <Text style={S.sectionTitle}>SERVIZI RICHIEDIBILI</Text>
               <View style={S.sectionRule} />
               <View style={S.sectionBadge}>
@@ -1211,9 +1232,9 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
               </View>
             </View>
             <View style={S.servicesGrid}>
-              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 0).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} />)}</View>
-              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 1).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} />)}</View>
-              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 2).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} />)}</View>
+              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 0).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} dense={dense} />)}</View>
+              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 1).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} dense={dense} />)}</View>
+              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 2).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} dense={dense} />)}</View>
             </View>
           </>
         )}
