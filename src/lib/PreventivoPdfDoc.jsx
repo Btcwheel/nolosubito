@@ -315,13 +315,10 @@ const S = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#EEF1F7',
   },
-  // Pagina 1 con molti servizi/note: stesse voci, margini più stretti (livello 1 e 2)
+  // Pagina 1 con molti servizi: stesse voci, margini più stretti (livello 1 e 2)
   serviceItemDense1: { paddingVertical: 2 },
   serviceItemDense2: { paddingVertical: 1 },
   serviceMetaDense2: { lineHeight: 1.05 },
-  noteBoxDense1: { paddingVertical: 3, marginBottom: 3 },
-  noteBoxDense2: { paddingVertical: 2, marginBottom: 2 },
-  noteTxtDense2: { fontSize: 7, lineHeight: 1.12 },
   serviceTextWrap: { flex: 1 },
   serviceTitle: { fontSize: 8, fontWeight: 'bold', color: '#111827', marginBottom: 1 },
   serviceMeta: { fontSize: 7, color: '#374151', lineHeight: 1.15 },
@@ -961,7 +958,6 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
   });
   const noteText = [
     prev.note_operative,
-    prev.note_cliente,
     ...(prev.servizi || []).map((s) => {
       let obj = s;
       if (typeof s === 'string' && s.startsWith('{')) {
@@ -1057,17 +1053,10 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
   });
 
   // La pagina 1 non si spezza (wrap={false}): se il contenuto sfora l'A4 finisce tutto in pagina 2 e la 1 resta vuota.
-  // Stima il carico (righe servizi + nota cliente + richiedibili) e stringe i margini prima che succeda.
-  const notaCliente = prev.note_cliente?.trim() || '';
-  const notaCompatta = notaCliente.replace(/\s*\n\s*\n+\s*/g, '\n'); // righe vuote tra paragrafi: costano una riga intera
-  const righeNota = notaCompatta
-    ? notaCompatta.split('\n').reduce((tot, riga) => tot + Math.max(1, Math.ceil(riga.length / 105)), 0)
-    : 0;
-  const caricoPagina1 = Math.ceil(serviziInclusi.length / 3)
-    + (serviziRichiedibili.length > 0 ? 1.5 : 0)
-    + righeNota * 0.5;
+  // Stima il carico (righe servizi + richiedibili) e stringe i margini prima che succeda.
+  const caricoPagina1 = Math.ceil(serviziInclusi.length / 3) + (serviziRichiedibili.length > 0 ? 1.5 : 0);
   const dense = caricoPagina1 >= 6.5 ? 2 : caricoPagina1 >= 5.5 ? 1 : 0;
-  // Caso estremo (oltre 12 servizi con nota lunga): anche compatta non entra, quindi salta la sezione generica dei richiedibili
+  // Caso estremo (molti servizi): anche compatta non entra, quindi salta la sezione generica dei richiedibili
   const mostraRichiedibili = serviziRichiedibili.length > 0 && caricoPagina1 < 8;
 
   const col1 = serviziInclusi.filter((_, i) => i % 3 === 0);
@@ -1209,12 +1198,6 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
             <Text style={S.sectionBadgeTxt}>{serviziInclusi.length} servizi</Text>
           </View>
         </View>
-
-        {prev.note_cliente?.trim() ? (
-          <View style={[S.noteBox, dense === 1 && S.noteBoxDense1, dense === 2 && S.noteBoxDense2]}>
-            <Text style={[S.noteTxt, dense === 2 && S.noteTxtDense2]}>{dense > 0 ? notaCompatta : notaCliente}</Text>
-          </View>
-        ) : null}
 
         <View style={S.servicesGrid}>
           <View style={S.servicesCol}>{col1.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} dense={dense} />)}</View>
