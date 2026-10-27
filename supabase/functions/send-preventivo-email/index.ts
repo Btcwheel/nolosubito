@@ -28,6 +28,11 @@ const SMTP_FROM        = Deno.env.get("SMTP_FROM")        ?? SMTP_USER;
 const SMTP_SECURE      = Deno.env.get("SMTP_SECURE")      === "true";
 const BACKOFFICE_EMAIL = Deno.env.get("BACKOFFICE_EMAIL") ?? "info@nolosubito.it";
 
+// Stessi numeri del sito e del PDF: WhatsApp sul cellulare, chiamata sul fisso
+const WHATSAPP_NUMBER  = "393454300936";
+const PHONE_TEL        = "+390640049490";
+const PHONE_LABEL      = "06 4004 9490";
+
 const SUPABASE_URL         = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SITE_URL             = Deno.env.get("SITE_URL") ?? "https://nolosubito.it";
@@ -247,6 +252,8 @@ function buildBackofficeNotifica(d: BackofficeNotificaData): string {
 }
 
 function buildEmail(d: EmailData): string {
+  const waText = `Buongiorno, ho ricevuto il preventivo per ${d.marca} ${d.modello} (pratica ${d.codice}) e vorrei avere maggiori informazioni.`;
+  const waLink = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waText)}`;
   const anticipoLabel = d.anticipo > 0 ? `€${fmt(d.anticipo)}` : "Senza anticipo";
 
   return `<!DOCTYPE html>
@@ -313,6 +320,25 @@ function buildEmail(d: EmailData): string {
       <a href="${d.areaLink}" style="display:inline-block;background:#F96209;color:#ffffff;text-decoration:none;padding:15px 36px;border-radius:10px;font-size:15px;font-weight:700;">
         Vedi il preventivo &rarr;
       </a>
+    </div>
+
+    <div style="border-top:1px solid #f1f3f9;margin:8px 0 0;padding:24px 0 8px;text-align:center;">
+      <p style="margin:0 0 14px;font-size:14px;color:#374151;font-weight:600;">Vuoi parlarne con noi?</p>
+      <table cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;">
+        <tr>
+          <td style="padding:0 5px 10px;">
+            <a href="${waLink}" style="display:inline-block;background:#25D366;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:700;white-space:nowrap;">
+              Chatta su WhatsApp
+            </a>
+          </td>
+          <td style="padding:0 5px 10px;">
+            <a href="tel:${PHONE_TEL}" style="display:inline-block;background:#ffffff;color:#2F3589;text-decoration:none;padding:11px 20px;border:1px solid #2F3589;border-radius:10px;font-size:14px;font-weight:700;white-space:nowrap;">
+              Chiama ora
+            </a>
+          </td>
+        </tr>
+      </table>
+      <p style="margin:2px 0 0;font-size:12px;color:#9ca3af;">${PHONE_LABEL} &middot; Lun&ndash;Ven 9:00&ndash;18:00</p>
     </div>
 
     <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;line-height:1.7;">
