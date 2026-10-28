@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "@/lib/AppLink";
 import { Mail, Phone, MapPin } from "lucide-react";
+import { offices } from "@/lib/offices";
 
 export default function Footer() {
   return (
@@ -69,15 +70,17 @@ export default function Footer() {
 
                 </a>
               </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="size-4 text-electric" />
-                <div className="leading-relaxed">
-                  <p className="font-medium text-white">Sede legale</p>
-                  <p className="text-white/60">Via Nuova Poggioreale, 60L</p>
-                  <p className="text-white/60">Centro Polifunzionale INAIL, Torre 7</p>
-                  <p className="text-white/60">80143 Napoli</p>
-                </div>
-              </li>
+              {offices.map((office, i) => (
+                <li key={office.name} className="flex items-start gap-2">
+                  <MapPin className="size-4 mt-0.5 shrink-0 text-electric" />
+                  <div className="leading-relaxed">
+                    <p className="font-medium text-white">{i === 0 ? "Sede legale · Napoli" : office.name.replace("Filiale ", "")}</p>
+                    {office.lines.map((line) => (
+                      <p key={line} className="text-white/60">{line}</p>
+                    ))}
+                  </div>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
