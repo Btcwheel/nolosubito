@@ -14,7 +14,8 @@
     "perf:desktop": "npx lighthouse https://nolosubito.quixel.it --output html --output-path ./lighthouse-report-desktop.html --preset desktop && start lighthouse-report-desktop.html",
     "perf:site": "npx unlighthouse --site https://nolosubito.quixel.it",
     "index-images": "node scripts/index-gigi-images.cjs",
-    "migrate-images": "node scripts/migrate-images.cjs"
+    "migrate-images": "node scripts/migrate-images.cjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@fontsource/dm-mono": "^5.2.7",
@@ -90,6 +91,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
+    "@playwright/test": "1.59.1",
     "@types/node": "^22.13.5",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
