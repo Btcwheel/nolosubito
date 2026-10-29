@@ -15,7 +15,8 @@
     "perf:site": "npx unlighthouse --site https://nolosubito.quixel.it",
     "index-images": "node scripts/index-gigi-images.cjs",
     "migrate-images": "node scripts/migrate-images.cjs",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:unit": "playwright test -c playwright.unit.config.js"
   },
   "dependencies": {
     "@fontsource/dm-mono": "^5.2.7",
