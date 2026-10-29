@@ -313,6 +313,10 @@ const S = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#EEF1F7',
   },
+  // Pagina 1 con molti servizi: stesse voci, margini più stretti (livello 1 e 2)
+  serviceItemDense1: { paddingVertical: 2 },
+  serviceItemDense2: { paddingVertical: 1 },
+  serviceMetaDense2: { lineHeight: 1.05 },
   serviceTextWrap: { flex: 1 },
   serviceTitle: { fontSize: 8, fontWeight: 'bold', color: '#111827', marginBottom: 1 },
   serviceMeta: { fontSize: 7, color: '#374151', lineHeight: 1.15 },
@@ -601,12 +605,12 @@ const WIcon = ({ type }) => {
   return <View>{map[type]}</View>;
 };
 
-const CheckItem = ({ nome, nota, highlight = false, icon = 'check' }) => (
-  <View style={S.serviceItem}>
+const CheckItem = ({ nome, nota, highlight = false, icon = 'check', dense = 0 }) => (
+  <View style={[S.serviceItem, dense === 1 && S.serviceItemDense1, dense === 2 && S.serviceItemDense2]}>
     <SmallIcon type={icon} />
     <View style={S.serviceTextWrap}>
       <Text style={S.serviceTitle}>{nome}</Text>
-      <Text style={[S.serviceMeta, highlight && S.serviceMetaHighlight]}>{nota}</Text>
+      <Text style={[S.serviceMeta, dense === 2 && S.serviceMetaDense2, highlight && S.serviceMetaHighlight]}>{nota}</Text>
     </View>
   </View>
 );
@@ -869,6 +873,10 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
   };
 
   const formatServiceNote = (codice, mappedNote, penale, originale = null) => {
+    // Furto/Danni con penale nota: mostra solo la penale, non la frase intera del broker
+    if ((codice === 'DANNI' || codice === 'FURTO_INCENDIO') && penale != null && penale !== '') {
+      return formatPenale(codice, penale);
+    }
     const originalNorm = normalizeServiceKey(originale || '');
     const mappedNorm = normalizeServiceKey(mappedNote || '');
     const originalLooksDetailed = Boolean(
@@ -916,7 +924,10 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
       const originalNorm = normalizeServiceKey(obj.originale || '');
       if (originalNorm.includes('furto')) {
         const nomeFurto = originalNorm.includes('incendio') ? 'Furto e Incendio' : 'Furto e Incendio';
-        const notaFurto = formatPenale('FURTO_INCENDIO', obj.penale);
+        // Voce senza codice (es. "Limitazione di responsabilità furto totale Penale 10%"): la penale sta nel testo
+        const percOriginale = String(obj.originale || '').match(/(\d{1,3}(?:[.,]\d{1,2})?)\s*%/);
+        const penaleFurtoVoce = obj.penale ?? (percOriginale ? `${percOriginale[1].replace(',', '.')}%` : null);
+        const notaFurto = formatPenale('FURTO_INCENDIO', penaleFurtoVoce);
         return [nomeFurto, notaFurto];
       }
       const nome = obj.originale || 'Servizio';
@@ -945,7 +956,6 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
   });
   const noteText = [
     prev.note_operative,
-    prev.note_cliente,
     ...(prev.servizi || []).map((s) => {
       let obj = s;
       if (typeof s === 'string' && s.startsWith('{')) {
@@ -954,7 +964,7 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
       return obj && typeof obj === 'object' && !Array.isArray(obj) ? (obj.originale || '') : '';
     }),
   ].join(' ');
-  const furtoPattern = '(?:furto\\s*(?:e|\\/)\\s*incendio|incendio\\s*(?:e|\\/)\\s*furto)';
+  const furtoPattern = '(?:furto\\s*(?:e|\\/)\\s*incendio|incendio\\s*(?:e|\\/)\\s*furto|furto\\s+totale)';
   const amountPattern = '(\\d{1,3}(?:[.,]\\d{1,2})?)';
   const furtoMatch = noteText.match(new RegExp(`${furtoPattern}[\\s\\S]{0,100}?${amountPattern}\\s*%`, 'i'))
     || noteText.match(new RegExp(`${amountPattern}\\s*%[\\s\\S]{0,100}?${furtoPattern}`, 'i'))
@@ -979,14 +989,15 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
   if (danniIndex !== -1) {
     const currentDanniNote = serviziInclusi[danniIndex][1];
     if (!currentDanniNote || currentDanniNote.includes('variabile') || currentDanniNote === '') {
-      const danniPattern = '(?:copertura danni|kasko|collisione|danni al veicolo)';
-      const danniAmount = '(\\d{1,6}(?:[.,]\\d{1,2})?)';
-      const danniMatch = noteText.match(new RegExp(`${danniPattern}[\\s\\S]{0,100}?${danniAmount}\\s*€`, 'i'))
-        || noteText.match(new RegExp(`${danniAmount}\\s*€[\\s\\S]{0,100}?${danniPattern}`, 'i'))
-        || noteText.match(new RegExp(`${danniPattern}[\\s\\S]{0,80}?(?:penale|franchigia|quota|a carico)[\\s\\S]{0,60}?${danniAmount}\\s*€`, 'i'))
-        || noteText.match(new RegExp(`(?:penale|franchigia|quota|a carico)[\\s\\S]{0,60}?${danniAmount}\\s*€[\\s\\S]{0,80}?${danniPattern}`, 'i'));
+      const danniPattern = '(?:copertura danni|kasko|collisione|danni al veicolo|incendio\\s+e\\s+danni|danni\\s+al\\s+veicolo)';
+      // Importo con € prima ("€ 500", formato dei PDF broker) o dopo ("500 €")
+      const danniAmount = '(?:€\\s*(\\d{1,6}(?:[.,]\\d{1,2})?)|(\\d{1,6}(?:[.,]\\d{1,2})?)\\s*€)';
+      const danniMatch = noteText.match(new RegExp(`${danniPattern}[\\s\\S]{0,160}?(?:penale|franchigia|quota[^€]{0,40}fino a|a carico[^€]{0,40}fino a)[^€\\d]{0,20}${danniAmount}`, 'i'))
+        || noteText.match(new RegExp(`${danniPattern}[\\s\\S]{0,160}?${danniAmount}`, 'i'))
+        || noteText.match(new RegExp(`${danniAmount}[\\s\\S]{0,100}?${danniPattern}`, 'i'));
       if (danniMatch) {
-        serviziInclusi[danniIndex][1] = `Penale € ${danniMatch[1].replace(',', '.')}`;
+        const importo = danniMatch[1] || danniMatch[2];
+        serviziInclusi[danniIndex][1] = `Penale € ${importo.replace(',', '.')}`;
       }
     }
   }
@@ -1025,13 +1036,26 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
   serviziInclusi = serviziInclusi.map(([nome, nota, ...rest]) => [stripCarrierTerms(nome) || nome, stripCarrierTerms(nota), ...rest]);
 
   // Stesso servizio da più voci del carrier (es. "Furto" + "Incendio e Furto"): tieni la prima occorrenza
-  const nomiVisti = new Set();
-  serviziInclusi = serviziInclusi.filter(([nome]) => {
+  // Se la prima occorrenza non ha nota (es. penale non estratta) e un'altra sì, resta quella con la nota
+  const nomiVisti = new Map();
+  serviziInclusi = serviziInclusi.filter((servizio) => {
+    const [nome, nota] = servizio;
     const key = normalizeServiceKey(nome || '');
-    if (nomiVisti.has(key)) return false;
-    nomiVisti.add(key);
+    const visto = nomiVisti.get(key);
+    if (visto) {
+      if (!visto[1] && nota) visto[1] = nota;
+      return false;
+    }
+    nomiVisti.set(key, servizio);
     return true;
   });
+
+  // La pagina 1 non si spezza (wrap={false}): se il contenuto sfora l'A4 finisce tutto in pagina 2 e la 1 resta vuota.
+  // Stima il carico (righe servizi + richiedibili) e stringe i margini prima che succeda.
+  const caricoPagina1 = Math.ceil(serviziInclusi.length / 3) + (serviziRichiedibili.length > 0 ? 1.5 : 0);
+  const dense = caricoPagina1 >= 6.5 ? 2 : caricoPagina1 >= 5.5 ? 1 : 0;
+  // Caso estremo (molti servizi): anche compatta non entra, quindi salta la sezione generica dei richiedibili
+  const mostraRichiedibili = serviziRichiedibili.length > 0 && caricoPagina1 < 8;
 
   const col1 = serviziInclusi.filter((_, i) => i % 3 === 0);
   const col2 = serviziInclusi.filter((_, i) => i % 3 === 1);
@@ -1173,21 +1197,15 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
           </View>
         </View>
 
-        {prev.note_cliente?.trim() ? (
-          <View style={S.noteBox}>
-            <Text style={S.noteTxt}>{prev.note_cliente.trim()}</Text>
-          </View>
-        ) : null}
-
         <View style={S.servicesGrid}>
-          <View style={S.servicesCol}>{col1.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} />)}</View>
-          <View style={S.servicesCol}>{col2.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} />)}</View>
-          <View style={S.servicesCol}>{col3.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} />)}</View>
+          <View style={S.servicesCol}>{col1.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} dense={dense} />)}</View>
+          <View style={S.servicesCol}>{col2.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} dense={dense} />)}</View>
+          <View style={S.servicesCol}>{col3.map(([n, m, h]) => <CheckItem key={n} nome={n} nota={m} highlight={h} dense={dense} />)}</View>
         </View>
 
-        {serviziRichiedibili.length > 0 && (
+        {mostraRichiedibili && (
           <>
-            <View style={[S.sectionTitleRow, { marginTop: 5 }]}>
+            <View style={[S.sectionTitleRow, { marginTop: dense > 0 ? 2 : 5 }]}>
               <Text style={S.sectionTitle}>SERVIZI RICHIEDIBILI</Text>
               <View style={S.sectionRule} />
               <View style={S.sectionBadge}>
@@ -1195,9 +1213,9 @@ export function PreventivoPdfDoc({ prev, clienteNome, logoB64, vehicleImageB64 }
               </View>
             </View>
             <View style={S.servicesGrid}>
-              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 0).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} />)}</View>
-              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 1).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} />)}</View>
-              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 2).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} />)}</View>
+              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 0).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} dense={dense} />)}</View>
+              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 1).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} dense={dense} />)}</View>
+              <View style={S.servicesCol}>{serviziRichiedibili.filter((_, i) => i % 3 === 2).map(([n, m]) => <CheckItem key={n} nome={n} nota={m} icon={n.startsWith('✓') ? 'check' : 'plus'} dense={dense} />)}</View>
             </View>
           </>
         )}

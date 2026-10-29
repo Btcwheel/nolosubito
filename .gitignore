@@ -76,3 +76,9 @@ public/brands/*.pdf
 .next
 next-env.d.ts
 *.tsbuildinfo
+
+# Playwright (test e2e)
+tests/.output/
+tests/.report/
+playwright-report/
+test-results/
