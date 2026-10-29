@@ -1,6 +1,7 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import Link from "@/lib/AppLink";
 import { Mail, Phone, MapPin } from "lucide-react";
+import { offices } from "@/lib/offices";
 
 export default function Footer() {
   return (
@@ -34,7 +35,9 @@ export default function Footer() {
           <div>
             <h4 className="font-heading font-semibold text-white mb-4">Azienda</h4>
             <ul className="space-y-3 text-sm">
+              <li><Link to="/chi-siamo" className="hover:text-electric transition-colors duration-200">Chi siamo</Link></li>
               <li><Link to="/contact" className="hover:text-electric transition-colors duration-200">Contattaci</Link></li>
+              <li><Link to="/news" className="hover:text-electric transition-colors duration-200">News</Link></li>
               <li><Link to="/careers" className="hover:text-electric transition-colors duration-200">Diventa Partner</Link></li>
               <li><Link to="/accedi" className="hover:text-electric transition-colors duration-200">Area Clienti</Link></li>
               <li><Link to="/partner/accedi" className="hover:text-electric transition-colors duration-200">Area Partners</Link></li>
@@ -67,15 +70,17 @@ export default function Footer() {
 
                 </a>
               </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="size-4 text-electric" />
-                <div className="leading-relaxed">
-                  <p className="font-medium text-white">Sede legale</p>
-                  <p className="text-white/60">Via Nuova Poggioreale, 60L</p>
-                  <p className="text-white/60">Centro Polifunzionale INAIL, Torre 7</p>
-                  <p className="text-white/60">80143 Napoli</p>
-                </div>
-              </li>
+              {offices.map((office, i) => (
+                <li key={office.name} className="flex items-start gap-2">
+                  <MapPin className="size-4 mt-0.5 shrink-0 text-electric" />
+                  <div className="leading-relaxed">
+                    <p className="font-medium text-white">{i === 0 ? "Sede legale · Napoli" : office.name.replace("Filiale ", "")}</p>
+                    {office.lines.map((line) => (
+                      <p key={line} className="text-white/60">{line}</p>
+                    ))}
+                  </div>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

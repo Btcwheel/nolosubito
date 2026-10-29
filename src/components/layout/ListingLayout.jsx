@@ -10,7 +10,6 @@
 import React from "react";
 import { Search, ChevronDown } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { motion } from "framer-motion";
 
 // ── Pagination ─────────────────────────────────────────────────────────────
 export function Pagination({ current, total, onChange }) {
@@ -100,7 +99,7 @@ export function PageHeader({ eyebrow, title, description }) {
   return (
     <div className="bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 sm:pt-4 pb-8">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        <div>
           {eyebrow && (
             <p className="text-xs font-bold text-electric uppercase tracking-widest mb-2">{eyebrow}</p>
           )}
@@ -108,7 +107,7 @@ export function PageHeader({ eyebrow, title, description }) {
           {description && (
             <p className="text-gray-500 mt-2 max-w-xl text-sm sm:text-base leading-relaxed">{description}</p>
           )}
-        </motion.div>
+        </div>
       </div>
     </div>
   );

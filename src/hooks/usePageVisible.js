@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
 export function usePageVisible() {
-  const [visible, setVisible] = useState(() => document.visibilityState === "visible");
+  const [visible, setVisible] = useState(() => typeof document === "undefined" || document.visibilityState === "visible");
 
   useEffect(() => {
     const handler = () => setVisible(document.visibilityState === "visible");

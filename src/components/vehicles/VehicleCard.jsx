@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { Link } from "react-router-dom";
+import Link from "@/lib/AppLink";
 import { motion } from "framer-motion";
 import {
   ArrowRight, Settings2, Fuel, Zap, Gauge, Leaf, Flame, RefreshCw, Truck, Tag, Calendar, Route,
@@ -8,6 +8,9 @@ import { getVehicleImage, getVehicleImagePosition } from "@/lib/vehicleFallbacks
 import { getVehicleCardSrcSet, getOptimizedSrc } from "@/lib/imageUtils";
 import { formatDisplayedRent, formatAdvanceAmount, isVatIncludedForDisplay, resolvePricingSegment } from "@/lib/vehiclePricing";
 import { useCountdown } from "@/hooks/useCountdown";
+import { useNow } from "@/lib/NowContext";
+import { isPromoLive, promoMatchesSegment } from "@/lib/homePromo";
+import PromoExpiryBadge from "./PromoExpiryBadge";
 
 const FUEL_IT = {
   Electric: "Elettrica",
@@ -68,12 +71,9 @@ function PromoCountdownBadge({ expiresAt, discountPct, compact = false }) {
     <motion.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="absolute top-3 left-3 z-10 flex items-center gap-1.5 bg-red-600 text-white rounded-[8px] px-2.5 py-[5px] shadow-lg shadow-red-600/30"
+      className="absolute top-3 left-3 z-10"
     >
-      <Tag className="size-3 shrink-0" />
-      <span className="text-[10px] font-bold uppercase tracking-wide leading-none">
-        {discountPct > 0 ? `-${Math.round(discountPct)}% · ` : ""}{label}
-      </span>
+      <PromoExpiryBadge expiresAt={expiresAt} discountPct={discountPct} showTime={false} />
     </motion.div>
   );
 }
@@ -128,10 +128,10 @@ const VehicleCard = memo(function VehicleCard({ vehicle, index = 0, segment, com
   const imgH = compact ? "h-[170px]" : "h-[200px]";
 
   // Promo
-  const isInPromo = !!(
-    vehicle.promo_expires_at &&
-    new Date(vehicle.promo_expires_at) > new Date()
-  );
+  const now = useNow();
+  // La promo vale per il segmento indicato nel CMS; il filtro vale solo per il toggle Privati/P.IVA della home
+  const isToggleSegment = segment === "Privati" || segment === "P.IVA";
+  const isInPromo = isPromoLive(vehicle, now) && (!isToggleSegment || promoMatchesSegment(vehicle, segment));
   const discountPct = Number(vehicle.promo_discount_pct);
   const promoRent = isInPromo && vehicle.monthly_rent && discountPct > 0
     ? Math.round(vehicle.monthly_rent * (1 - discountPct / 100))
@@ -175,7 +175,7 @@ const VehicleCard = memo(function VehicleCard({ vehicle, index = 0, segment, com
               onError={(e) => { e.target.onerror = null; e.target.style.opacity = "0"; }}
             />
 
-            {vehicle.promo_expires_at && new Date(vehicle.promo_expires_at) > new Date() && (
+            {isInPromo && (
               <PromoCountdownBadge
                 expiresAt={vehicle.promo_expires_at}
                 discountPct={vehicle.promo_discount_pct}

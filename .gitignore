@@ -72,6 +72,11 @@ public/graph-tree.html
 public/brands/*.pdf
 
 
+# Next.js
+.next
+next-env.d.ts
+*.tsbuildinfo
+
 # Playwright (test e2e)
 tests/.output/
 tests/.report/
