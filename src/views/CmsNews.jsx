@@ -14,8 +14,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { Plus, Pencil, Trash2, X, Check, Eye, EyeOff, Sparkles, RefreshCw, CheckCircle2, XCircle, ExternalLink, FolderOpen, Search, Upload, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
-import ReactQuill from "react-quill";
-import "react-quill/dist/quill.snow.css";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 import ReactMarkdown from "react-markdown";
 import DOMPurify from "dompurify";
 
