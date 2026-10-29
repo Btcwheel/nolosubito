@@ -503,6 +503,21 @@ function reconcileVehicleValues(vehicle: ReturnType<typeof normalizeVehicleField
   return vehicle;
 }
 
+// <km-annui-da-km-totali>
+// I carrier scrivono "KM totali: 120000" + "Durata: 48 mesi". La divisione in km annui la fa questo codice:
+// lasciata al modello sbagliava (120000 km in 48 mesi usciva 25000 invece di 30000).
+// Restituisce null se nel testo non c'è un totale chiaro o se il risultato non è un valore "tondo" plausibile.
+function kmAnnuiDaKmTotali(testo: string | null | undefined, durataMesi: number | null | undefined): number | null {
+  if (!testo || !durataMesi || durataMesi < 12) return null;
+  const m = testo.match(/km\s+totali\s*[:=]?\s*([1-9]\d{0,2}(?:[.\s]\d{3})+|[1-9]\d{3,6})(?![\d.,]*\d)/i);
+  if (!m) return null;
+  const totali = parseInt(m[1].replace(/[.\s]/g, ""), 10);
+  const annui = (totali * 12) / durataMesi;
+  if (!Number.isInteger(annui) || annui % 500 !== 0 || annui < 3000 || annui > 100000) return null;
+  return annui;
+}
+// </km-annui-da-km-totali>
+
 function normalizePreventivo(raw: JsonRecord, rawText?: string | null): NormalizedPreventivo {
   const vehicle = reconcileVehicleValues(normalizeVehicleFields(raw), toNumber(raw.valore_totale_veicolo));
   let servizi = normalizeServices(raw.servizi);
@@ -543,7 +558,7 @@ function normalizePreventivo(raw: JsonRecord, rawText?: string | null): Normaliz
     interni: vehicle.interni,
     potenza: vehicle.potenza,
     durata_mesi: vehicle.durata_mesi,
-    km_annui: vehicle.km_annui,
+    km_annui: kmAnnuiDaKmTotali(textSource, vehicle.durata_mesi) ?? vehicle.km_annui,
     anticipo: vehicle.anticipo,
     deposito_cauzionale: vehicle.deposito_cauzionale,
     canone_mensile: vehicle.canone_mensile,
