@@ -71,3 +71,9 @@ public/graph-tree.html
 # Misc PDFs in public
 public/brands/*.pdf
 
+
+# Playwright (test e2e)
+tests/.output/
+tests/.report/
+playwright-report/
+test-results/
