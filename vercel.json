@@ -1,6 +1,11 @@
 {
   "redirects": [
     {
+      "source": "/news/koda-peaq-il-suv-elettrico{/}?",
+      "destination": "https://nolosubito.it/news/skoda-peaq-il-suv-elettrico-da-7-posti",
+      "permanent": true
+    },
+    {
       "source": "/approfondimenti-di-settore/batteria-auto{/}?",
       "destination": "https://nolosubito.it/news/batteria-auto-2",
       "permanent": true
