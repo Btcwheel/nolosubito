@@ -3,6 +3,7 @@ import { createServerSupabase } from "@/lib/supabaseServer";
 import { getOptimizedSrc } from "@/lib/imageUtils";
 
 // Le cifre 4-0-4 sono disegnate con una griglia 5x7: ogni "X" è una miniatura di un'auto del catalogo.
+// Solo le 44 tessere accese finiscono nell'HTML (Next le ripete nei dati RSC di ogni pagina): niente celle vuote.
 const GLYPHS = {
   "4": ["...X.", "..XX.", ".X.X.", "X..X.", "XXXXX", "...X.", "...X."],
   "0": [".XXX.", "X...X", "X...X", "X...X", "X...X", "X...X", ".XXX."],
@@ -15,7 +16,7 @@ function litCells() {
   [...("404")].forEach((digit, i) => {
     GLYPHS[digit].forEach((line, row) => {
       [...line].forEach((ch, col) => {
-        if (ch === "X") cells.push(row * COLS + i * 6 + col);
+        if (ch === "X") cells.push({ row: row + 1, col: i * 6 + col + 1 });
       });
     });
   });
@@ -53,7 +54,6 @@ async function fetchThumbs(count) {
 export default async function NotFoundPage() {
   const lit = litCells();
   const thumbs = await fetchThumbs(lit.length);
-  const tileAt = new Map(lit.map((cell, i) => [cell, i]));
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#f1f3ff] via-white to-white">
@@ -73,16 +73,14 @@ export default async function NotFoundPage() {
           className="mx-auto mt-10 grid w-full max-w-4xl gap-[2px] sm:gap-1 md:mt-14 md:gap-1"
           style={{ gridTemplateColumns: `repeat(${COLS}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${ROWS}, auto)` }}
         >
-          {Array.from({ length: ROWS * COLS }, (_, cell) => {
-            if (!tileAt.has(cell)) return <div key={cell} aria-hidden="true" className="aspect-[4/3]" />;
-            const n = tileAt.get(cell);
+          {lit.map(({ row, col }, n) => {
             const src = thumbs[n];
             return (
               <div
-                key={cell}
+                key={n}
                 aria-hidden="true"
                 className="nf-tile aspect-[4/3] overflow-hidden rounded-[3px] border border-slate-200/80 bg-white shadow-sm transition-transform duration-300 hover:z-10 hover:scale-[1.6] hover:shadow-lg sm:rounded-md motion-reduce:transition-none motion-reduce:hover:scale-100"
-                style={{ animationDelay: `${n * 28}ms` }}
+                style={{ gridRow: row, gridColumn: col, animationDelay: `${n * 28}ms` }}
               >
                 {src ? (
                   <img
