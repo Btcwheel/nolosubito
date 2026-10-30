@@ -273,6 +273,7 @@ function generateSchemaMarkup(
 // Genera slug da titolo
 function generateSlug(title: string): string {
   return title
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Š → S, è → e (senza, la lettera sparirebbe dallo slug)
     .toLowerCase()
     .trim()
     .replace(/[^\w\s-]/g, "")

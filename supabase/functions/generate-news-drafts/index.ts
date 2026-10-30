@@ -13,11 +13,10 @@ const CORS = {
 };
 
 function slugify(str: string): string {
+  // NFD separa le lettere dai segni (Š → S + ˇ): i segni si tolgono, la lettera resta
   return str
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/[àáâä]/g, "a").replace(/[èéêë]/g, "e")
-    .replace(/[ìíîï]/g, "i").replace(/[òóôö]/g, "o")
-    .replace(/[ùúûü]/g, "u")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 }

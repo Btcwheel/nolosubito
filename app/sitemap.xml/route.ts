@@ -69,7 +69,6 @@ function generateSitemap(
   const staticPages = [
     { url: "/", priority: 1.0, changefreq: "daily" },
     { url: "/offers", priority: 0.9, changefreq: "daily" },
-    { url: "/hero-compare", priority: 0.8, changefreq: "weekly" },
     { url: "/fleet", priority: 0.8, changefreq: "monthly" },
     { url: "/green", priority: 0.8, changefreq: "monthly" },
     { url: "/private-offers", priority: 0.8, changefreq: "monthly" },
