@@ -1,7 +1,14 @@
 import React from "react";
 import Link from "@/lib/AppLink";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, Facebook, Instagram, Linkedin, Star } from "lucide-react";
 import { offices } from "@/lib/offices";
+
+const SOCIALS = [
+  { name: "Facebook", href: "https://www.facebook.com/nolosubito", Icon: Facebook },
+  { name: "Instagram", href: "https://www.instagram.com/nolosubito.it/", Icon: Instagram },
+  { name: "LinkedIn", href: "https://www.linkedin.com/company/nolosubito-it/", Icon: Linkedin },
+];
+const TRUSTPILOT_URL = "https://it.trustpilot.com/review/nolosubito.it";
 
 export default function Footer() {
   return (
@@ -21,6 +28,29 @@ export default function Footer() {
             <p className="text-sm text-white/50 leading-relaxed">
               Soluzioni premium di noleggio a lungo termine per aziende di ogni dimensione. Semplifica la tua flotta con prezzi trasparenti e supporto dedicato.
             </p>
+            <div className="mt-5 flex items-center gap-3">
+              {SOCIALS.map(({ name, href, Icon }) => (
+                <a
+                  key={name}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Nolosubito su ${name}`}
+                  className="flex size-9 items-center justify-center rounded-full bg-white/10 hover:bg-electric hover:text-white transition-colors duration-200"
+                >
+                  <Icon className="size-4" />
+                </a>
+              ))}
+            </div>
+            <a
+              href={TRUSTPILOT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex items-center gap-2 text-sm hover:text-electric transition-colors duration-200"
+            >
+              <Star className="size-4 fill-current text-electric" />
+              Valutaci su Trustpilot
+            </a>
           </div>
 
           <div>
