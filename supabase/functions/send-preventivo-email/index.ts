@@ -170,6 +170,20 @@ function esc(s: string | null | undefined): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+// Testo libero scritto dagli operatori: HTML escapato, a capo e righe vuote mantenuti
+// (in HTML i \n da soli non vanno a capo, la nota usciva tutta in un paragrafo).
+function escMultiline(s: string | null | undefined): string {
+  if (!s) return "";
+  const pulito = s
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map((riga) => riga.trim())
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return esc(pulito).replace(/\n/g, "<br/>");
+}
+
 interface EmailData {
   nome: string;
   codice: string;
@@ -313,7 +327,7 @@ function buildEmail(d: EmailData): string {
     ${d.noteCliente ? `
     <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:16px 20px;margin-bottom:24px;">
       <p style="margin:0 0 6px;font-size:10px;color:#f97316;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;">Note dal team</p>
-      <p style="margin:0;font-size:14px;color:#374151;line-height:1.65;">${esc(d.noteCliente)}</p>
+      <p style="margin:0;font-size:14px;color:#374151;line-height:1.65;">${escMultiline(d.noteCliente)}</p>
     </div>` : ""}
 
     <div style="text-align:center;margin:32px 0 24px;">
