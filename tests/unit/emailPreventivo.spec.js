@@ -27,6 +27,13 @@ test.describe('Mail del preventivo al cliente', () => {
     expect(html).toContain('Vi chiamo domani mattina per la consegna');
   });
 
+  test('la nota mantiene a capo e righe vuote e non lascia spazi in eccesso', () => {
+    const nota = 'Buongiorno \n\ncome da accordi in allegato le sottopongo le offerte.\r\n\n\n\nSaluti Simona G. +39 320 575 0106 - +39 06 4004 9490';
+    const html = buildEmail({ ...DATI, noteCliente: nota });
+    expect(html).toContain('Buongiorno<br/><br/>come da accordi in allegato le sottopongo le offerte.<br/><br/>Saluti Simona G.');
+    expect(html).not.toContain('<br/><br/><br/>');
+  });
+
   test('senza nota il blocco "Note dal team" non compare', () => {
     expect(buildEmail({ ...DATI, noteCliente: null })).not.toContain('Note dal team');
     expect(buildEmail({ ...DATI, noteCliente: '' })).not.toContain('Note dal team');
