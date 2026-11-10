@@ -37,8 +37,9 @@ const MIN_SLIDES = 3;
 const MAX_SLIDES = 6;
 const SLIDE_MS = 6000;
 
-// Le offerte a tempo del segmento scelto che scadono per prime; se sono meno di tre completa con le
-// pronta consegna più convenienti dello stesso segmento (quando una promo finisce, scala il resto)
+// Le offerte a tempo del segmento scelto che scadono per prime. Senza promo attive mostra le sei
+// offerte inserite più di recente dello stesso segmento; con poche promo (meno di tre) le completa
+// con le più recenti (quando una promo finisce, scala il resto)
 function pickLineup(vehicles, now, segment) {
   const promos = vehicles
     .filter((v) => isPromoLive(v, now) && promoMatchesSegment(v, segment) && v.monthly_rent)
@@ -46,10 +47,11 @@ function pickLineup(vehicles, now, segment) {
     .slice(0, MAX_SLIDES);
   if (promos.length >= MIN_SLIDES) return promos;
   const taken = new Set(promos.map((v) => v.id));
+  const target = promos.length === 0 ? MAX_SLIDES : MIN_SLIDES;
   const fill = vehicles
-    .filter((v) => !taken.has(v.id) && v.is_ready_delivery && v.monthly_rent && matchesSegment(v, segment))
-    .sort((a, b) => a.monthly_rent - b.monthly_rent)
-    .slice(0, MIN_SLIDES - promos.length);
+    .filter((v) => !taken.has(v.id) && v.monthly_rent && matchesSegment(v, segment))
+    .sort((a, b) => new Date(b.created_at ?? 0) - new Date(a.created_at ?? 0))
+    .slice(0, target - promos.length);
   return [...promos, ...fill];
 }
 
