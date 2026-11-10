@@ -207,7 +207,8 @@ function Lineup({ vehicles, segment, loading }) {
           style={{ transform: `translateX(-${index * 100}%)` }}
         >
           {vehicles.map((v, i) => (
-            <div key={v.id} className="w-full shrink-0" aria-hidden={i !== index}>
+            // inert (stringa vuota con React 18) toglie dal focus e dall'albero di accessibilità il link delle slide nascoste
+            <div key={v.id} className="w-full shrink-0" aria-hidden={i !== index} inert={i !== index ? "" : undefined}>
               <PromoSlide vehicle={v} segment={segment} first={i === 0} />
             </div>
           ))}
