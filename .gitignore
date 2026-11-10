@@ -82,3 +82,6 @@ tests/.output/
 tests/.report/
 playwright-report/
 test-results/
+
+# Config locale di Claude Code (specifica della macchina)
+.claude/settings.local.json
