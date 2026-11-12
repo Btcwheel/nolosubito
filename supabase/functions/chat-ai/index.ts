@@ -14,7 +14,7 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const VERSION = "chat-ai v3.2-gptoss-tools-escalation";
+const VERSION = "chat-ai v3.3-tool-verificati-lead-completo";
 
 // ── ROUTER ──────────────────────────────────────────────────────────
 const COMPLEX_KEYWORDS = [
@@ -44,24 +44,6 @@ const ESCALATION_KEYWORDS = [
 function shouldEscalate(query: string): boolean {
   const lower = query.toLowerCase();
   return ESCALATION_KEYWORDS.some(k => lower.includes(k));
-}
-
-function buildQuickReply(query: string) {
-  const lower = query.toLowerCase();
-
-  if (lower.includes("come funziona") || lower.includes("come si") || lower.includes("noleggio")) {
-    return "Il noleggio a lungo termine funziona in modo semplice: si sceglie il veicolo, la durata e i km annui, e nel canone ci sono già quasi tutti i costi principali come manutenzione, assistenza e assicurazioni. Se mi dice che veicolo Le serve, Le indico subito la soluzione più adatta.";
-  }
-
-  if (lower.includes("furgon")) {
-    return "Sì, per l’estate possiamo trovare un furgone adatto. Mi dica solo se Le serve per lavoro o per uso personale, e quanto spazio Le serve.";
-  }
-
-  if (lower.includes("auto")) {
-    return "Mi dica marca o budget e Le indico subito le soluzioni più adatte.";
-  }
-
-  return null;
 }
 
 // ── KB EMBEDDING SEARCH ──────────────────────────────────────────────
@@ -99,6 +81,27 @@ async function searchKb(supabase: any, query: string): Promise<string[]> {
   return [];
 }
 
+// ── PREZZI (stessa logica di src/lib/vehiclePricing.js) ──────────────
+// In CMS il canone è l'imponibile "pieno" (anticipo zero): con anticipo si abbassa di anticipo/durata.
+// Privati e Moto vedono il canone IVA inclusa, gli altri segmenti + IVA.
+const VAT_RATE = 0.22;
+const MIN_DISPLAYED_RENT = 50;
+
+function displayedRent(c: { monthly_rent: number; advance_payment?: number; duration_months?: number; segment?: string }) {
+  const base = Number(c.monthly_rent);
+  if (!Number.isFinite(base)) return null;
+  const adv = Number(c.advance_payment) || 0;
+  const duration = Number(c.duration_months);
+  const net = adv > 0 && duration ? Math.max(Math.round(base - adv / duration), MIN_DISPLAYED_RENT) : base;
+  const vatIncluded = c.segment === "Privati" || c.segment === "Moto";
+  return { amount: Math.round(vatIncluded ? net * (1 + VAT_RATE) : net), vat: vatIncluded ? "IVA inclusa" : "+ IVA" };
+}
+
+function vehicleLink(make: string, model: string) {
+  const slug = (s: string) => encodeURIComponent(String(s).trim().toLowerCase().replace(/\s+/g, "-"));
+  return `${SITE_URL}/vehicle/${slug(make)}/${slug(model)}`;
+}
+
 // ── TOOL EXECUTORS ───────────────────────────────────────────────────
 async function getVehicles(supabase: any, args: Record<string, string>) {
   let query = supabase.from("offers").select("make, model, category, fuel_type, segments, promo_expires_at, promo_discount_pct, promo_segment, promo_services").eq("is_active", true);
@@ -106,23 +109,28 @@ async function getVehicles(supabase: any, args: Record<string, string>) {
   if (args.model) query = query.ilike("model", `%${args.model}%`);
   if (args.category) query = query.ilike("category", `%${args.category}%`);
   if (args.fuel) query = query.ilike("fuel_type", `%${args.fuel}%`);
-  const { data: offers } = await query;
-  if (!offers || offers.length === 0) return "Nessun veicolo trovato.";
+  const { data: offers, error } = await query.limit(30);
+  if (error) {
+    console.error("[chat-ai] get_vehicles error:", error.message);
+    return "ERRORE: catalogo non disponibile. Non indicare prezzi né disponibilità.";
+  }
+  if (!offers || offers.length === 0) return "Nessun veicolo trovato nel catalogo con questi criteri.";
 
   const makes = [...new Set(offers.map((o: any) => o.make))];
   const models = [...new Set(offers.map((o: any) => o.model))];
 
   const { data: configs } = await supabase
     .from("offer_configs")
-    .select("make, model, segment, monthly_rent")
+    .select("make, model, segment, monthly_rent, advance_payment, duration_months")
     .in("make", makes)
     .in("model", models)
     .eq("is_active", true);
 
-  const minPrice: Record<string, number> = {};
+  const minPrice: Record<string, { amount: number; vat: string }> = {};
   for (const c of configs || []) {
     const key = `${c.make}|${c.model}`;
-    if (!minPrice[key] || c.monthly_rent < minPrice[key]) minPrice[key] = c.monthly_rent;
+    const p = displayedRent(c);
+    if (p && (!minPrice[key] || p.amount < minPrice[key].amount)) minPrice[key] = p;
   }
 
   return offers.map((o: any) => {
@@ -132,41 +140,56 @@ async function getVehicles(supabase: any, args: Record<string, string>) {
       const discount = o.promo_discount_pct ? ` -${o.promo_discount_pct}%` : "";
       promo = ` [PROMO${discount}]`;
     }
-    return `${o.make} ${o.model} | ${o.category} | ${o.fuel_type} | da €${price ?? "—"}/mese${promo} | ${SITE_URL}/vehicle/${encodeURIComponent(o.make)}/${encodeURIComponent(o.model)}`;
+    const priceText = price ? `da €${price.amount}/mese ${price.vat}` : "prezzo non disponibile";
+    return `${o.make} ${o.model} | ${o.category} | ${o.fuel_type} | ${priceText}${promo} | ${vehicleLink(o.make, o.model)}`;
   }).join("\n");
 }
 
 async function getVehicleDetail(supabase: any, args: Record<string, string>) {
-  const { data: offers } = await supabase
+  // Prima colonne inesistenti (foto_url, gallery, duration, km, advance): la query falliva sempre
+  // e il tool rispondeva "Veicolo non trovato", così Luca non poteva verificare prezzi e configurazioni.
+  const { data: offers, error } = await supabase
     .from("offers")
-    .select("make, model, category, fuel_type, segments, description, promo_expires_at, promo_discount_pct, promo_segment, promo_services, foto_prev, foto_url, gallery")
+    .select("make, model, category, fuel_type, segments, description, promo_expires_at, promo_discount_pct, promo_segment, promo_services")
     .eq("is_active", true)
-    .ilike("make", `%${args.make}%`)
-    .ilike("model", `%${args.model}%`)
-    .limit(1);
+    .ilike("make", `%${args.make ?? ""}%`)
+    .ilike("model", `%${args.model ?? ""}%`)
+    .limit(10);
 
-  if (!offers || offers.length === 0) return "Veicolo non trovato.";
-  const o = offers[0];
+  if (error) {
+    console.error("[chat-ai] get_vehicle_detail error:", error.message);
+    return "ERRORE: dettaglio veicolo non disponibile. Non indicare prezzi né configurazioni.";
+  }
+  if (!offers || offers.length === 0) return "Veicolo non presente nel catalogo attivo.";
+  // "Puma" deve dare la PUMA, non la "PUMA hybrid": si preferisce la corrispondenza esatta.
+  const wanted = String(args.model ?? "").trim().toLowerCase();
+  const o = offers.find((x: any) => String(x.model).trim().toLowerCase() === wanted) ?? offers[0];
+  const others = offers.filter((x: any) => x !== o).map((x: any) => `${x.make} ${x.model}`);
 
-  const { data: configs } = await supabase
+  const { data: configs, error: cfgError } = await supabase
     .from("offer_configs")
-    .select("segment, duration, km, monthly_rent, advance")
+    .select("segment, duration_months, annual_km, advance_payment, monthly_rent")
     .eq("make", o.make)
     .eq("model", o.model)
     .eq("is_active", true)
     .order("monthly_rent");
+  if (cfgError) console.error("[chat-ai] get_vehicle_detail configs error:", cfgError.message);
 
-  let detail = `${o.make} ${o.model}\nCategoria: ${o.category} | Alimentazione: ${o.fuel_type}\nSegmenti: ${o.segments || "—"}`;
-  if (o.description) detail += `\n\nDescrizione: ${o.description}`;
+  let detail = `${o.make} ${o.model}\nCategoria: ${o.category} | Alimentazione: ${o.fuel_type}\nSegmenti: ${o.segments || "—"}\nScheda: ${vehicleLink(o.make, o.model)}`;
+  if (o.description) detail += `\n\nDescrizione: ${String(o.description).slice(0, 600)}`;
   if (o.promo_expires_at && new Date(o.promo_expires_at) > new Date()) {
     detail += `\n\nPROMO: sconto ${o.promo_discount_pct || 0}% fino al ${new Date(o.promo_expires_at).toLocaleDateString("it-IT")}`;
   }
   if (configs && configs.length > 0) {
-    detail += "\n\nConfigurazioni disponibili:";
-    for (const c of configs) {
-      detail += `\n- ${c.segment || "N/A"} | ${c.duration || "—"} mesi | ${c.km || "—"} km | €${c.monthly_rent}/mese${c.advance ? ` (anticipo €${c.advance})` : ""}`;
+    detail += "\n\nConfigurazioni disponibili (canone come mostrato sul sito):";
+    for (const c of configs.slice(0, 15)) {
+      const p = displayedRent(c);
+      detail += `\n- ${c.segment || "N/A"} | ${c.duration_months || "—"} mesi | ${c.annual_km || "—"} km/anno | anticipo €${Number(c.advance_payment) || 0} | ${p ? `€${p.amount}/mese ${p.vat}` : "canone non disponibile"}`;
     }
+  } else {
+    detail += "\n\nNessuna configurazione di prezzo attiva: non indicare cifre, proponi un preventivo.";
   }
+  if (others.length > 0) detail += `\n\nAltre versioni a catalogo: ${others.join(", ")}`;
   return detail;
 }
 
@@ -203,18 +226,50 @@ async function getProduct(supabase: any, args: Record<string, string>) {
   return chunks.map((c: { content: string }) => c.content).join("\n");
 }
 
-async function saveLead(supabase: any, args: Record<string, string>, sessionId: string, messages: any[]) {
+// id del lead creato in questa richiesta: viene restituito al client, che lo rimanda nei messaggi
+// successivi così la cronologia del lead si aggiorna fino alla fine della chat (prima restava ferma
+// al messaggio in cui il cliente lasciava i contatti).
+type RequestCtx = { leadId: string | null; existingLeadId: string | null };
+
+async function saveLead(supabase: any, args: Record<string, string>, sessionId: string, messages: any[], ctx: RequestCtx) {
   if (!args.nome || (!args.email && !args.telefono)) return "Dati insufficienti per salvare il lead.";
-  try {
-    await supabase.from("leads").insert({
-      nome: args.nome, email: args.email || null, telefono: args.telefono || null,
-      tipo_cliente: args.tipo_cliente || null, interesse: args.interesse,
-      chat_history: messages, source: "chat-ai", status: "Nuovo",
-    });
-    return "Lead salvato con successo.";
-  } catch (_) {
+  // Lead già creato in questa chat: non se ne crea un secondo (resterebbe orfano il primo).
+  if (ctx.existingLeadId) return "Lead già salvato in precedenza: i contatti sono già registrati.";
+  const { data, error } = await supabase.from("leads").insert({
+    nome: args.nome, email: args.email || null, telefono: args.telefono || null,
+    tipo_cliente: args.tipo_cliente || null, interesse: args.interesse,
+    chat_history: messages, source: "chat-ai", status: "Nuovo",
+  }).select("id").single();
+  if (error) {
+    console.error("[chat-ai] save_lead error:", error.message);
     return "Errore nel salvataggio del lead.";
   }
+  ctx.leadId = data?.id ?? null;
+  return "Lead salvato con successo.";
+}
+
+async function updateLeadHistory(supabase: any, leadId: string, history: any[]) {
+  // Il lead_id arriva dal browser: si aggiorna solo se la cronologia salvata è l'inizio di questa
+  // conversazione, così un id preso altrove non permette di sovrascrivere la chat di un altro lead.
+  const { data: lead } = await supabase
+    .from("leads")
+    .select("chat_history")
+    .eq("id", leadId)
+    .eq("source", "chat-ai")
+    .maybeSingle();
+  const saved = Array.isArray(lead?.chat_history) ? lead.chat_history : null;
+  const samePrefix = saved && saved.length > 0 && saved.length <= history.length &&
+    saved.every((m: any, i: number) => m?.role === history[i]?.role && m?.content === history[i]?.content);
+  if (!samePrefix) {
+    console.warn("[chat-ai] lead history not updated: conversation mismatch");
+    return;
+  }
+  const { error } = await supabase
+    .from("leads")
+    .update({ chat_history: history, updated_at: new Date().toISOString() })
+    .eq("id", leadId)
+    .eq("source", "chat-ai");
+  if (error) console.error("[chat-ai] lead history update error:", error.message);
 }
 
 async function escalateToOperator(supabase: any, args: Record<string, string>, sessionId: string, messages: any[]) {
@@ -246,13 +301,13 @@ async function escalateToOperator(supabase: any, args: Record<string, string>, s
 }
 
 // ── TOOL HANDLER ──────────────────────────────────────────────────────
-async function handleTool(name: string, input: Record<string, string>, supabase: any, sessionId: string, messages: any[]): Promise<string> {
+async function handleTool(name: string, input: Record<string, string>, supabase: any, sessionId: string, messages: any[], ctx: RequestCtx): Promise<string> {
   switch (name) {
     case "get_vehicles": return await getVehicles(supabase, input);
     case "get_vehicle_detail": return await getVehicleDetail(supabase, input);
     case "get_carrier": return await getCarrier(supabase, input);
     case "get_product": return await getProduct(supabase, input);
-    case "save_lead": return await saveLead(supabase, input, sessionId, messages);
+    case "save_lead": return await saveLead(supabase, input, sessionId, messages, ctx);
     case "escalate_to_operator": return await escalateToOperator(supabase, input, sessionId, messages);
     default: return `Tool sconosciuto: ${name}`;
   }
@@ -281,28 +336,24 @@ Ora: ${now}.
 - Se manca un dato, chiedilo con una domanda corta invece di spiegare troppo.
 - Non scrivere romanzi.
 
-## ESEMPI — COME RISPONDERE
+## ESEMPI — COME RISPONDERE (lo stile, non i dati: le cifre vengono SOLO dai tool)
 Cliente: "Quanto costa la BMW X1?"
-Luca: "Buongiorno! La BMW X1 parte da circa 350 € al mese, dipende dall'anticipo e dai km. Che tipo di contratto sta cercando?"
-
-Cliente: "Mi spieghi Be Free"
-Luca: "Be Free di Leasys è un'offerta interessante: 48 mesi, 60.000 km, restituzione senza penale dal 12° al 24° mese. Include RCA, Kasko, manutenzione. Posso mandarle un preventivo personalizzato?"
+Luca: [chiama get_vehicle_detail con make "BMW", model "X1", poi risponde con il canone restituito dal tool] "La X1 parte da [canone del tool] al mese con [durata/km del tool]. È per privato o partita IVA?"
 
 Cliente: "Ciao, vorrei informazioni"
 Luca: "Ciao! Sono Luca, l'assistente AI di Nolosubito. Che tipo di auto sta cercando? Per privato o per la sua attività?"
-
-Cliente: "Quali sono le franchigie Arval?"
-Luca: "Collisione tra 500 e 1.200 €, furto e incendio 10-15%. Dipende dal modello — su quale vuoi la cifra esatta?"
 
 Cliente: "Sei un robot?"
 Luca: "Sì, sono un assistente AI: non c'è un essere umano dall'altra parte. Posso aiutarla con veicoli, prezzi e condizioni del noleggio a lungo termine. Se serve, posso farla ricontattare da un consulente."
 
 ## REGOLE
-1. Se un cliente chiede di un veicolo, usa get_vehicles per cercarlo. Se chiede dettagli, usa get_vehicle_detail.
+0. VERIFICA SEMPRE. Prezzi, canoni, anticipi, durate, km, disponibilità, promozioni, franchigie e penali li puoi dire SOLO se compaiono nel risultato di un tool o nelle INFO UTILI qui sotto. Se non li hai, non inventarli e non stimarli: chiedi il dato mancante o proponi un preventivo.
+1. Se un cliente chiede di un veicolo, usa get_vehicles per cercarlo. Se chiede prezzo, canone o dettagli di un modello, usa get_vehicle_detail.
 2. Se chiede di carrier (Arval, Leasys, Ayvens, UnipolRental), usa get_carrier.
 3. Se chiede di un prodotto specifico (Be Free, Be Free Biz, Miles), usa get_product.
 4. Se la domanda è semplice o richiede solo un orientamento generale, rispondi tu in modo utile. Usa escalate_to_operator solo se manca un dato davvero critico, se la richiesta è contrattuale/complessa o se rischieresti di dare un'informazione sbagliata.
 5. Quando hai nome + email + telefono, chiama save_lead. Fatto con naturalezza.
+6. Se un tool risponde "ERRORE" o "non presente", dillo con naturalezza e proponi di farsi ricontattare: non riempire il vuoto con cifre.
 
 ## INFO NLT BASE
 Il noleggio a lungo termine include: RCA, Kasko, manutenzione, soccorso H24, bollo, auto sostitutiva. Durate 24-60 mesi, km 10.000-40.000/anno. Per privati serve CUD, per aziende 2 bilanci. Senza requisiti si può proporre un garante.
@@ -401,7 +452,9 @@ function toOpenAITools(claudeTools: typeof CLAUDE_TOOLS) {
 
 // ── LLM CALLERS ───────────────────────────────────────────────────────
 
-async function callClaude(systemPrompt: string, messages: any[], tools: typeof CLAUDE_TOOLS) {
+// toolChoice "none": usato nel follow-up dopo un tool. Prima si passava tools: [] con blocchi
+// tool_use nella cronologia, e Anthropic rispondeva 400 → errore → chat bloccata in escalation.
+async function callClaude(systemPrompt: string, messages: any[], tools: typeof CLAUDE_TOOLS, toolChoice: "auto" | "none" = "auto") {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -411,17 +464,22 @@ async function callClaude(systemPrompt: string, messages: any[], tools: typeof C
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 150,
+      // 150 token troncavano le risposte a metà frase; la brevità la impone il prompt.
+      max_tokens: 500,
       system: systemPrompt,
       messages,
       tools,
+      tool_choice: { type: toolChoice },
     }),
   });
-  if (!res.ok) throw new Error(`Claude ${res.status}`);
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Claude ${res.status}: ${detail.slice(0, 300)}`);
+  }
   return await res.json() as { content: { type: string; text?: string; id?: string; name?: string; input?: Record<string, string> }[] };
 }
 
-async function callGroq(systemPrompt: string, messages: any[], tools?: any[]) {
+async function callGroq(systemPrompt: string, messages: any[], tools?: any[], toolChoice: "auto" | "none" = "auto") {
   const groqMessages = [
     { role: "system", content: systemPrompt },
     ...messages.map((m: any) => {
@@ -432,14 +490,17 @@ async function callGroq(systemPrompt: string, messages: any[], tools?: any[]) {
     }),
   ];
 
+  // gpt-oss è un modello "reasoning": il ragionamento consuma max_tokens. Con 160 token la risposta
+  // usciva troncata o vuota e le chiamate ai tool fallivano (Groq 400 tool_use_failed).
   const body: Record<string, any> = {
     model: "openai/gpt-oss-120b",
-    max_tokens: 160,
+    max_tokens: 1500,
+    reasoning_effort: "low",
     messages: groqMessages,
   };
   if (tools && tools.length > 0) {
     body.tools = tools;
-    body.tool_choice = "auto";
+    body.tool_choice = toolChoice;
   }
 
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -450,7 +511,10 @@ async function callGroq(systemPrompt: string, messages: any[], tools?: any[]) {
     },
     body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(`Groq ${res.status}`);
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Groq ${res.status}: ${detail.slice(0, 300)}`);
+  }
   return await res.json() as {
     choices: {
       finish_reason: string;
@@ -556,114 +620,101 @@ Deno.serve(async (req: Request) => {
       !(m.role === "assistant" && typeof m.content === "string" && m.content.startsWith("Posso ricontattarLa"))
     );
 
-    const quickReply = buildQuickReply(lastUserMessage);
-    if (quickReply) {
-      return new Response(JSON.stringify({
-        reply: [quickReply],
-        offerLink: null,
-        leadSaved: false,
-        escalated: false,
-        session_id: sessionId,
-        response_length: quickReply.length,
-      }), { status: 200, headers: { ...CORS, "Content-Type": "application/json" } });
-    }
+    // Le risposte preconfezionate (buildQuickReply) scattavano su qualsiasi messaggio con "auto" o
+    // "noleggio" e ignoravano la domanda: rimosse, ora risponde sempre il modello con i tool.
+
+    const clientLeadId = typeof body.lead_id === "string" && /^[0-9a-f-]{36}$/i.test(body.lead_id) ? body.lead_id : null;
+    const ctx: RequestCtx = { leadId: null, existingLeadId: clientLeadId };
+    const splitReply = (txt: string) => txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
+    const escalationReply = async (input: Record<string, string>) => {
+      if (isTrainingSession) {
+        replyParts = ["Non ho una risposta certa su questo punto — mi corregga e imparerò per le prossime volte."];
+      } else {
+        await escalateToOperator(supabase, input, sessionId, messages);
+        escalated = true;
+        replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
+      }
+    };
 
     let replyParts: string[] = [];
     let leadSaved = false;
     let escalated = false;
-    let isToolCall = false;
-    let toolName = "";
-    let toolInput: Record<string, string> = {};
 
-    if (complexity === "complex") {
-      // Usa Claude Haiku
+    const runClaude = async () => {
       const claudeRes = await callClaude(systemPrompt, cleanMessages, CLAUDE_TOOLS);
       const content: any[] = claudeRes.content || [];
 
       const escalateTool = content.find((b: any) => b.type === "tool_use" && b.name === "escalate_to_operator");
-      if (escalateTool?.input) {
-        if (isTrainingSession) {
-          replyParts = ["Non ho una risposta certa su questo punto — mi corregga e imparerò per le prossime volte."];
-        } else {
-          await escalateToOperator(supabase, escalateTool.input as Record<string, string>, sessionId, messages);
-          escalated = true;
-          replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
-        }
-      } else {
-        const toolUse = content.find((b: any) => b.type === "tool_use");
-        if (toolUse?.input) {
-          isToolCall = true;
-          toolName = toolUse.name;
-          toolInput = toolUse.input as Record<string, string>;
-          const result = await handleTool(toolUse.name, toolInput, supabase, sessionId, messages);
+      if (escalateTool?.input) return await escalationReply(escalateTool.input as Record<string, string>);
 
-          if (toolUse.name === "save_lead") {
-            leadSaved = result.includes("salvato");
-            // Follow-up con Claude
-            const followRes = await callClaude(systemPrompt, [
-              ...cleanMessages,
-              { role: "assistant", content },
-              { role: "user", content: [{ type: "tool_result", tool_use_id: toolUse.id, content: result }] },
-            ], []);
-            const txt = followRes.content?.find((b: any) => b.type === "text")?.text || "";
-            replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : ["Grazie! Un consulente la contatterà presto."];
-          } else {
-            // Tool → risposta testuale
-            const followRes = await callClaude(systemPrompt, [
-              ...cleanMessages,
-              { role: "assistant", content },
-              { role: "user", content: [{ type: "tool_result", tool_use_id: toolUse.id, content: result }] },
-            ], []);
-            const txt = followRes.content?.find((b: any) => b.type === "text")?.text || "";
-            replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
-          }
-        } else {
-          const textBlock = content.find((b: any) => b.type === "text");
-          const raw = textBlock?.text || "";
-          replyParts = raw ? raw.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
-        }
+      const toolUse = content.find((b: any) => b.type === "tool_use");
+      if (!toolUse?.input) {
+        replyParts = splitReply(content.find((b: any) => b.type === "text")?.text || "");
+        return;
       }
-    } else {
-      const openAiTools = toOpenAITools(CLAUDE_TOOLS);
-      const groqRes = await callGroq(systemPrompt, cleanMessages, openAiTools);
+      const result = await handleTool(toolUse.name, toolUse.input as Record<string, string>, supabase, sessionId, messages, ctx);
+      if (toolUse.name === "save_lead") leadSaved = result.includes("salvato con successo");
+      // Ogni tool_use va chiuso con il suo tool_result; i tool restano dichiarati ma non richiamabili.
+      const toolResults = content
+        .filter((b: any) => b.type === "tool_use")
+        .map((b: any) => ({ type: "tool_result", tool_use_id: b.id, content: b.id === toolUse.id ? result : "Non eseguito." }));
+      const followRes = await callClaude(systemPrompt, [
+        ...cleanMessages,
+        { role: "assistant", content },
+        { role: "user", content: toolResults },
+      ], CLAUDE_TOOLS, "none");
+      const txt = followRes.content?.find((b: any) => b.type === "text")?.text || "";
+      replyParts = splitReply(txt);
+      if (replyParts.length === 0 && toolUse.name === "save_lead" && leadSaved) replyParts = ["Grazie! Un consulente la contatterà presto."];
+    };
+
+    const runGroq = async () => {
+      const groqRes = await callGroq(systemPrompt, cleanMessages, toOpenAITools(CLAUDE_TOOLS));
       const choice = groqRes.choices?.[0];
 
-      if (choice?.finish_reason === "tool_calls" && choice.message?.tool_calls) {
-        const tc = choice.message.tool_calls[0];
-        const name = tc.function.name;
-        let input: Record<string, string> = {};
-        try { input = JSON.parse(tc.function.arguments); } catch { input = {}; }
+      if (!(choice?.finish_reason === "tool_calls" && choice.message?.tool_calls)) {
+        replyParts = splitReply(choice?.message?.content || "");
+        return;
+      }
+      const tc = choice.message.tool_calls[0];
+      const name = tc.function.name;
+      let input: Record<string, string> = {};
+      try { input = JSON.parse(tc.function.arguments); } catch { input = {}; }
 
-        if (name === "escalate_to_operator") {
-          if (isTrainingSession) {
-            replyParts = ["Non ho una risposta certa su questo punto — mi corregga e imparerò per le prossime volte."];
-          } else {
-            await escalateToOperator(supabase, input, sessionId, messages);
-            escalated = true;
-            replyParts = ["Se mi da un minuto le do tutte le info di cui ha bisogno, grazie"];
-          }
-        } else {
-          isToolCall = true;
-          toolName = name;
-          toolInput = input;
-          const result = await handleTool(name, input, supabase, sessionId, messages);
+      if (name === "escalate_to_operator") return await escalationReply(input);
 
-          if (name === "save_lead") {
-            leadSaved = result.includes("salvato");
-            replyParts = ["Grazie! Un consulente la contatterà presto."];
-          } else {
-            const followRes = await callGroq(systemPrompt, [
-              ...cleanMessages,
-              choice.message,
-              { role: "tool", tool_call_id: tc.id, content: result },
-            ]);
-            const txt = followRes.choices?.[0]?.message?.content || "";
-            replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
-          }
-        }
-      } else {
-        const txt = choice?.message?.content || "";
-        replyParts = txt ? txt.split("||").map((s: string) => s.trim()).filter(Boolean) : [];
+      const result = await handleTool(name, input, supabase, sessionId, messages, ctx);
+      if (name === "save_lead") {
+        leadSaved = result.includes("salvato con successo");
+        replyParts = leadSaved
+          ? ["Grazie! Un consulente la contatterà presto."]
+          : ctx.existingLeadId
+            ? ["I suoi contatti li abbiamo già, un consulente la ricontatterà a breve."]
+            : ["Non sono riuscito a registrare i dati: me li può riscrivere, nome e telefono o email?"];
+        return;
+      }
+      const followRes = await callGroq(systemPrompt, [
+        ...cleanMessages,
+        { role: "assistant", content: choice.message.content ?? null, tool_calls: [tc] },
+        { role: "tool", tool_call_id: tc.id, content: result },
+      ], toOpenAITools(CLAUDE_TOOLS), "none");
+      replyParts = splitReply(followRes.choices?.[0]?.message?.content || "");
+    };
+
+    let claudeTried = false;
+    if (complexity === "complex") {
+      await runClaude();
+    } else {
+      // Se Groq fallisce (es. 400 tool_use_failed) si riprova con Claude invece di bloccare la chat.
+      try {
+        await runGroq();
+      } catch (groqErr) {
+        console.error(`[${VERSION}] groq failed, fallback to Claude:`, groqErr instanceof Error ? groqErr.message : String(groqErr));
+        if (!escalated && !leadSaved) { claudeTried = true; await runClaude(); }
+      }
+      if (replyParts.length === 0 && !escalated && !claudeTried) {
+        console.warn(`[${VERSION}] groq empty reply, fallback to Claude`);
+        await runClaude();
       }
     }
 
@@ -679,10 +730,20 @@ Deno.serve(async (req: Request) => {
     );
     const offerLink = fullReply.match(vehicleRegex)?.[1]?.replace(/[.,;!?]+$/, "") || null;
 
+    // Cronologia completa nel lead: quello appena creato o quello già creato in questa chat (lead_id dal client).
+    const leadId = ctx.leadId ?? clientLeadId;
+    if (leadId) {
+      await updateLeadHistory(supabase, leadId, [
+        ...messages,
+        ...replyParts.map((content) => ({ role: "assistant", content })),
+      ]);
+    }
+
     return new Response(JSON.stringify({
       reply: replyParts,
       offerLink,
       leadSaved,
+      lead_id: leadId,
       escalated,
       session_id: sessionId,
       response_length: responseLength,
