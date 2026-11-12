@@ -20,20 +20,20 @@ function loadFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    const { messages, leadSaved, sessionId, savedAt } = JSON.parse(raw);
+    const { messages, leadSaved, leadId, sessionId, savedAt } = JSON.parse(raw);
     if (Date.now() - savedAt > STORAGE_TTL) {
       localStorage.removeItem(STORAGE_KEY);
       return null;
     }
-    return { messages, leadSaved, sessionId };
+    return { messages, leadSaved, leadId, sessionId };
   } catch {
     return null;
   }
 }
 
-function saveToStorage(messages, leadSaved, sessionId) {
+function saveToStorage(messages, leadSaved, leadId, sessionId) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ messages, leadSaved, sessionId, savedAt: Date.now() }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ messages, leadSaved, leadId, sessionId, savedAt: Date.now() }));
   } catch {}
 }
 
@@ -43,6 +43,8 @@ export default function useChat() {
   const [input, setInput] = useState('');
   const [typing, setTyping] = useState(false);
   const [leadSaved, setLeadSaved] = useState(stored?.leadSaved ?? false);
+  // id del lead creato dalla chat: rimandato a chat-ai così la cronologia del lead resta completa.
+  const [leadId, setLeadId] = useState(stored?.leadId ?? null);
   const [escalated, setEscalated] = useState(false);
   const [escalationPhase, setEscalationPhase] = useState(null); // null | 'waiting' | 'ask_wait' | 'ask_contact'
   const [operatorTyping, setOperatorTyping] = useState(false);
@@ -55,8 +57,8 @@ export default function useChat() {
   const takeoverChannelRef = useRef(null);
 
   useEffect(() => {
-    saveToStorage(messages, leadSaved, sessionId);
-  }, [messages, leadSaved, sessionId]);
+    saveToStorage(messages, leadSaved, leadId, sessionId);
+  }, [messages, leadSaved, leadId, sessionId]);
 
   // Fetch iniziale + sottoscrizione Realtime allo stato del toggle AI
   useEffect(() => {
@@ -281,10 +283,13 @@ export default function useChat() {
 
     try {
       const apiMessages = newMessages.slice(1);
-      const data = await chatService.send(apiMessages, sessionId);
+      const data = await chatService.send(apiMessages, sessionId, leadId);
 
       if (data.leadSaved && !leadSaved) {
         setLeadSaved(true);
+      }
+      if (data.lead_id && data.lead_id !== leadId) {
+        setLeadId(data.lead_id);
       }
 
       const serverLen = data.response_length;
@@ -318,7 +323,7 @@ export default function useChat() {
         content: 'Posso ricontattarLa tra poco — mi lascia un recapito? Grazie.',
       }]);
     }
-  }, [messages, typing, escalated, leadSaved, sessionId, aiEnabled, deliverMessages, startEscalationTimer, subscribeToOperatorTakeover, subscribeToEscalationStatus]);
+  }, [messages, typing, escalated, leadSaved, leadId, sessionId, aiEnabled, deliverMessages, startEscalationTimer, subscribeToOperatorTakeover, subscribeToEscalationStatus]);
 
   const reset = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
@@ -335,6 +340,7 @@ export default function useChat() {
     setInput('');
     setTyping(false);
     setLeadSaved(false);
+    setLeadId(null);
     setEscalated(false);
     setEscalationPhase(null);
     setOperatorTyping(false);

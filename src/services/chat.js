@@ -1,14 +1,14 @@
 const EDGE_FUNCTION_URL = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/chat-ai`;
 
 export const chatService = {
-  async send(messages, sessionId) {
+  async send(messages, sessionId, leadId = null) {
     const res = await fetch(EDGE_FUNCTION_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
       },
-      body: JSON.stringify({ messages, session_id: sessionId }),
+      body: JSON.stringify({ messages, session_id: sessionId, lead_id: leadId }),
     });
 
     if (!res.ok) {
