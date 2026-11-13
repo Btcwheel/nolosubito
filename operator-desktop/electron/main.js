@@ -7,7 +7,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isDev = !app.isPackaged;
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://nowoiywrzfnjocvsbmih.supabase.co';
-const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vd29peXd6emZqbm9jdnNibWloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzNzQyNzksImV4cCI6MjA1NDk1MDI3OX0.5ZnQkYgFRXr8W-M0tq6U7SPkJt3Stx7FwKdY4wJx8VY';
+// Chiave pubblica (anon) del progetto: è la stessa già inclusa nell'interfaccia dell'app.
+// La precedente aveva il ref sbagliato (nowoiywzzfj…): Supabase rispondeva 401 e le notifiche
+// in background del processo main non arrivavano mai.
+const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vd29peXdyemZuam9jdnNibWloIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0OTg1MDUsImV4cCI6MjA5MjA3NDUwNX0.0Qr7mgoNnpaxO3l8QKX_g-_LuS7-u2ZelSaCEa9gRIc';
 
 let mainWindow = null;
 let tray = null;

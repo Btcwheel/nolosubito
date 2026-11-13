@@ -3,6 +3,34 @@ import { supabase } from "@/lib/supabase";
 
 const FAVICON_SRC = "/favicon.png";
 
+// Suono breve (due toni) generato al volo: nessun file audio da caricare.
+let audioCtx = null;
+function playChime(high = false) {
+  try {
+    audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = audioCtx;
+    if (ctx.state === "suspended") ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(high ? 880 : 660, ctx.currentTime);
+    osc.frequency.setValueAtTime(high ? 660 : 520, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  } catch { /* audio non disponibile: resta la notifica */ }
+}
+
+function showDesktopNotification(title, body, tag) {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  try {
+    const n = new Notification(title, { body: body?.slice(0, 120) ?? "", icon: "/favicon.png", tag });
+    n.onclick = () => { window.focus(); n.close(); };
+  } catch { /* alcuni browser non permettono new Notification: resta il suono */ }
+}
+
 function isTabActive() {
   return document.visibilityState === "visible" && document.hasFocus();
 }
@@ -30,9 +58,12 @@ function buildBadgedFavicon(callback) {
 }
 
 /**
- * Mostra sulla tab del browser un pallino sul favicon e un contatore nel titolo
- * "(N) ..." quando arrivano nuove chat o nuovi messaggi cliente e la tab non è
- * in primo piano. Si azzera appena l'operatore torna sulla tab.
+ * Avvisi chat per backoffice/admin, attivi su qualsiasi scheda della dashboard:
+ * - nuova chat in attesa (Luca sospeso o escalation): suono + notifica desktop, sempre;
+ * - nuovo messaggio del cliente: suono + notifica solo se la tab non è in primo piano;
+ * - pallino sul favicon e "(N)" nel titolo finché la tab non torna in primo piano.
+ * Prima suono e notifica erano solo nel pannello Escalation: se l'operatore stava su
+ * un'altra scheda (es. Pratiche) le chat dirette arrivavano senza alcun avviso.
  */
 export function useChatTabBadge(enabled) {
   useEffect(() => {
@@ -96,11 +127,25 @@ export function useChatTabBadge(enabled) {
           if (row.status !== "waiting") { waitingIds.delete(row.id); return; }
           if (waitingIds.has(row.id)) return;
           waitingIds.add(row.id);
+          const isDirect = row.source === "direct";
+          playChime(isDirect);
+          showDesktopNotification(
+            isDirect ? "Nuova chat in arrivo" : "Luca ha bisogno di aiuto",
+            row.user_question,
+            `chat-${row.id}`,
+          );
           bump();
         })
       .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "operator_chat_messages" },
-        (payload) => { if (payload.new?.sender === "customer") bump(); })
+        (payload) => {
+          if (payload.new?.sender !== "customer") return;
+          if (!isTabActive()) {
+            playChime();
+            showDesktopNotification("Nuovo messaggio in chat", payload.new?.content, `msg-${payload.new?.session_id}`);
+          }
+          bump();
+        })
       .subscribe();
 
     document.addEventListener("visibilitychange", clear);
