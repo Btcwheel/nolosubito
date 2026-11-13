@@ -16,34 +16,6 @@ const STATUS_LABELS = {
   contact_left: { label: 'Recapito lasciato', color: 'bg-purple-100 text-purple-800' },
 };
 
-function useNotificationSound() {
-  const audioCtx = useRef(null);
-
-  // useCallback con [] garantisce che `play` sia stabile tra i render.
-  // Senza questo, qualsiasi componente che dipende da `play` via useCallback
-  // ricreerebbe la funzione ad ogni render, causando loop infiniti.
-  const play = useCallback(() => {
-    try {
-      if (!audioCtx.current) {
-        audioCtx.current = new AudioContext();
-      }
-      const ctx = audioCtx.current;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.setValueAtTime(660, ctx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-      osc.start(ctx.currentTime);
-      osc.stop(ctx.currentTime + 0.4);
-    } catch {}
-  }, []);
-
-  return play;
-}
-
 function useElapsed(startedAt) {
   const [, setTick] = useState(0);
   const visible = usePageVisible();
@@ -333,8 +305,6 @@ export default function EscalationPanel({ currentUserId }) {
   const [sessions, setSessions] = useState([]);
   const [filter, setFilter] = useState('active');
   const [activeSession, setActiveSession] = useState(null);
-  const playSound = useNotificationSound();
-  const prevCountRef = useRef(0);
 
   const fetchSessions = useCallback(async () => {
     const query = supabase
@@ -348,22 +318,10 @@ export default function EscalationPanel({ currentUserId }) {
 
     const { data } = await query;
     if (data) {
-      const waitingCount = data.filter(s => s.status === 'waiting').length;
-      if (waitingCount > prevCountRef.current) {
-        playSound();
-        if ('Notification' in window && Notification.permission === 'granted') {
-          const firstWaiting = data.find(s => s.status === 'waiting');
-          const isDirect = firstWaiting?.source === 'direct';
-          new Notification(isDirect ? 'Nuova chat in arrivo' : 'Luca ha bisogno di aiuto', {
-            body: firstWaiting?.user_question ?? '',
-            icon: '/favicon.ico',
-          });
-        }
-      }
-      prevCountRef.current = waitingCount;
+      // Suono e notifica desktop sono in useChatTabBadge (attivo su tutte le schede).
       setSessions(data);
     }
-  }, [filter, playSound]);
+  }, [filter]);
 
   useEffect(() => {
     fetchSessions();
