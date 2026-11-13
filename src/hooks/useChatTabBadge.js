@@ -22,20 +22,28 @@ function unlockAudio() {
   if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
 }
 
-function playChime(high = false) {
+// Nuova chat: il doppio tono si ripete 4 volte (circa 3 secondi) per farsi sentire anche da lontano.
+// Nuovo messaggio del cliente: un solo doppio tono, per non disturbare durante la conversazione.
+const CHIME_REPEATS = 4;
+const CHIME_GAP_SECONDS = 0.8;
+
+function playChime(high = false, repeats = 1) {
   try {
     const ctx = getAudioContext();
     if (!ctx || ctx.state !== "running") return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(high ? 880 : 660, ctx.currentTime);
-    osc.frequency.setValueAtTime(high ? 660 : 520, ctx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.4);
+    for (let i = 0; i < repeats; i++) {
+      const t = ctx.currentTime + i * CHIME_GAP_SECONDS;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.setValueAtTime(high ? 880 : 660, t);
+      osc.frequency.setValueAtTime(high ? 660 : 520, t + 0.1);
+      gain.gain.setValueAtTime(0.3, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+      osc.start(t);
+      osc.stop(t + 0.4);
+    }
   } catch { /* audio non disponibile: resta la notifica */ }
 }
 
@@ -144,7 +152,7 @@ export function useChatTabBadge(enabled) {
       if (waitingIds.has(row.id)) return;
       waitingIds.add(row.id);
       const isDirect = row.source === "direct";
-      playChime(isDirect);
+      playChime(isDirect, CHIME_REPEATS);
       showDesktopNotification(
         isDirect ? "Nuova chat in arrivo" : "Luca ha bisogno di aiuto",
         row.user_question,
