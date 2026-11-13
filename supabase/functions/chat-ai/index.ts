@@ -14,7 +14,7 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const VERSION = "chat-ai v3.3-tool-verificati-lead-completo";
+const VERSION = "chat-ai v3.4-iva-per-segmento-no-arval";
 
 // ── ROUTER ──────────────────────────────────────────────────────────
 const COMPLEX_KEYWORDS = [
@@ -74,11 +74,35 @@ async function searchKb(supabase: any, query: string): Promise<string[]> {
       match_threshold: 0.7,
       match_count: 5,
     });
-    if (data) return data.map((r: { content: string }) => r.content);
+    if (data) return filterKbChunks(data.map((r: { content: string }) => r.content));
   } catch (_) {
     // fallback: niente KB
   }
   return [];
+}
+
+// ── CARRIER NON PIÙ PROPOSTI ─────────────────────────────────────────
+// Nolosubito non lavora più con Arval: le informazioni Arval presenti nella base di conoscenza
+// non devono arrivare al modello. Si tolgono i paragrafi e le frasi che parlano di Arval;
+// dagli elenchi ("Arval, Leasys, ...") si toglie solo il nome.
+const EXCLUDED_CARRIERS = ["arval"];
+const ACTIVE_CARRIERS = "Leasys, Ayvens e UnipolRental";
+
+function stripExcludedCarriers(text: string): string {
+  const startsExcluded = (t: string) => EXCLUDED_CARRIERS.some((c) => t.trim().toLowerCase().startsWith(c));
+  return String(text)
+    .split(/\n{2,}/)
+    .filter((para) => !startsExcluded(para))
+    .map((para) => para.split(/(?<=[.!?])\s+/).filter((sentence) => !startsExcluded(sentence)).join(" "))
+    .filter((para) => para.trim().length > 0)
+    .join("\n\n")
+    // Arval citato dentro un elenco: "(Arval, Leasys, ...)" → "(Leasys, ...)", "come Arval o Ayvens" → "come Ayvens".
+    .replace(new RegExp(`\\b(${EXCLUDED_CARRIERS.join("|")})\\b\\s*(,|\\so\\s|\\se\\s)\\s*`, "gi"), "")
+    .replace(new RegExp(`\\s*(,|\\so|\\se)\\s+\\b(${EXCLUDED_CARRIERS.join("|")})\\b`, "gi"), "");
+}
+
+function filterKbChunks(chunks: string[]): string[] {
+  return chunks.map(stripExcludedCarriers).filter((c) => c.trim().length > 0);
 }
 
 // ── PREZZI (stessa logica di src/lib/vehiclePricing.js) ──────────────
@@ -126,11 +150,15 @@ async function getVehicles(supabase: any, args: Record<string, string>) {
     .in("model", models)
     .eq("is_active", true);
 
-  const minPrice: Record<string, { amount: number; vat: string }> = {};
+  // Prezzo di partenza per ogni segmento: un'unica forbice mescolava Privati (IVA inclusa) e P.IVA (+ IVA).
+  const minPrice: Record<string, Record<string, { amount: number; vat: string }>> = {};
   for (const c of configs || []) {
     const key = `${c.make}|${c.model}`;
+    const seg = c.segment || "N/A";
     const p = displayedRent(c);
-    if (p && (!minPrice[key] || p.amount < minPrice[key].amount)) minPrice[key] = p;
+    if (!p) continue;
+    minPrice[key] ??= {};
+    if (!minPrice[key][seg] || p.amount < minPrice[key][seg].amount) minPrice[key][seg] = p;
   }
 
   return offers.map((o: any) => {
@@ -140,7 +168,9 @@ async function getVehicles(supabase: any, args: Record<string, string>) {
       const discount = o.promo_discount_pct ? ` -${o.promo_discount_pct}%` : "";
       promo = ` [PROMO${discount}]`;
     }
-    const priceText = price ? `da €${price.amount}/mese ${price.vat}` : "prezzo non disponibile";
+    const priceText = price
+      ? Object.entries(price).map(([seg, p]) => `${seg} da €${p.amount}/mese ${p.vat}`).join("; ")
+      : "prezzo non disponibile";
     return `${o.make} ${o.model} | ${o.category} | ${o.fuel_type} | ${priceText}${promo} | ${vehicleLink(o.make, o.model)}`;
   }).join("\n");
 }
@@ -181,6 +211,14 @@ async function getVehicleDetail(supabase: any, args: Record<string, string>) {
     detail += `\n\nPROMO: sconto ${o.promo_discount_pct || 0}% fino al ${new Date(o.promo_expires_at).toLocaleDateString("it-IT")}`;
   }
   if (configs && configs.length > 0) {
+    const fromBySegment: Record<string, { amount: number; vat: string }> = {};
+    for (const c of configs) {
+      const p = displayedRent(c);
+      const seg = c.segment || "N/A";
+      if (p && (!fromBySegment[seg] || p.amount < fromBySegment[seg].amount)) fromBySegment[seg] = p;
+    }
+    detail += "\n\nPrezzo di partenza per segmento (non mescolarli):";
+    for (const [seg, p] of Object.entries(fromBySegment)) detail += `\n- ${seg}: da €${p.amount}/mese ${p.vat}`;
     detail += "\n\nConfigurazioni disponibili (canone come mostrato sul sito):";
     for (const c of configs.slice(0, 15)) {
       const p = displayedRent(c);
@@ -195,14 +233,18 @@ async function getVehicleDetail(supabase: any, args: Record<string, string>) {
 
 async function getCarrier(supabase: any, args: Record<string, string>) {
   const name = args.name?.toLowerCase() || "";
+  if (EXCLUDED_CARRIERS.some((c) => name.includes(c))) {
+    return `Nolosubito non propone più offerte ${args.name}. Non dare condizioni, franchigie o penali di questo carrier: proponi le alternative con cui lavoriamo (${ACTIVE_CARRIERS}).`;
+  }
   const { data: chunks } = await supabase
     .from("knowledge_chunks")
     .select("content")
     .textSearch("content", name || "carrier franchigie penali", { type: "websearch" })
     .limit(5);
 
-  if (!chunks || chunks.length === 0) return "Nessuna informazione carrier trovata.";
-  return chunks.map((c: { content: string }) => c.content).join("\n---\n");
+  const texts = filterKbChunks((chunks || []).map((c: { content: string }) => c.content));
+  if (texts.length === 0) return "Nessuna informazione carrier trovata.";
+  return texts.join("\n---\n");
 }
 
 async function getProduct(supabase: any, args: Record<string, string>) {
@@ -222,8 +264,9 @@ async function getProduct(supabase: any, args: Record<string, string>) {
     .order("created_at")
     .limit(20);
 
-  if (!chunks || chunks.length === 0) return "Nessun dettaglio trovato.";
-  return chunks.map((c: { content: string }) => c.content).join("\n");
+  const texts = filterKbChunks((chunks || []).map((c: { content: string }) => c.content));
+  if (texts.length === 0) return "Nessun dettaglio trovato.";
+  return texts.join("\n");
 }
 
 // id del lead creato in questa richiesta: viene restituito al client, che lo rimanda nei messaggi
@@ -349,11 +392,13 @@ Luca: "Sì, sono un assistente AI: non c'è un essere umano dall'altra parte. Po
 ## REGOLE
 0. VERIFICA SEMPRE. Prezzi, canoni, anticipi, durate, km, disponibilità, promozioni, franchigie e penali li puoi dire SOLO se compaiono nel risultato di un tool o nelle INFO UTILI qui sotto. Se non li hai, non inventarli e non stimarli: chiedi il dato mancante o proponi un preventivo.
 1. Se un cliente chiede di un veicolo, usa get_vehicles per cercarlo. Se chiede prezzo, canone o dettagli di un modello, usa get_vehicle_detail.
-2. Se chiede di carrier (Arval, Leasys, Ayvens, UnipolRental), usa get_carrier.
+2. Se chiede di carrier (Leasys, Ayvens, UnipolRental), usa get_carrier.
 3. Se chiede di un prodotto specifico (Be Free, Be Free Biz, Miles), usa get_product.
 4. Se la domanda è semplice o richiede solo un orientamento generale, rispondi tu in modo utile. Usa escalate_to_operator solo se manca un dato davvero critico, se la richiesta è contrattuale/complessa o se rischieresti di dare un'informazione sbagliata.
 5. Quando hai nome + email + telefono, chiama save_lead. Fatto con naturalezza.
 6. Se un tool risponde "ERRORE" o "non presente", dillo con naturalezza e proponi di farsi ricontattare: non riempire il vuoto con cifre.
+7. Ogni canone che citi va detto con il suo segmento e l'IVA come li dà il tool: "per privati … IVA inclusa" oppure "per partita IVA … + IVA". Non unire in un'unica forbice prezzi di segmenti diversi. Se non sai se il cliente è privato o partita IVA, dai il prezzo di partenza di entrambi e chiedilo.
+8. Nolosubito lavora con Leasys, Ayvens e UnipolRental. NON lavora più con Arval: non proporlo, non citarlo come opzione e non dare sue condizioni (franchigie, penali, km). Se il cliente chiede Arval, spiega con garbo che non lo proponiamo più e offri le alternative.
 
 ## INFO NLT BASE
 Il noleggio a lungo termine include: RCA, Kasko, manutenzione, soccorso H24, bollo, auto sostitutiva. Durate 24-60 mesi, km 10.000-40.000/anno. Per privati serve CUD, per aziende 2 bilanci. Senza requisiti si può proporre un garante.
@@ -395,7 +440,7 @@ const CLAUDE_TOOLS = [
     input_schema: {
       type: "object",
       properties: {
-        name: { type: "string", description: "Nome del carrier (Arval, Leasys, Ayvens, UnipolRental)" },
+        name: { type: "string", description: "Nome del carrier (Leasys, Ayvens, UnipolRental)" },
       },
     },
   },
