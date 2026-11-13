@@ -5,6 +5,7 @@ import { praticheService } from "@/services/pratiche";
 import { useAuth } from "@/lib/AuthContext";
 import { canAccess } from "@/lib/permissions";
 import { chatSettingsService } from "@/services/chatSettings";
+import { playChime, unlockAudio, useChatSoundReady } from "@/hooks/useChatTabBadge";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -154,6 +155,7 @@ function OperatorModeToggle({ currentUserId }) {
   });
 
   const isEnabled = settings?.ai_enabled !== false;
+  const soundReady = useChatSoundReady();
 
   const [notifGranted, setNotifGranted] = useState(
     'Notification' in window && Notification.permission === 'granted'
@@ -207,6 +209,17 @@ function OperatorModeToggle({ currentUserId }) {
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
+        {/* Il browser blocca l'audio finché non si clicca nella pagina: qui si vede lo stato e si prova. */}
+        <button
+          type="button"
+          onClick={() => { unlockAudio(); playChime(true, 4); }}
+          className={`text-xs underline underline-offset-2 cursor-pointer ${
+            soundReady ? 'text-muted-foreground hover:text-foreground' : 'text-amber-700 font-medium hover:text-amber-900'
+          }`}
+          title="Riproduce il suono degli avvisi chat"
+        >
+          {soundReady ? 'Prova suono' : 'Attiva suono'}
+        </button>
         {!notifGranted && 'Notification' in window && (
           <button
             type="button"

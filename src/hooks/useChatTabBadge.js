@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
 const FAVICON_SRC = "/favicon.png";
@@ -9,17 +9,45 @@ const FAVICON_SRC = "/favicon.png";
 // Per questo l'AudioContext si sblocca al primo clic/tasto e, se è ancora bloccato, il suono
 // si salta (resta la notifica desktop) invece di arrivare in ritardo.
 let audioCtx = null;
+const AUDIO_STATE_EVENT = "chat-audio-state";
 
 function getAudioContext() {
   const Ctx = window.AudioContext || window.webkitAudioContext;
   if (!Ctx) return null;
-  audioCtx ??= new Ctx();
+  if (!audioCtx) {
+    audioCtx = new Ctx();
+    audioCtx.onstatechange = () => window.dispatchEvent(new Event(AUDIO_STATE_EVENT));
+  }
   return audioCtx;
 }
 
-function unlockAudio() {
+export function unlockAudio() {
   const ctx = getAudioContext();
-  if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
+  if (ctx && ctx.state !== "running") ctx.resume().catch(() => {});
+}
+
+// L'AudioContext può tornare "suspended" anche dopo lo sblocco (Mac in stop, cambio cuffie/casse,
+// Chrome che sospende l'audio della pagina). Se la pagina ha già avuto un clic, Chrome consente di
+// riprenderlo senza un nuovo clic: si prova resume() e si aspetta al massimo 1,5 secondi.
+async function ensureRunning() {
+  const ctx = getAudioContext();
+  if (!ctx) return null;
+  if (ctx.state !== "running") {
+    await Promise.race([ctx.resume().catch(() => {}), new Promise((res) => setTimeout(res, 1500))]);
+  }
+  return ctx.state === "running" ? ctx : null;
+}
+
+/** Stato del suono per l'interfaccia: true se gli avvisi possono suonare. */
+export function useChatSoundReady() {
+  const [ready, setReady] = useState(() => audioCtx?.state === "running");
+  useEffect(() => {
+    const update = () => setReady(audioCtx?.state === "running");
+    update();
+    window.addEventListener(AUDIO_STATE_EVENT, update);
+    return () => window.removeEventListener(AUDIO_STATE_EVENT, update);
+  }, []);
+  return ready;
 }
 
 // Nuova chat: il doppio tono si ripete 4 volte (circa 3 secondi) per farsi sentire anche da lontano.
@@ -27,10 +55,13 @@ function unlockAudio() {
 const CHIME_REPEATS = 4;
 const CHIME_GAP_SECONDS = 0.8;
 
-function playChime(high = false, repeats = 1) {
+export async function playChime(high = false, repeats = 1) {
   try {
-    const ctx = getAudioContext();
-    if (!ctx || ctx.state !== "running") return;
+    const ctx = await ensureRunning();
+    if (!ctx) {
+      console.warn("[chat] suono non riprodotto: audio del browser bloccato (serve un clic nella pagina)");
+      return;
+    }
     for (let i = 0; i < repeats; i++) {
       const t = ctx.currentTime + i * CHIME_GAP_SECONDS;
       const osc = ctx.createOscillator();
@@ -39,7 +70,7 @@ function playChime(high = false, repeats = 1) {
       gain.connect(ctx.destination);
       osc.frequency.setValueAtTime(high ? 880 : 660, t);
       osc.frequency.setValueAtTime(high ? 660 : 520, t + 0.1);
-      gain.gain.setValueAtTime(0.3, t);
+      gain.gain.setValueAtTime(0.6, t);
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
       osc.start(t);
       osc.stop(t + 0.4);
@@ -212,7 +243,7 @@ export function useChatTabBadge(enabled) {
     document.addEventListener("visibilitychange", clear);
     window.addEventListener("focus", clear);
     // Qualsiasi clic o tasto nella dashboard sblocca l'audio per gli avvisi successivi.
-    const unlockEvents = ["pointerdown", "keydown", "touchstart"];
+    const unlockEvents = ["pointerdown", "mousedown", "keydown", "touchstart"];
     unlockEvents.forEach((ev) => window.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
 
     return () => {
