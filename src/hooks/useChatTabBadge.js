@@ -4,12 +4,28 @@ import { supabase } from "@/lib/supabase";
 const FAVICON_SRC = "/favicon.png";
 
 // Suono breve (due toni) generato al volo: nessun file audio da caricare.
+// I browser tengono l'audio bloccato finché l'utente non interagisce con la pagina: un suono
+// avviato prima restava "in pausa" e partiva solo al primo clic (es. aprendo la scheda Chat Luca).
+// Per questo l'AudioContext si sblocca al primo clic/tasto e, se è ancora bloccato, il suono
+// si salta (resta la notifica desktop) invece di arrivare in ritardo.
 let audioCtx = null;
+
+function getAudioContext() {
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return null;
+  audioCtx ??= new Ctx();
+  return audioCtx;
+}
+
+function unlockAudio() {
+  const ctx = getAudioContext();
+  if (ctx && ctx.state === "suspended") ctx.resume().catch(() => {});
+}
+
 function playChime(high = false) {
   try {
-    audioCtx ??= new (window.AudioContext || window.webkitAudioContext)();
-    const ctx = audioCtx;
-    if (ctx.state === "suspended") ctx.resume();
+    const ctx = getAudioContext();
+    if (!ctx || ctx.state !== "running") return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -150,10 +166,14 @@ export function useChatTabBadge(enabled) {
 
     document.addEventListener("visibilitychange", clear);
     window.addEventListener("focus", clear);
+    // Qualsiasi clic o tasto nella dashboard sblocca l'audio per gli avvisi successivi.
+    const unlockEvents = ["pointerdown", "keydown", "touchstart"];
+    unlockEvents.forEach((ev) => window.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
 
     return () => {
       document.removeEventListener("visibilitychange", clear);
       window.removeEventListener("focus", clear);
+      unlockEvents.forEach((ev) => window.removeEventListener(ev, unlockAudio, { capture: true }));
       supabase.removeChannel(channel);
       unread = 0;
       render();
