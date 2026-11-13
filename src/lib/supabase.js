@@ -16,6 +16,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     // dopo background su Mac/Chrome). Nessun impatto funzionale su questo sito.
     lock: (_name, _acquireTimeout, fn) => fn(),
   },
+  // Heartbeat del realtime in un Web Worker: nelle tab in background il browser rallenta i timer
+  // della pagina e il websocket cadeva in silenzio, quindi gli avvisi delle nuove chat non arrivavano.
+  realtime: {
+    worker: true,
+  },
   global: {
     headers: {
       'X-Client-Info': 'fleet-flow-nolo',
