@@ -50,10 +50,19 @@ export function useChatSoundReady() {
   return ready;
 }
 
-// Nuova chat: il doppio tono si ripete 4 volte (circa 3 secondi) per farsi sentire anche da lontano.
+// Nuova chat: il doppio tono si ripete 4 volte, uno ogni 4 secondi (circa 12 secondi in tutto).
+// Si interrompe appena l'operatore torna sulla scheda del backoffice.
 // Nuovo messaggio del cliente: un solo doppio tono, per non disturbare durante la conversazione.
 const CHIME_REPEATS = 4;
-const CHIME_GAP_SECONDS = 0.8;
+const CHIME_GAP_SECONDS = 4;
+let scheduledOscillators = [];
+
+export function stopChime() {
+  for (const osc of scheduledOscillators) {
+    try { osc.stop(); } catch { /* già terminato */ }
+  }
+  scheduledOscillators = [];
+}
 
 export async function playChime(high = false, repeats = 1) {
   try {
@@ -74,6 +83,8 @@ export async function playChime(high = false, repeats = 1) {
       gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
       osc.start(t);
       osc.stop(t + 0.4);
+      scheduledOscillators.push(osc);
+      osc.onended = () => { scheduledOscillators = scheduledOscillators.filter((o) => o !== osc); };
     }
   } catch { /* audio non disponibile: resta la notifica */ }
 }
@@ -174,7 +185,9 @@ export function useChatTabBadge(enabled) {
     }
 
     function clear() {
-      if (unread === 0 || !isTabActive()) return;
+      if (!isTabActive()) return;
+      stopChime();
+      if (unread === 0) return;
       unread = 0;
       render();
     }
