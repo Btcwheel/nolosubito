@@ -39,10 +39,17 @@ function playChime(high = false) {
   } catch { /* audio non disponibile: resta la notifica */ }
 }
 
-function showDesktopNotification(title, body, tag) {
+function showDesktopNotification(title, body, tag, { sticky = false } = {}) {
   if (!("Notification" in window) || Notification.permission !== "granted") return;
   try {
-    const n = new Notification(title, { body: body?.slice(0, 120) ?? "", icon: "/favicon.png", tag });
+    // sticky: la notifica resta a schermo finché l'operatore non la chiude (nuova chat in attesa).
+    const n = new Notification(title, {
+      body: body?.slice(0, 120) ?? "",
+      icon: "/favicon.png",
+      tag,
+      requireInteraction: sticky,
+      silent: false,
+    });
     n.onclick = () => { window.focus(); n.close(); };
   } catch { /* alcuni browser non permettono new Notification: resta il suono */ }
 }
@@ -133,6 +140,45 @@ export function useChatTabBadge(enabled) {
       render();
     }
 
+    function notifyWaiting(row) {
+      if (waitingIds.has(row.id)) return;
+      waitingIds.add(row.id);
+      const isDirect = row.source === "direct";
+      playChime(isDirect);
+      showDesktopNotification(
+        isDirect ? "Nuova chat in arrivo" : "Luca ha bisogno di aiuto",
+        row.user_question,
+        `chat-${row.id}`,
+        { sticky: true },
+      );
+      bump();
+    }
+
+    // Rete di sicurezza: se il websocket è caduto (tab in background, rete, sospensione del Mac)
+    // un evento può andare perso. Ogni 20 secondi si rilegge l'elenco delle chat in attesa e si
+    // avvisa per quelle non ancora viste. Il primo giro registra le chat già presenti senza suonare.
+    let seeded = false;
+    let cancelled = false;
+    async function pollWaiting() {
+      const { data, error } = await supabase
+        .from("escalated_sessions")
+        .select("id, source, status, user_question")
+        .eq("status", "waiting")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      if (cancelled || error || !data) return;
+      const current = new Set(data.map((r) => r.id));
+      for (const id of [...waitingIds]) if (!current.has(id)) waitingIds.delete(id);
+      if (!seeded) {
+        data.forEach((r) => waitingIds.add(r.id));
+        seeded = true;
+        return;
+      }
+      data.forEach(notifyWaiting);
+    }
+    pollWaiting();
+    const pollTimer = setInterval(pollWaiting, 20000);
+
     const channel = supabase
       .channel("tab_badge_chat")
       .on("postgres_changes",
@@ -141,16 +187,7 @@ export function useChatTabBadge(enabled) {
           const row = payload.new;
           if (!row?.id) return;
           if (row.status !== "waiting") { waitingIds.delete(row.id); return; }
-          if (waitingIds.has(row.id)) return;
-          waitingIds.add(row.id);
-          const isDirect = row.source === "direct";
-          playChime(isDirect);
-          showDesktopNotification(
-            isDirect ? "Nuova chat in arrivo" : "Luca ha bisogno di aiuto",
-            row.user_question,
-            `chat-${row.id}`,
-          );
-          bump();
+          notifyWaiting(row);
         })
       .on("postgres_changes",
         { event: "INSERT", schema: "public", table: "operator_chat_messages" },
@@ -171,6 +208,8 @@ export function useChatTabBadge(enabled) {
     unlockEvents.forEach((ev) => window.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
 
     return () => {
+      cancelled = true;
+      clearInterval(pollTimer);
       document.removeEventListener("visibilitychange", clear);
       window.removeEventListener("focus", clear);
       unlockEvents.forEach((ev) => window.removeEventListener(ev, unlockAudio, { capture: true }));
