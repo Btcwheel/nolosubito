@@ -1,5 +1,7 @@
+import { canonicalPath } from './src/lib/canonicalPath';
+
 export const config = {
-  matcher: ['/'],
+  matcher: ['/', '/vehicle/:make/:model'],
 };
 
 const DOMAIN = 'https://nolosubito.it';
@@ -13,9 +15,24 @@ const SOCIAL_UA = /facebookexternalhit|Twitterbot|WhatsApp|LinkedInBot|TelegramB
 export default async function proxy(request: Request): Promise<Response | void> {
   // Solo la home e solo per i crawler social (leggono i tag OG dal CMS, non eseguono JS).
   // Veicoli e news sono pagine Next.js con i propri metadati, e un URL inesistente risponde 404 vero.
+  // Vecchi URL WordPress sulla home (?o= tracciamento, ?s= ricerca): 301 verso la home pulita.
+  // utm_/gclid restano intatti per non perdere l'attribuzione delle campagne.
+  const { pathname, searchParams } = new URL(request.url);
+  if (pathname === '/' && (searchParams.has('o') || searchParams.has('s'))) return Response.redirect(`${DOMAIN}/`, 301);
+
+  // Varianti dei veicoli (/vehicle/KIA/SPORTAGE, /vehicle/BMW/F900 R): 308 verso lo slug della sitemap.
+  // Qui e non nella pagina: la cache ISR non distingue maiuscole e minuscole e creerebbe un loop.
+  if (pathname.startsWith('/vehicle/')) {
+    const canonical = canonicalPath(pathname);
+    try {
+      if (decodeURIComponent(canonical) !== decodeURIComponent(pathname)) return Response.redirect(`${DOMAIN}${canonical}`, 308);
+    } catch { /* URL con % malformato: decide la pagina (404) */ }
+    return;
+  }
+
   const ua = request.headers.get('user-agent') || '';
   if (!SOCIAL_UA.test(ua)) return;
-  if (new URL(request.url).pathname === '/') return handleHomepage();
+  if (pathname === '/') return handleHomepage();
 }
 
 // ── Homepage handler ─────────────────────────────────────────────────────────
