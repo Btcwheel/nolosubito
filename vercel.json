@@ -1,6 +1,21 @@
 {
   "redirects": [
     {
+      "source": "/vehicle/mercedes/classe-a-{/}?",
+      "destination": "https://nolosubito.it/vehicle/mercedes/classe-a",
+      "permanent": true
+    },
+    {
+      "source": "/vehicle/BMW/X1{/}?",
+      "destination": "https://nolosubito.it/vehicle/bmw/x1-sdrive",
+      "permanent": true
+    },
+    {
+      "source": "/vehicle/smart{/}?",
+      "destination": "https://nolosubito.it/vehicle/smart/%231",
+      "permanent": true
+    },
+    {
       "source": "/news/koda-peaq-il-suv-elettrico{/}?",
       "destination": "https://nolosubito.it/news/skoda-peaq-il-suv-elettrico-da-7-posti",
       "permanent": true
@@ -3043,6 +3058,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/shop/:path*{/}?",
+      "destination": "/api/gone"
+    },
     {
       "source": "/prodotto/:path*{/}?",
       "destination": "/api/gone"
