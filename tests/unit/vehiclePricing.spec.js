@@ -41,6 +41,12 @@ test.describe('computeNetMonthlyRent (canone con anticipo)', () => {
     expect(computeNetMonthlyRent(undefined, 1000, 48)).toBeNull();
   });
 
+  test('con canoni manuali (es. Leasys) il canone resta quello inserito', () => {
+    expect(computeNetMonthlyRent(412, 5000, 36, true)).toBe(412);
+    expect(computeNetMonthlyRent('412.4', 0, 36, true)).toBe(412);
+    expect(computeNetMonthlyRent('abc', 5000, 36, true)).toBeNull();
+  });
+
   test('accetta numeri passati come stringa (arrivano dal CMS)', () => {
     expect(computeNetMonthlyRent('300', '4800', '48')).toBe(200);
   });

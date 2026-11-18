@@ -56,9 +56,12 @@ export const MIN_DISPLAYED_RENT = 50;
 // l'anticipo fosse zero. Se la config ha un anticipo, il canone effettivamente
 // mostrato si abbassa di anticipo/durata — calcolato qui una sola volta e
 // riusato ovunque (card, dettaglio, configuratore) per restare coerenti.
-export function computeNetMonthlyRent(baseRent, advance, durationMonths) {
+// Con manualPricing (flag "Canoni manuali" del veicolo, es. Leasys) il canone
+// inserito nel CMS è già quello finale per quell'anticipo: nessun ricalcolo.
+export function computeNetMonthlyRent(baseRent, advance, durationMonths, manualPricing = false) {
   const base = Number(baseRent);
   if (!Number.isFinite(base)) return null;
+  if (manualPricing) return Math.round(base);
   const adv = Number(advance) || 0;
   const duration = Number(durationMonths);
   if (adv <= 0 || !duration) return base;

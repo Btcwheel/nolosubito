@@ -78,7 +78,7 @@ const EMPTY_VEHICLE = {
   make: "", model: "", version: "", category: "", fuel_type: "",
   transmission: "", power_hp: "", co2_emissions: "",
   vehicle_image: "", foto_prev: "", gallery_images: [], description: "", features: [],
-  segments: [], is_active: true, is_featured: false, is_ready_delivery: false,
+  segments: [], is_active: true, is_featured: false, is_ready_delivery: false, manual_pricing: false,
   // SEO
   seo_title: "", seo_description: "", seo_keywords: [],
 };
@@ -335,7 +335,7 @@ function GalleryImagesInput({ images, onChange, make, model }) {
 
 // ── Editor configurazioni prezzi ──────────────────────────────────────────────
 
-function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOptions = KM_OPTIONS, advanceBrackets = ADVANCE_BRACKETS_DEFAULT }) {
+function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOptions = KM_OPTIONS, advanceBrackets = ADVANCE_BRACKETS_DEFAULT, manualPricing = false }) {
   const addRow = () => {
     onChange([...rows, { ...EMPTY_PRICE_ROW, _key: nextKey(), segment: defaultSegment }]);
   };
@@ -466,7 +466,7 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
                 </SelectContent>
               </Select>
 
-              {/* Canone: si inserisce sempre come imponibile pieno (anticipo zero) */}
+              {/* Canone: imponibile pieno ad anticipo zero; con "Canoni manuali" è già il canone finale per quell'anticipo */}
               <div>
                 <div className="relative">
                   <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">€</span>
@@ -479,7 +479,7 @@ function PricingConfigsEditor({ rows, onChange, defaultSegment = "P.IVA", kmOpti
                     className="h-8 text-xs pl-6"
                   />
                 </div>
-                {Number(row.advance_payment) > 0 && row.monthly_rent !== "" && (
+                {!manualPricing && Number(row.advance_payment) > 0 && row.monthly_rent !== "" && (
                   <p className="text-[9px] text-muted-foreground mt-0.5 pl-1">
                     mostrato: €{computeNetMonthlyRent(row.monthly_rent, row.advance_payment, row.duration_months)}/mese
                   </p>
@@ -809,6 +809,7 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
               }
               kmOptions={isMotoCategory(form.category) ? KM_OPTIONS_MOTO : KM_OPTIONS}
               advanceBrackets={ADVANCE_BRACKETS}
+              manualPricing={form.manual_pricing}
             />
           </div>
 
@@ -849,6 +850,20 @@ function VehicleModal({ initial, onSave, onClose, isSaving, CATEGORIES, FUEL_TYP
                   <p className="text-sm font-medium text-foreground">{form.is_ready_delivery ? "Pronta consegna" : "Non pronta consegna"}</p>
                   <p className="text-xs text-muted-foreground">
                     {form.is_ready_delivery ? "Badge 'Pronta Consegna' visibile sulla card" : "Nessun badge pronta consegna"}
+                  </p>
+                </div>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <button type="button" onClick={() => set("manual_pricing", !form.manual_pricing)}
+                  className={`transition-colors ${form.manual_pricing ? "text-violet-500" : "text-muted-foreground"}`}>
+                  {form.manual_pricing ? <ToggleRight className="size-8" /> : <ToggleLeft className="size-8" />}
+                </button>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{form.manual_pricing ? "Canoni manuali (es. Leasys)" : "Canoni calcolati in automatico"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {form.manual_pricing
+                      ? "Inserisci una riga per ogni anticipo con il canone finale: il sito lo mostra così com'è e propone solo gli anticipi inseriti"
+                      : "Il canone con anticipo è ricalcolato in automatico (canone − anticipo / durata)"}
                   </p>
                 </div>
               </label>
@@ -922,12 +937,25 @@ export default function CmsVehicles() {
         is_active:          form.is_active          ?? true,
         is_featured:        form.is_featured        ?? false,
         is_ready_delivery:  form.is_ready_delivery  ?? false,
+        manual_pricing:     form.manual_pricing     ?? false,
       };
       const saved = form.id
         ? await offersService.update(form.id, payload)
         : await offersService.create(payload);
 
-      // 2. Salva ogni configurazione canone in un'unica operazione bulk
+      // 2. Salva ogni configurazione canone in un'unica operazione bulk.
+      // Senza canoni manuali conta una sola riga per segmento/durata/km (l'anticipo
+      // è ricalcolato); con canoni manuali serve una riga per ogni anticipo.
+      const seen = new Set();
+      for (const row of pricingRows.filter(r => r.monthly_rent)) {
+        const key = [row.segment, row.duration_months, row.annual_km, form.manual_pricing ? Number(row.advance_payment ?? 0) : ""].join("|");
+        if (seen.has(key)) {
+          throw new Error(form.manual_pricing
+            ? `Configurazione duplicata: ${row.segment} ${row.duration_months} mesi / ${Number(row.annual_km).toLocaleString("it-IT")} km / anticipo ${formatAdvanceAmount(row.advance_payment)}`
+            : `Configurazione duplicata: ${row.segment} ${row.duration_months} mesi / ${Number(row.annual_km).toLocaleString("it-IT")} km. Per più anticipi sulla stessa combinazione attiva "Canoni manuali".`);
+        }
+        seen.add(key);
+      }
       const configsToUpsert = pricingRows
         .filter(row => row.monthly_rent)
         .map(row => ({
@@ -942,10 +970,10 @@ export default function CmsVehicles() {
           is_featured:     row.is_featured ?? false,
           ...(row.id ? { id: row.id } : {}),
         }));
-      await offersService.bulkUpsertConfigs(configsToUpsert);
-
-      // 3. Elimina configurazioni rimosse in un'unica operazione
+      // Prima elimina le righe rimosse: così una combinazione tolta e reinserita
+      // non va in conflitto con il vincolo unique del database.
       await offersService.bulkDeleteConfigs(deletedConfigIds);
+      await offersService.bulkUpsertConfigs(configsToUpsert);
 
       return saved;
     },
@@ -959,12 +987,15 @@ export default function CmsVehicles() {
       setModal(null);
     },
     onError: (err) => {
-      const isDuplicate = err.message?.includes("offers_make_model_key") || err.code === "23505";
+      const isDuplicate = err.message?.includes("offers_make_model_key");
+      const isDuplicateConfig = err.code === "23505" && err.message?.includes("offer_configs");
       toast({
-        title: isDuplicate ? "Veicolo già esistente" : "Errore",
+        title: isDuplicate ? "Veicolo già esistente" : isDuplicateConfig ? "Configurazione canone duplicata" : "Errore",
         description: isDuplicate
           ? "Esiste già un veicolo con questa marca e modello. Modifica il veicolo esistente invece di crearne uno nuovo."
-          : err.message,
+          : isDuplicateConfig
+            ? "Due righe hanno stessi segmento, durata e km. Più anticipi sulla stessa combinazione saranno possibili dopo l'aggiornamento del database (migrazione 2): per ora tienine una sola."
+            : err.message,
         variant: "destructive",
       });
     },

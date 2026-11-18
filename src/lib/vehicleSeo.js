@@ -49,7 +49,7 @@ export function buildVehicleJsonLd(vehicle, configs, meta) {
   const url = vehicleUrl(vehicle);
   const offers = configs
     .filter((c) => c.is_active !== false)
-    .map((c) => ({ config: c, price: computeNetMonthlyRent(c.monthly_rent, c.advance_payment, c.duration_months) }))
+    .map((c) => ({ config: c, price: computeNetMonthlyRent(c.monthly_rent, c.advance_payment, c.duration_months, vehicle?.manual_pricing) }))
     .filter(({ price }) => price != null && Number.isFinite(Number(price)))
     .map(({ config, price }) => ({
       "@type": "Offer",
