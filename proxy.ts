@@ -1,4 +1,4 @@
-import { canonicalPath } from './src/lib/canonicalPath';
+import { canonicalPath, canonicalSearch } from './src/lib/canonicalPath';
 
 export const config = {
   matcher: ['/', '/vehicle/:make/:model'],
@@ -21,12 +21,15 @@ export default async function proxy(request: Request): Promise<Response | void> 
   if (pathname === '/' && (searchParams.has('o') || searchParams.has('s'))) return Response.redirect(`${DOMAIN}/`, 301);
 
   // Varianti dei veicoli (/vehicle/KIA/SPORTAGE, /vehicle/BMW/F900 R): 308 verso lo slug della sitemap.
+  // Vecchi parametri WooCommerce (?yith_wcan=1&yith_product_brand=…): 301 verso l'URL pulito, utm_/gclid restano.
   // Qui e non nella pagina: la cache ISR non distingue maiuscole e minuscole e creerebbe un loop.
   if (pathname.startsWith('/vehicle/')) {
     const canonical = canonicalPath(pathname);
+    const search = canonicalSearch(searchParams);
     try {
-      if (decodeURIComponent(canonical) !== decodeURIComponent(pathname)) return Response.redirect(`${DOMAIN}${canonical}`, 308);
-    } catch { /* URL con % malformato: decide la pagina (404) */ }
+      if (decodeURIComponent(canonical) !== decodeURIComponent(pathname)) return Response.redirect(`${DOMAIN}${canonical}${search}`, 308);
+    } catch { /* URL con % malformato: decide la pagina (404) */ return; }
+    if (search !== (searchParams.size ? `?${searchParams}` : '')) return Response.redirect(`${DOMAIN}${canonical}${search}`, 301);
     return;
   }
 
