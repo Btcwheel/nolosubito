@@ -42,6 +42,13 @@ export default function CmsOffers() {
     queryFn: () => offersService.list(),
   });
 
+  // Veicoli con "Canoni manuali" (es. Leasys): il canone salvato è già quello finale.
+  const manualKeys = useMemo(
+    () => new Set(vehicles.filter(v => v.manual_pricing).map(v => `${v.make}|${v.model}`)),
+    [vehicles],
+  );
+  const isManual = (c) => manualKeys.has(`${c.make}|${c.model}`);
+
   // ── Table search / filter ────────────────────────────────────────────────
   const [search, setSearch] = useState("");
   const [segmentFilter, setSegmentFilter] = useState("all");
@@ -117,6 +124,13 @@ export default function CmsOffers() {
       qc.invalidateQueries(["cms-offers"]);
       toast({ title: editing === "new" ? "Configurazione creata" : "Configurazione aggiornata" });
       setEditing(null);
+    },
+    onError: (err) => {
+      toast({
+        title: "Errore",
+        description: err?.code === "23505" ? "Esiste già una configurazione con questa combinazione: modifica quella." : err?.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -208,7 +222,9 @@ export default function CmsOffers() {
               <div className="col-span-2">
                 <Label className="text-xs">Canone Mensile (€) * — imponibile pieno, anticipo zero</Label>
                 <Input type="number" value={form.monthly_rent} onChange={e => set("monthly_rent", e.target.value)} className="mt-1" />
-                {Number(form.advance_payment) > 0 && form.monthly_rent !== "" && (
+                {isManual(form) ? (
+                  <p className="text-xs text-violet-600 mt-1">Canoni manuali: il canone è mostrato così com'è, senza ricalcolo dell'anticipo</p>
+                ) : Number(form.advance_payment) > 0 && form.monthly_rent !== "" && (
                   <p className="text-xs text-muted-foreground mt-1">
                     Canone mostrato al cliente: €{computeNetMonthlyRent(form.monthly_rent, form.advance_payment, form.duration_months)}/mese
                   </p>
@@ -352,7 +368,7 @@ export default function CmsOffers() {
                     <td className="px-4 py-3 text-muted-foreground">€{o.advance_payment?.toLocaleString()}</td>
                     <td className="px-4 py-3 font-semibold text-electric">
                       €{o.monthly_rent}/mese
-                      {Number(o.advance_payment) > 0 && (
+                      {Number(o.advance_payment) > 0 && !isManual(o) && (
                         <span className="block text-[10px] font-normal text-muted-foreground">
                           mostrato: €{computeNetMonthlyRent(o.monthly_rent, o.advance_payment, o.duration_months)}/mese
                         </span>

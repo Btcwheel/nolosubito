@@ -209,11 +209,11 @@ export default function VehicleDetail({ make: urlMake, model: urlModel, similarV
     // Preferisci il canone vetrina, fallback al minimo (entrambi al netto dell'anticipo della propria config)
     const featured = filtered.find(c => c.is_featured);
     const netRents = filtered
-      .map(c => computeNetMonthlyRent(c.monthly_rent, c.advance_payment, c.duration_months))
+      .map(c => computeNetMonthlyRent(c.monthly_rent, c.advance_payment, c.duration_months, vehicle.manual_pricing))
       .filter(r => r != null);
     const minNetPrice = netRents.length ? Math.min(...netRents) : null;
     const featuredNetPrice = featured
-      ? computeNetMonthlyRent(featured.monthly_rent, featured.advance_payment, featured.duration_months)
+      ? computeNetMonthlyRent(featured.monthly_rent, featured.advance_payment, featured.duration_months, vehicle.manual_pricing)
       : null;
     return { ...vehicle, monthly_rent: featuredNetPrice ?? minNetPrice };
   }, [vehicle, configs, currentSegment]);

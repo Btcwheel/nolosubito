@@ -176,10 +176,10 @@ export const offersService = {
       if (error) throw error;
       return data;
     } else {
-      // Nuova config — insert con upsert per evitare duplicati
+      // Nuova config — i duplicati li blocca il vincolo unique del DB
       const { data, error } = await supabase
         .from('offer_configs')
-        .upsert(config, { onConflict: 'make,model,segment,duration_months,annual_km' })
+        .insert(config)
         .select();
       if (error) throw error;
       return data?.[0] ?? null;
@@ -200,13 +200,33 @@ export const offersService = {
       if (error) throw error;
     }
 
-    // Righe nuove (senza id): l'upsert agisce sulle chiavi di business per
-    // evitare duplicati se la stessa combinazione viene reinserita.
-    const withoutId = configs.filter(c => !c.id).map(({ id, ...rest }) => rest);
+    // Righe nuove (senza id): se la combinazione esiste già (stessi segmento,
+    // durata, km e anticipo) la si aggiorna per id, altrimenti si inserisce.
+    // Niente upsert con onConflict: la chiave unique cambia (ora include
+    // l'anticipo, per i canoni manuali) e così il codice funziona con entrambe.
+    const comboKey = (c) => [c.make, c.model, c.segment, Number(c.duration_months), Number(c.annual_km), Number(c.advance_payment ?? 0)].join('|');
+    const pending = configs.filter(c => !c.id).map(({ id, ...rest }) => rest);
+    const existingIds = new Map();
+    for (const pair of new Set(pending.map(c => `${c.make}\u0000${c.model}`))) {
+      const [make, model] = pair.split('\u0000');
+      const { data, error } = await supabase
+        .from('offer_configs')
+        .select('id, make, model, segment, duration_months, annual_km, advance_payment')
+        .eq('make', make)
+        .eq('model', model);
+      if (error) throw error;
+      data.forEach(r => existingIds.set(comboKey(r), r.id));
+    }
+    const matched = pending.filter(c => existingIds.has(comboKey(c))).map(c => ({ ...c, id: existingIds.get(comboKey(c)) }));
+    if (matched.length) {
+      const { error } = await supabase.from('offer_configs').upsert(matched);
+      if (error) throw error;
+    }
+    const withoutId = pending.filter(c => !existingIds.has(comboKey(c)));
     if (withoutId.length) {
       const { error } = await supabase
         .from('offer_configs')
-        .upsert(withoutId, { onConflict: 'make,model,segment,duration_months,annual_km' });
+        .insert(withoutId);
       if (error) throw error;
     }
   },
@@ -331,7 +351,7 @@ export const offersService = {
         const baseRent = p ? (p.featured ?? p.min) : null;
         return {
           ...o,
-          monthly_rent:    baseRent != null ? computeNetMonthlyRent(baseRent, p.advance, p.duration) : null,
+          monthly_rent:    baseRent != null ? computeNetMonthlyRent(baseRent, p.advance, p.duration, o.manual_pricing) : null,
           advance_payment: p ? (p.advance ?? 0)      : 0,
           duration_months: p?.duration ?? null,
           annual_km:       p?.km       ?? null,

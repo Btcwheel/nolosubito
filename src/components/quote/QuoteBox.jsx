@@ -172,15 +172,27 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
     [activeConfigs, duration],
   );
 
-  const exactConfig = useMemo(
-    () => activeConfigs.find(c => c.duration_months === duration && c.annual_km === annualKm) ?? null,
+  // "Canoni manuali" (es. Leasys): una riga per anticipo con il canone finale,
+  // si propongono solo gli anticipi inseriti e nessun ricalcolo.
+  const manualPricing = !!currentVehicle?.manual_pricing;
+
+  const availableAdvances = useMemo(
+    () => new Set(activeConfigs
+      .filter(c => c.duration_months === duration && c.annual_km === annualKm)
+      .map(c => Number(c.advance_payment ?? 0))),
     [activeConfigs, duration, annualKm],
+  );
+
+  const exactConfig = useMemo(
+    () => activeConfigs.find(c => c.duration_months === duration && c.annual_km === annualKm
+      && (!manualPricing || Number(c.advance_payment ?? 0) === advance)) ?? null,
+    [activeConfigs, duration, annualKm, advance, manualPricing],
   );
 
   const computedRent = useMemo(() => {
     if (!exactConfig) return null;
-    return computeNetMonthlyRent(exactConfig.monthly_rent, advance, duration);
-  }, [exactConfig, advance, duration]);
+    return computeNetMonthlyRent(exactConfig.monthly_rent, advance, duration, manualPricing);
+  }, [exactConfig, advance, duration, manualPricing]);
 
   const displayRent = computedRent
     ? formatDisplayedRent(computedRent, {
@@ -204,6 +216,12 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
       if (sorted[0]) setDuration(sorted[0]);
     }
   }, [vehicleConfigs, availableDurations, duration]);
+
+  useEffect(() => {
+    if (manualPricing && availableAdvances.size && !availableAdvances.has(advance)) {
+      setAdvance(Math.min(...availableAdvances));
+    }
+  }, [manualPricing, availableAdvances, advance]);
 
   useEffect(() => { if (fixedMake) setSelectedMake(fixedMake); }, [fixedMake]);
   useEffect(() => { if (fixedModel) setSelectedModel(fixedModel); }, [fixedModel]);
@@ -269,7 +287,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
     ? `/vehicle/${encodeURIComponent(selectedMake)}/${encodeURIComponent(selectedModel)}`
     : null;
 
-  const isModifiedAdvance = exactConfig && advance !== Number(exactConfig.advance_payment ?? 0);
+  const isModifiedAdvance = exactConfig && !manualPricing && advance !== Number(exactConfig.advance_payment ?? 0);
   const isListPrice = exactConfig && !isModifiedAdvance;
 
   const ctaClass = "w-full h-13 font-bold rounded-xl text-base py-3.5 cursor-pointer transition-all duration-200";
@@ -424,7 +442,7 @@ export default function QuoteBox({ fixedMake, fixedModel, segment, onSegmentChan
           </div>
           <div className="grid grid-cols-3 gap-2">
             {ADVANCE_BRACKETS.map(a => (
-              <OptionButton key={a} selected={advance === a} onClick={() => setAdvance(a)}>
+              <OptionButton key={a} selected={advance === a} available={!manualPricing || availableAdvances.has(a)} onClick={() => setAdvance(a)}>
                 {formatAdvanceAmount(a)}
               </OptionButton>
             ))}
