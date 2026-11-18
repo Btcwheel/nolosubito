@@ -988,11 +988,14 @@ export default function CmsVehicles() {
     },
     onError: (err) => {
       const isDuplicate = err.message?.includes("offers_make_model_key");
+      const isDuplicateConfig = err.code === "23505" && err.message?.includes("offer_configs");
       toast({
-        title: isDuplicate ? "Veicolo già esistente" : "Errore",
+        title: isDuplicate ? "Veicolo già esistente" : isDuplicateConfig ? "Configurazione canone duplicata" : "Errore",
         description: isDuplicate
           ? "Esiste già un veicolo con questa marca e modello. Modifica il veicolo esistente invece di crearne uno nuovo."
-          : err.message,
+          : isDuplicateConfig
+            ? "Due righe hanno stessi segmento, durata e km. Più anticipi sulla stessa combinazione saranno possibili dopo l'aggiornamento del database (migrazione 2): per ora tienine una sola."
+            : err.message,
         variant: "destructive",
       });
     },
