@@ -9,3 +9,12 @@ export function canonicalPath(pathname) {
   }
   return path;
 }
+
+// Le pagine veicolo non leggono parametri: quelli in più sono vecchi filtri WooCommerce (yith_wcan, filter_*, product_cat…).
+// Restano solo quelli di tracciamento, per non perdere l'attribuzione delle campagne.
+const TRACKING = /^(utm_.+|gclid|gbraid|wbraid|fbclid|msclkid)$/i;
+export function canonicalSearch(searchParams) {
+  const kept = new URLSearchParams([...searchParams].filter(([k]) => TRACKING.test(k)));
+  const s = kept.toString();
+  return s ? `?${s}` : '';
+}
