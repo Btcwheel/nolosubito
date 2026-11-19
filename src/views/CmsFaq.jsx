@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Pencil, Trash2, X, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Loader2, Search } from "lucide-react";
 
 const ADMIN_KEY = ["faqs-admin"];
 const NO_VALUE = ["home", "vehicles", "ready_delivery"];
@@ -135,7 +135,7 @@ function FaqForm({ initial, vehicles, onClose }) {
         <div>
           <label className="text-sm font-medium block mb-1.5">Ordine</label>
           <Input type="number" className="w-24" value={form.sort_order} onChange={e => set({ sort_order: e.target.value })} />
-          <p className="text-xs text-muted-foreground mt-1.5">Numero più basso = più in alto</p>
+          <p className="text-xs text-muted-foreground mt-1.5">Numero più basso = più in alto. Sulle schede veicolo le 3 FAQ automatiche occupano le posizioni 1, 2 e 3.</p>
         </div>
         <label className="flex items-center gap-2.5 text-sm font-medium cursor-pointer">
           <Switch checked={form.is_published} onCheckedChange={v => set({ is_published: v })} />
@@ -174,7 +174,13 @@ export default function CmsFaq() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [editing, setEditing] = useState(null);
+  const [search, setSearch] = useState("");
   const { data: faqs = [], isLoading } = useQuery({ queryKey: ADMIN_KEY, queryFn: () => faqsService.listAll() });
+  const q = search.trim().toLowerCase();
+  const shown = q
+    ? faqs.filter(f => [f.question, f.answer, ...(f.faq_targets ?? []).map(t => t.target_value)]
+      .some(s => s?.toLowerCase().replace("|", " ").includes(q)))
+    : faqs;
   const { data: vehicles = [] } = useHomeCatalog();
 
   const remove = useMutation({
@@ -208,13 +214,22 @@ export default function CmsFaq() {
         </Button>
       </div>
 
+      {faqs.length > 0 && (
+        <div className="relative mb-2">
+          <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Cerca per domanda, risposta o modello…" aria-label="Cerca FAQ" className="pl-9" />
+        </div>
+      )}
+
       {isLoading ? (
         <div className="text-sm text-muted-foreground py-4">Caricamento…</div>
       ) : faqs.length === 0 ? (
         <div className="text-sm text-muted-foreground py-4">Nessuna FAQ. Creane una con “Nuova FAQ”.</div>
+      ) : shown.length === 0 ? (
+        <div className="text-sm text-muted-foreground py-4">Nessuna FAQ trovata per “{search.trim()}”.</div>
       ) : (
         <div>
-          {faqs.map(faq => (
+          {shown.map(faq => (
             <div key={faq.id} className="flex items-center gap-3 py-3 border-b last:border-0 group">
               <span className="text-xs text-muted-foreground w-8 text-right tabular-nums">{faq.sort_order}</span>
               <div className="min-w-0 flex-1">
