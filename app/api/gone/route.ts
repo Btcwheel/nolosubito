@@ -1,6 +1,6 @@
 // Risponde 410 Gone agli URL del vecchio sito WordPress che non hanno una pagina equivalente.
 // Un redirect verso /offers o /news verrebbe classificato da Google come soft 404.
-// Raggiunta dai rewrite di vercel.json generati da scripts/generate-legacy-redirects.mjs.
+// Raggiunta dai rewrite di routes.json generati da scripts/generate-legacy-redirects.mjs.
 const HTML = `<!DOCTYPE html>
 <html lang="it">
 <head>

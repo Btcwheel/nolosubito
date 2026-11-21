@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Genera la sezione "redirects" di vercel.json per gli URL del vecchio sito WordPress
+ * Genera la sezione "redirects" di routes.json per gli URL del vecchio sito WordPress
  * (www.nolosubito.it) → pagine del sito attuale. Possiede l'intero array "redirects":
  * va rieseguito (idempotente) quando cambiano post o offerte, non modificato a mano.
  * Gli URL vecchi senza pagina equivalente NON vanno in redirect verso /offers o /news (Google li tratta come
@@ -9,7 +9,7 @@
  *
  * Uso (dry-run: stampa il report, non scrive):
  *   node --env-file=.env scripts/generate-legacy-redirects.mjs --csv-dir "<cartella con Pagine.csv e Tabella.csv>"
- * Scrittura di vercel.json:
+ * Scrittura di routes.json:
  *   ... --write
  *
  * Input: export di Search Console (Pagine.csv = pagine con traffico, Tabella.csv = 404), usati solo
@@ -109,7 +109,7 @@ if (CSV_DIR) {
 const oldProducts = [...new Set(csvRows.filter((r) => r.path.startsWith('/prodotto/')).map((r) => r.path.split('/')[2]))];
 
 // ── Regole (l'ordine conta: vince la prima che combacia) ─────────────────────
-// {/}? = slash finale opzionale: gli URL di WordPress finiscono quasi tutti con "/", e in vercel.json
+// {/}? = slash finale opzionale: gli URL di WordPress finiscono quasi tutti con "/", e in routes.json
 // "/a/b" NON combacia con "/a/b/" (verificato su preview).
 // Destinazioni assolute: così anche un URL www.* arriva a destinazione con un solo redirect (altrimenti
 // prima passa dalla regola www → apex e poi da quella del contenuto: 2 salti).
@@ -265,11 +265,11 @@ if (csvRows.length) {
 }
 
 if (WRITE) {
-  const file = path.resolve('vercel.json');
+  const file = path.resolve('routes.json');
   const cfg = JSON.parse(fs.readFileSync(file, 'utf8'));
   const rest = Object.fromEntries(Object.entries(cfg).filter(([k]) => k !== 'redirects'));
   rest.rewrites = [...gone, ...(rest.rewrites || []).filter((w) => w.destination !== '/api/gone')];
   const out = { redirects: rules, ...rest };
   fs.writeFileSync(file, JSON.stringify(out, null, 2) + '\n');
-  console.log(`\nvercel.json aggiornato (${rules.length} redirect, ${gone.length} regole 410).`);
-} else console.log('\nDry-run: vercel.json non modificato (usa --write).');
+  console.log(`\nroutes.json aggiornato (${rules.length} redirect, ${gone.length} regole 410).`);
+} else console.log('\nDry-run: routes.json non modificato (usa --write).');
