@@ -73,8 +73,8 @@ export default function RootLayout({ children }) {
     <html lang="it" className={`${inter.variable} ${spaceGrotesk.variable}`}>
       <head>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSON_LD) }} />
-        <link rel="preconnect" href="https://nowoiywrzfnjocvsbmih.supabase.co" crossOrigin="" />
-        <link rel="dns-prefetch" href="https://nowoiywrzfnjocvsbmih.supabase.co" />
+        <link rel="preconnect" href={process.env.NEXT_PUBLIC_SUPABASE_URL} crossOrigin="" />
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_SUPABASE_URL} />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
         <Script id="consent-mode" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: CONSENT_SCRIPT }} />
       </head>
