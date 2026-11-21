@@ -51,6 +51,19 @@ export function selectVehicleFaqs(faqs, vehicle, limit = 6) {
     .map(x => x.f);
 }
 
+const normQ = (q) => norm(q).replace(/[?\s]+$/, "");
+
+// Scheda veicolo: le FAQ automatiche prendono le posizioni 1, 2, 3…; quelle del CMS
+// si ordinano con il loro "Ordine" (a parità vince il CMS) e, se hanno la stessa
+// domanda di una automatica, la sostituiscono.
+export function mergeVehicleFaqs(generated, cms) {
+  const cmsQuestions = new Set(cms.map(f => normQ(f.question)));
+  const gen = generated
+    .map((f, i) => ({ ...f, sort_order: i + 1 }))
+    .filter(f => !cmsQuestions.has(normQ(f.question)));
+  return [...cms, ...gen].sort((a, b) => a.sort_order - b.sort_order);
+}
+
 export function selectHomeFaqs(faqs, limit = 8) {
   return faqs
     .filter(f => (f.faq_targets ?? []).some(t => t.target_type === "home"))

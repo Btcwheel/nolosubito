@@ -8,7 +8,6 @@ import QuoteBox from "../components/quote/QuoteBox";
 import LeadForm from "../components/lead/LeadForm";
 import VehicleCard from "../components/vehicles/VehicleCard";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   ChevronLeft, ChevronRight, Fuel, Gauge, Zap, Leaf, ShieldCheck,
   Wrench, FileText, Lock, TrendingDown, CheckCircle2, ArrowDown, Car,
@@ -24,7 +23,7 @@ import { useCountdown } from "@/hooks/useCountdown";
 import { useNow } from "@/lib/NowContext";
 import FaqSection from "../components/faq/FaqSection";
 import { useFaqs } from "@/hooks/useFaqs";
-import { selectVehicleFaqs } from "@/lib/faqMatch";
+import { selectVehicleFaqs, mergeVehicleFaqs } from "@/lib/faqMatch";
 import { buildModelFaqs } from "@/lib/vehicleFaq";
 
 const MOCK_GALLERY_EXTRAS = [
@@ -232,8 +231,8 @@ export default function VehicleDetail({ make: urlMake, model: urlModel, similarV
       vatIncluded: isVatIncludedForDisplay(pricingOpts),
       segment: currentSegment,
     });
-    // Al massimo 6 voci: prima quelle composte sul modello, poi le più specifiche del CMS
-    return [...generated.slice(0, 3), ...selectVehicleFaqs(faqs, bestOffer, 3)];
+    // Al massimo 6 voci: 3 composte sul modello + le 3 più specifiche del CMS, ordinate per "Ordine"
+    return mergeVehicleFaqs(generated.slice(0, 3), selectVehicleFaqs(faqs, bestOffer, 3));
   }, [bestOffer, configs, currentSegment, decodedMake, decodedModel, faqs]);
 
   const handleRequestQuote = (config) => {
